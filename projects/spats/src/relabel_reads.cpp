@@ -1,0 +1,146 @@
+/*
+ *  relabel_reads.cpp
+ *  spats
+ *
+ *  Created by Cole Trapnell on 4/15/10.
+ *  Copyright 2010 Cole Trapnell. All rights reserved.
+ *
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#else
+#define PACKAGE_VERSION "INTERNAL"
+#endif
+
+#include <stdio.h>
+#include <cassert>
+#include <vector>
+#include <cstring>
+#include <cstdlib>
+
+#include "common.h"
+#include "reads.h"
+#include "tokenize.h"
+#include "qual.h"
+
+bool fastq_db = true;
+
+void format_qual_string(const string& orig_qual_str,
+						string& out_qual_str)
+{
+	out_qual_str = orig_qual_str;
+	for (size_t i = 0; i < orig_qual_str.size(); ++i)
+	{
+		out_qual_str[i] = charToPhred33(orig_qual_str[i], 
+										solexa_quals, 
+										phred64_quals);
+	}
+}
+
+
+void relabel_reads(vector<FILE*> reads_files)
+{	
+	int num_reads_chucked = 0, num_reads = 0;
+	int next_id = 0;
+	for (size_t fi = 0; fi < reads_files.size(); ++fi)
+	{
+		Read read;
+		FILE* fa = reads_files[fi];
+		while(!feof(fa))
+		{
+			read.clear();
+			
+			// Get the next read from the file
+			if (reads_format == FASTA)
+			{
+				if (!next_fasta_record(fa, read.name, read.seq))
+					break;
+			}
+			else if (reads_format == FASTQ)
+			{
+				string orig_qual;
+				if (!next_fastq_record(fa, read.name, read.seq, read.alt_name, orig_qual))
+					break;
+				format_qual_string(orig_qual, read.qual);
+			}
+			
+			++num_reads;
+			++next_id;
+			
+            if (!fastq_db)
+            {
+                if (reads_format == FASTA)
+                    printf(">%s\n%s\n", read.name.c_str(), read.seq.c_str());
+                else if (reads_format == FASTQ)
+                    printf("@%s\n%s\n+\n%s\n", 
+                           read.name.c_str(), read.seq.c_str(),read.qual.c_str());
+            }
+            else
+            {
+                if (reads_format == FASTA)
+                {
+                    printf("@%d\n%s\n+%s\n%s\n",
+                           next_id,
+                           read.seq.c_str(),
+                           read.name.c_str(),
+                           string(read.seq.length(), 'I').c_str());
+                }
+                else if (reads_format == FASTQ)
+                {
+                    printf("@%d\n%s\n+%s\n%s\n",
+                           next_id,
+                           read.seq.c_str(),
+                           read.name.c_str(),
+                           read.qual.c_str());
+                }
+                
+            }
+		}
+	}
+
+}
+
+void print_usage()
+{
+    fprintf(stderr, "Usage:   relabel_reads <reads1.fa/fq,...,readsN.fa/fq>\n");
+}
+
+
+int main(int argc, char *argv[])
+{
+	//fprintf(stderr, "relabel_reads v%s\n", PACKAGE_VERSION); 
+	//fprintf(stderr, "---------------------------\n");
+	
+	int parse_ret = parse_options(argc, argv, print_usage);
+	if (parse_ret)
+		return parse_ret;
+	
+	if(optind >= argc)
+    {
+        print_usage();
+        return 1;
+    }
+    
+    string reads_file_list = argv[optind++];
+    
+	vector<string> reads_file_names;
+    vector<FILE*> reads_files;
+    tokenize(reads_file_list, ",",reads_file_names);
+    for (size_t i = 0; i < reads_file_names.size(); ++i)
+    {
+        FILE* seg_file = fopen(reads_file_names[i].c_str(), "r");
+        if (seg_file == NULL)
+        {
+            fprintf(stderr, "Error: cannot open reads file %s for reading\n",
+                    reads_file_names[i].c_str());
+            exit(1);
+        }
+        reads_files.push_back(seg_file);
+    }
+	
+	// Only print to standard out the good reads
+	relabel_reads(reads_files);
+	
+	return 0;
+}
