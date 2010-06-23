@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Spats :: Center for Bioinformatics and Computational Biology</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="css/style.css" media="screen" />
+</head>
+<body>
+<div id="wrap">
+  <div id="top">
+    <div class="lefts">
+    <table width="100%" cellpadding="2">
+      <tr><td>
+        <a href="./index.html"><h1>Spats</h1></a>
+        <h2>Analysis of SHAPE-Seq experiments</h2>
+      </td><td align="right" valign="middle">
+        <h1><a href="http://www.cbcb.umd.edu/"><img border=0 src="images/cbcblogo.gif"></img></a>&nbsp;&nbsp;</h1>
+      </td></tr>
+    </table>
+    </div>
+  </div>
+  <div id="subheader">
+  <table width="100%"><tr>
+  <td>
+  		<strong>Please Note</strong> If you have questions 
+		  about how to use Spats or would like more information about 
+		  the software, please email <a href="mailto:cole@cs.umd.edu">Cole Trapnell</a>.
+	</td><td align=right valign=middle>
+  </td></tr>
+  </table>
+  </div>
+  <div id="main">
+    <div id="rightside">
+		<h2>Site Map</h2>
+		  <div class="box">
+		    <ul>
+		      <li><a href="manual.html">Manual</a></li>
+		    </ul>
+		  </div>
+		
+		  <h2><u>News and updates</u></h2>
+		  <div class="box">
+		    <ul>
+		      <table width="100%">
+				<tr><td>New releases and related tools will be announced through the <a href="https://lists.sourceforge.net/lists/listinfo/bowtie-bio-announce"><b>mailing list</b></a></td></tr>
+			  </table>
+		    </ul>
+		  </div>
+		
+		  <a href="./downloads"><h2><u>Releases</u></h2></a>
+		  <div class="box">
+		    <ul>
+		      <table width="100%">
+			  </table>
+		    </ul>
+		  </div>
+		
+		  <h2>Related Tools</h2>
+		  <div class="box">
+		    <ul>
+		      <li><a href="http://tophat.cbcb.umd.edu/">TopHat</a>: Alignment of short RNA-Seq reads</li>
+		      <li><a href="http://bowtie.cbcb.umd.edu">Bowtie</a>: Ultrafast short read alignment</li>
+		    </ul>
+		  </div>        
+          
+    </div> <!-- End of "rightside" -->
+    <div id="leftside">
+  	  <table><tr><td cellpadding=7>
+  	  <h1>Manual</h1><br/>
+      <div id="toc">
+  	    <ul>
+  	    <li><a href="#prer">Prerequisites</a></li>
+  	    <li><a href="#cufflinks">Running Spats</a></li>
+		<ul>
+  	      <li><a href="#cufflinks_input">Input Files</a></li>
+  	  	  <li><a href="#cufflinks_output">Output Files</a></li>
+ 	    </ul>
+  	    </ul><br/>
+  	  </div>
+  	  
+	  <h2 id="prer">Prerequisites</h2><br/>
+	  <p>
+	  Spats runs on intel-based computers running Linux or Mac OS X and 
+	  that have GCC 4.0 or greater installed.  You can install pre-compiled 
+	  binaries or build Spats from the source code.
+	  If you wish to build Spats yourself, you will need to install the
+	  <a href="http://www.boost.org">Boost C++ libraries</a>.   
+  	  </p>
+      
+	  <p>
+	  The pipeline will will align fragments to target cRNA sequences using 
+	  <a href="http://bowtie.cbcb.umd.edu">Bowtie</a>.  Installing Bowtie is 
+	  required, and instructions for doing so can be found 
+	  <a href="http://bowtie-bio.sourceforge.net/tutorial.shtml">here</a>.   
+  	  </p>
+
+	  <p>
+	  Spats can automatically trim adapters from your reads, by using the 
+	  <a href="http://hannonlab.cshl.edu/fastx_toolkit/index.html">FASTX</a> toolkit, 
+	  developed in the Hannon Lab at CSHL.  Installation of FASTX is required,
+	  and instructions can be found <a href="http://hannonlab.cshl.edu/fastx_toolkit/download.html">here</a>.
+      </p><br/>
+ 	  <br/>
+  	  <h2 id="spats">Running Spats</h2><br/>
+		Run <tt>spats</tt> from the command line as follows:
+	  <blockquote>
+ 	   Usage: spats [options]* &lt;rna_targets.fa&gt; &lt;treated_handle&gt; &lt;untreated_handle&gt;  &lt;reads1_1[,...,readsN_1]&gt; &lt;reads1_1[,...,readsN_1]&gt;
+	  </blockquote>
+	  <p>
+	  The following is a detailed description of the options used to control
+	  Spats:
+	  </p><br/>
+
+	  <table CELLSPACING=15>
+	  <tr><td VALIGN=top>
+	  <b>Arguments:</b>
+	  </td><td VALIGN=top>
+	  </td></tr>
+	  <tr><td VALIGN=top nowrap>
+	  <tt>&lt;rna_targets.fa&gt;</tt>
+	  </td><td VALIGN=top>
+	  A FASTA file containing the target RNA sequences in the SHAPE experiment 
+	  (excluding reactivty handles, Spats will add these automatically)
+	  </td></tr>
+
+	  <tr><td VALIGN=top nowrap>
+	  <tt>&lt;treated_handle&gt;</tt>
+	  </td><td VALIGN=top>
+	  A nucleotide sequence with which all targets in the <b>treated</b> sample are tagged.
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>&lt;untreated_handle&gt;</tt>
+	  </td><td VALIGN=top>
+	  A nucleotide sequence with which all targets in the <b>untreated</b> sample are tagged.
+	  </td></tr>
+
+	  <tr><td VALIGN=top nowrap>
+	  <tt>&lt;reads1_1[,...,readsN_1]&gt;</tt>
+	  </td><td VALIGN=top>
+	  A comma separated list of FASTQ files.  These must all be "_1" reads from a paired-end Illumina run (e.g. s_1_1_sequence.txt,s_2_1_sequence.txt)
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>&lt;reads1_2[,...,readsN_2]&gt;</tt>
+	  </td><td VALIGN=top>
+	  A comma separated list of FASTQ files.  These must all be "_2" reads 
+	  from a paired-end Illumina run (e.g. s_1_2_sequence.txt,s_2_2_sequence.txt).  
+	  <b>NOTE</b>: There must be one file here for each file in the _1 list, 
+	  and the files must appear in the same order.
+	  </td></tr>
+
+	  <tr><td VALIGN=top>
+	  <b>Options:</b>
+	  </td><td VALIGN=top>
+	  </td></tr>
+	  </table><br/>
+	
+	  <h2 id="spats_input">Spats Input</h2><br/>
+
+      <br/>
+  <h2 id="spats_output">Spats Output</h2><br/>
+	
+		
+	</div>
+  </div>
+  <div id="footer">
+  	<table width="100%" cellspacing=15><tr><td>
+
+    </td><td align=right>
+    Administrator: <a href="mailto:cole@cs.umd.edu">Cole Trapnell</a>. Design by <a href="http://www.free-css-templates.com" title="Design by David Herreman">David Herreman</a>
+    </td></tr></table>
+  </div>
+</div>
+
+<!-- Google analytics code -->
+<!-- <script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-6101038-2");
+pageTracker._trackPageview();
+} catch(err) {}</script> -->
+<!-- End Google analytics code -->
+</body>
+</html>
