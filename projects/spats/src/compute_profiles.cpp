@@ -299,7 +299,7 @@ void driver(FILE* target_fasta, FILE* sam_hits_file)
     
 //    fprintf(stats_out, "Processed %d properly paired fragments, kept %d\n", 
 //            processed_fragments, num_kept_frags);
-    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d (%f\%) treated, %d/%d (%f\%) untreated\n", 
+    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d ( %f\% ) treated, %d/%d ( %f\% ) untreated\n", 
 			processed_fragments, 
 			num_kept_treated_frags,
 			num_treated_frags,
