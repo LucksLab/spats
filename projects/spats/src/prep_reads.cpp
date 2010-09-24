@@ -140,7 +140,7 @@ void filter_garbage_reads(vector<FILE*> reads_files)
 
 void print_usage()
 {
-    fprintf(stderr, "Usage:   prep_reads <reads1.fa/fq,...,readsN.fa/fq>\n");
+    fprintf(stderr, "Usage:   prep_reads <handle_seq_treated> <handle_seq_untreated> <reads1.fa/fq,...,readsN.fa/fq>\n");
 }
 
 int main(int argc, char *argv[])
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 	int parse_ret = parse_options(argc, argv, print_usage);
 	if (parse_ret)
 		return parse_ret;
-	
+    
 	if(optind >= argc)
     {
         print_usage();
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
         }
         reads_files.push_back(seg_file);
     }
-	
+    
 	// Only print to standard out the good reads
 	filter_garbage_reads(reads_files);
 	
