@@ -278,12 +278,13 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>28</integer>
-									<integer>27</integer>
+									<integer>14</integer>
+									<integer>1</integer>
+									<integer>0</integer>
 								</array>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
-							<string>{{0, 0}, {185, 984}}</string>
+							<string>{{0, 0}, {185, 840}}</string>
 						</dict>
 						<key>PBXTopSmartGroupGIDs</key>
 						<array/>
@@ -293,14 +294,14 @@
 					<key>GeometryConfiguration</key>
 					<dict>
 						<key>Frame</key>
-						<string>{{0, 0}, {202, 1002}}</string>
+						<string>{{0, 0}, {202, 858}}</string>
 						<key>GroupTreeTableConfiguration</key>
 						<array>
 							<string>MainColumn</string>
 							<real>185</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>389 135 1056 1043 0 0 1920 1178 </string>
+						<string>389 279 1056 899 0 0 1920 1178 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -316,7 +317,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>ED4835FC12492ABA00642337</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>match_read_pairs.cpp</string>
+								<string>relabel_reads.cpp</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -324,11 +325,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>ED4835FD12492ABA00642337</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>match_read_pairs.cpp</string>
+										<string>relabel_reads.cpp</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>ED01A8D9124BD19800CCEB84</string>
+										<string>ED10EBEA1281959900DDA9B2</string>
 										<key>history</key>
 										<array>
 											<string>ED01A74912492AC200CCEB84</string>
@@ -336,8 +337,8 @@
 											<string>ED01A8061249695600CCEB84</string>
 											<string>ED01A82E124ABD8100CCEB84</string>
 											<string>ED01A830124ABD8100CCEB84</string>
-											<string>ED01A8C9124BD17900CCEB84</string>
-											<string>ED01A8CA124BD17900CCEB84</string>
+											<string>ED16F01F124E3FD000350FC6</string>
+											<string>ED10EBE91281959900DDA9B2</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -351,18 +352,18 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {849, 805}}</string>
+								<string>{{0, 0}, {849, 685}}</string>
 								<key>RubberWindowFrame</key>
-								<string>389 135 1056 1043 0 0 1920 1178 </string>
+								<string>389 279 1056 899 0 0 1920 1178 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>805pt</string>
+							<string>685pt</string>
 						</dict>
 						<dict>
 							<key>Proportion</key>
-							<string>192pt</string>
+							<string>168pt</string>
 							<key>Tabs</key>
 							<array>
 								<dict>
@@ -376,9 +377,9 @@
 									<key>GeometryConfiguration</key>
 									<dict>
 										<key>Frame</key>
-										<string>{{10, 27}, {849, 165}}</string>
+										<string>{{10, 27}, {849, 141}}</string>
 										<key>RubberWindowFrame</key>
-										<string>389 135 1056 1043 0 0 1920 1178 </string>
+										<string>389 279 1056 899 0 0 1920 1178 </string>
 									</dict>
 									<key>Module</key>
 									<string>XCDetailModule</string>
@@ -460,11 +461,11 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>ED01A74B12492AC200CCEB84</string>
+				<string>ED10EBEB1281959900DDA9B2</string>
 				<string>1CA23ED40692098700951B8B</string>
-				<string>ED01A74C12492AC200CCEB84</string>
+				<string>ED10EBEC1281959900DDA9B2</string>
 				<string>ED4835FC12492ABA00642337</string>
-				<string>ED01A74D12492AC200CCEB84</string>
+				<string>ED10EBED1281959900DDA9B2</string>
 				<string>1CA23EDF0692099D00951B8B</string>
 				<string>1CA23EE00692099D00951B8B</string>
 				<string>1CA23EE10692099D00951B8B</string>
@@ -654,12 +655,10 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>ED01A7D41249471500CCEB84</string>
-		<string>ED01A7D51249471500CCEB84</string>
 		<string>/Users/cole/develop/spats/spats.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>389 135 1056 1043 0 0 1920 1178 </string>
+	<string>389 279 1056 899 0 0 1920 1178 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>
