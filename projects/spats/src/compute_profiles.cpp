@@ -129,7 +129,7 @@ struct TargetProfile
                 fprintf(adducts_out, 
                         "%d\t%c\t%d\t%d\n", 
                         i,
-                        _seq[i-1],
+                        _seq[i],
                         treated_adducts[i], 
                         untreated_adducts[i]); 
             }
