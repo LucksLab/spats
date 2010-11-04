@@ -867,13 +867,13 @@ def main(argv=None):
                 right_kept_reads = handle_seq + "_2.kept"
                 
                 left_trimmed_reads = trim_read_adapters(params, 
-                                                        params.read_params.left_adapter,
+                                                        reverse_complement(params.read_params.left_adapter),
                                                         params.read_params.right_adapter,
                                                         left_labeled_reads,
                                                         left_trimmed_reads)
                 right_trimmed_reads = trim_read_adapters(params, 
                                                          reverse_complement(params.read_params.left_adapter),
-                                                         reverse_complement(params.read_params.right_adapter),
+                                                         params.read_params.right_adapter,
                                                          right_labeled_reads,
                                                          right_trimmed_reads)
                 [left_kept_reads, right_kept_reads] = match_read_pairs(params,
