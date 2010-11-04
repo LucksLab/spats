@@ -60,7 +60,7 @@ struct Adducts
     
     bool register_fragment(const MateHit& fragment)
     {
-        int adduct_site = fragment.left();
+        int adduct_site = fragment.left() - 1;
         if (adduct_site >= 0 && adduct_site < adduct_counts.size())
         {
             int end = min((int)adduct_counts.size(), fragment.right());
@@ -129,7 +129,7 @@ struct TargetProfile
                 fprintf(adducts_out, 
                         "%d\t%c\t%d\t%d\n", 
                         i,
-                        _seq[i],
+                        _seq[i-1],
                         treated_adducts[i], 
                         untreated_adducts[i]); 
             }
