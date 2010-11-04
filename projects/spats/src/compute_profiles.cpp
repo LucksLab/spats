@@ -60,7 +60,7 @@ struct Adducts
     
     bool register_fragment(const MateHit& fragment)
     {
-        int adduct_site = fragment.left(); // seq is 0-index, adduct array is 1-indexed
+        int adduct_site = fragment.left(); // fragment is 0-index, adduct array is 1-indexed
         if (adduct_site >= 0 && adduct_site < adduct_counts.size())
         {
             int end = min((int)adduct_counts.size(), fragment.right());
