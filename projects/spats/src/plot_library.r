@@ -1,18 +1,18 @@
 #setwd("/Users/cole/sr_mapping/SHAPE-Seq/data/run_0/spats_out")
 #setwd("/Volumes/lpdata/SHAPE/run_0/no_barcode")
-setwd("/Users/cole/projects/SHAPE-Seq/spats_out_trimmed/")
+setwd("/Volumes/Abel/SHAPE/spats_out/")
 
-lib_length_file = "treated_library_length.hist"
-
-lib_length = read.table (lib_length_file, header = TRUE)
-
-plot(lib_length$length, 
-     lib_length$num_frags, 
-     xlab="Fragment length", 
-     ylab="Number of fragments",
-     type="h",
-     pch=19,
-     cex=0.5)
+# lib_length_file = "treated_library_length.hist"
+# 
+# lib_length = read.table (lib_length_file, header = TRUE)
+# 
+# plot(lib_length$length, 
+#      lib_length$num_frags, 
+#      xlab="Fragment length", 
+#      ylab="Number of fragments",
+#      type="h",
+#      pch=19,
+#      cex=0.5)
      
 cexText = 0.7
 
@@ -71,7 +71,7 @@ plot_adducts<-function(target_name, adducts, normalize=FALSE)
     dev.off()
  }
 
-adducts_file = "target_BARCODE_FAIL.adducts"
+adducts_file = "target_WT.adducts"
 adducts = read.table (adducts_file, header = TRUE) 
 #adducts$five_prime_offset = adducts$five_prime_offset + 86
 plot_adducts("no barcode", adducts, normalize=TRUE)

@@ -88,8 +88,6 @@ bool FragmentFactory::next_fragment(MateHit& fragment_out)
 			int a = 4;
 			continue;
         }
-        if (read_1->treated() != read_2->treated())
-            continue;
 		
 		assert (read_1->insert_id() == read_2->insert_id());
         assert (read_1->insert_id() != 0);
@@ -111,7 +109,6 @@ bool FragmentFactory::next_fragment(MateHit& fragment_out)
         //        left_name.c_str(), right_name.c_str());
         
         refid = read_1->ref_id(); 
-        treated = read_1->treated();
 		
 		//fprintf(stderr, "%s: %s\n", left_name.c_str(), ++left_tab);
 		//fprintf(stderr, "%s: %s\n", right_name.c_str(), ++right_tab);

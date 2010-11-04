@@ -118,41 +118,65 @@ bool mask_matches(const string& read_seq,
     return true;
 }
 
-void relabel_reads(vector<FILE*> reads_files, 
-                   vector<pair<vector<char>, FILE*> >& masks_files)
+struct FragmentMaskSet
+{
+    FragmentMaskSet(const vector<char>& m, FILE* h, FILE* n)
+    : mask(m), handle_reads(h), nonhandle_reads(n) {}
+    vector<char> mask;
+    FILE* handle_reads;
+    FILE* nonhandle_reads;
+};
+
+void relabel_reads(vector<FILE*> handle_reads_files, 
+                   vector<FILE*> nonhandle_reads_files,
+                   vector<FragmentMaskSet>& masks)
 {	
-	int num_reads_chucked = 0, num_reads = 0;
+    
+    if (handle_reads_files.size() != nonhandle_reads_files.size())
+    {
+        fprintf (stderr, "Error: some read files appear to be missing!\n");
+    }   
+	int num_fragments_chucked = 0, num_fragments = 0;
 	int next_id = 0;
-	for (size_t fi = 0; fi < reads_files.size(); ++fi)
+	for (size_t fi = 0; fi < handle_reads_files.size(); ++fi)
 	{
-		Read read;
-		FILE* fa = reads_files[fi];
-		while(!feof(fa))
+		Read handle_read;
+        Read nonhandle_read;
+		FILE* handle_fa = handle_reads_files[fi];
+        FILE* nonhandle_fa = nonhandle_reads_files[fi];
+        
+		while(!feof(handle_fa))
 		{
-			read.clear();
+			handle_read.clear();
 			
 			// Get the next read from the file
 			if (reads_format == FASTA)
 			{
-				if (!next_fasta_record(fa, read.name, read.seq))
+				if (!next_fasta_record(handle_fa, handle_read.name, handle_read.seq))
+					break;
+                if (!next_fasta_record(nonhandle_fa, nonhandle_read.name, nonhandle_read.seq))
 					break;
 			}
 			else if (reads_format == FASTQ)
 			{
 				string orig_qual;
-				if (!next_fastq_record(fa, read.name, read.seq, read.alt_name, orig_qual))
+				if (!next_fastq_record(handle_fa, handle_read.name, handle_read.seq, handle_read.alt_name, orig_qual))
 					break;
-				format_qual_string(orig_qual, read.qual);
+				format_qual_string(orig_qual, handle_read.qual);
+                
+				if (!next_fastq_record(nonhandle_fa, nonhandle_read.name, nonhandle_read.seq, nonhandle_read.alt_name, orig_qual))
+					break;
+				format_qual_string(orig_qual, nonhandle_read.qual);
 			}
 			
-			++num_reads;
+			++num_fragments;
 			++next_id;
 			
-            vector<bool> mask_status(masks_files.size(), false);
-            size_t matched = masks_files.size();
-            for (size_t i = 0; i < masks_files.size(); ++i)
+            vector<bool> mask_status(masks.size(), false);
+            size_t matched = masks.size();
+            for (size_t i = 0; i < masks.size(); ++i)
             {
-                mask_status[i] = mask_matches(read.seq, masks_files[i].first);
+                mask_status[i] = mask_matches(handle_read.seq, masks[i].mask);
                 if (mask_status[i])
                 {
                     matched = i;
@@ -163,48 +187,77 @@ void relabel_reads(vector<FILE*> reads_files,
             //bool matched_treated = mask_matches(read.seq, treated_mask);
             //bool matched_untreated = mask_matches(read.seq, untreated_mask);
             
-            if (matched != masks_files.size())
+            FILE* handle_f_out = NULL;
+            FILE* nonhandle_f_out = NULL;
+            
+            if (matched != masks.size())
             {
-                fprintf(masks_files[matched].second,
-                        "%d\n",
-                        next_id); 
+                handle_f_out = masks[matched].handle_reads;
+                nonhandle_f_out = masks[matched].nonhandle_reads;
             }
             else 
             {
-                num_reads_chucked++;
+                num_fragments_chucked++;
                 continue;
             }
 
+            handle_read.seq = handle_read.seq.substr(masks[matched].mask.size());
+            if (!handle_read.qual.empty())
+            {
+                handle_read.qual = handle_read.qual.substr(masks[matched].mask.size());   
+            }
+            
             if (!fastq_db)
             {
                 if (reads_format == FASTA)
-                    printf(">%s\n%s\n", read.name.c_str(), read.seq.c_str());
+                {
+                    fprintf(handle_f_out, ">%s\n%s\n", handle_read.name.c_str(), handle_read.seq.c_str());
+                    fprintf(nonhandle_f_out, ">%s\n%s\n", nonhandle_read.name.c_str(), nonhandle_read.seq.c_str());
+                }
                 else if (reads_format == FASTQ)
-                    printf("@%s\n%s\n+\n%s\n", 
-                           read.name.c_str(), read.seq.c_str(),read.qual.c_str());
+                {
+                    fprintf(handle_f_out, "@%s\n%s\n+\n%s\n", 
+                            handle_read.name.c_str(), handle_read.seq.c_str(),handle_read.qual.c_str());
+                    fprintf(nonhandle_f_out, "@%s\n%s\n+\n%s\n", 
+                            nonhandle_read.name.c_str(), nonhandle_read.seq.c_str(), nonhandle_read.qual.c_str());
+                }
             }
             else
             {
                 if (reads_format == FASTA)
                 {
-                    printf("@%d\n%s\n+%s\n%s\n",
-                           next_id,
-                           read.seq.c_str(),
-                           read.name.c_str(),
-                           string(read.seq.length(), 'I').c_str());
+                    fprintf(handle_f_out,
+                            "@%d\n%s\n+%s\n%s\n",
+                            next_id,
+                            handle_read.seq.c_str(),
+                            handle_read.name.c_str(),
+                            string(handle_read.seq.length(), 'I').c_str());
+                    fprintf(nonhandle_f_out,
+                            "@%d\n%s\n+%s\n%s\n",
+                            next_id,
+                            nonhandle_read.seq.c_str(),
+                            nonhandle_read.name.c_str(),
+                            string(nonhandle_read.seq.length(), 'I').c_str());
                 }
                 else if (reads_format == FASTQ)
                 {
-                    printf("@%d\n%s\n+%s\n%s\n",
-                           next_id,
-                           read.seq.c_str(),
-                           read.name.c_str(),
-                           read.qual.c_str());
+                    fprintf(handle_f_out,
+                            "@%d\n%s\n+%s\n%s\n",
+                            next_id,
+                            handle_read.seq.c_str(),
+                            handle_read.name.c_str(),
+                            handle_read.qual.c_str());
+                    fprintf(nonhandle_f_out,
+                            "@%d\n%s\n+%s\n%s\n",
+                            next_id,
+                            nonhandle_read.seq.c_str(),
+                            nonhandle_read.name.c_str(),
+                            nonhandle_read.qual.c_str());
                 }
             }
 		}
 	}
-    fprintf(stderr, "Kept %d of %d reads\n", next_id - num_reads_chucked, next_id);
+    fprintf(stderr, "Kept %d of %d reads\n", next_id - num_fragments_chucked, next_id);
 }
 
 void init_handle_mask(const string& handle_iupac_seq, vector<char>& mask)
@@ -226,7 +279,7 @@ void init_handle_mask(const string& handle_iupac_seq, vector<char>& mask)
 
 void print_usage()
 {
-    fprintf(stderr, "Usage:   relabel_reads <reads1.fa/fq,...,readsN.fa/fq> [handle1] [handle2] .. [handleN]\n");
+    fprintf(stderr, "Usage:   relabel_reads <reads1_1.fa/fq,...,readsN_1.fa/fq> <reads1_2.fa/fq,...,readsN_2.fa/fq> [handle1] [handle2] .. [handleN]\n");
 }
 
 
@@ -245,9 +298,17 @@ int main(int argc, char *argv[])
         return 1;
     }
     
-    string reads_file_list = argv[optind++];
+    string handle_reads_file_list = argv[optind++];
     
-    vector<pair<vector<char>, FILE*> > masks_files;
+    if(optind >= argc)
+    {
+        print_usage();
+        return 1;
+    }
+    
+    string nonhandle_reads_file_list = argv[optind++];
+    
+    vector<pair<vector<char>, string> > masks;
     
     while(optind < argc)
     {
@@ -255,43 +316,51 @@ int main(int argc, char *argv[])
         vector<char> mask;
         
         init_handle_mask(handle_seq, mask);
-        string read_id_filename = handle_seq + ".ids";
-        FILE* read_id_file = fopen(read_id_filename.c_str(), "w");
-        if (read_id_file == NULL)
-        {
-            fprintf(stderr, 
-                    "Error could not open read id file %s for writing\n", 
-                    read_id_filename.c_str()); 
-            exit(1);
-        }
-        masks_files.push_back(make_pair(mask, read_id_file));
+        masks.push_back(make_pair(mask, handle_seq));
     }
     
     
-	vector<string> reads_file_names;
-    vector<FILE*> reads_files;
-    tokenize(reads_file_list, ",",reads_file_names);
-    for (size_t i = 0; i < reads_file_names.size(); ++i)
+	vector<string> handle_reads_file_names;
+    vector<FILE*> handle_reads_files;
+    tokenize(handle_reads_file_list, ",",handle_reads_file_names);
+    for (size_t i = 0; i < handle_reads_file_names.size(); ++i)
     {
-        FILE* seg_file = fopen(reads_file_names[i].c_str(), "r");
+        FILE* seg_file = fopen(handle_reads_file_names[i].c_str(), "r");
         if (seg_file == NULL)
         {
             fprintf(stderr, "Error: cannot open reads file %s for reading\n",
-                    reads_file_names[i].c_str());
+                    handle_reads_file_names[i].c_str());
             exit(1);
         }
-        reads_files.push_back(seg_file);
+        handle_reads_files.push_back(seg_file);
     }
-	
-    for (size_t i = 0; i < masks_files.size(); i++)
+    
+    vector<string> nonhandle_reads_file_names;
+    vector<FILE*> nonhandle_reads_files;
+    tokenize(nonhandle_reads_file_list, ",",nonhandle_reads_file_names);
+    for (size_t i = 0; i < nonhandle_reads_file_names.size(); ++i)
     {
-        for (size_t j = 0; j < masks_files.size(); ++j)
+        FILE* seg_file = fopen(nonhandle_reads_file_names[i].c_str(), "r");
+        if (seg_file == NULL)
+        {
+            fprintf(stderr, "Error: cannot open reads file %s for reading\n",
+                    nonhandle_reads_file_names[i].c_str());
+            exit(1);
+        }
+        nonhandle_reads_files.push_back(seg_file);
+    }
+    
+    vector<FragmentMaskSet> masks_files;
+	
+    for (size_t i = 0; i < masks.size(); i++)
+    {
+        for (size_t j = 0; j < masks.size(); ++j)
         {
             if (i == j)
                 continue;
             
-            const vector<char>& mask_i = masks_files[i].first;
-            const vector<char>& mask_j = masks_files[j].first;
+            const vector<char>& mask_i = masks[i].first;
+            const vector<char>& mask_j = masks[j].first;
             
             size_t smaller_mask_idx = min(mask_i.size(), mask_j.size());
             bool compatible_masks = false;
@@ -309,10 +378,33 @@ int main(int argc, char *argv[])
                 exit(1);
             }
         }
+        
+        string handle_out_name = output_dir + "/" + masks[i].second + "_1.fq";
+        string nonhandle_out_name = output_dir + "/" + masks[i].second + "_2.fq";
+        
+        FILE* handle_reads_out = fopen(handle_out_name.c_str(), "w");
+        FILE* nonhandle_reads_out = fopen(nonhandle_out_name.c_str(), "w");
+        
+        if (!handle_reads_out)
+        {
+            fprintf(stderr, "Error: cannot open reads file %s for writing\n",
+                    handle_out_name.c_str());
+            exit(1);
+        }
+        
+        if (!nonhandle_reads_out)
+        {
+            fprintf(stderr, "Error: cannot open reads file %s for writing\n",
+                    nonhandle_out_name.c_str());
+            exit(1);
+        }
+        
+        FragmentMaskSet m(masks[i].first, handle_reads_out, nonhandle_reads_out);
+        masks_files.push_back(m);
     }
     
 	// Only print to standard out the good reads
-	relabel_reads(reads_files, masks_files);
+	relabel_reads(handle_reads_files, nonhandle_reads_files, masks_files);
 	
 	return 0;
 }

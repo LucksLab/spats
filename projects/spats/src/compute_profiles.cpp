@@ -30,7 +30,7 @@ void print_usage()
 	//NOTE: SPACES ONLY, bozo
 	fprintf(stderr, "compute_profiles v%s\n", PACKAGE_VERSION); 
 	fprintf(stderr, "-----------------------------\n"); 
-    fprintf(stderr, "Usage:   compute_profiles [options] <targets.fa> <hits.sam>\n");
+    fprintf(stderr, "Usage:   compute_profiles [options] <targets.fa> <treated_hits.sam> <untreated_hits.sam>\n");
 }
 
 struct Adducts
@@ -95,9 +95,9 @@ struct TargetProfile
     const Adducts treated() const { return _treated; }
     const Adducts untreated() const { return _untreated; }
     
-    bool register_fragment(const MateHit& fragment)
+    bool register_fragment(const MateHit& fragment, bool treated)
     {
-        if (fragment.treated())
+        if (treated)
         {
             return _treated.register_fragment(fragment);
         }
@@ -109,18 +109,31 @@ struct TargetProfile
 
     void print_adduct_counts(FILE* adducts_out)
     {
-        fprintf(adducts_out, "five_prime_offset\ttreated_mods\tuntreated_mods\n");
+        fprintf(adducts_out, "five_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\n");
         
         const vector<int>& treated_adducts = _treated.adducts();
         const vector<int>& untreated_adducts = _untreated.adducts();
         
         for (int i = 0; i < _profile_len; ++i)
         {
-            fprintf(adducts_out, 
-                    "%d\t%d\t%d\n", 
-                    i, 
-                    treated_adducts[i], 
-                    untreated_adducts[i]); 
+            if (i == 0)
+            {
+                fprintf(adducts_out, 
+                        "%d\t*\t%d\t%d\n", 
+                        i,
+                        _seq[i],
+                        treated_adducts[i], 
+                        untreated_adducts[i]); 
+            }
+            else 
+            {
+                fprintf(adducts_out, 
+                        "%d\t%c\t%d\t%d\n", 
+                        i,
+                        _seq[i-1],
+                        treated_adducts[i], 
+                        untreated_adducts[i]); 
+            }
         }
     }
     
@@ -149,31 +162,72 @@ void register_targets(RefSequenceTable rt,
             break;
         }
         
-        string::size_type under = curr_target.name.rfind("_");
-        if (under != string::npos)
+        string name = curr_target.name;
+        RefID refid = rt.get_id(name, NULL);
+      
+        map<RefID,TargetProfile>::iterator itr = targets_by_id.find(refid);
+        if (itr == targets_by_id.end())
         {
-            string name = curr_target.name.substr(0, under);
-            RefID refid = rt.get_id(name, NULL);
-          
-            map<RefID,TargetProfile>::iterator itr = targets_by_id.find(refid);
-            if (itr == targets_by_id.end())
-            {
-                targets_by_id[refid] = TargetProfile(name, curr_target.seq);
-                assert(!(targets_by_id[refid].name().empty()));
-            }
-            else
-            {
-                assert (itr->second.seq().length() == curr_target.seq.length()); 
-            }
+            targets_by_id[refid] = TargetProfile(name, curr_target.seq);
+            assert(!(targets_by_id[refid].name().empty()));
         }
         else
         {
-            assert (false);
+            assert (itr->second.seq().length() == curr_target.seq.length()); 
         }
+
     }
 }
 
-void driver(FILE* target_fasta, FILE* sam_hits_file)
+void process_fragments(FragmentFactory& fragment_factory, 
+                       map<RefID, TargetProfile>& targets_by_id,
+                       int& processed_fragments,
+                       int& num_frags,
+                       int& num_kept_frags,
+                       bool treated)
+{
+    MateHit fragment;
+    while(fragment_factory.next_fragment(fragment))
+    {
+        processed_fragments++;
+        map<RefID, TargetProfile>::iterator itr;
+        if (fragment.ref_id() == 0)
+            return;
+        itr = targets_by_id.find(fragment.ref_id());
+        if (itr == targets_by_id.end())
+        {
+            fprintf(stderr, "Error: unknown target Ref ID encountered in Bowtie map\n");
+            exit(1);
+        }
+        
+        TargetProfile& target = itr->second;
+        bool kept = target.register_fragment(fragment, treated);
+        
+        num_frags++;
+        if (kept)
+            num_kept_frags++;
+		
+        int length = fragment.right() - fragment.left();
+//        if (length > 0)
+//        {
+//			if (treated)
+//			{				
+//				if (treated_frag_length_dist.size() < length + 1)
+//					treated_frag_length_dist.resize(length + 1);
+//				treated_frag_length_dist[length]++;
+//			}
+//			else
+//			{				
+//				if (untreated_frag_length_dist.size() < length + 1)
+//					untreated_frag_length_dist.resize(length + 1);
+//				untreated_frag_length_dist[length]++;
+//			}
+//        }
+    }
+    
+}
+
+void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam_hits_file)
 {
     RefSequenceTable rt(true, false);
 
@@ -181,10 +235,11 @@ void driver(FILE* target_fasta, FILE* sam_hits_file)
     
     ReadTable it;
     SAMHitFactory hs(it, rt);
-    FragmentFactory frag_factory(hs, sam_hits_file);
-
+    FragmentFactory treated_frag_factory(hs, treated_sam_hits_file);
+    FragmentFactory untreated_frag_factory(hs, untreated_sam_hits_file);
+    
     int processed_fragments = 0;
-    MateHit fragment;
+
     vector<int> treated_frag_length_dist;
 	vector<int> untreated_frag_length_dist;
     
@@ -194,50 +249,19 @@ void driver(FILE* target_fasta, FILE* sam_hits_file)
 	int num_treated_frags = 0;
     int num_untreated_frags = 0;
 	
-    while(frag_factory.next_fragment(fragment))
-    {
-        processed_fragments++;
-        map<RefID, TargetProfile>::iterator itr;
-        itr = targets_by_id.find(fragment.ref_id());
-        if (itr == targets_by_id.end())
-        {
-            fprintf(stderr, "Error: unknown target Ref ID encountered in Bowtie map\n");
-            exit(1);
-        }
-        TargetProfile& target = itr->second;
-        bool kept = target.register_fragment(fragment);
-
-		
-		if (fragment.treated())
-		{
-			num_treated_frags++;
-			if (kept)
-				num_kept_treated_frags++;
-		}
-		else
-		{
-			num_untreated_frags++;
-			if (kept)
-				num_kept_untreated_frags++;
-		}
-		
-        int length = fragment.right() - fragment.left();
-        if (length > 0)
-        {
-			if (fragment.treated())
-			{				
-				if (treated_frag_length_dist.size() < length + 1)
-					treated_frag_length_dist.resize(length + 1);
-				treated_frag_length_dist[length]++;
-			}
-			else
-			{				
-				if (untreated_frag_length_dist.size() < length + 1)
-					untreated_frag_length_dist.resize(length + 1);
-				untreated_frag_length_dist[length]++;
-			}
-        }
-    }
+    process_fragments(treated_frag_factory, 
+                      targets_by_id,
+                      processed_fragments,
+                      num_treated_frags,
+                      num_kept_treated_frags,
+                      true);
+    
+    process_fragments(untreated_frag_factory, 
+                      targets_by_id,
+                      processed_fragments,
+                      num_untreated_frags,
+                      num_kept_untreated_frags,
+                      false);
     
     map<RefID, TargetProfile>::iterator itr;
     for (itr = targets_by_id.begin(); itr != targets_by_id.end(); ++itr)
@@ -299,18 +323,18 @@ void driver(FILE* target_fasta, FILE* sam_hits_file)
     
 //    fprintf(stats_out, "Processed %d properly paired fragments, kept %d\n", 
 //            processed_fragments, num_kept_frags);
-    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d ( %f\% ) treated, %d/%d ( %f\% ) untreated\n", 
+    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d ( %f\\% ) treated, %d/%d ( %f\\% ) untreated\n", 
 			processed_fragments, 
 			num_kept_treated_frags,
 			num_treated_frags,
 			(float)num_kept_treated_frags/(float)num_treated_frags,
-			num_kept_untreated_frags,
+			num_kept_untreated_frags, 
 			num_untreated_frags,
 			(float)num_kept_untreated_frags/(float)num_untreated_frags);
     
     fprintf(stats_out, "target\ttreated_fragments\tuntreated_fragments\ttreated_stops\tuntreated_stops\n");
     for (map<RefID, TargetProfile>::iterator itr = targets_by_id.begin(); 
-         itr != targets_by_id.end(); ++itr)
+         itr != targets_by_id.end(); ++itr) 
     {
         fprintf(stats_out, "%s\t%d\t%d\t%d\t%d\n", 
                 itr->second.name().c_str(),
@@ -342,7 +366,15 @@ int main(int argc, char** argv)
         return 1;
     }
 	
-    string sam_hits_file_name = argv[optind++];
+    string treated_sam_hits_file_name = argv[optind++];
+    
+    if(optind >= argc)
+    {
+        print_usage();
+        return 1;
+    }
+	
+    string untreated_sam_hits_file_name = argv[optind++];
 	
     // Open the approppriate files
     FILE* fasta_targets_file = fopen(targets_file_name.c_str(), "r");
@@ -353,17 +385,25 @@ int main(int argc, char** argv)
         exit(1);
     }
     
-    FILE* sam_hits_file = fopen(sam_hits_file_name.c_str(), "r");
-    if (sam_hits_file == NULL)
+    FILE* treated_sam_hits_file = fopen(treated_sam_hits_file_name.c_str(), "r");
+    if (treated_sam_hits_file == NULL)
     {
         fprintf(stderr, "Error: cannot open SAM file %s for reading\n",
-                sam_hits_file_name.c_str());
+                treated_sam_hits_file_name.c_str());
+        exit(1);
+    }
+    
+    FILE* untreated_sam_hits_file = fopen(untreated_sam_hits_file_name.c_str(), "r");
+    if (untreated_sam_hits_file == NULL)
+    {
+        fprintf(stderr, "Error: cannot open SAM file %s for reading\n",
+                untreated_sam_hits_file_name.c_str());
         exit(1);
     }
 	
 	srand48(time(NULL));
 	
-    driver(fasta_targets_file, sam_hits_file);
+    driver(fasta_targets_file, treated_sam_hits_file, untreated_sam_hits_file);
 	
 	return 0;
 }

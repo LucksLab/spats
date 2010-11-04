@@ -187,7 +187,6 @@ ReadHit HitFactory::create_hit(const string& insert_name,
 	uint32_t partner_ref_id = _ref_table.get_id(partner_ref, NULL);
 	
 	return ReadHit(reference_id,
-                   treated,
 				   insert_id, 
                    first_in_pair,
 				   left, 
@@ -213,37 +212,11 @@ ReadHit HitFactory::create_hit(const string& insert_name,
 							   unsigned int edit_dist)
 {
 	uint64_t insert_id = _insert_table.get_id(insert_name);
-	string::size_type under = ref_name.rfind("_");
-    string ref_prefix = "*";
-    bool treated = false;
-    if (under != string::npos)
-    {
-        string suffix = ref_name.substr(under); 
-        if (suffix == "_treated")
-        {
-            treated = true;
-        }
-        else if (suffix == "_untreated")
-        {
-            treated = false;
-        }
-        else
-        {
-            assert(false);
-        }
-        ref_prefix = ref_name.substr(0, under);
-        //    ref_name =  
-    }
-    else if (ref_name != "*")
-    {
-        assert (false);
-    }
-    
-	uint32_t reference_id = _ref_table.get_id(ref_prefix, NULL);
+	    
+	uint32_t reference_id = _ref_table.get_id(ref_name, NULL);
 	uint32_t partner_ref_id = _ref_table.get_id(partner_ref, NULL);
     
 	return ReadHit(reference_id,
-                   treated,
 				   insert_id, 
                    first_in_pair,
 				   left,

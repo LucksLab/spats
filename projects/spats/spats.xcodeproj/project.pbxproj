@@ -57,7 +57,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8DD76F6C0486A84900D96B5E /* spats */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = spats; sourceTree = BUILT_PRODUCTS_DIR; };
+		8DD76F6C0486A84900D96B5E /* compute_profiles */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = compute_profiles; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED50752A1172329700883983 /* ax_boost_base.m4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ax_boost_base.m4; sourceTree = "<group>"; };
 		ED50752B1172329700883983 /* ax_boost_thread.m4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ax_boost_thread.m4; sourceTree = "<group>"; };
 		ED50752C1172329700883983 /* version.m4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = version.m4; sourceTree = "<group>"; };
@@ -79,9 +79,9 @@
 		ED507567117273A600883983 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = common.h; path = src/common.h; sourceTree = "<group>"; };
 		EDCCF68011779A54000D83D5 /* relabel_reads.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = relabel_reads.cpp; path = src/relabel_reads.cpp; sourceTree = "<group>"; };
 		EDCCF6C01177AE48000D83D5 /* match_read_pairs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = match_read_pairs.cpp; path = src/match_read_pairs.cpp; sourceTree = "<group>"; };
-		EDCCF7311177AF5C000D83D5 /* spats */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = spats; sourceTree = BUILT_PRODUCTS_DIR; };
+		EDCCF7311177AF5C000D83D5 /* match_read_pairs */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = match_read_pairs; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDCCF7D91177CF35000D83D5 /* compute_profiles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = compute_profiles.cpp; path = src/compute_profiles.cpp; sourceTree = "<group>"; };
-		EDCCF7E61177CF50000D83D5 /* spats */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = spats; sourceTree = BUILT_PRODUCTS_DIR; };
+		EDCCF7E61177CF50000D83D5 /* compute_profiles */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = compute_profiles; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDCCF7F41177CFE1000D83D5 /* hits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = hits.cpp; path = src/hits.cpp; sourceTree = "<group>"; };
 		EDCCF7F51177CFE1000D83D5 /* hits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hits.h; path = src/hits.h; sourceTree = "<group>"; };
 		EDCCF96F11780316000D83D5 /* bundles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = bundles.cpp; path = src/bundles.cpp; sourceTree = "<group>"; };
@@ -152,9 +152,9 @@
 		1AB674ADFE9D54B511CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8DD76F6C0486A84900D96B5E /* spats */,
-				EDCCF7311177AF5C000D83D5 /* spats */,
-				EDCCF7E61177CF50000D83D5 /* spats */,
+				8DD76F6C0486A84900D96B5E /* compute_profiles */,
+				EDCCF7311177AF5C000D83D5 /* match_read_pairs */,
+				EDCCF7E61177CF50000D83D5 /* compute_profiles */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -199,7 +199,7 @@
 			name = relabel_reads;
 			productInstallPath = "$(HOME)/bin";
 			productName = spats;
-			productReference = 8DD76F6C0486A84900D96B5E /* spats */;
+			productReference = 8DD76F6C0486A84900D96B5E /* compute_profiles */;
 			productType = "com.apple.product-type.tool";
 		};
 		EDCCF7241177AF5C000D83D5 /* match_read_pairs */ = {
@@ -217,7 +217,7 @@
 			name = match_read_pairs;
 			productInstallPath = "$(HOME)/bin";
 			productName = spats;
-			productReference = EDCCF7311177AF5C000D83D5 /* spats */;
+			productReference = EDCCF7311177AF5C000D83D5 /* match_read_pairs */;
 			productType = "com.apple.product-type.tool";
 		};
 		EDCCF7DA1177CF50000D83D5 /* compute_profiles */ = {
@@ -235,7 +235,7 @@
 			name = compute_profiles;
 			productInstallPath = "$(HOME)/bin";
 			productName = spats;
-			productReference = EDCCF7E61177CF50000D83D5 /* spats */;
+			productReference = EDCCF7E61177CF50000D83D5 /* compute_profiles */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -310,7 +310,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = "";
 				INSTALL_PATH = /usr/local/bin;
-				PRODUCT_NAME = spats;
+				PRODUCT_NAME = compute_profiles;
 			};
 			name = Debug;
 		};
@@ -365,7 +365,7 @@
 					"_GLIBCXX_DEBUG_PEDANTIC=1",
 				);
 				INSTALL_PATH = /usr/local/bin;
-				PRODUCT_NAME = spats;
+				PRODUCT_NAME = match_read_pairs;
 			};
 			name = Debug;
 		};
@@ -398,7 +398,7 @@
 					"/usr/local/include/boost-1_41",
 				);
 				INSTALL_PATH = /usr/local/bin;
-				PRODUCT_NAME = spats;
+				PRODUCT_NAME = compute_profiles;
 			};
 			name = Debug;
 		};

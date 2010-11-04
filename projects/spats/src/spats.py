@@ -414,15 +414,9 @@ def formatTD(td):
     seconds = td.seconds % 60
     return '%02d:%02d:%02d' % (hours, minutes, seconds) 
 
-def relabel_reads(params, reads_list, output_name):    
+def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handle, untreated_handle):    
     #filter_cmd = ["prep_reads"]
-    print >> sys.stderr, "[%s] Relabeling reads in %s" % (right_now(), reads_list)
-    reads_suffix = ".fq"
-    kept_reads_filename = tmp_dir + output_name + reads_suffix
-    
-    if os.path.exists(kept_reads_filename):
-        os.remove(kept_reads_filename)
-    kept_reads = open(kept_reads_filename, "a")
+    print >> sys.stderr, "[%s] Relabeling reads in %s and %s" % (right_now(), handle_reads_list, nonhandle_reads_list)
     
     #filter_log = open(logging_dir + "relabel_reads.log", "w")
     
@@ -432,15 +426,17 @@ def relabel_reads(params, reads_list, output_name):
         filter_cmd += ["--fastq"]
     elif params.read_params.reads_format == "fasta":
         filter_cmd += ["--fasta"]
-    filter_cmd.append(reads_list)
-       
+    filter_cmd.append(handle_reads_list)
+    filter_cmd.append(nonhandle_reads_list) 
+    filter_cmd.append(treated_handle)
+    filter_cmd.append(untreated_handle) 
+    
     #print "\t executing: `%s'" % " ".join(filter_cmd)    
     # files = reads_list.split(',')
     # for reads_file in files:
     try:       
         print >> run_log, " ".join(filter_cmd)
-        ret = subprocess.call(filter_cmd, 
-                              stdout=kept_reads)
+        ret = subprocess.call(filter_cmd)
                               # Bowtie reported an error
         if ret != 0:
             print >> sys.stderr, fail_str, "Error: could not execute relabel_reads"
@@ -450,8 +446,6 @@ def relabel_reads(params, reads_list, output_name):
         if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
             print >> sys.stderr, fail_str, "Error: relabel_reads not found on this system.  Did you forget to include it in your PATH?"
         exit(1)
-        
-    return kept_reads_filename
     
 def match_read_pairs(params, left_in_reads, right_in_reads, left_out_reads, right_out_reads):
     #filter_cmd = ["prep_reads"]
@@ -753,34 +747,28 @@ def print_fasta(fout, name, seq):
     print >> fout, seq[i:]
     print >> fout
 
-def index_targets(target_file, treated_handle, untreated_handle):
+def index_targets(target_file):
     targets = []
     target_fasta_name = tmp_dir + "targets.fa"
     target_fasta = open(target_fasta_name, "w")
     
     for record in read_fasta_records(open(target_file,"r")):
-        tr_name = record.title + "_treated"
-        tr_seq = record.sequence + treated_handle
+        tr_name = record.title
+        tr_seq = record.sequence
         print_fasta(target_fasta, tr_name, tr_seq)
-        
-        untr_name = record.title + "_untreated"
-        untr_seq = record.sequence + untreated_handle
-        print_fasta(target_fasta, untr_name, untr_seq)
+
     target_fasta.close()
     return build_target_bwt_index(tmp_dir + "targets")
   
-def compute_profiles(params, target_fasta, aligned_reads):
+def compute_profiles(params, target_fasta, treated_alignments, untreated_alignments):
     #filter_cmd = ["prep_reads"]
     print >> sys.stderr, "[%s] Building reactivity profiles" % (right_now())
 
-
-    
     #filter_log = open(logging_dir + "relabel_reads.log", "w")
     
     cmd = [bin_dir + "compute_profiles"]
     cmd.extend(params.cmd())
-    cmd.extend([target_fasta, 
-                aligned_reads])
+    cmd.extend([target_fasta, treated_alignments, untreated_alignments])
        
     # print "\t executing: `%s'" % " ".join(cmd)    
     # files = reads_list.split(',')
@@ -855,49 +843,62 @@ def main(argv=None):
         check_bowtie()
                 
         # Now start the time consuming stuff
-        left_labeled_reads = relabel_reads(params,
-                                           left_reads_list,
-                                           "left_labeled_reads")
-        right_labeled_reads = relabel_reads(params,
-                                            right_reads_list,
-                                            "right_labeled_reads")
+        relabel_reads(params,
+                      left_reads_list, 
+                      right_reads_list,
+                      treated_handle_seq,
+                      untreated_handle_seq)
+                      
+        index_prefix = index_targets(rna_targets_filename)
         
-        if params.read_params.left_adapter != None \
-            and params.read_params.right_adapter != None:
-            left_trimmed_reads = trim_read_adapters(params, 
-                                                    params.read_params.left_adapter,
-                                                    params.read_params.right_adapter,
-                                                    left_labeled_reads,
-                                                    "left_trimmed_reads")
-            right_trimmed_reads = trim_read_adapters(params, 
-                                                     reverse_complement(params.read_params.left_adapter),
-                                                     reverse_complement(params.read_params.right_adapter),
-                                                     right_labeled_reads,
-                                                     "right_trimmed_reads")
-            [left_kept_reads, right_kept_reads] = match_read_pairs(params,
-                                                                   left_trimmed_reads, 
-                                                                   right_trimmed_reads, 
-                                                                   "left_kept_reads", 
-                                                                   "right_kept_reads")
-        else:
-            [left_kept_reads, right_kept_reads] = [left_labeled_reads, right_labeled_reads]
+        maps = []
+        
+        for handle_seq in [treated_handle_seq, untreated_handle_seq]:
+            left_labeled_reads = output_dir + "/" + handle_seq + "_1.fq"
+            right_labeled_reads = output_dir + "/" + handle_seq + "_2.fq"
+            
+            if params.read_params.left_adapter != None \
+                and params.read_params.right_adapter != None:
 
-                                                                 
-        index_prefix = index_targets(rna_targets_filename, 
-                                     treated_handle_seq, 
-                                     untreated_handle_seq)
-                                    
-        mapped_reads = tmp_dir + "reads.sam"                            
-        bowtie(params,
-               index_prefix,
-               left_kept_reads,
-               right_kept_reads,
-               "fastq",
-               mapped_reads,
-               None,
-               500)
-               
-        compute_profiles(params, index_prefix + ".fa", mapped_reads)
+                left_trimmed_reads = handle_seq + "_1.trimmed"
+                right_trimmed_reads = handle_seq + "_2.trimmed"
+                
+                left_kept_reads = handle_seq + "_1.kept"
+                right_kept_reads = handle_seq + "_2.kept"
+                
+                left_trimmed_reads = trim_read_adapters(params, 
+                                                        params.read_params.left_adapter,
+                                                        params.read_params.right_adapter,
+                                                        left_labeled_reads,
+                                                        left_trimmed_reads)
+                right_trimmed_reads = trim_read_adapters(params, 
+                                                         reverse_complement(params.read_params.left_adapter),
+                                                         reverse_complement(params.read_params.right_adapter),
+                                                         right_labeled_reads,
+                                                         right_trimmed_reads)
+                [left_kept_reads, right_kept_reads] = match_read_pairs(params,
+                                                                       left_trimmed_reads, 
+                                                                       right_trimmed_reads, 
+                                                                       left_kept_reads, 
+                                                                       right_kept_reads)
+            else:
+                [left_kept_reads, right_kept_reads] = [left_labeled_reads, right_labeled_reads]
+
+            mapped_reads = output_dir + handle_seq + ".sam"                            
+            bowtie(params,
+                   index_prefix,
+                   left_kept_reads,
+                   right_kept_reads,
+                   "fastq",
+                   mapped_reads,
+                   None,
+                   500)
+            maps.append(mapped_reads)
+                   
+        treated_map = maps[0]
+        untreated_map = maps[1]
+        
+        compute_profiles(params, index_prefix + ".fa", treated_map, untreated_map)
                
         if params.system_params.keep_tmp == False:
             tmp_files = os.listdir(tmp_dir)

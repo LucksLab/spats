@@ -57,7 +57,6 @@ struct ReadHit
 		_edit_dist(0xFFFFFFFF){}
 	
 	ReadHit(RefID ref_id,
-            bool treated,
 			InsertID insert_id, 
             bool first_in_pair,
 			int left, 
@@ -69,7 +68,6 @@ struct ReadHit
 			double error_prob,
 			unsigned int edit_dist) :
 		_ref_id(ref_id),
-        _treated(treated),
 		_insert_id(insert_id),
         _first_in_pair(first_in_pair),
 		_left(left), 
@@ -86,7 +84,6 @@ struct ReadHit
 	}
 	
 	ReadHit(RefID ref_id,
-            bool treated,
 			InsertID insert_id, 
             bool first_in_pair,
 			int left,  
@@ -98,7 +95,6 @@ struct ReadHit
 			double error_prob,
 			unsigned int  edit_dist) : 
 		_ref_id(ref_id),
-        _treated(treated),
 		_insert_id(insert_id), 
         _first_in_pair(first_in_pair),
 		_left(left),
@@ -140,7 +136,6 @@ struct ReadHit
 	    return (_insert_id == rhs._insert_id &&
                 _first_in_pair == rhs._first_in_pair &&
 	            _ref_id == rhs._ref_id &&
-                _treated == rhs._treated &&
 	            _antisense_aln == rhs._antisense_aln &&
 	            _left == rhs._left && 
 	            _source_strand == rhs._source_strand &&
@@ -149,7 +144,6 @@ struct ReadHit
     }
 	
 	RefID ref_id() const				{ return _ref_id;			}
-    bool treated() const				{ return _treated;			}
 	InsertID insert_id() const			{ return _insert_id;		}
 	
 	RefID partner_ref_id() const		{ return _partner_ref_id;	}
@@ -226,7 +220,6 @@ private:
 	}
 	
 	RefID _ref_id;
-    bool _treated;
 	InsertID _insert_id;   // Id of the sequencing insert
     bool _first_in_pair;
 	int _left;        // Position in the reference of the left side of the alignment
@@ -510,8 +503,7 @@ public:
 			int max_inner_dist) : 
 	_refid(refid), 
 	_left_alignment(left_alignment),
-	_right_alignment(right_alignment),
-    _treated(treated)
+	_right_alignment(right_alignment)
 	{
 		//_expected_inner_dist = min(genomic_inner_dist(), _expected_inner_dist);
 	}
@@ -561,8 +553,6 @@ public:
 			return _left_alignment->right(); 
 		return -1;
 	}
-	
-    bool treated() const { return _treated; }
     
 	CuffStrand strand() const 
 	{
@@ -643,7 +633,6 @@ public:
 	RefID _refid;
 	shared_ptr<ReadHit const> _left_alignment;
 	shared_ptr<ReadHit const> _right_alignment;
-    bool _treated;
     
 	//int _expected_inner_dist;
 	//int _max_inner_dist;
