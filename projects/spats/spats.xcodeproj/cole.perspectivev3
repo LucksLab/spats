@@ -329,13 +329,14 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>ED10EC1B1282521C00DDA9B2</string>
+										<string>ED10EC1E128253FE00DDA9B2</string>
 										<key>history</key>
 										<array>
 											<string>ED01A830124ABD8100CCEB84</string>
 											<string>ED16F01F124E3FD000350FC6</string>
 											<string>ED10EC0B12824EC500DDA9B2</string>
-											<string>ED10EC0C12824EC500DDA9B2</string>
+											<string>ED10EC1C128253FE00DDA9B2</string>
+											<string>ED10EC1D128253FE00DDA9B2</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -375,8 +376,6 @@
 									<dict>
 										<key>Frame</key>
 										<string>{{10, 27}, {849, 145}}</string>
-										<key>RubberWindowFrame</key>
-										<string>232 129 1056 899 0 0 1680 1028 </string>
 									</dict>
 									<key>Module</key>
 									<string>XCDetailModule</string>
@@ -392,7 +391,9 @@
 									<key>GeometryConfiguration</key>
 									<dict>
 										<key>Frame</key>
-										<string>{{10, 27}, {849, 141}}</string>
+										<string>{{10, 27}, {849, 145}}</string>
+										<key>RubberWindowFrame</key>
+										<string>232 129 1056 899 0 0 1680 1028 </string>
 									</dict>
 									<key>Module</key>
 									<string>PBXProjectFindModule</string>
