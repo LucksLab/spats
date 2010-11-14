@@ -506,6 +506,7 @@ def trim_read_adapters(params,
     try:  
         if five_prime_adapter != None and three_prime_adapter == None:
             cmd = ["fastx_clipper"]
+            cmd.extend(["-M", str(8)])
             cmd.extend(["-a", five_prime_adapter])
             cmd.extend(["-i", reads_file])
             cmd.extend(["-o",trimmed_reads_filename])
@@ -515,6 +516,7 @@ def trim_read_adapters(params,
                                   stderr=trim_log)
         elif five_prime_adapter == None and three_prime_adapter != None:
             cmd = ["fastx_clipper"]
+            cmd.extend(["-M", str(8)])
             cmd.extend(["-a", three_prime_adapter])
             cmd.extend(["-i", reads_file])
             cmd.extend(["-o", trimmed_reads_filename])
@@ -524,10 +526,12 @@ def trim_read_adapters(params,
                                   stderr=trim_log)
         elif five_prime_adapter != None and three_prime_adapter != None:
             five_prime_cmd = ["fastx_clipper"]
+            five_prime_cmd.extend(["-M", str(8)])
             five_prime_cmd.extend(["-a", five_prime_adapter])
             five_prime_cmd.extend(["-i", reads_file])
             
             three_prime_cmd = ["fastx_clipper"]
+            three_prime_cmd.extend(["-M", str(8)])
             three_prime_cmd.extend(["-a", three_prime_adapter])
             three_prime_cmd.extend(["-o", trimmed_reads_filename])
             print >> run_log, " ".join(five_prime_cmd) + " | " + " ".join(three_prime_cmd)
