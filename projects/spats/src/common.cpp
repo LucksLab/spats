@@ -102,6 +102,7 @@ const char *short_options = "";
 #define OPT_SEGMENT_MISMATCHES			51
 #define OPT_SOLEXA_QUALS			    63
 #define OPT_PHRED64_QUALS				64
+#define OPT_NO_RELABEL                  65
 
 static struct option long_options[] = {
 {"fasta",				no_argument,		0,	OPT_FASTA},
@@ -112,7 +113,7 @@ static struct option long_options[] = {
 {"segment-mismatches",	required_argument,	0,  OPT_SEGMENT_MISMATCHES},
 {"solexa-quals",		no_argument,		0,	OPT_SOLEXA_QUALS},
 {"phred64-quals",		no_argument,		0,	OPT_PHRED64_QUALS},
-
+{"no-relabel",          no_argument,		0,	OPT_NO_RELABEL},
 {0, 0, 0, 0} // terminator
 };
 
@@ -151,6 +152,9 @@ int parse_options(int argc, char** argv, void (*print_usage)())
 				break;
 			case OPT_PHRED64_QUALS:
 				phred64_quals = true;
+				break;
+            case OPT_NO_RELABEL:
+				fastq_db = false;
 				break;
 			default:
 				print_usage();

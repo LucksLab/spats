@@ -329,20 +329,20 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>ED7CFA5D12907FC800DB052B</string>
+										<string>ED7CFA64129082DF00DB052B</string>
 										<key>history</key>
 										<array>
 											<string>ED01A830124ABD8100CCEB84</string>
 											<string>ED16F01F124E3FD000350FC6</string>
-											<string>EDBE47421281B5260056D528</string>
 											<string>EDBE47441281B5260056D528</string>
 											<string>ED44CBB81281C8FF001232D9</string>
 											<string>ED44CBB91281C8FF001232D9</string>
 											<string>ED5C150D1281CCF0004C1BFD</string>
 											<string>ED5C15291281D0C2004C1BFD</string>
 											<string>ED7CFA4A1290645800DB052B</string>
-											<string>ED7CFA5B12907FC800DB052B</string>
-											<string>ED7CFA5C12907FC800DB052B</string>
+											<string>ED7CFA61129082DF00DB052B</string>
+											<string>ED7CFA62129082DF00DB052B</string>
+											<string>ED7CFA63129082DF00DB052B</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -382,8 +382,6 @@
 									<dict>
 										<key>Frame</key>
 										<string>{{10, 27}, {849, 226}}</string>
-										<key>RubberWindowFrame</key>
-										<string>389 279 1056 899 0 0 1920 1178 </string>
 									</dict>
 									<key>Module</key>
 									<string>XCDetailModule</string>
@@ -399,7 +397,9 @@
 									<key>GeometryConfiguration</key>
 									<dict>
 										<key>Frame</key>
-										<string>{{10, 27}, {849, 506}}</string>
+										<string>{{10, 27}, {849, 226}}</string>
+										<key>RubberWindowFrame</key>
+										<string>389 279 1056 899 0 0 1920 1178 </string>
 									</dict>
 									<key>Module</key>
 									<string>PBXProjectFindModule</string>

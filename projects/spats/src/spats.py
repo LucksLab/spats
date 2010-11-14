@@ -414,7 +414,7 @@ def formatTD(td):
     seconds = td.seconds % 60
     return '%02d:%02d:%02d' % (hours, minutes, seconds) 
 
-def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handle, untreated_handle):    
+def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handle, untreated_handle, relabel=True):    
     #filter_cmd = ["prep_reads"]
     print >> sys.stderr, "[%s] Relabeling reads in %s and %s" % (right_now(), handle_reads_list, nonhandle_reads_list)
     
@@ -422,12 +422,16 @@ def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handl
     
     filter_cmd = [bin_dir + "relabel_reads"]
     filter_cmd.extend(params.cmd())
+    
+    if relabel == False:
+        filter_cmd += ["--no-relabel"]
     if params.read_params.reads_format == "fastq":
         filter_cmd += ["--fastq"]
     elif params.read_params.reads_format == "fasta":
         filter_cmd += ["--fasta"]
     filter_cmd.append(handle_reads_list)
     filter_cmd.append(nonhandle_reads_list) 
+    
     
     if treated_handle != None and untreated_handle != None:
         filter_cmd.append(treated_handle)
@@ -599,8 +603,7 @@ def bowtie(params,
                        mapped_reads]
         
         #bowtie_proc = subprocess.Popen(bowtie_cmd, stderr=bwt_log)
-             
-        print >> run_log, " ".join(bowtie_cmd)
+
         
         
         print >> run_log, " ".join(bowtie_cmd)
