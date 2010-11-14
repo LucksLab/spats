@@ -403,6 +403,36 @@ int main(int argc, char *argv[])
         masks_files.push_back(m);
     }
     
+    if (masks.empty())
+    {
+        string handle_out_name = output_dir + "/" + "NOMASK_1.fq";
+        string nonhandle_out_name = output_dir + "/" + "NOMASK_2.fq";
+        
+        FILE* handle_reads_out = fopen(handle_out_name.c_str(), "w");
+        FILE* nonhandle_reads_out = fopen(nonhandle_out_name.c_str(), "w");
+        
+        if (!handle_reads_out)
+        {
+            fprintf(stderr, "Error: cannot open reads file %s for writing\n",
+                    handle_out_name.c_str());
+            exit(1);
+        }
+        
+        if (!nonhandle_reads_out)
+        {
+            fprintf(stderr, "Error: cannot open reads file %s for writing\n",
+                    nonhandle_out_name.c_str());
+            exit(1);
+        }
+        
+        vector<char> mask;
+        init_handle_mask("", mask);
+        masks.push_back(make_pair(mask, ""));
+        
+        FragmentMaskSet m(masks[0].first, handle_reads_out, nonhandle_reads_out);
+        masks_files.push_back(m);
+    }
+    
 	// Only print to standard out the good reads
 	relabel_reads(handle_reads_files, nonhandle_reads_files, masks_files);
 	
