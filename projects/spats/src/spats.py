@@ -894,7 +894,8 @@ def main(argv=None):
                           left_kept_reads, 
                           right_kept_reads,
                           treated_handle_seq,
-                          untreated_handle_seq)
+                          untreated_handle_seq,
+                          False)
         else:
             [left_kept_reads, right_kept_reads] = [left_labeled_reads, right_labeled_reads]
                 
