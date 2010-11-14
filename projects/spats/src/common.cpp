@@ -33,6 +33,8 @@ string output_dir = "spats_out";
 bool solexa_quals = false;
 bool phred64_quals = false;
 
+bool fastq_db = true;
+
 extern void print_usage();
 
 /**
