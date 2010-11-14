@@ -428,8 +428,10 @@ def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handl
         filter_cmd += ["--fasta"]
     filter_cmd.append(handle_reads_list)
     filter_cmd.append(nonhandle_reads_list) 
-    filter_cmd.append(treated_handle)
-    filter_cmd.append(untreated_handle) 
+    
+    if treated_handle != None and untreated_handle != None:
+        filter_cmd.append(treated_handle)
+        filter_cmd.append(untreated_handle) 
     
     #print "\t executing: `%s'" % " ".join(filter_cmd)    
     # files = reads_list.split(',')
@@ -844,62 +846,63 @@ def main(argv=None):
         #(ref_fasta, ref_seq_dict) = check_index(bwt_idx_prefix)
         
         check_bowtie()
+                
+        # Now start the time consuming stuff
+        relabel_reads(params,
+                      left_reads_list, 
+                      right_reads_list,
+                      None,
+                      None)
+                      
+        index_prefix = index_targets(rna_targets_filename)
         
-        if len(left_reads_list) != len(right_reads_list):
-            print >> sys.stderr, "Error: reads must be supplied as matched pairs of files"
-            sys.exit(1)
+        maps = []
         
-        left_kept_reads_list = []
-        right_kept_reads_list = []
         
-        left_reads_list_filenames = left_reads_list.split(',')
-        right_reads_list_filenames = right_reads_list.split(',')
+        left_labeled_reads = output_dir + "/NOMASK_1.fq"
+        right_labeled_reads = output_dir + "/NOMASK_2.fq"
         
-        for i in range(0, len(left_reads_list_filenames)):
-            left_trimmed_reads = left_reads_list_filenames[i] + ".trimmed"
-            right_trimmed_reads = right_reads_list_filenames[i] + ".trimmed"
-                    
-            left_kept_reads = left_reads_list_filenames[i] + ".kept"
-            right_kept_reads = right_reads_list_filenames[i] + ".kept"
+        if params.read_params.left_adapter != None \
+            and params.read_params.right_adapter != None:
+
+            left_trimmed_reads = "NOMASK_1.trimmed"
+            right_trimmed_reads = "NOMASK_2.trimmed"
+            
+            left_kept_reads = "NOMASK_1.kept"
+            right_kept_reads = "NOMASK_2.kept"
             
             left_trimmed_reads = trim_read_adapters(params, 
                                                     params.read_params.left_adapter,
                                                     params.read_params.right_adapter,
-                                                    left_reads_list_filenames[i],
+                                                    left_labeled_reads,
                                                     left_trimmed_reads)
             right_trimmed_reads = trim_read_adapters(params, 
                                                      reverse_complement(params.read_params.left_adapter),
                                                      reverse_complement(params.read_params.right_adapter),
-                                                     right_reads_list_filenames[i],
+                                                     right_labeled_reads,
                                                      right_trimmed_reads)
             [left_kept_reads, right_kept_reads] = match_read_pairs(params,
                                                                    left_trimmed_reads, 
                                                                    right_trimmed_reads, 
                                                                    left_kept_reads, 
                                                                    right_kept_reads)
-            left_kept_reads_list.append(left_kept_reads)
-            right_kept_reads_list.append(right_kept_reads)
-                                
-        # Now start the time consuming stuff
-        relabel_reads(params,
-                      left_reads_list, 
-                      right_reads_list,
-                      treated_handle_seq,
-                      untreated_handle_seq)
-                      
-        index_prefix = index_targets(rna_targets_filename)
-        
-        maps = []
-        
+            
+            relabel_reads(params,
+                          left_kept_reads, 
+                          right_kept_reads,
+                          treated_handle_seq,
+                          untreated_handle_seq)
+        else:
+            [left_kept_reads, right_kept_reads] = [left_labeled_reads, right_labeled_reads]
+                
         for handle_seq in [treated_handle_seq, untreated_handle_seq]:
-            left_labeled_reads = output_dir + "/" + handle_seq + "_1.fq"
-            right_labeled_reads = output_dir + "/" + handle_seq + "_2.fq"
-
+            left_demuxed_reads = output_dir + handle_seq + "_1.fq"
+            right_demuxed_reads = output_dir + handle_seq + "_2.fq"
             mapped_reads = output_dir + handle_seq + ".sam"                            
             bowtie(params,
                    index_prefix,
-                   left_labeled_reads,
-                   right_labeled_reads,
+                   left_demuxed_reads,
+                   right_demuxed_reads,
                    "fastq",
                    mapped_reads,
                    None,
