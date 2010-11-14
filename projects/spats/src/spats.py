@@ -853,7 +853,7 @@ def main(argv=None):
         right_kept_reads_list = []
         for i in range(0, len(left_reads_list)):
             left_trimmed_reads = left_reads_list[i] + ".trimmed"
-            right_trimmed_reads = right_trimmed_reads[i] + ".trimmed"
+            right_trimmed_reads = right_reads_list[i] + ".trimmed"
                     
             left_kept_reads = left_reads_list[i] + ".kept"
             right_kept_reads = left_reads_list[i] + ".kept"
