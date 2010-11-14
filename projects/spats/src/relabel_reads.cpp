@@ -189,7 +189,7 @@ void relabel_reads(vector<FILE*> handle_reads_files,
             FILE* handle_f_out = NULL;
             FILE* nonhandle_f_out = NULL;
             
-            if (matched != masks.size())
+            if (matched != masks.size() && handle_read.seq.length() > masks[matched].mask.size() + 4)
             {
                 handle_f_out = masks[matched].handle_reads;
                 nonhandle_f_out = masks[matched].nonhandle_reads;
