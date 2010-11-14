@@ -211,7 +211,7 @@ void relabel_reads(vector<FILE*> handle_reads_files,
                 nonhandle_read.seq = nonhandle_read.seq.substr(0, nonhandle_read.seq.length() - masks[matched].mask.size());
                 if (!nonhandle_read.qual.empty())
                 {
-                    nonhandle_read.qual = nonhandle_read.qual.substr(0, nonhandle_read.seq.length() - masks[matched].mask.size());   
+                    nonhandle_read.qual = nonhandle_read.qual.substr(0, nonhandle_read.qual.length() - masks[matched].mask.size());   
                 } 
             }
             
