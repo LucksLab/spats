@@ -169,6 +169,7 @@
 			ED7CFA511290683100DB052B /* PBXTextBookmark */ = ED7CFA511290683100DB052B /* PBXTextBookmark */;
 			ED7CFA52129068A500DB052B /* PBXTextBookmark */ = ED7CFA52129068A500DB052B /* PBXTextBookmark */;
 			ED7CFA5312907B2300DB052B /* PBXTextBookmark */ = ED7CFA5312907B2300DB052B /* PBXTextBookmark */;
+			ED7CFA5412907B6300DB052B /* PBXTextBookmark */ = ED7CFA5412907B6300DB052B /* PBXTextBookmark */;
 			EDBE47421281B5260056D528 = EDBE47421281B5260056D528 /* PBXTextBookmark */;
 			EDBE47441281B5260056D528 = EDBE47441281B5260056D528 /* PBXTextBookmark */;
 		};
@@ -509,9 +510,9 @@
 	};
 	ED507539117233B800883983 /* spats.py */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {788, 12168}}";
-			sepNavSelRange = "{34761, 0}";
-			sepNavVisRange = "{32962, 2040}";
+			sepNavIntBoundsRect = "{{0, 0}, {978, 12155}}";
+			sepNavSelRange = "{32413, 0}";
+			sepNavVisRange = "{31966, 2340}";
 		};
 	};
 	ED5075441172724D00883983 /* prep_reads.cpp */ = {
@@ -737,7 +738,7 @@
 		fRef = ED507539117233B800883983 /* spats.py */;
 		name = "spats.py: 876";
 		rLen = 0;
-		rLoc = 34534;
+		rLoc = 34531;
 		rType = 0;
 		vrLen = 2332;
 		vrLoc = 32986;
@@ -747,7 +748,7 @@
 		fRef = ED507539117233B800883983 /* spats.py */;
 		name = "spats.py: 876";
 		rLen = 0;
-		rLoc = 34534;
+		rLoc = 34531;
 		rType = 0;
 		vrLen = 2448;
 		vrLoc = 32091;
@@ -757,7 +758,7 @@
 		fRef = ED507539117233B800883983 /* spats.py */;
 		name = "spats.py: 874";
 		rLen = 0;
-		rLoc = 34534;
+		rLoc = 34531;
 		rType = 0;
 		vrLen = 2191;
 		vrLoc = 18846;
@@ -777,10 +778,20 @@
 		fRef = ED507539117233B800883983 /* spats.py */;
 		name = "spats.py: 898";
 		rLen = 0;
-		rLoc = 34761;
+		rLoc = 34758;
 		rType = 0;
 		vrLen = 2040;
 		vrLoc = 32962;
+	};
+	ED7CFA5412907B6300DB052B /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = ED507539117233B800883983 /* spats.py */;
+		name = "spats.py: 856";
+		rLen = 0;
+		rLoc = 32413;
+		rType = 0;
+		vrLen = 2340;
+		vrLoc = 31966;
 	};
 	EDBE47421281B5260056D528 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
