@@ -166,6 +166,8 @@
 			ED7CFA4B1290645800DB052B /* PBXBookmark */ = ED7CFA4B1290645800DB052B /* PBXBookmark */;
 			ED7CFA4C1290645800DB052B /* PBXTextBookmark */ = ED7CFA4C1290645800DB052B /* PBXTextBookmark */;
 			ED7CFA501290665100DB052B /* PBXTextBookmark */ = ED7CFA501290665100DB052B /* PBXTextBookmark */;
+			ED7CFA511290683100DB052B /* PBXTextBookmark */ = ED7CFA511290683100DB052B /* PBXTextBookmark */;
+			ED7CFA52129068A500DB052B /* PBXTextBookmark */ = ED7CFA52129068A500DB052B /* PBXTextBookmark */;
 			EDBE47421281B5260056D528 = EDBE47421281B5260056D528 /* PBXTextBookmark */;
 			EDBE47441281B5260056D528 = EDBE47441281B5260056D528 /* PBXTextBookmark */;
 		};
@@ -506,9 +508,9 @@
 	};
 	ED507539117233B800883983 /* spats.py */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {978, 12038}}";
-			sepNavSelRange = "{33493, 0}";
-			sepNavVisRange = "{32091, 2448}";
+			sepNavIntBoundsRect = "{{0, 0}, {978, 11973}}";
+			sepNavSelRange = "{20001, 0}";
+			sepNavVisRange = "{18966, 2250}";
 		};
 	};
 	ED5075441172724D00883983 /* prep_reads.cpp */ = {
@@ -734,7 +736,7 @@
 		fRef = ED507539117233B800883983 /* spats.py */;
 		name = "spats.py: 876";
 		rLen = 0;
-		rLoc = 33493;
+		rLoc = 33672;
 		rType = 0;
 		vrLen = 2332;
 		vrLoc = 32986;
@@ -744,10 +746,30 @@
 		fRef = ED507539117233B800883983 /* spats.py */;
 		name = "spats.py: 876";
 		rLen = 0;
-		rLoc = 33493;
+		rLoc = 33672;
 		rType = 0;
 		vrLen = 2448;
 		vrLoc = 32091;
+	};
+	ED7CFA511290683100DB052B /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = ED507539117233B800883983 /* spats.py */;
+		name = "spats.py: 874";
+		rLen = 0;
+		rLoc = 33452;
+		rType = 0;
+		vrLen = 2191;
+		vrLoc = 18846;
+	};
+	ED7CFA52129068A500DB052B /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = ED507539117233B800883983 /* spats.py */;
+		name = "spats.py: 515";
+		rLen = 0;
+		rLoc = 20001;
+		rType = 0;
+		vrLen = 2250;
+		vrLoc = 18966;
 	};
 	EDBE47421281B5260056D528 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;

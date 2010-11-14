@@ -503,6 +503,7 @@ def trim_read_adapters(params,
             cmd.extend(["-a", five_prime_adapter])
             cmd.extend(["-i", reads_file])
             cmd.extend(["-o",trimmed_reads_filename])
+            print >> run_log, " ".join(cmd)
             ret = subprocess.call(cmd, 
                                   stdout=trimmed_reads,
                                   stderr=trim_log)
@@ -511,6 +512,7 @@ def trim_read_adapters(params,
             cmd.extend(["-a", three_prime_adapter])
             cmd.extend(["-i", reads_file])
             cmd.extend(["-o", trimmed_reads_filename])
+            print >> run_log, " ".join(cmd)
             ret = subprocess.call(cmd, 
                                   stdout=trimmed_reads,
                                   stderr=trim_log)
@@ -522,6 +524,7 @@ def trim_read_adapters(params,
             three_prime_cmd = ["fastx_clipper"]
             three_prime_cmd.extend(["-a", three_prime_adapter])
             three_prime_cmd.extend(["-o", trimmed_reads_filename])
+            print >> run_log, " ".join(five_prime_cmd) + " | " + " ".join(three_prime_cmd)
             five_prime_cmd_proc = subprocess.Popen(five_prime_cmd, 
                                                    stdout=subprocess.PIPE, 
                                                    stderr=trim_log)
