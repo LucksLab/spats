@@ -844,7 +844,38 @@ def main(argv=None):
         #(ref_fasta, ref_seq_dict) = check_index(bwt_idx_prefix)
         
         check_bowtie()
-                
+        
+        if len(left_reads_list) != len(right_reads_list):
+            print >> sys.stderr, "Error: reads must be supplied as matched pairs of files"
+            sys.exit(1)
+        
+        left_kept_reads_list = []
+        right_kept_reads_list = []
+        for i in range(0, len(left_reads_list)):
+            left_trimmed_reads = left_reads_list[i] + ".trimmed"
+            right_trimmed_reads = right_trimmed_reads[i] + ".trimmed"
+                    
+            left_kept_reads = left_reads_list[i] + ".kept"
+            right_kept_reads = left_reads_list[i] + ".kept"
+            
+            left_trimmed_reads = trim_read_adapters(params, 
+                                                    params.read_params.left_adapter,
+                                                    params.read_params.right_adapter,
+                                                    left_reads_list[i],
+                                                    left_trimmed_reads)
+            right_trimmed_reads = trim_read_adapters(params, 
+                                                     reverse_complement(params.read_params.left_adapter),
+                                                     reverse_complement(params.read_params.right_adapter),
+                                                     right_trimmed_reads[i],
+                                                     right_trimmed_reads)
+            [left_kept_reads, right_kept_reads] = match_read_pairs(params,
+                                                                   left_trimmed_reads, 
+                                                                   right_trimmed_reads, 
+                                                                   left_kept_reads, 
+                                                                   right_kept_reads)
+            left_kept_reads_list.append(left_kept_reads)
+            right_kept_reads_list.append(right_kept_reads)
+                                
         # Now start the time consuming stuff
         relabel_reads(params,
                       left_reads_list, 
@@ -859,39 +890,12 @@ def main(argv=None):
         for handle_seq in [treated_handle_seq, untreated_handle_seq]:
             left_labeled_reads = output_dir + "/" + handle_seq + "_1.fq"
             right_labeled_reads = output_dir + "/" + handle_seq + "_2.fq"
-            
-            if params.read_params.left_adapter != None \
-                and params.read_params.right_adapter != None:
-
-                left_trimmed_reads = handle_seq + "_1.trimmed"
-                right_trimmed_reads = handle_seq + "_2.trimmed"
-                
-                left_kept_reads = handle_seq + "_1.kept"
-                right_kept_reads = handle_seq + "_2.kept"
-                
-                left_trimmed_reads = trim_read_adapters(params, 
-                                                        params.read_params.left_adapter,
-                                                        params.read_params.right_adapter,
-                                                        left_labeled_reads,
-                                                        left_trimmed_reads)
-                right_trimmed_reads = trim_read_adapters(params, 
-                                                         reverse_complement(params.read_params.left_adapter),
-                                                         reverse_complement(params.read_params.right_adapter),
-                                                         right_labeled_reads,
-                                                         right_trimmed_reads)
-                [left_kept_reads, right_kept_reads] = match_read_pairs(params,
-                                                                       left_trimmed_reads, 
-                                                                       right_trimmed_reads, 
-                                                                       left_kept_reads, 
-                                                                       right_kept_reads)
-            else:
-                [left_kept_reads, right_kept_reads] = [left_labeled_reads, right_labeled_reads]
 
             mapped_reads = output_dir + handle_seq + ".sam"                            
             bowtie(params,
                    index_prefix,
-                   left_kept_reads,
-                   right_kept_reads,
+                   left_labeled_reads,
+                   right_labeled_reads,
                    "fastq",
                    mapped_reads,
                    None,
