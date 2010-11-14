@@ -276,7 +276,7 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>6</integer>
+									<integer>17</integer>
 									<integer>1</integer>
 									<integer>0</integer>
 								</array>
@@ -317,7 +317,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>ED4835FC12492ABA00642337</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>relabel_reads.cpp</string>
+								<string>spats.py</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -325,11 +325,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>ED4835FD12492ABA00642337</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>relabel_reads.cpp</string>
+										<string>spats.py</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>ED7CFA6F1290833500DB052B</string>
+										<string>ED7CFA721290839700DB052B</string>
 										<key>history</key>
 										<array>
 											<string>ED01A830124ABD8100CCEB84</string>
@@ -339,10 +339,10 @@
 											<string>ED5C150D1281CCF0004C1BFD</string>
 											<string>ED5C15291281D0C2004C1BFD</string>
 											<string>ED7CFA4A1290645800DB052B</string>
-											<string>ED7CFA6B1290833500DB052B</string>
 											<string>ED7CFA6C1290833500DB052B</string>
 											<string>ED7CFA6D1290833500DB052B</string>
-											<string>ED7CFA6E1290833500DB052B</string>
+											<string>ED7CFA701290839700DB052B</string>
+											<string>ED7CFA711290839700DB052B</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
