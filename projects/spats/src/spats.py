@@ -851,22 +851,26 @@ def main(argv=None):
         
         left_kept_reads_list = []
         right_kept_reads_list = []
-        for i in range(0, len(left_reads_list)):
-            left_trimmed_reads = left_reads_list[i] + ".trimmed"
-            right_trimmed_reads = right_reads_list[i] + ".trimmed"
+        
+        left_reads_list_filenames = left_reads_list.split(',')
+        right_reads_list_filenames = right_reads_list.split(',')
+        
+        for i in range(0, len(left_reads_list_filenames)):
+            left_trimmed_reads = left_reads_list_filenames[i] + ".trimmed"
+            right_trimmed_reads = right_reads_list_filenames[i] + ".trimmed"
                     
-            left_kept_reads = left_reads_list[i] + ".kept"
-            right_kept_reads = left_reads_list[i] + ".kept"
+            left_kept_reads = left_reads_list_filenames[i] + ".kept"
+            right_kept_reads = right_reads_list_filenames[i] + ".kept"
             
             left_trimmed_reads = trim_read_adapters(params, 
                                                     params.read_params.left_adapter,
                                                     params.read_params.right_adapter,
-                                                    left_reads_list[i],
+                                                    left_reads_list_filenames[i],
                                                     left_trimmed_reads)
             right_trimmed_reads = trim_read_adapters(params, 
                                                      reverse_complement(params.read_params.left_adapter),
                                                      reverse_complement(params.read_params.right_adapter),
-                                                     right_trimmed_reads[i],
+                                                     right_reads_list_filenames[i],
                                                      right_trimmed_reads)
             [left_kept_reads, right_kept_reads] = match_read_pairs(params,
                                                                    left_trimmed_reads, 
