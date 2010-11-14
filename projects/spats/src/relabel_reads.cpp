@@ -24,7 +24,6 @@
 #include "tokenize.h"
 #include "qual.h"
 
-bool fastq_db = true;
 
 void format_qual_string(const string& orig_qual_str,
 						string& out_qual_str)
@@ -288,6 +287,8 @@ int main(int argc, char *argv[])
 	//fprintf(stderr, "relabel_reads v%s\n", PACKAGE_VERSION); 
 	//fprintf(stderr, "---------------------------\n");
 	
+    fastq_db = true;
+    
 	int parse_ret = parse_options(argc, argv, print_usage);
 	if (parse_ret)
 		return parse_ret;

@@ -59,6 +59,8 @@ extern std::string ium_reads;
 extern bool solexa_quals;
 extern bool phred64_quals;
 
+extern bool fastq_db;
+
 int parseInt(int lower, const char *errmsg, void (*print_usage)());
 int parse_options(int argc, char** argv, void (*print_usage)());
 
