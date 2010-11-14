@@ -9,22 +9,22 @@
 		);
 		breakpoints = (
 			ED0E0ACD118F84EF003D6DE9 /* compute_profiles.cpp:264 */,
-			ED01A7CD1249470300CCEB84 /* relabel_reads.cpp:447 */,
-			ED01A7D81249473200CCEB84 /* relabel_reads.cpp:445 */,
-			ED01A7DC124963CC00CCEB84 /* relabel_reads.cpp:275 */,
+			ED01A7CD1249470300CCEB84 /* relabel_reads.cpp:449 */,
+			ED01A7D81249473200CCEB84 /* relabel_reads.cpp:447 */,
+			ED01A7DC124963CC00CCEB84 /* relabel_reads.cpp:277 */,
 			ED01A7FA1249690D00CCEB84 /* relabel_reads.cpp:186 */,
-			ED01A8001249692200CCEB84 /* relabel_reads.cpp:218 */,
-			ED01A849124ACBC300CCEB84 /* relabel_reads.cpp:328 */,
-			EDBE47491281B5790056D528 /* relabel_reads.cpp:392 */,
+			ED01A8001249692200CCEB84 /* relabel_reads.cpp:220 */,
+			ED01A849124ACBC300CCEB84 /* relabel_reads.cpp:330 */,
+			EDBE47491281B5790056D528 /* relabel_reads.cpp:394 */,
 			ED44CB711281C79A001232D9 /* compute_profiles.cpp:405 */,
 			ED44CB8B1281C7E1001232D9 /* compute_profiles.cpp:163 */,
 			ED44CBA01281C856001232D9 /* compute_profiles.cpp:164 */,
 			ED5C14CC1281C957004C1BFD /* compute_profiles.cpp:251 */,
-			ED5C14DF1281CBC4004C1BFD /* relabel_reads.cpp:278 */,
+			ED5C14DF1281CBC4004C1BFD /* relabel_reads.cpp:280 */,
 			ED5C14FD1281CC78004C1BFD /* compute_profiles.cpp:198 */,
 			ED5C15011281CC8B004C1BFD /* compute_profiles.cpp:189 */,
 			ED5C15051281CCA2004C1BFD /* bundles.cpp:39 */,
-			ED5C15121281CD4A004C1BFD /* relabel_reads.cpp:216 */,
+			ED5C15121281CD4A004C1BFD /* relabel_reads.cpp:218 */,
 		);
 		codeSenseManager = ED5075271172311300883983 /* Code sense */;
 		executables = (
@@ -203,6 +203,7 @@
 			ED7CFA831290969700DB052B /* PBXTextBookmark */ = ED7CFA831290969700DB052B /* PBXTextBookmark */;
 			ED7CFA841290969700DB052B /* PBXTextBookmark */ = ED7CFA841290969700DB052B /* PBXTextBookmark */;
 			ED7CFA851290969700DB052B /* PBXTextBookmark */ = ED7CFA851290969700DB052B /* PBXTextBookmark */;
+			ED7CFA861290979600DB052B /* PBXTextBookmark */ = ED7CFA861290979600DB052B /* PBXTextBookmark */;
 			EDBE47421281B5260056D528 = EDBE47421281B5260056D528 /* PBXTextBookmark */;
 			EDBE47441281B5260056D528 = EDBE47441281B5260056D528 /* PBXTextBookmark */;
 		};
@@ -216,7 +217,7 @@
 			ED50751B1172310F00883983 /* relabel_reads */,
 		);
 	};
-	ED01A7CD1249470300CCEB84 /* relabel_reads.cpp:447 */ = {
+	ED01A7CD1249470300CCEB84 /* relabel_reads.cpp:449 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -228,13 +229,13 @@
 		functionName = "main(int argc, char *argv[])";
 		hitCount = 1;
 		ignoreCount = 0;
-		lineNumber = 447;
+		lineNumber = 449;
 		location = compute_profiles;
 		modificationTime = 310496729.878339;
 		originalNumberOfMultipleMatches = 1;
 		state = 2;
 	};
-	ED01A7D81249473200CCEB84 /* relabel_reads.cpp:445 */ = {
+	ED01A7D81249473200CCEB84 /* relabel_reads.cpp:447 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -246,13 +247,13 @@
 		functionName = "main(int argc, char *argv[])";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 445;
+		lineNumber = 447;
 		location = spats;
 		modificationTime = 310496724.0639421;
 		originalNumberOfMultipleMatches = 1;
 		state = 2;
 	};
-	ED01A7DC124963CC00CCEB84 /* relabel_reads.cpp:275 */ = {
+	ED01A7DC124963CC00CCEB84 /* relabel_reads.cpp:277 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -264,7 +265,7 @@
 		functionName = "init_handle_mask(const string& handle_iupac_seq, vector<char>& mask)";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 275;
+		lineNumber = 277;
 		location = spats;
 		modificationTime = 310496724.064102;
 		originalNumberOfMultipleMatches = 1;
@@ -288,7 +289,7 @@
 		originalNumberOfMultipleMatches = 1;
 		state = 2;
 	};
-	ED01A8001249692200CCEB84 /* relabel_reads.cpp:218 */ = {
+	ED01A8001249692200CCEB84 /* relabel_reads.cpp:220 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -300,7 +301,7 @@
 		functionName = "relabel_reads(vector<FILE*> reads_files, const vector<char>& treated_mask, const vector<char>& untreated_mask)";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 218;
+		lineNumber = 220;
 		location = compute_profiles;
 		modificationTime = 310496724.064425;
 		originalNumberOfMultipleMatches = 1;
@@ -316,7 +317,7 @@
 		vrLen = 1427;
 		vrLoc = 2806;
 	};
-	ED01A849124ACBC300CCEB84 /* relabel_reads.cpp:328 */ = {
+	ED01A849124ACBC300CCEB84 /* relabel_reads.cpp:330 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -328,7 +329,7 @@
 		functionName = "main(int argc, char *argv[])";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 328;
+		lineNumber = 330;
 		location = spats;
 		modificationTime = 310496724.064585;
 		originalNumberOfMultipleMatches = 1;
@@ -635,7 +636,7 @@
 		originalNumberOfMultipleMatches = 1;
 		state = 0;
 	};
-	ED5C14DF1281CBC4004C1BFD /* relabel_reads.cpp:278 */ = {
+	ED5C14DF1281CBC4004C1BFD /* relabel_reads.cpp:280 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -647,7 +648,7 @@
 		functionName = "init_handle_mask(const string& handle_iupac_seq, vector<char>& mask)";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 278;
+		lineNumber = 280;
 		location = spats;
 		modificationTime = 310496724.065409;
 		originalNumberOfMultipleMatches = 1;
@@ -714,7 +715,7 @@
 		vrLen = 1216;
 		vrLoc = 0;
 	};
-	ED5C15121281CD4A004C1BFD /* relabel_reads.cpp:216 */ = {
+	ED5C15121281CD4A004C1BFD /* relabel_reads.cpp:218 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -726,7 +727,7 @@
 		functionName = "relabel_reads(vector<FILE*> handle_reads_files, vector<FILE*> nonhandle_reads_files, vector<FragmentMaskSet>& masks)";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 216;
+		lineNumber = 218;
 		location = compute_profiles;
 		modificationTime = 310496724.065944;
 		originalNumberOfMultipleMatches = 1;
@@ -737,7 +738,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 207";
 		rLen = 0;
-		rLoc = 5579;
+		rLoc = 5677;
 		rType = 0;
 		vrLen = 1716;
 		vrLoc = 10680;
@@ -851,7 +852,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 207";
 		rLen = 0;
-		rLoc = 5579;
+		rLoc = 5677;
 		rType = 0;
 		vrLen = 1274;
 		vrLoc = 2864;
@@ -861,7 +862,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 432";
 		rLen = 0;
-		rLoc = 13688;
+		rLoc = 13786;
 		rType = 0;
 		vrLen = 1338;
 		vrLoc = 12048;
@@ -871,7 +872,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 432";
 		rLen = 0;
-		rLoc = 13688;
+		rLoc = 13786;
 		rType = 0;
 		vrLen = 1338;
 		vrLoc = 12048;
@@ -911,7 +912,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 291";
 		rLen = 13;
-		rLoc = 9233;
+		rLoc = 9331;
 		rType = 0;
 		vrLen = 913;
 		vrLoc = 8304;
@@ -990,7 +991,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 290";
 		rLen = 0;
-		rLoc = 9210;
+		rLoc = 9308;
 		rType = 0;
 		vrLen = 882;
 		vrLoc = 8232;
@@ -1000,7 +1001,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 290";
 		rLen = 0;
-		rLoc = 9210;
+		rLoc = 9308;
 		rType = 0;
 		vrLen = 882;
 		vrLoc = 8232;
@@ -1070,7 +1071,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 290";
 		rLen = 0;
-		rLoc = 9210;
+		rLoc = 9308;
 		rType = 0;
 		vrLen = 861;
 		vrLoc = 8253;
@@ -1080,7 +1081,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 215";
 		rLen = 0;
-		rLoc = 6080;
+		rLoc = 6178;
 		rType = 0;
 		vrLen = 1843;
 		vrLoc = 5214;
@@ -1090,7 +1091,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 214";
 		rLen = 0;
-		rLoc = 6018;
+		rLoc = 6116;
 		rType = 0;
 		vrLen = 1855;
 		vrLoc = 5074;
@@ -1100,7 +1101,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 211";
 		rLen = 0;
-		rLoc = 5800;
+		rLoc = 5898;
 		rType = 0;
 		vrLen = 1855;
 		vrLoc = 5074;
@@ -1140,7 +1141,7 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 211";
 		rLen = 0;
-		rLoc = 5800;
+		rLoc = 5898;
 		rType = 0;
 		vrLen = 1837;
 		vrLoc = 5074;
@@ -1150,10 +1151,20 @@
 		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
 		name = "relabel_reads.cpp: 192";
 		rLen = 0;
-		rLoc = 5119;
+		rLoc = 5217;
 		rType = 0;
 		vrLen = 1683;
 		vrLoc = 4452;
+	};
+	ED7CFA861290979600DB052B /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = EDCCF68011779A54000D83D5 /* relabel_reads.cpp */;
+		name = "relabel_reads.cpp: 194";
+		rLen = 0;
+		rLoc = 5158;
+		rType = 0;
+		vrLen = 1839;
+		vrLoc = 4758;
 	};
 	EDBE47421281B5260056D528 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
@@ -1175,7 +1186,7 @@
 		vrLen = 1144;
 		vrLoc = 313;
 	};
-	EDBE47491281B5790056D528 /* relabel_reads.cpp:392 */ = {
+	EDBE47491281B5790056D528 /* relabel_reads.cpp:394 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1187,7 +1198,7 @@
 		functionName = "main(int argc, char *argv[])";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 392;
+		lineNumber = 394;
 		location = spats;
 		modificationTime = 310496724.064754;
 		originalNumberOfMultipleMatches = 1;
@@ -1195,9 +1206,9 @@
 	};
 	EDCCF68011779A54000D83D5 /* relabel_reads.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {950, 5590}}";
-			sepNavSelRange = "{5119, 0}";
-			sepNavVisRange = "{4452, 1683}";
+			sepNavIntBoundsRect = "{{0, 0}, {950, 5616}}";
+			sepNavSelRange = "{5158, 0}";
+			sepNavVisRange = "{4758, 1839}";
 		};
 	};
 	EDCCF6C01177AE48000D83D5 /* match_read_pairs.cpp */ = {
