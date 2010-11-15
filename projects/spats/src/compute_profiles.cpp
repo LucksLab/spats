@@ -18,6 +18,7 @@
 #include <string>
 #include <functional>
 #include <numeric>
+#include <cmath>
 
 #include "common.h"
 #include "reads.h"
@@ -87,7 +88,9 @@ struct TargetProfile
         _seq(seq),
         _profile_len(_seq.length() + 1),
         _treated(_profile_len),
-        _untreated(_profile_len) {}
+        _untreated(_profile_len),
+        _thetas(_seq.length()),
+        _normalized_thetas(_seq.length()){}
     
     const string& name() const { return _name; }
     const string& seq() const { return _seq; }
@@ -107,6 +110,83 @@ struct TargetProfile
         }
     }
 
+    void calc_poisson_reactivities()
+    {
+        if (_profile_len = 0)
+            return;
+        
+        const vector<int>& treated_adducts = _treated.adducts();
+        const vector<int>& untreated_adducts = _untreated.adducts();
+        
+        double X_0 = treated_adducts[0];
+        double total_plus_reactive_counts = accumulate(treated_adducts.begin() + 1,
+                                                       treated_adducts.end(), 0.0);
+        vector<double> plus_channel_freq;
+        for (size_t i = 1; i < treated_adducts.size(); i++)
+        {
+            plus_channel_freq.push_back(treated_adducts[i] / total_plus_reactive_counts);
+        }
+        
+        double total_minus_reactive_counts = accumulate(untreated_adducts.begin() + 1,
+                                                        untreated_adducts.end(), 0.0);
+        vector<double> minus_channel_freq;
+        for (size_t i = 1; i < untreated_adducts.size(); i++)
+        {
+            minus_channel_freq.push_back(untreated_adducts[i] / total_minus_reactive_counts);
+        }
+        
+        double total_minus_counts = total_minus_reactive_counts + untreated_adducts[0];
+        double p_0_hat = untreated_adducts[0] / (total_minus_counts);
+        
+        double scaled_X_0 = X_0 / p_0_hat;
+        
+        double total_plus_counts = total_plus_reactive_counts + treated_adducts[0];
+        double cap_C_estimate = (total_plus_counts) / scaled_X_0;
+        assert (cap_C_estimate > 0.0);
+        
+        double c_estimate = log(cap_C_estimate);
+        
+        assert (minus_channel_freq.size() == plus_channel_freq.size());
+        
+        double K = p_0_hat / (cap_C_estimate - p_0_hat);
+        
+        for (int i = 1; i < (int)plus_channel_freq.size(); ++i)
+        {
+            double P = 0.0;
+            double M = 0.0;
+            for (int j = i - 1; j >= 0; --j)
+            {
+                P += plus_channel_freq[j];
+                M += minus_channel_freq[j];
+            }
+            
+            double log_p = log(1.0 + (plus_channel_freq[i] / P) + K);
+            double log_m = log(1.0 + (minus_channel_freq[i] / M) + p_0_hat);
+            double theta = (1.0 / c_estimate) * (log_p - log_m);
+            _thetas[i-1] = theta;
+        }
+        
+        double delta = 1.0;
+        
+        for (int i = 0; i < _thetas.size(); ++i)
+        {
+            if (_thetas[i] < 0)
+                delta -= _thetas[i];
+        }
+        
+        for (int i = 0; i < _thetas.size(); ++i)
+        {
+            if (_thetas[i] < 0)
+            {
+                _normalized_thetas[0] = 0;
+            }
+            else 
+            {
+                _normalized_thetas[0] = _thetas[i] / delta;
+            }
+        }
+    }
+    
     void print_adduct_counts(FILE* adducts_out)
     {
         fprintf(adducts_out, "five_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\n");
@@ -119,7 +199,7 @@ struct TargetProfile
             if (i == 0)
             {
                 fprintf(adducts_out, 
-                        "%d\t*\t%d\t%d\n", 
+                        "%d\t*\t%d\t%d\t-\t-\n", 
                         i,
                         treated_adducts[i], 
                         untreated_adducts[i]); 
@@ -127,11 +207,13 @@ struct TargetProfile
             else if (i < _seq.length())
             {
                 fprintf(adducts_out, 
-                        "%d\t%c\t%d\t%d\n", 
+                        "%d\t%c\t%d\t%d\t%lg\t%lg\n", 
                         i,
                         _seq[i-1],
                         treated_adducts[i], 
-                        untreated_adducts[i]); 
+                        untreated_adducts[i],
+                        _thetas[i-1],
+                        _normalized_thetas[i-1]); 
             }
         }
     }
@@ -144,6 +226,8 @@ private:
     
     Adducts _treated;
     Adducts _untreated;
+    vector<double> _thetas;
+    vector<double> _normalized_thetas;
 };
 
 map<RefID, TargetProfile> targets_by_id;

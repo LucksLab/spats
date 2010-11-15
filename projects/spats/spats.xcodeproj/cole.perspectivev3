@@ -276,7 +276,7 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>14</integer>
+									<integer>7</integer>
 									<integer>1</integer>
 									<integer>0</integer>
 								</array>
@@ -299,7 +299,7 @@
 							<real>185</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>388 278 1056 899 0 0 1920 1178 </string>
+						<string>600 279 1056 899 0 0 1920 1178 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -317,7 +317,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>ED4835FC12492ABA00642337</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>relabel_reads.cpp</string>
+								<string>compute_profiles.cpp</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -325,11 +325,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>ED4835FD12492ABA00642337</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>relabel_reads.cpp</string>
+										<string>compute_profiles.cpp</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>ED7CFA89129097AD00DB052B</string>
+										<string>ED7CFAC71290CDA800DB052B</string>
 										<key>history</key>
 										<array>
 											<string>ED01A830124ABD8100CCEB84</string>
@@ -337,12 +337,12 @@
 											<string>ED44CBB91281C8FF001232D9</string>
 											<string>ED5C150D1281CCF0004C1BFD</string>
 											<string>ED5C15291281D0C2004C1BFD</string>
-											<string>ED7CFA4A1290645800DB052B</string>
 											<string>ED7CFA6C1290833500DB052B</string>
 											<string>ED7CFA6D1290833500DB052B</string>
 											<string>ED7CFA7A1290919300DB052B</string>
 											<string>ED7CFA831290969700DB052B</string>
-											<string>ED7CFA841290969700DB052B</string>
+											<string>ED7CFAAC1290C02300DB052B</string>
+											<string>ED7CFAAD1290C02300DB052B</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -358,7 +358,7 @@
 								<key>Frame</key>
 								<string>{{0, 0}, {849, 600}}</string>
 								<key>RubberWindowFrame</key>
-								<string>388 278 1056 899 0 0 1920 1178 </string>
+								<string>600 279 1056 899 0 0 1920 1178 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
@@ -383,7 +383,7 @@
 										<key>Frame</key>
 										<string>{{10, 27}, {849, 226}}</string>
 										<key>RubberWindowFrame</key>
-										<string>388 278 1056 899 0 0 1920 1178 </string>
+										<string>600 279 1056 899 0 0 1920 1178 </string>
 									</dict>
 									<key>Module</key>
 									<string>XCDetailModule</string>
@@ -618,14 +618,14 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>ED5C14C41281C91C004C1BFD</string>
+				<string>ED7CFAAF1290C02300DB052B</string>
 				<string>1CCC7628064C1048000F2A68</string>
 				<string>1CCC7629064C1048000F2A68</string>
-				<string>ED5C14C51281C91C004C1BFD</string>
-				<string>ED5C14C61281C91C004C1BFD</string>
-				<string>ED5C14C71281C91C004C1BFD</string>
-				<string>ED5C14C81281C91C004C1BFD</string>
-				<string>ED5C14C91281C91C004C1BFD</string>
+				<string>ED7CFAB01290C02300DB052B</string>
+				<string>ED7CFAB11290C02300DB052B</string>
+				<string>ED7CFAB21290C02300DB052B</string>
+				<string>ED7CFAB31290C02300DB052B</string>
+				<string>ED7CFAB41290C02300DB052B</string>
 			</array>
 			<key>ToolbarConfigUserDefaultsMinorVersion</key>
 			<string>2</string>
@@ -662,7 +662,7 @@
 		<string>/Users/cole/develop/spats/spats.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>388 278 1056 899 0 0 1920 1178 </string>
+	<string>600 279 1056 899 0 0 1920 1178 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>
