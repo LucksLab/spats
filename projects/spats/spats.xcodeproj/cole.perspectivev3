@@ -299,7 +299,7 @@
 							<real>184</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>600 174 1053 1004 0 0 1920 1178 </string>
+						<string>200 174 1053 1004 0 0 1920 1178 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -329,7 +329,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>EDAE41F21294361800F35B48</string>
+										<string>EDAE421C12943CA200F35B48</string>
 										<key>history</key>
 										<array>
 											<string>ED01A830124ABD8100CCEB84</string>
@@ -342,7 +342,7 @@
 											<string>ED7CFAAC1290C02300DB052B</string>
 											<string>ED7CFB0312942C0F00DB052B</string>
 											<string>EDAE41D51294337300F35B48</string>
-											<string>EDAE41EE1294360C00F35B48</string>
+											<string>EDAE420D12943A9000F35B48</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -358,7 +358,7 @@
 								<key>Frame</key>
 								<string>{{0, 0}, {847, 668}}</string>
 								<key>RubberWindowFrame</key>
-								<string>600 174 1053 1004 0 0 1920 1178 </string>
+								<string>200 174 1053 1004 0 0 1920 1178 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
@@ -399,7 +399,7 @@
 										<key>Frame</key>
 										<string>{{10, 27}, {847, 263}}</string>
 										<key>RubberWindowFrame</key>
-										<string>600 174 1053 1004 0 0 1920 1178 </string>
+										<string>200 174 1053 1004 0 0 1920 1178 </string>
 									</dict>
 									<key>Module</key>
 									<string>PBXProjectFindModule</string>
@@ -664,7 +664,7 @@
 		<string>/Users/cole/develop/spats/spats.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>600 174 1053 1004 0 0 1920 1178 </string>
+	<string>200 174 1053 1004 0 0 1920 1178 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>

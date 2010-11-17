@@ -115,12 +115,18 @@ struct TargetProfile
         if (_profile_len == 0)
             return;
         
+        if (_name == "target_WT")
+        {
+            int a =4;
+        }
+        
         const vector<int>& treated_adducts = _treated.adducts();
         const vector<int>& untreated_adducts = _untreated.adducts();
         
         double X_0 = treated_adducts[0];
         double total_plus_reactive_counts = accumulate(treated_adducts.begin() + 1,
                                                        treated_adducts.end(), 0.0);
+        double total_plus_counts = total_plus_reactive_counts + treated_adducts[0];
         vector<double> plus_channel_freq;
         for (size_t i = 1; i < treated_adducts.size(); i++)
         {
@@ -129,13 +135,12 @@ struct TargetProfile
         
         double total_minus_reactive_counts = accumulate(untreated_adducts.begin() + 1,
                                                         untreated_adducts.end(), 0.0);
+        double total_minus_counts = total_minus_reactive_counts + untreated_adducts[0];
         vector<double> minus_channel_freq;
         for (size_t i = 1; i < untreated_adducts.size(); i++)
         {
-            minus_channel_freq.push_back(untreated_adducts[i] / total_minus_reactive_counts);
+            minus_channel_freq.push_back(untreated_adducts[i] / total_minus_counts);
         }
-        
-        double total_minus_counts = total_minus_reactive_counts + untreated_adducts[0];
         
         if (total_minus_counts <= 0.0)
         {
@@ -147,8 +152,8 @@ struct TargetProfile
         
         double scaled_X_0 = X_0 / p_0_hat;
         
-        double total_plus_counts = total_plus_reactive_counts + treated_adducts[0];
         double cap_C_estimate = (total_plus_counts) / scaled_X_0;
+        
         //assert (cap_C_estimate > 0.0);
         
         double c_estimate = log(cap_C_estimate);
@@ -161,10 +166,10 @@ struct TargetProfile
         {
             double P = 0.0;
             double M = 0.0;
-            for (int j = i - 1; j >= 0; --j)
+            for (int j = i - 1; j > 0; --j)
             {
-                P += plus_channel_freq[j];
-                M += minus_channel_freq[j];
+                P += (plus_channel_freq[j] + K);
+                M += (minus_channel_freq[j] + p_0_hat);
             }
             double p = 0.0;
             if (P > 0)
@@ -174,10 +179,10 @@ struct TargetProfile
             if (M > 0)
                 m = (minus_channel_freq[i] / M);
             
-            double log_p = log(1.0 + p + K);
-            double log_m = log(1.0 + m + p_0_hat);
+            double log_p = log(1.0 + p);
+            double log_m = log(1.0 + m);
             double theta = (1.0 / c_estimate) * (log_p - log_m);
-            _thetas[i-1] = theta;
+            _thetas[i] = theta;
         }
         
         double delta = 1.0;
