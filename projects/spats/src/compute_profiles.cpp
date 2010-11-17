@@ -168,16 +168,16 @@ struct TargetProfile
             double M = 0.0;
             for (int j = i - 1; j > 0; --j)
             {
-                P += (plus_channel_freq[j] + K);
-                M += (minus_channel_freq[j] + p_0_hat);
+                P += (plus_channel_freq[j]);
+                M += (minus_channel_freq[j]);
             }
             double p = 0.0;
-            if (P > 0)
-                p = (plus_channel_freq[i] / P);
+            if (P + K > 0)
+                p = (plus_channel_freq[i] / (P + K));
             
             double m = 0.0;
-            if (M > 0)
-                m = (minus_channel_freq[i] / M);
+            if (M + p_0_hat > 0)
+                m = (minus_channel_freq[i] / (M + p_0_hat));
             
             double log_p = log(1.0 + p);
             double log_m = log(1.0 + m);
