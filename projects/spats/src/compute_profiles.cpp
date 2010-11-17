@@ -112,7 +112,7 @@ struct TargetProfile
 
     void calc_poisson_reactivities()
     {
-        if (_profile_len = 0)
+        if (_profile_len == 0)
             return;
         
         const vector<int>& treated_adducts = _treated.adducts();
@@ -136,13 +136,20 @@ struct TargetProfile
         }
         
         double total_minus_counts = total_minus_reactive_counts + untreated_adducts[0];
+        
+        if (total_minus_counts <= 0.0)
+        {
+            fprintf(stderr, "Error: no full length fragments in the untreated channel for %s\n", _name.c_str());
+            return;
+        }
+        
         double p_0_hat = untreated_adducts[0] / (total_minus_counts);
         
         double scaled_X_0 = X_0 / p_0_hat;
         
         double total_plus_counts = total_plus_reactive_counts + treated_adducts[0];
         double cap_C_estimate = (total_plus_counts) / scaled_X_0;
-        assert (cap_C_estimate > 0.0);
+        //assert (cap_C_estimate > 0.0);
         
         double c_estimate = log(cap_C_estimate);
         
@@ -159,9 +166,16 @@ struct TargetProfile
                 P += plus_channel_freq[j];
                 M += minus_channel_freq[j];
             }
+            double p = 0.0;
+            if (P > 0)
+                p = (plus_channel_freq[i] / P);
             
-            double log_p = log(1.0 + (plus_channel_freq[i] / P) + K);
-            double log_m = log(1.0 + (minus_channel_freq[i] / M) + p_0_hat);
+            double m = 0.0;
+            if (M > 0)
+                m = (minus_channel_freq[i] / M);
+            
+            double log_p = log(1.0 + p + K);
+            double log_m = log(1.0 + m + p_0_hat);
             double theta = (1.0 / c_estimate) * (log_p - log_m);
             _thetas[i-1] = theta;
         }
@@ -178,11 +192,11 @@ struct TargetProfile
         {
             if (_thetas[i] < 0)
             {
-                _normalized_thetas[0] = 0;
+                _normalized_thetas[i] = 0;
             }
             else 
             {
-                _normalized_thetas[0] = _thetas[i] / delta;
+                _normalized_thetas[i] = _thetas[i] / delta;
             }
         }
     }
@@ -359,6 +373,7 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
                     adducts_out_name.c_str());
             exit(1);
         }
+        target.calc_poisson_reactivities();
         target.print_adduct_counts(adducts_out);
         fclose(adducts_out);
     }
