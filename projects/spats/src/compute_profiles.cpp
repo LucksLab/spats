@@ -162,11 +162,11 @@ struct TargetProfile
         
         double K = p_0_hat / (cap_C_estimate - p_0_hat);
         
-        for (int i = 1; i < (int)plus_channel_freq.size(); ++i)
+        for (int i = 0; i < (int)plus_channel_freq.size(); ++i)
         {
             double P = 0.0;
             double M = 0.0;
-            for (int j = i - 1; j > 0; --j)
+            for (int j = i - 1; j >= 0; --j)
             {
                 P += (plus_channel_freq[j]);
                 M += (minus_channel_freq[j]);
