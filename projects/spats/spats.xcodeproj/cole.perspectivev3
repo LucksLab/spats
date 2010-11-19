@@ -278,7 +278,9 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>37</integer>
+									<integer>7</integer>
+									<integer>1</integer>
+									<integer>0</integer>
 								</array>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
@@ -329,7 +331,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>EDAE421F1294615800F35B48</string>
+										<string>EDB9FA8F1296E10000C7CD03</string>
 										<key>history</key>
 										<array>
 											<string>ED01A830124ABD8100CCEB84</string>
@@ -342,7 +344,7 @@
 											<string>ED7CFAAC1290C02300DB052B</string>
 											<string>ED7CFB0312942C0F00DB052B</string>
 											<string>EDAE41D51294337300F35B48</string>
-											<string>EDAE420D12943A9000F35B48</string>
+											<string>EDB9FA8E1296E10000C7CD03</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -356,18 +358,18 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {847, 668}}</string>
+								<string>{{0, 0}, {847, 662}}</string>
 								<key>RubberWindowFrame</key>
 								<string>590 174 1053 1004 0 0 1920 1178 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>668pt</string>
+							<string>662pt</string>
 						</dict>
 						<dict>
 							<key>Proportion</key>
-							<string>290pt</string>
+							<string>296pt</string>
 							<key>Tabs</key>
 							<array>
 								<dict>
@@ -381,7 +383,7 @@
 									<key>GeometryConfiguration</key>
 									<dict>
 										<key>Frame</key>
-										<string>{{10, 27}, {847, 263}}</string>
+										<string>{{10, 27}, {847, 269}}</string>
 									</dict>
 									<key>Module</key>
 									<string>XCDetailModule</string>
@@ -397,7 +399,7 @@
 									<key>GeometryConfiguration</key>
 									<dict>
 										<key>Frame</key>
-										<string>{{10, 27}, {847, 263}}</string>
+										<string>{{10, 27}, {847, 269}}</string>
 										<key>RubberWindowFrame</key>
 										<string>590 174 1053 1004 0 0 1920 1178 </string>
 									</dict>
@@ -465,11 +467,11 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>EDAE41B6129431FA00F35B48</string>
+				<string>EDB9FA901296E10000C7CD03</string>
 				<string>1CA23ED40692098700951B8B</string>
-				<string>EDAE41B7129431FA00F35B48</string>
+				<string>EDB9FA911296E10000C7CD03</string>
 				<string>ED4835FC12492ABA00642337</string>
-				<string>EDAE41B8129431FA00F35B48</string>
+				<string>EDB9FA921296E10000C7CD03</string>
 				<string>1CA23EDF0692099D00951B8B</string>
 				<string>1CA23EE00692099D00951B8B</string>
 				<string>1CA23EE10692099D00951B8B</string>
@@ -659,8 +661,6 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>EDAE41BF129431FA00F35B48</string>
-		<string>EDAE41C0129431FA00F35B48</string>
 		<string>/Users/cole/develop/spats/spats.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
