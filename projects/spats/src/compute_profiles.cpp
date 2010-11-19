@@ -208,7 +208,7 @@ struct TargetProfile
     
     void print_adduct_counts(FILE* adducts_out)
     {
-        fprintf(adducts_out, "five_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\n");
+        fprintf(adducts_out, "five_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\traw_react\tnormalized_react\n");
         
         const vector<int>& treated_adducts = _treated.adducts();
         const vector<int>& untreated_adducts = _untreated.adducts();
