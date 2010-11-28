@@ -902,6 +902,12 @@ def main(argv=None):
                           False)
         else:
             [left_kept_reads, right_kept_reads] = [left_labeled_reads, right_labeled_reads]
+            relabel_reads(params,
+                          left_kept_reads, 
+                          right_kept_reads,
+                          treated_handle_seq,
+                          untreated_handle_seq,
+                          False)
                 
         for handle_seq in [treated_handle_seq, untreated_handle_seq]:
             left_demuxed_reads = output_dir + handle_seq + "_1.fq"
