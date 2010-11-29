@@ -164,6 +164,8 @@
 			ED84124012A30EDE00E3AB6E /* PBXBookmark */ = ED84124012A30EDE00E3AB6E /* PBXBookmark */;
 			ED84124112A30EDE00E3AB6E /* PBXTextBookmark */ = ED84124112A30EDE00E3AB6E /* PBXTextBookmark */;
 			ED84124512A3132000E3AB6E /* PBXTextBookmark */ = ED84124512A3132000E3AB6E /* PBXTextBookmark */;
+			ED84124612A3E7A800E3AB6E /* PBXTextBookmark */ = ED84124612A3E7A800E3AB6E /* PBXTextBookmark */;
+			ED84124712A3E7C700E3AB6E /* PBXTextBookmark */ = ED84124712A3E7C700E3AB6E /* PBXTextBookmark */;
 			EDAE41B5129431FA00F35B48 = EDAE41B5129431FA00F35B48 /* PBXTextBookmark */;
 			EDAE41C81294330C00F35B48 = EDAE41C81294330C00F35B48 /* PBXTextBookmark */;
 			EDAE41D01294336400F35B48 = EDAE41D01294336400F35B48 /* PBXTextBookmark */;
@@ -340,9 +342,9 @@
 	};
 	ED507539117233B800883983 /* spats.py */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {786, 12363}}";
-			sepNavSelRange = "{34921, 0}";
-			sepNavVisRange = "{33460, 2109}";
+			sepNavIntBoundsRect = "{{0, 0}, {978, 12311}}";
+			sepNavSelRange = "{20044, 0}";
+			sepNavVisRange = "{21155, 1533}";
 		};
 	};
 	ED5075441172724D00883983 /* prep_reads.cpp */ = {
@@ -460,7 +462,7 @@
 		fRef = ED507539117233B800883983 /* spats.py */;
 		name = "spats.py: 871";
 		rLen = 0;
-		rLoc = 32747;
+		rLoc = 32750;
 		rType = 0;
 		vrLen = 1885;
 		vrLoc = 31998;
@@ -531,7 +533,7 @@
 		fRef = ED507539117233B800883983 /* spats.py */;
 		name = "spats.py: 559";
 		rLen = 198;
-		rLoc = 22009;
+		rLoc = 22012;
 		rType = 0;
 		vrLen = 1451;
 		vrLoc = 22721;
@@ -541,10 +543,30 @@
 		fRef = ED507539117233B800883983 /* spats.py */;
 		name = "spats.py: 910";
 		rLen = 0;
-		rLoc = 34921;
+		rLoc = 34924;
 		rType = 0;
 		vrLen = 2109;
 		vrLoc = 33460;
+	};
+	ED84124612A3E7A800E3AB6E /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = ED507539117233B800883983 /* spats.py */;
+		name = "spats.py: 519";
+		rLen = 0;
+		rLoc = 20044;
+		rType = 0;
+		vrLen = 1533;
+		vrLoc = 21155;
+	};
+	ED84124712A3E7C700E3AB6E /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = ED507539117233B800883983 /* spats.py */;
+		name = "spats.py: 519";
+		rLen = 0;
+		rLoc = 20044;
+		rType = 0;
+		vrLen = 1533;
+		vrLoc = 21155;
 	};
 	EDAE41B5129431FA00F35B48 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
