@@ -549,7 +549,7 @@ def bowtie(params,
                        #"-m 1",
                        "-y",
                        #"-k 1",
-                       "-v", str(params.num_mismatches)
+                       "-v", str(params.num_mismatches),
                        "-X 2000",
                        "--best",
                        #"--strata",
