@@ -88,8 +88,8 @@ class SpatsParams:
                      solexa_quals,
                      phred64_quals,
                      seed_length,
-                     left_adapter,
-                     right_adapter,
+                     adapter_t,
+                     adapter_b,
                      reads_format,
                      read_group_id,
                      sample_id,
@@ -102,8 +102,8 @@ class SpatsParams:
             self.solexa_quals = solexa_quals
             self.phred64_quals = phred64_quals
             self.seed_length = seed_length
-            self.left_adapter = left_adapter
-            self.right_adapter = right_adapter
+            self.adapter_t = adapter_t
+            self.adapter_b = adapter_b
             self.reads_format = reads_format
             self.read_group_id = read_group_id 
             self.sample_id = sample_id
@@ -122,10 +122,10 @@ class SpatsParams:
                     self.phred64_quals = True    
                 if option in ("-s", "--seed-length"):
                     self.seed_length = int(value)
-                if option in ("--left-adapter"):
-                    self.left_adapter = value
-                if option in ("--right-adapter"):
-                    self.right_adapter = value
+                if option in ("--adapter-t"):
+                    self.adapter_t = value
+                if option in ("--adapter-b"):
+                    self.adapter_b = value
                 if option == "--rg-id":
                     self.read_group_id = value
                 if option == "--rg-sample":
@@ -217,8 +217,8 @@ class SpatsParams:
                                          "segment-length=",
                                          "segment-mismatches=",
                                          "keep-tmp",
-                                         "left-adapter=",
-                                         "right-adapter=",
+                                         "adapter-b=",
+                                         "adapter-t=",
                                          "rg-id=",
                                          "rg-sample=",
                                          "rg-library=",
@@ -488,10 +488,10 @@ def match_read_pairs(params, left_in_reads, right_in_reads, left_out_reads, righ
     return [left_out_reads_filename, right_out_reads_filename]
     
 def trim_read_adapters(params, 
-                       five_prime_adapter, 
-                       three_prime_adapter, 
+                       adapter,  
                        reads_file, 
-                       output_name):    
+                       output_name,
+                       min_adapter_len=16):    
     #filter_cmd = ["prep_reads"]
       
     print >> sys.stderr, "[%s] Trimming adapters from reads in %s" % (right_now(), reads_file)
@@ -504,49 +504,15 @@ def trim_read_adapters(params,
     
     trim_log = open(logging_dir + "trim_reads.log", "a")
     try:  
-        if five_prime_adapter != None and three_prime_adapter == None:
-            cmd = ["fastx_clipper"]
-            cmd.extend(["-M", str(8)])
-            cmd.extend(["-a", five_prime_adapter])
-            cmd.extend(["-i", reads_file])
-            cmd.extend(["-o",trimmed_reads_filename])
-            print >> run_log, " ".join(cmd)
-            ret = subprocess.call(cmd, 
-                                  stdout=trimmed_reads,
-                                  stderr=trim_log)
-        elif five_prime_adapter == None and three_prime_adapter != None:
-            cmd = ["fastx_clipper"]
-            cmd.extend(["-M", str(16)])
-            cmd.extend(["-a", three_prime_adapter])
-            cmd.extend(["-i", reads_file])
-            cmd.extend(["-o", trimmed_reads_filename])
-            print >> run_log, " ".join(cmd)
-            ret = subprocess.call(cmd, 
-                                  stdout=trimmed_reads,
-                                  stderr=trim_log)
-        elif five_prime_adapter != None and three_prime_adapter != None:
-            five_prime_cmd = ["fastx_clipper"]
-            five_prime_cmd.extend(["-M", str(16)])
-            five_prime_cmd.extend(["-a", five_prime_adapter])
-            five_prime_cmd.extend(["-i", reads_file])
-            
-            three_prime_cmd = ["fastx_clipper"]
-            three_prime_cmd.extend(["-M", str(16)])
-            three_prime_cmd.extend(["-a", three_prime_adapter])
-            three_prime_cmd.extend(["-o", trimmed_reads_filename])
-            print >> run_log, " ".join(five_prime_cmd) + " | " + " ".join(three_prime_cmd)
-            five_prime_cmd_proc = subprocess.Popen(five_prime_cmd, 
-                                                   stdout=subprocess.PIPE, 
-                                                   stderr=trim_log)
-            three_prime_cmd_proc = subprocess.Popen(three_prime_cmd, 
-                                                    stdin=five_prime_cmd_proc.stdout, 
-                                                    stderr=trim_log)
-            # wait for the whole pipe to finish
-            three_prime_cmd_proc.communicate()
-
-        else:
-            print >> sys.stderr, fail_str, "Error: trim_read_adapters() called with empty adapter strings"
-            exit(1)
+        cmd = ["fastx_clipper"]
+        cmd.extend(["-M", str(min_adapter_len)])
+        cmd.extend(["-a", adapter])
+        cmd.extend(["-i", reads_file])
+        cmd.extend(["-o",trimmed_reads_filename])
+        print >> run_log, " ".join(cmd)
+        ret = subprocess.call(cmd, 
+                              stdout=trimmed_reads,
+                              stderr=trim_log)
             
     # fastx_clipper not found
     except OSError, o:
@@ -591,6 +557,7 @@ def bowtie(params,
             unmapped_reads_fasta_name = None
         
         bowtie_cmd += ["--sam",
+                       "--allow-contain",
                        "-m 1",
                        "-y",
                        #"-k 1",
@@ -869,8 +836,8 @@ def main(argv=None):
         left_labeled_reads = output_dir + "/NOMASK_1.fq"
         right_labeled_reads = output_dir + "/NOMASK_2.fq"
         
-        if params.read_params.left_adapter != None \
-            and params.read_params.right_adapter != None:
+        if params.read_params.adapter_t != None \
+            and params.read_params.adapter_b != None:
 
             left_trimmed_reads = "NOMASK_1.trimmed"
             right_trimmed_reads = "NOMASK_2.trimmed"
@@ -879,13 +846,11 @@ def main(argv=None):
             right_kept_reads = "NOMASK_2.kept"
             
             left_trimmed_reads = trim_read_adapters(params, 
-                                                    params.read_params.left_adapter,
-                                                    params.read_params.right_adapter,
+                                                    params.read_params.adapter_b,
                                                     left_labeled_reads,
                                                     left_trimmed_reads)
             right_trimmed_reads = trim_read_adapters(params, 
-                                                     reverse_complement(params.read_params.left_adapter),
-                                                     reverse_complement(params.read_params.right_adapter),
+                                                     reverse_complement(params.read_params.adapter_t),
                                                      right_labeled_reads,
                                                      right_trimmed_reads)
             [left_kept_reads, right_kept_reads] = match_read_pairs(params,
