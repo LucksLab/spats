@@ -233,8 +233,6 @@
 			<key>Layout</key>
 			<array>
 				<dict>
-					<key>BecomeActive</key>
-					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -281,8 +279,7 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>22</integer>
-									<integer>20</integer>
+									<integer>17</integer>
 									<integer>1</integer>
 									<integer>0</integer>
 								</array>
@@ -316,12 +313,14 @@
 					<key>Dock</key>
 					<array>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
 								<string>ED4835FC12492ABA00642337</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>configure.ac</string>
+								<string>spats.py</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -329,11 +328,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>ED4835FD12492ABA00642337</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>configure.ac</string>
+										<string>spats.py</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>EDDBF6F512D2963B00130D8A</string>
+										<string>EDDBF72212D2C31500130D8A</string>
 										<key>history</key>
 										<array>
 											<string>ED44CBB91281C8FF001232D9</string>
@@ -347,8 +346,8 @@
 											<string>ED79DCE412AC642800ABC8B3</string>
 											<string>EDFDE73E12BD0B2F0044EDD0</string>
 											<string>EDFDE7AE12BF0A100044EDD0</string>
+											<string>EDDBF72112D2C31500130D8A</string>
 											<string>EDFDE7AF12BF0A100044EDD0</string>
-											<string>EDFDE7B112BF0A100044EDD0</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -624,14 +623,14 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>EDFDE7B512BF0A100044EDD0</string>
+				<string>EDDBF72312D2C31500130D8A</string>
 				<string>1CCC7628064C1048000F2A68</string>
 				<string>1CCC7629064C1048000F2A68</string>
-				<string>EDFDE7B612BF0A100044EDD0</string>
-				<string>EDFDE7B712BF0A100044EDD0</string>
-				<string>EDFDE7B812BF0A100044EDD0</string>
-				<string>EDFDE7B912BF0A100044EDD0</string>
-				<string>EDFDE7BA12BF0A100044EDD0</string>
+				<string>EDDBF72412D2C31500130D8A</string>
+				<string>EDDBF72512D2C31500130D8A</string>
+				<string>EDDBF72612D2C31500130D8A</string>
+				<string>EDDBF72712D2C31500130D8A</string>
+				<string>EDDBF72812D2C31500130D8A</string>
 			</array>
 			<key>ToolbarConfigUserDefaultsMinorVersion</key>
 			<string>2</string>

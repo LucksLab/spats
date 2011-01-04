@@ -35,6 +35,7 @@ use_message = '''
      -o/--output-dir                <string>    [ default: ./spats_out ] 
      --left-adapter                 <string>    [ default: None ]
      --right-adapter                <string>    [ default: None ]
+     --num-mismatches               <int>       [ default: 0    ]
      
 SAM Header Options (for embedding sequencing run metadata in output):
     --rg-id                        <string>    (read group ID)
@@ -90,6 +91,7 @@ class SpatsParams:
                      seed_length,
                      adapter_t,
                      adapter_b,
+                     num_mismatches,
                      reads_format,
                      read_group_id,
                      sample_id,
@@ -104,6 +106,7 @@ class SpatsParams:
             self.seed_length = seed_length
             self.adapter_t = adapter_t
             self.adapter_b = adapter_b
+            self.num_mismatches = num_mismatches
             self.reads_format = reads_format
             self.read_group_id = read_group_id 
             self.sample_id = sample_id
@@ -126,6 +129,8 @@ class SpatsParams:
                     self.adapter_t = value
                 if option in ("--adapter-b"):
                     self.adapter_b = value
+                if option in ("--num-mismatches"):
+                    self.num_mismatches = int(value)
                 if option == "--rg-id":
                     self.read_group_id = value
                 if option == "--rg-sample":
@@ -161,6 +166,7 @@ class SpatsParams:
                                            None,                # seed_length
                                            None,
                                            None,
+                                           0,
                                            "fastq",             # quality_format
                                            None,                # read group id
                                            None,                # sample id
@@ -176,24 +182,13 @@ class SpatsParams:
         
 
         self.skip_check_reads = False
-        self.segment_length = 25
-        self.segment_mismatches = 3
         
     def check(self):
         self.read_params.check()
         self.system_params.check()
-       
-        if self.segment_length <= 4:
-            print >> sys.stderr, "Error: arg to --segment-length must at least 4"
-            exit(1)
-        if self.segment_mismatches < 0 or self.segment_mismatches > 3:
-            print >> sys.stderr, "Error: arg to --segment-mismatches must in [0, 3]"
-            exit(1)
         
     def cmd(self):
-        cmd = ["--output-dir", output_dir,
-               "--segment-length", str(self.segment_length),
-               "--segment-mismatches", str(self.segment_mismatches)]
+        cmd = ["--output-dir", output_dir]
         
         if self.read_params.solexa_quals == True:
             cmd.append("--solexa-quals")
@@ -211,11 +206,8 @@ class SpatsParams:
                                          "solexa1.3-quals",
                                          "phred64-quals",
                                          "num-threads=",
-                                         "splice-mismatches=",
-                                         "max-multihits=",
+                                         "num-mismatches=",
                                          "skip-check-reads",
-                                         "segment-length=",
-                                         "segment-mismatches=",
                                          "keep-tmp",
                                          "adapter-b=",
                                          "adapter-t=",
@@ -242,10 +234,6 @@ class SpatsParams:
                 raise Usage(use_message)
             if option == "--skip-check-reads":
                 self.skip_check_reads = True
-            if option == "--segment-length":
-                self.segment_length = int(value)
-            if option == "--segment-mismatches":
-                self.segment_mismatches = int(value)
             if option in ("-o", "--output-dir"):
                 global output_dir
                 global logging_dir
@@ -558,14 +546,13 @@ def bowtie(params,
         
         bowtie_cmd += ["--sam",
                        "--allow-contain",
-                       "-m 1",
+                       #"-m 1",
                        "-y",
                        #"-k 1",
-                       "-v 0",
+                       "-v", str(params.num_mismatches)
                        "-X 2000",
                        "--best",
-                       "--strata",
-                       #"-n", str(params.segment_mismatches),
+                       #"--strata",
                        #"-e", str(phred_thresh),
                        "-p", str(params.system_params.bowtie_threads),
                        bwt_idx_prefix, 
