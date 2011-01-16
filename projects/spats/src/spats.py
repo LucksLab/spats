@@ -33,8 +33,8 @@ use_message = '''
      
  Options:
      -o/--output-dir                <string>    [ default: ./spats_out ] 
-     --left-adapter                 <string>    [ default: None ]
-     --right-adapter                <string>    [ default: None ]
+     --adapter-t                 <string>    [ default: None ]
+     --adapter-b                <string>    [ default: None ]
      --num-mismatches               <int>       [ default: 0    ]
      
 SAM Header Options (for embedding sequencing run metadata in output):
