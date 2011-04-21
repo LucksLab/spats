@@ -619,7 +619,7 @@ def build_target_bwt_index(target_prefix):
     return target_prefix
 
 def write_sam_header(read_params, sam_file):
-    print >> sam_file, "@HD\tVN:1.0\tSO:sorted"
+    print >> sam_file, "@HD\tVN:1.0\tSO:coordinate"
     
     if read_params.read_group_id and read_params.sample_id:
         rg_str = "@RG\tID:%s\tSM:%s" % (read_params.read_group_id,
