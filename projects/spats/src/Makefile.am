@@ -2,7 +2,19 @@ include $(top_srcdir)/config/spats.mk
 
 AM_CPPFLAGS = -I$(top_srcdir)/src 
 
-EXTRA_DIST = $(top_srcdir)/AUTHORS $(top_srcdir)/make_bin.sh
+EXTRA_DIST = $(top_srcdir)/AUTHORS $(top_srcdir)/make_bin.sh \
+matlab/barcodes_statistics.m \
+matlab/bootstrap_error_bars.m \
+matlab/Compute_WF.m \
+matlab/correction_factors_examples.m \
+matlab/entropy.m \
+matlab/H_fun.m \
+matlab/log_likelihood_fun.m \
+matlab/MLE.m \
+matlab/MLE_one_molecule.m \
+matlab/randp.m \
+matlab/WF_fun.m \
+matlab/Readme.txt
 
 AM_CXXFLAGS =
 
