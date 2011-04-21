@@ -1,0 +1,31 @@
+Spats is a package developed to support Aviran et al, 2011, and Lucks et al, 2011
+for the analysis of SHAPE-Seq experiments.  This package consists of the 
+read mapping and census routines.  The output files of Spats are fed to 
+a set of MATLAB scripts that compute SHAPE reactivities.
+
+Spats depends on Bowtie 0.12.8 or higher, which you can get from here:
+http://bowtie-bio.sourceforge.net/index.shtml
+
+Spats also uses the FASTX package from Greg Hannon's lab:
+http://hannonlab.cshl.edu/fastx_toolkit/
+
+Please install these and make sure they are accessible through your PATH
+environment variable before trying to run the mapping pipeline.
+
+Usage:
+     spats [options] <rna.fasta> <treated_handle> <untreated_handle> <barcode_reads> <adduct_reads>
+
+The treated_handle and untreated_handle are IUPAC strings indicating the barcoding
+scheme for the 1M7-treated and untreated pools.
+
+Given a paired end run with unbarcoded target sequences (in DNA alphabet) in the file 
+target_bcs.fa, barcode reads in HCT20611_50bp_s_7_1_sequence, and 
+adduct reads in HCT20611_50bp_s_7_2_sequence, you can run the mapping pipeline like this:
+
+spats -p 4 \
+ --adapter-t AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATC \
+ --adapter-b AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG \
+ -o HCT20611_50bp.final \
+ target_bcs.fa \
+ RRRY YYYR \
+ HCT20611_50bp_s_7_1_sequence HCT20611_50bp_s_7_2_sequence
