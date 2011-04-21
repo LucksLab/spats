@@ -5,11 +5,11 @@ Copyright 2011, Cole Trapnell
 Spats was written to support:
 
 - Julius B. Lucks, Stefanie A. Mortimer, Cole Trapnell, Shujun Luo, 
-	Sharon Aviron, Gary Schroth, Lior Pachter, Jennifer A. Doudna, and Adam P. Arkin, 
+	Sharon Aviron, Gary P. Schroth, Lior Pachter, Jennifer A. Doudna, and Adam P. Arkin, 
 	SHAPE-Seq: Multiplexed RNA Secondary and Tertiary Structure Determination 
         PNAS, 2011
-- Sharon Aviran, Cole Trapnell, Julius B. Lucks, Stefanie A. Mortimer, 
-	Jennifer A. Doudna, Adam P. Arkin, and Lior Pachter, 
+- Sharon Aviran, Cole Trapnell, Julius B. Lucks, Stefanie A. Mortimer, Shujun Luo,
+	Gary P. Schroth, Jennifer A. Doudna, Adam P. Arkin, and Lior Pachter, 
 	Modeling and automation of SHAPE-Seq analysis 
         PNAS, 2011
 	
