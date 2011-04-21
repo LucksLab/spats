@@ -7,10 +7,14 @@ Spats was written to support:
 - Julius B. Lucks, Stefanie A. Mortimer, Cole Trapnell, Shujun Luo, 
 	Sharon Aviron, Lior Pachter, Jennifer A. Doudna, and Adam P. Arkin, 
 	SHAPE-Seq: Multiplexed RNA Secondary and Tertiary Structure Determination 
+        PNAS, 2011
 - Sharon Aviran, Cole Trapnell, Julius B. Lucks, Stefanie A. Mortimer, 
 	Jennifer A. Doudna, Adam P. Arkin, and Lior Pachter, 
 	Modeling and automation of SHAPE-Seq analysis 
+        PNAS, 2011
 	
 Cole Trapnell wrote the code in the Spats package, which creates the input
-for a reactivity analysis pipeline written by Sharon Aviran.
+for a reactivity analysis pipeline written by Sharon Aviran.  See the second 
+reference for more information about SHAPE-Seq and for Matlab code used to 
+generate SHAPE-Seq reactivities from Spats output.
 
