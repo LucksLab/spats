@@ -90,7 +90,9 @@ struct TargetProfile
         _treated(_profile_len),
         _untreated(_profile_len),
         _thetas(_seq.length()),
-        _normalized_thetas(_seq.length()){}
+        //_normalized_thetas(_seq.length()),
+        _betas(_seq.length() + 1),
+        _c(0.0) {}
     
     const string& name() const { return _name; }
     const string& seq() const { return _seq; }
@@ -110,129 +112,261 @@ struct TargetProfile
         }
     }
 
+//    void calc_poisson_reactivities()
+//    {
+//        if (_profile_len == 0)
+//            return;
+//        
+//        const vector<int>& treated_adducts = _treated.adducts();
+//        const vector<int>& untreated_adducts = _untreated.adducts();
+//        
+//        double X_0 = treated_adducts[0];
+//        double total_plus_reactive_counts = accumulate(treated_adducts.begin() + 1,
+//                                                       treated_adducts.end(), 0.0);
+//        double total_plus_counts = total_plus_reactive_counts + treated_adducts[0];
+//        vector<double> plus_channel_freq;
+//        for (size_t i = 1; i < treated_adducts.size(); i++)
+//        {
+//            plus_channel_freq.push_back(treated_adducts[i] / total_plus_reactive_counts);
+//        }
+//        
+//        double total_minus_reactive_counts = accumulate(untreated_adducts.begin() + 1,
+//                                                        untreated_adducts.end(), 0.0);
+//        double total_minus_counts = total_minus_reactive_counts + untreated_adducts[0];
+//        vector<double> minus_channel_freq;
+//        for (size_t i = 1; i < untreated_adducts.size(); i++)
+//        {
+//            minus_channel_freq.push_back(untreated_adducts[i] / total_minus_counts);
+//        }
+//        
+//        if (total_minus_counts <= 0.0)
+//        {
+//            fprintf(stderr, "Error: no full length fragments in the untreated channel for %s\n", _name.c_str());
+//            return;
+//        }
+//        
+//        double p_0_hat = untreated_adducts[0] / (total_minus_counts);
+//        
+//        double scaled_X_0 = X_0 / p_0_hat;
+//        
+//        double cap_C_estimate = (total_plus_counts) / scaled_X_0;
+//        
+//        //assert (cap_C_estimate > 0.0);
+//        
+//        double c_estimate = log(cap_C_estimate);
+//        
+//        assert (minus_channel_freq.size() == plus_channel_freq.size());
+//        
+//        double K = p_0_hat / (cap_C_estimate - p_0_hat);
+//        
+//        for (int i = 0; i < (int)plus_channel_freq.size(); ++i)
+//        {
+//            double P = 0.0;
+//            double M = 0.0;
+//            for (int j = i - 1; j >= 0; --j)
+//            {
+//                P += (plus_channel_freq[j]);
+//                M += (minus_channel_freq[j]);
+//            }
+//            double p = 0.0;
+//            if (P + K > 0)
+//                p = (plus_channel_freq[i] / (P + K));
+//            
+//            double m = 0.0;
+//            if (M + p_0_hat > 0)
+//                m = (minus_channel_freq[i] / (M + p_0_hat));
+//            
+//            double log_p = log(1.0 + p);
+//            double log_m = log(1.0 + m);
+//            double theta = (1.0 / c_estimate) * (log_p - log_m);
+//            _thetas[i] = theta;
+//        }
+//        
+//        double delta = 1.0;
+//        
+//        for (int i = 0; i < _thetas.size(); ++i)
+//        {
+//            if (_thetas[i] < 0)
+//                delta -= _thetas[i];
+//        }
+//        
+//        for (int i = 0; i < _thetas.size(); ++i)
+//        {
+//            if (_thetas[i] < 0)
+//            {
+//                _normalized_thetas[i] = 0;
+//            }
+//            else 
+//            {
+//                _normalized_thetas[i] = _thetas[i] / delta;
+//            }
+//        }
+//    }
+    
     void calc_poisson_reactivities()
     {
+        
+        // TargetProfile tracks an RNA of length n. arrays have n+1 entries, 
+        // with index 1 corresponding to the 5'-most base, and index n 
+        // corresponding to the 3'-most base.  Index 0 stores information about 
+        // unmodified RNAs, where RT has fallen off the 5' end of the 
+        // strande.  This convention differs from the paper, where we refer to 
+        // the 5'-most base as index n, and the 3'-most base as index 1.
         if (_profile_len == 0)
             return;
         
-        if (_name == "target_WT")
-        {
-            int a =4;
-        }
-        
         const vector<int>& treated_adducts = _treated.adducts();
         const vector<int>& untreated_adducts = _untreated.adducts();
         
-        double X_0 = treated_adducts[0];
-        double total_plus_reactive_counts = accumulate(treated_adducts.begin() + 1,
-                                                       treated_adducts.end(), 0.0);
-        double total_plus_counts = total_plus_reactive_counts + treated_adducts[0];
-        vector<double> plus_channel_freq;
-        for (size_t i = 1; i < treated_adducts.size(); i++)
+//        double total_plus_reactive_counts = accumulate(treated_adducts.begin() + 1,
+//                                                       treated_adducts.end(), 0.0);
+        //double total_plus_counts = total_plus_reactive_counts + treated_adducts[0];
+        vector<double> plus_channel_freq(treated_adducts.size(), 0);
+//        for (size_t i = 1; i < treated_adducts.size(); i++)
+//        {
+//            plus_channel_freq[i] = (treated_adducts[i] / total_plus_reactive_counts);
+//        }
+        
+//        double total_minus_reactive_counts = accumulate(untreated_adducts.begin() + 1,
+//                                                        untreated_adducts.end(), 0.0);
+        //double total_minus_counts = total_minus_reactive_counts + untreated_adducts[0];
+        vector<double> minus_channel_freq(untreated_adducts.size(), 0);;
+//        for (size_t i = 1; i < untreated_adducts.size(); i++)
+//        {
+//            minus_channel_freq[i] = (untreated_adducts[i] / total_minus_reactive_counts);
+//        }
+
+        assert (minus_channel_freq.size() == plus_channel_freq.size());
+        
+        // compute the betas
+        for (size_t k = 0; k < plus_channel_freq.size(); k++)
         {
-            plus_channel_freq.push_back(treated_adducts[i] / total_plus_reactive_counts);
+            double plus_denom = 0.0;
+            double minus_denom = 0.0;
+            
+            // count the number of fragments that stopped RT up until reached
+            // k (and include k).
+            for (size_t i = k; i >=0 && i < plus_channel_freq.size(); i--)
+            {
+                plus_denom += treated_adducts[i];
+                minus_denom += untreated_adducts[i];
+            }
+            
+            if (plus_denom == 0 || minus_denom == 0)
+            {
+                continue;
+            }
+            
+            double beta = treated_adducts[k]/plus_denom - untreated_adducts[k]/minus_denom; 
+            
+            if (untreated_adducts[k]/minus_denom != 1.0)
+            {
+                beta /= (1 - (untreated_adducts[k]/minus_denom));
+            }
+            else
+            {
+                beta = 0.0;
+            }
+            
+            beta = max(0.0, beta);
+            assert (!isinf(beta) && !isnan(beta));
+            _betas[k] = beta;
         }
         
-        double total_minus_reactive_counts = accumulate(untreated_adducts.begin() + 1,
-                                                        untreated_adducts.end(), 0.0);
-        double total_minus_counts = total_minus_reactive_counts + untreated_adducts[0];
-        vector<double> minus_channel_freq;
-        for (size_t i = 1; i < untreated_adducts.size(); i++)
+        double plus_denom = 0.0;
+        double minus_denom = 0.0;
+        for (size_t i = plus_channel_freq.size() - 1; i >=0 && i < plus_channel_freq.size(); i--)
         {
-            minus_channel_freq.push_back(untreated_adducts[i] / total_minus_counts);
+            plus_denom += treated_adducts[i];
+            minus_denom += untreated_adducts[i];
         }
         
-        if (total_minus_counts <= 0.0)
+        //double c = log(untreated_adducts[0] / minus_denom) - log(treated_adducts[0]/plus_denom);
+        double c = 0.0;
+        for (size_t i = 1; i < plus_channel_freq.size(); ++i)
         {
-            fprintf(stderr, "Error: no full length fragments in the untreated channel for %s\n", _name.c_str());
+            if (_betas[i] > 0)
+                c -= log(1 - _betas[i]);
+        }
+        
+        if (isnan(c) || isinf(c))
+        {
+            // FIXME: drop to CE model?
             return;
         }
         
-        double p_0_hat = untreated_adducts[0] / (total_minus_counts);
-        
-        double scaled_X_0 = X_0 / p_0_hat;
-        
-        double cap_C_estimate = (total_plus_counts) / scaled_X_0;
-        
-        //assert (cap_C_estimate > 0.0);
-        
-        double c_estimate = log(cap_C_estimate);
-        
-        assert (minus_channel_freq.size() == plus_channel_freq.size());
-        
-        double K = p_0_hat / (cap_C_estimate - p_0_hat);
-        
-        for (int i = 0; i < (int)plus_channel_freq.size(); ++i)
+        for (size_t k = 1; k < plus_channel_freq.size(); k++)
         {
-            double P = 0.0;
-            double M = 0.0;
-            for (int j = i - 1; j >= 0; --j)
-            {
-                P += (plus_channel_freq[j]);
-                M += (minus_channel_freq[j]);
-            }
-            double p = 0.0;
-            if (P + K > 0)
-                p = (plus_channel_freq[i] / (P + K));
+            double plus_denom = 0.0;
+            double minus_denom = 0.0;
             
-            double m = 0.0;
-            if (M + p_0_hat > 0)
-                m = (minus_channel_freq[i] / (M + p_0_hat));
+            for (size_t i = k; i >= 0 && i < plus_channel_freq.size(); i--)
+            {
+                plus_denom += treated_adducts[i];
+                minus_denom += untreated_adducts[i];
+            }
             
-            double log_p = log(1.0 + p);
-            double log_m = log(1.0 + m);
-            double theta = (1.0 / c_estimate) * (log_p - log_m);
-            _thetas[i] = theta;
-        }
-        
-        double delta = 1.0;
-        
-        for (int i = 0; i < _thetas.size(); ++i)
-        {
-            if (_thetas[i] < 0)
-                delta -= _thetas[i];
-        }
-        
-        for (int i = 0; i < _thetas.size(); ++i)
-        {
-            if (_thetas[i] < 0)
+            if (plus_denom == 0 || minus_denom == 0)
             {
-                _normalized_thetas[i] = 0;
+                continue;
             }
-            else 
-            {
-                _normalized_thetas[i] = _thetas[i] / delta;
-            }
+            
+            double theta = log(1 - untreated_adducts[k]/minus_denom);
+            theta -= log(1 - treated_adducts[k]/plus_denom);
+            theta /= c;
+            
+            theta = max(0.0, theta);
+            assert (!isinf(theta) && !isnan(theta));
+            _thetas[k] = theta;
         }
+        
+        _c = c;
     }
+
     
     void print_adduct_counts(FILE* adducts_out)
     {
-        fprintf(adducts_out, "five_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\traw_react\tnormalized_react\n");
+        fprintf(adducts_out, "sequence\nfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n");
         
         const vector<int>& treated_adducts = _treated.adducts();
         const vector<int>& untreated_adducts = _untreated.adducts();
+        
+        vector<double> scaled_betas = _betas;
+        double total_beta = accumulate(_betas.begin() + 1, _betas.end(), 0.0);
+        for (size_t i = 1; i < scaled_betas.size(); ++i)
+        {
+            scaled_betas[i] /= total_beta;
+        }
+        
+        double total_theta = accumulate(_thetas.begin() + 1, _thetas.end(), 0.0);
+        total_beta = accumulate(scaled_betas.begin() + 1, scaled_betas.end(), 0.0);
+        //fprintf(stderr, "%s: total theta = %lg\n", _name.c_str(), total_theta);
+        //fprintf(stderr, "%s: total beta = %lg\n", _name.c_str(), total_beta);
         
         for (int i = 0; i < _profile_len; ++i)
         {
             if (i == 0)
             {
                 fprintf(adducts_out, 
-                        "%d\t*\t%d\t%d\t-\t-\n", 
+                        "%s\t%d\t*\t%d\t%d\t-\t-\t%lg\n", 
+                        _name.c_str(),
                         i,
                         treated_adducts[i], 
-                        untreated_adducts[i]); 
+                        untreated_adducts[i],
+                        _c); 
             }
             else if (i < _seq.length())
             {
                 fprintf(adducts_out, 
-                        "%d\t%c\t%d\t%d\t%lg\t%lg\n", 
+                        "%s\t%d\t%c\t%d\t%d\t%lg\t%lg\t%lg\n", 
+                        _name.c_str(),
                         i,
                         _seq[i-1],
                         treated_adducts[i], 
                         untreated_adducts[i],
-                        _thetas[i-1],
-                        _normalized_thetas[i-1]); 
+                        scaled_betas[i],
+                        _thetas[i],
+                        _c); 
             }
         }
     }
@@ -245,8 +379,10 @@ private:
     
     Adducts _treated;
     Adducts _untreated;
+    vector<double> _betas;
     vector<double> _thetas;
-    vector<double> _normalized_thetas;
+    //vector<double> _normalized_thetas;
+    double _c;
 };
 
 map<RefID, TargetProfile> targets_by_id;
@@ -298,7 +434,8 @@ void process_fragments(FragmentFactory& fragment_factory,
         itr = targets_by_id.find(fragment.ref_id());
         if (itr == targets_by_id.end())
         {
-            fprintf(stderr, "Error: unknown target Ref ID encountered in Bowtie map\n");
+            fprintf(stderr, "warning: unknown target Ref ID encountered in Bowtie map\n");
+            //continue;
             exit(1);
         }
         
@@ -365,24 +502,27 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
                       num_kept_untreated_frags,
                       false);
     
+    string adducts_out_name = output_dir + "/" + "reactivities.out";
+    FILE* adducts_out = fopen(adducts_out_name.c_str(), "w");
+    if (adducts_out == NULL)
+    {
+        fprintf(stderr, "Error: could not open %s for writing\n", 
+                adducts_out_name.c_str());
+        exit(1);
+    }
+    
     map<RefID, TargetProfile>::iterator itr;
     for (itr = targets_by_id.begin(); itr != targets_by_id.end(); ++itr)
     {
         TargetProfile target = itr->second;
-        string target_prefix = output_dir + "/" + target.name();
-        string adducts_out_name = target_prefix + ".adducts";
-        FILE* adducts_out = fopen(adducts_out_name.c_str(), "w");
-        if (adducts_out == NULL)
-        {
-            fprintf(stderr, "Error: could not open %s for writing\n", 
-                    adducts_out_name.c_str());
-            exit(1);
-        }
+        //string target_prefix = output_dir + "/" + target.name();
+        //string adducts_out_name = target_prefix + ".adducts";
+        
         target.calc_poisson_reactivities();
         target.print_adduct_counts(adducts_out);
-        fclose(adducts_out);
+        
     }
-    
+    fclose(adducts_out);
     string treated_library_file = output_dir + "/treated_library_length.hist";
     FILE* treated_library_out = fopen(treated_library_file.c_str(), "w");
     if (treated_library_out == NULL)
@@ -426,7 +566,7 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
     
 //    fprintf(stats_out, "Processed %d properly paired fragments, kept %d\n", 
 //            processed_fragments, num_kept_frags);
-    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d ( %f\\% ) treated, %d/%d ( %f\\% ) untreated\n", 
+    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d (%f\%) treated, %d/%d (%f\%) untreated\n", 
 			processed_fragments, 
 			num_kept_treated_frags,
 			num_treated_frags,
