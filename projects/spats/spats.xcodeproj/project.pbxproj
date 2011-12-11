@@ -401,6 +401,7 @@
 					"_GLIBCXX_DEBUG_PEDANTIC=1",
 				);
 				HEADER_SEARCH_PATHS = (
+					/opt/local/include,
 					./src,
 					"/usr/local/include/boost-1_41",
 				);
