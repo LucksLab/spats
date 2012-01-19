@@ -402,7 +402,7 @@ def formatTD(td):
     seconds = td.seconds % 60
     return '%02d:%02d:%02d' % (hours, minutes, seconds) 
 
-def relabel_pe_reads(params, handle_reads_list, nonhandle_reads_list, treated_handle, untreated_handle, relabel=True):    
+def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handle, untreated_handle, relabel=True):    
     #filter_cmd = ["prep_reads"]
     print >> sys.stderr, "[%s] Relabeling reads in %s and %s" % (right_now(), handle_reads_list, nonhandle_reads_list)
     
@@ -440,84 +440,7 @@ def relabel_pe_reads(params, handle_reads_list, nonhandle_reads_list, treated_ha
         if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
             print >> sys.stderr, fail_str, "Error: relabel_reads not found on this system.  Did you forget to include it in your PATH?"
         exit(1)
-        
-def relabel_pe_reads(params, handle_reads_list, nonhandle_reads_list, treated_handle, untreated_handle, relabel=True):    
-    #filter_cmd = ["prep_reads"]
-    print >> sys.stderr, "[%s] Relabeling reads in %s and %s" % (right_now(), handle_reads_list, nonhandle_reads_list)
-
-    #filter_log = open(logging_dir + "relabel_reads.log", "w")
-
-    filter_cmd = [bin_dir + "relabel_reads"]
-    filter_cmd.extend(params.cmd())
-
-    if relabel == False:
-        filter_cmd += ["--no-relabel"]
-    if params.read_params.reads_format == "fastq":
-        filter_cmd += ["--fastq"]
-    elif params.read_params.reads_format == "fasta":
-        filter_cmd += ["--fasta"]
-    filter_cmd.append(handle_reads_list)
-    filter_cmd.append(nonhandle_reads_list) 
-
-
-    if treated_handle != None and untreated_handle != None:
-        filter_cmd.append(treated_handle)
-        filter_cmd.append(untreated_handle) 
-
-    #print "\t executing: `%s'" % " ".join(filter_cmd)    
-    # files = reads_list.split(',')
-    # for reads_file in files:
-    try:       
-        print >> run_log, " ".join(filter_cmd)
-        ret = subprocess.call(filter_cmd)
-                              # Bowtie reported an error
-        if ret != 0:
-            print >> sys.stderr, fail_str, "Error: could not execute relabel_reads"
-            exit(1)
-    # prep_reads not found
-    except OSError, o:
-        if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
-            print >> sys.stderr, fail_str, "Error: relabel_reads not found on this system.  Did you forget to include it in your PATH?"
-        exit(1)
     
-    
-def relabel_se_reads(params, reads_list, treated_handle, untreated_handle, relabel=True):    
-    #filter_cmd = ["prep_reads"]
-    print >> sys.stderr, "[%s] Relabeling reads in %s and %s" % (right_now(), handle_reads_list, nonhandle_reads_list)
-
-    #filter_log = open(logging_dir + "relabel_reads.log", "w")
-
-    filter_cmd = [bin_dir + "relabel_reads"]
-    filter_cmd.extend(params.cmd())
-
-    if relabel == False:
-        filter_cmd += ["--no-relabel"]
-    if params.read_params.reads_format == "fastq":
-        filter_cmd += ["--fastq"]
-    elif params.read_params.reads_format == "fasta":
-        filter_cmd += ["--fasta"]
-    filter_cmd.append(reads_list)
-
-    if treated_handle != None and untreated_handle != None:
-        filter_cmd.append(treated_handle)
-        filter_cmd.append(untreated_handle) 
-
-    #print "\t executing: `%s'" % " ".join(filter_cmd)    
-    # files = reads_list.split(',')
-    # for reads_file in files:
-    try:       
-        print >> run_log, " ".join(filter_cmd)
-        ret = subprocess.call(filter_cmd)
-                              # Bowtie reported an error
-        if ret != 0:
-            print >> sys.stderr, fail_str, "Error: could not execute relabel_reads"
-            exit(1)
-    # prep_reads not found
-    except OSError, o:
-        if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
-            print >> sys.stderr, fail_str, "Error: relabel_reads not found on this system.  Did you forget to include it in your PATH?"
-        exit(1)
-        
 def match_read_pairs(params, left_in_reads, right_in_reads, left_out_reads, right_out_reads):
     #filter_cmd = ["prep_reads"]
     print >> sys.stderr, "[%s] Rematching read pairs" % (right_now())
@@ -587,14 +510,14 @@ def trim_read_adapters(params,
         
     return trimmed_reads_filename
 
-def bowtie_pe(params,
-              bwt_idx_prefix,
-              left_reads,
-              right_reads,
-              reads_format,
-              mapped_reads,
-              unmapped_reads,
-              phred_thresh=70):
+def bowtie(params,
+           bwt_idx_prefix,
+           left_reads,
+           right_reads,
+           reads_format,
+           mapped_reads,
+           unmapped_reads,
+           phred_thresh=70):
     start_time = datetime.now()
     bwt_idx_name = bwt_idx_prefix.split('/')[-1]
     print >> sys.stderr, "[%s] Mapping reads against %s with Bowtie" % (start_time.strftime("%c"), bwt_idx_name)
@@ -655,80 +578,6 @@ def bowtie_pe(params,
             print >> sys.stderr, fail_str, "Error: Bowtie not found on this system.  Did you forget to include it in your PATH?"
         exit(1)
             
-    # Success    
-    finish_time = datetime.now()
-    duration = finish_time - start_time
-    #print >> sys.stderr, "\t\t\t[%s elapsed]" %  formatTD(duration)
-    return (bwt_map, unmapped_reads_fasta_name)
-
-def bowtie_se(params,
-              bwt_idx_prefix,
-              left_reads,
-              right_reads,
-              reads_format,
-              mapped_reads,
-              unmapped_reads,
-              phred_thresh=70):
-    start_time = datetime.now()
-    bwt_idx_name = bwt_idx_prefix.split('/')[-1]
-    print >> sys.stderr, "[%s] Mapping reads against %s with Bowtie" % (start_time.strftime("%c"), bwt_idx_name)
-
-    # Setup Bowtie output redirects
-    #bwt_map = output_dir + mapped_reads
-    bwt_map = tmp_name()
-    tmp_fname = bwt_map.split('/')[-1]
-    bwt_log = open(logging_dir + tmp_fname + ".log", "w")
-
-    # Launch Bowtie
-    try:    
-        bowtie_cmd = ["bowtie"]
-
-        if reads_format == "fastq":
-            bowtie_cmd += ["-q"]
-        elif reads_format == "fasta":
-            bowtie_cmd += ["-f"]
-
-        if unmapped_reads != None:
-            unmapped_reads_fasta_name = unmapped_reads
-            bowtie_cmd += ["--un", unmapped_reads_fasta_name,
-                           "--max", "/dev/null"]
-        else:
-            unmapped_reads_fasta_name = None
-
-        bowtie_cmd += ["--sam",
-                       "--allow-contain",
-                       #"-m 1",
-                       "-y",
-                       #"-k 1",
-                       "-v", str(params.read_params.num_mismatches),
-                       "-X 2000",
-                       "--best",
-                       #"--strata",
-                       #"-e", str(phred_thresh),
-                       "-p", str(params.system_params.bowtie_threads),
-                       bwt_idx_prefix, 
-                       "-1", left_reads,
-                       "-2", right_reads,
-                       mapped_reads]
-
-        #bowtie_proc = subprocess.Popen(bowtie_cmd, stderr=bwt_log)
-
-
-
-        print >> run_log, " ".join(bowtie_cmd)
-        ret = subprocess.call(bowtie_cmd,
-                              stderr=bwt_log)
-                              # Bowtie reported an error
-        if ret != 0:
-            print >> sys.stderr, fail_str, "Error: could not execute bowtie"
-            exit(1)
-
-    # Bowtie not found
-    except OSError, o:
-        if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
-            print >> sys.stderr, fail_str, "Error: Bowtie not found on this system.  Did you forget to include it in your PATH?"
-        exit(1)
-
     # Success    
     finish_time = datetime.now()
     duration = finish_time - start_time
@@ -937,14 +786,8 @@ def main(argv=None):
         rna_targets_filename = args[0]
         treated_handle_seq = args[1]
         untreated_handle_seq = args[2]
-    
-        pe_run = True
-        if len(args) >= 4:
-            left_reads_list = args[3]
-            right_reads_list = args[4]
-        else:
-            pe_run = False
-            reads_list = args[3]
+        left_reads_list = args[3]
+        right_reads_list = args[4]
             
         print >> sys.stderr
         print >> sys.stderr, "[%s] Beginning Spats run (v%s)" % (right_now(), get_version())
@@ -966,106 +809,70 @@ def main(argv=None):
         check_bowtie()
                 
         # Now start the time consuming stuff
-        if pe_run:
-            relabel_pe_reads(params,
-                             left_reads_list, 
-                             right_reads_list,
-                             None,
-                             None)
-            left_labeled_reads = output_dir + "/NOMASK_1.fq"
-            right_labeled_reads = output_dir + "/NOMASK_2.fq"
-
-            if params.read_params.adapter_t != None \
-                and params.read_params.adapter_b != None:
-
-                left_trimmed_reads = "NOMASK_1.trimmed"
-                right_trimmed_reads = "NOMASK_2.trimmed"
-                left_kept_reads = "NOMASK_1.kept"
-                right_kept_reads = "NOMASK_2.kept"
-
-                left_trimmed_reads = trim_read_adapters(params, 
-                                                         params.read_params.adapter_b,
-                                                         left_labeled_reads,
-                                                         left_trimmed_reads)
-                right_trimmed_reads = trim_read_adapters(params, 
-                                                          reverse_complement(params.read_params.adapter_t),
-                                                          right_labeled_reads,
-                                                          right_trimmed_reads)
-                [left_kept_reads, right_kept_reads] = match_read_pairs(params,
-                                                                        left_trimmed_reads, 
-                                                                        right_trimmed_reads, 
-                                                                        left_kept_reads, 
-                                                                        right_kept_reads)
-
-            relabel_pe_reads(params,
-                          left_kept_reads, 
-                          right_kept_reads,
-                          treated_handle_seq,
-                          untreated_handle_seq,
-                          False)
-            else:
-                [left_kept_reads, right_kept_reads] = [left_labeled_reads, right_labeled_reads]
-                relabel_pe_reads(params,
-                             left_kept_reads, 
-                             right_kept_reads,
-                             treated_handle_seq,
-                             untreated_handle_seq,
-                             False)
-        else:
-            relabel_se_reads(params,
-                             reads_list,
-                             None,
-                             None)
-            if params.read_params.adapter_t != None \
-                and params.read_params.adapter_b != None:
-                
-                trimmed_reads = "NOMASK.trimmed"
-                kept_reads = "NOMASK.kept"
-                
-                trimmed_reads = trim_read_adapters(params, 
-                                                   params.read_params.adapter_b,
-                                                   left_labeled_reads,
-                                                   left_trimmed_reads)
-                relabel_se_reads(params,
-                                 left_trimmed_reads, 
-                                 treated_handle_seq,
-                                 untreated_handle_seq,
-                                 False)
-            else:
-                relabel_se_reads(params,
-                                 left_kept_reads,
-                                 treated_handle_seq,
-                                 untreated_handle_seq,
-                                 False)
+        relabel_reads(params,
+                      left_reads_list, 
+                      right_reads_list,
+                      None,
+                      None)
                       
         index_prefix = index_targets(rna_targets_filename)
         
         maps = []
         
-        for handle_seq in [treated_handle_seq, untreated_handle_seq]:
+        
+        left_labeled_reads = output_dir + "/NOMASK_1.fq"
+        right_labeled_reads = output_dir + "/NOMASK_2.fq"
+        
+        if params.read_params.adapter_t != None \
+            and params.read_params.adapter_b != None:
+
+            left_trimmed_reads = "NOMASK_1.trimmed"
+            right_trimmed_reads = "NOMASK_2.trimmed"
             
-            if pe_run:
-                left_demuxed_reads = output_dir + handle_seq + "_1.fq"
-                right_demuxed_reads = output_dir + handle_seq + "_2.fq"
-                mapped_reads = output_dir + handle_seq + ".sam"                            
-                bowtie_pe(params,
-                       index_prefix,
-                       left_demuxed_reads,
-                       right_demuxed_reads,
-                       "fastq",
-                       mapped_reads,
-                       None,
-                       500)
-            else:
-                demuxed_reads = output_dir + handle_seq + ".fq"
-                mapped_reads = output_dir + handle_seq + ".sam"                            
-                bowtie_se(params,
-                          index_prefix,
-                          demuxed_reads,
-                          "fastq",
-                          mapped_reads,
-                          None,
-                          500)
+            left_kept_reads = "NOMASK_1.kept"
+            right_kept_reads = "NOMASK_2.kept"
+            
+            left_trimmed_reads = trim_read_adapters(params, 
+                                                    params.read_params.adapter_b,
+                                                    left_labeled_reads,
+                                                    left_trimmed_reads)
+            right_trimmed_reads = trim_read_adapters(params, 
+                                                     reverse_complement(params.read_params.adapter_t),
+                                                     right_labeled_reads,
+                                                     right_trimmed_reads)
+            [left_kept_reads, right_kept_reads] = match_read_pairs(params,
+                                                                   left_trimmed_reads, 
+                                                                   right_trimmed_reads, 
+                                                                   left_kept_reads, 
+                                                                   right_kept_reads)
+            
+            relabel_reads(params,
+                          left_kept_reads, 
+                          right_kept_reads,
+                          treated_handle_seq,
+                          untreated_handle_seq,
+                          False)
+        else:
+            [left_kept_reads, right_kept_reads] = [left_labeled_reads, right_labeled_reads]
+            relabel_reads(params,
+                          left_kept_reads, 
+                          right_kept_reads,
+                          treated_handle_seq,
+                          untreated_handle_seq,
+                          False)
+                
+        for handle_seq in [treated_handle_seq, untreated_handle_seq]:
+            left_demuxed_reads = output_dir + handle_seq + "_1.fq"
+            right_demuxed_reads = output_dir + handle_seq + "_2.fq"
+            mapped_reads = output_dir + handle_seq + ".sam"                            
+            bowtie(params,
+                   index_prefix,
+                   left_demuxed_reads,
+                   right_demuxed_reads,
+                   "fastq",
+                   mapped_reads,
+                   None,
+                   500)
             maps.append(mapped_reads)
                    
         treated_map = maps[0]
