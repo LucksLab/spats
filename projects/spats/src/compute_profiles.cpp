@@ -89,7 +89,7 @@ struct TargetProfile
         _profile_len(_seq.length() + 1),
         _treated(_profile_len),
         _untreated(_profile_len),
-        _thetas(_seq.length()),
+        _thetas(_seq.length() + 1),
         //_normalized_thetas(_seq.length()),
         _betas(_seq.length() + 1),
         _c(0.0) {}
