@@ -26,7 +26,9 @@ bool FragmentFactory::next_fragment(MateHit& fragment_out)
     bool treated = false;
     
     while (true && !feof(hit_file))
-    {
+    {   
+        memset(left_bwt_buf, 0, sizeof(left_bwt_buf));
+        memset(right_bwt_buf, 0, sizeof(right_bwt_buf));
         fgets(left_bwt_buf, 2048, hit_file);
         char* nl = strrchr(left_bwt_buf, '\n');
         if (nl) *nl = 0;
