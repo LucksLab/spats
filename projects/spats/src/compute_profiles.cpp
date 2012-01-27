@@ -326,8 +326,6 @@ struct TargetProfile
     
     void print_adduct_counts(FILE* adducts_out)
     {
-        fprintf(adducts_out, "sequence\nfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n");
-        
         const vector<int>& treated_adducts = _treated.adducts();
         const vector<int>& untreated_adducts = _untreated.adducts();
         
@@ -511,6 +509,7 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
         exit(1);
     }
     
+    fprintf(adducts_out, "sequence\tfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n");
     map<RefID, TargetProfile>::iterator itr;
     for (itr = targets_by_id.begin(); itr != targets_by_id.end(); ++itr)
     {
