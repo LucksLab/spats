@@ -86,7 +86,7 @@ class SpatsParams:
     
     class ReadParams:
         def __init__(self,
-                     solexa_quals,
+                     phred33_quals,
                      phred64_quals,
                      seed_length,
                      adapter_t,
@@ -101,7 +101,7 @@ class SpatsParams:
                      seq_center,
                      seq_run_date,
                      seq_platform):
-            self.solexa_quals = solexa_quals
+            self.phred33_quals = phred33_quals
             self.phred64_quals = phred64_quals
             self.seed_length = seed_length
             self.adapter_t = adapter_t
@@ -119,9 +119,9 @@ class SpatsParams:
             
         def parse_options(self, opts):
             for option, value in opts:
-                if option == "--solexa-quals":
-                    self.solexa_quals = True
-                if option in ("--solexa1.3-quals", "--phred64-quals"):
+                if option == "--phred33-quals":
+                    self.phred33_quals = True
+                if option == "--phred64-quals":
                     self.phred64_quals = True    
                 if option in ("-s", "--seed-length"):
                     self.seed_length = int(value)
@@ -161,7 +161,7 @@ class SpatsParams:
                     
     def __init__(self):        
         
-        self.read_params = self.ReadParams(False,               # solexa_scale
+        self.read_params = self.ReadParams(True,                # phred33 qualities
                                            False,
                                            None,                # seed_length
                                            None,
@@ -190,8 +190,8 @@ class SpatsParams:
     def cmd(self):
         cmd = ["--output-dir", output_dir]
         
-        if self.read_params.solexa_quals == True:
-            cmd.append("--solexa-quals")
+        if self.read_params.phred33_quals == True:
+            cmd.append("--phred33-quals")
         if self.read_params.phred64_quals == True:
             cmd.append("--phred64-quals")
         return cmd
@@ -202,8 +202,7 @@ class SpatsParams:
                                         ["version",
                                          "help",  
                                          "output-dir=",
-                                         "solexa-quals",
-                                         "solexa1.3-quals",
+                                         "phred33-quals",
                                          "phred64-quals",
                                          "num-threads=",
                                          "num-mismatches=",
@@ -497,6 +496,8 @@ def trim_read_adapters(params,
         cmd.extend(["-a", adapter])
         cmd.extend(["-i", reads_file])
         cmd.extend(["-o",trimmed_reads_filename])
+        if params.read_params.phred33_quals == True:
+            cmd.extend(["-Q33"])
         print >> run_log, " ".join(cmd)
         ret = subprocess.call(cmd, 
                               stdout=trimmed_reads,

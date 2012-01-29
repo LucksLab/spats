@@ -32,7 +32,7 @@ void format_qual_string(const string& orig_qual_str,
 	for (size_t i = 0; i < orig_qual_str.size(); ++i)
 	{
 		out_qual_str[i] = charToPhred33(orig_qual_str[i], 
-										solexa_quals, 
+										false, 
 										phred64_quals);
 	}
 }
