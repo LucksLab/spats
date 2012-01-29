@@ -56,7 +56,7 @@ extern std::string gene_filter;
 
 extern std::string ium_reads;
 
-extern bool solexa_quals;
+extern bool phred33_quals;
 extern bool phred64_quals;
 
 extern bool fastq_db;

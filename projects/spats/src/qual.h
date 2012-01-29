@@ -101,7 +101,7 @@ inline static char charToPhred33(char c, bool solQuals, bool phred64Quals) {
 			cerr << "Saw ASCII character "
 			     << ((int)c)
 			     << " but expected 64-based Solexa qual (converts to " << (int)cc << ")." << endl
-			     << "Try not specifying --solexa-quals." << endl;
+			     << "Try not specifying --phred33-quals." << endl;
 			throw 1;
 		}
 		c = cc;
