@@ -545,7 +545,7 @@ def bowtie(params,
             unmapped_reads_fasta_name = None
         
         bowtie_cmd += ["--sam",
-                       #"--allow-contain",
+                       "--allow-contain",
                        #"-m 1",
                        "-y",
                        #"-k 1",
