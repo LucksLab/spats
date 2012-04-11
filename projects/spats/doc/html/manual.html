@@ -83,22 +83,7 @@
 	  Spats runs on intel-based computers running Linux or Mac OS X and 
 	  that have GCC 4.0 or greater installed.  You can install pre-compiled 
 	  binaries or build Spats from the source code.
-	  If you wish to build Spats yourself, you will need to install the
-	  <a href="http://www.boost.org">Boost C++ libraries</a>.   
-  	  </p>
-      
-	  <p>
-	  The pipeline will will align fragments to target cRNA sequences using 
-	  <a href="http://bowtie.cbcb.umd.edu">Bowtie</a>.  Installing Bowtie is 
-	  required, and instructions for doing so can be found 
-	  <a href="http://bowtie-bio.sourceforge.net/tutorial.shtml">here</a>.   
-  	  </p>
-
-	  <p>
-	  Spats can automatically trim adapters from your reads, by using the 
-	  <a href="http://hannonlab.cshl.edu/fastx_toolkit/index.html">FASTX</a> toolkit, 
-	  developed in the Hannon Lab at CSHL.  Installation of FASTX is required,
-	  and instructions can be found <a href="http://hannonlab.cshl.edu/fastx_toolkit/download.html">here</a>.
+	  If you wish to build Spats yourself, you will need to install several required pieces of software as described <a href="installation.html">here</a>. 
       </p><br/>
  	  <br/>
   	  <h2 id="spats">Running Spats</h2><br/>
@@ -158,11 +143,12 @@
 	
 	  <h2 id="spats_input">Spats Input</h2><br/>
 		<p>
-		Spats takes three files as input: the target RNA file, and two files 
-		containing the paired-end sequencing reads from the experiment in
-		 FASTQ format.  The sequecing reads for both the plus and minus channels 
-		must be contained in the files. It is critical that the mated reads 
-		appear in the same order in each file.  The target RNA file is in FASTA format, e.g.
+		Spats takes three files as input: the target RNA file, and two files containing the paired-end sequencing
+        reads from the experiment in FASTQ format. The sequecing reads for both the plus and minus channels of the
+        SHAPE experiment must be contained in the files. Please refer to the references on the right hand side for
+        more information on how these handles are included in library preparation and sequencing. It is critical
+        that the mated reads appear in the same order in each file. The target RNA file is in FASTA format, and
+        contains one entry for each RNA that is included in the experiment, e.g.
 		</p>
 		<br/>
 		<pre>
@@ -171,7 +157,16 @@
 		CCTACGTCTTCGGATATGGCTGAGTATCCTTGAAAGTGCCACAGTGACGAAGTCTCACTAG
 		AAATGGTGAGAGTGGAACGCGGTAAACCCCTCGACCGATCCGCTTCGGCGGATCCGTACAA
 		ATCGGGCTTCGGTCCGGTTC
+		>target_TTAA
+		GGTCGTGCCTAGCGAAGTCATAAGCTAGGGCAGTCTTTAGAGGCTGACGGCAGGAAAAAAG
+		CCTACGTCTTCGGATATGGCTGAGTATCCTTGAAAGTGCCACAGTGACGAAGTCTCACTAG
+		AAATGGTGAGAGTGGAACGCGGTAAACCCCTCGACCGATCCGCTTCGGCGGATCCTTAAAA
+		ATCGGGCTTCGGTCCGGTTC
+		...
 		</pre>
+		In this case, two identical RNA sequences were barcoded with two sequences (GTAC, TTAA) and run in the same
+        experiment.
+      <br/>
       <br/>
   <h2 id="spats_output">Spats Output</h2><br/>
 	
@@ -188,16 +183,17 @@
 		</p>
 		<br/>
 	<pre>
-	sequence five_prime_offset	nucleotide	treated_mods	untreated_mods	beta	theta	c
-	RNaseP_WT	0	*	77211	55078	-	-	0.840988
-	RNaseP_WT	1	G	10779	5532	0.0422978	0.041584	0.840988
-	RNaseP_WT	2	G	5505	3141	0.012441	0.0120808	0.840988
-	RNaseP_WT	3	T	289	249	0	0	0.840988
-	RNaseP_WT	4	C	381	306	0	0	0.840988
+	sequence  five_prime_offset	nucleotide	treated_mods	untreated_mods	beta  	    theta	c
+	RNaseP_WT	0	            *	           77211	55078	        -	    -	        0.840988
+	RNaseP_WT	1	            G	           10779	5532	        0.0422978   0.041584	0.840988
+	RNaseP_WT	2	            G	           5505	        3141	        0.012441    0.0120808	0.840988
+	RNaseP_WT	3	            T	           289	        249	        0	    0	        0.840988
+	RNaseP_WT	4	            C	           381	        306	        0	    0	        0.840988
+	...
 	</pre>
 	<table CELLSPACING=15>
 	
-	<tr><td VALIGN=top nowrap>sequence</td><td VALIGN=top>	Name of target RNA</td></tr>
+	<tr><td VALIGN=top nowrap>sequence</td><td VALIGN=top>	Name of target RNA (from the input sequences FASTA file.)</td></tr>
 	<tr><td VALIGN=top nowrap>five_prime_offset</td><td VALIGN=top>	Position in target RNA, 0=full length</td></tr>
 	<tr><td VALIGN=top nowrap>nucleotide</td><td VALIGN=top>	Base at position in target, *=full length</td></tr>
 	<tr><td VALIGN=top nowrap>treated_mods</td><td VALIGN=top>	Number of (+) fragments ending at position in target</td></tr>
@@ -206,7 +202,7 @@
 	<tr><td VALIGN=top nowrap>theta	</td><td VALIGN=top>Theta value at position in target</td></tr>
 	<tr><td VALIGN=top nowrap>c</td><td VALIGN=top>	Estimated SHAPE modifications per target</td></tr>
 	</table>
-		
+	See the references for definitions of beta, theta and c.
 	</div>
   </div>
   <div id="footer">
