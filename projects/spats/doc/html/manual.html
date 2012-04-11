@@ -12,7 +12,7 @@
     <table width="100%" cellpadding="2">
       <tr><td>
         <a href="./index.html"><h1>Spats</h1></a>
-        <h2>Analysis of SHAPE-Seq experiments</h2>
+        <h2>RNA structure determination with SHAPE-Seq</h2>
       </td><td align="right" valign="middle">
         <h1><a href="http://www.cbcb.umd.edu/"><img border=0 src="images/cbcblogo.gif"></img></a>&nbsp;&nbsp;</h1>
       </td></tr>
@@ -126,13 +126,13 @@
 	  <tr><td VALIGN=top nowrap>
 	  <tt>&lt;treated_handle&gt;</tt>
 	  </td><td VALIGN=top>
-	  A nucleotide sequence with which all targets in the <b>treated</b> sample are tagged.
+	  A nucleotide sequence with which all targets in the <b>treated</b> sample are tagged.  You can use IUPAC codes here, e.g. <tt>RRRY</tt>
 	  </td></tr>
 	
 	  <tr><td VALIGN=top nowrap>
 	  <tt>&lt;untreated_handle&gt;</tt>
 	  </td><td VALIGN=top>
-	  A nucleotide sequence with which all targets in the <b>untreated</b> sample are tagged.
+	  A nucleotide sequence with which all targets in the <b>untreated</b> sample are tagged. You can use IUPAC codes here, e.g. <tt>YYYR</tt>
 	  </td></tr>
 
 	  <tr><td VALIGN=top nowrap>
@@ -157,10 +157,55 @@
 	  </table><br/>
 	
 	  <h2 id="spats_input">Spats Input</h2><br/>
-
+		<p>
+		Spats takes three files as input: the target RNA file, and two files 
+		containing the paired-end sequencing reads from the experiment in
+		 FASTQ format.  The sequecing reads for both the plus and minus channels 
+		must be contained in the files. It is critical that the mated reads 
+		appear in the same order in each file.  The target RNA file is in FASTA format, e.g.
+		</p>
+		<br/>
+		<pre>
+		>target_GTAC
+		GGTCGTGCCTAGCGAAGTCATAAGCTAGGGCAGTCTTTAGAGGCTGACGGCAGGAAAAAAG
+		CCTACGTCTTCGGATATGGCTGAGTATCCTTGAAAGTGCCACAGTGACGAAGTCTCACTAG
+		AAATGGTGAGAGTGGAACGCGGTAAACCCCTCGACCGATCCGCTTCGGCGGATCCGTACAA
+		ATCGGGCTTCGGTCCGGTTC
+		</pre>
       <br/>
   <h2 id="spats_output">Spats Output</h2><br/>
 	
+	Spats produces a directory (by default called <tt>spats_out</tt>) containing several output files.
+	<h3>De-multiplexed reads</h3>
+	Spats splits the reads into the plus and minus channels according to the 
+	handle sequences you've specified.  The output directory will contain FASTQ
+	files named <tt>&lt;treated_handle&gt;_1.fq</tt>, <tt>&lt;treated_handle&gt;_2.fq</tt>, <tt>&lt;untreated_handle&gt;_1.fq</tt> and <tt>&lt;untreated_handle&gt;_2.fq</tt> 
+	<h3>Reactivities</h3>
+		<p>
+		The <tt>reactivities.out</tt> file is a tab-delimited file of values 
+		providing the reactivity at each base of the target RNAs.  The example 
+		below shows the first few rows of a run against wild-type RNaseP:
+		</p>
+		<br/>
+	<pre>
+	sequence five_prime_offset	nucleotide	treated_mods	untreated_mods	beta	theta	c
+	RNaseP_WT	0	*	77211	55078	-	-	0.840988
+	RNaseP_WT	1	G	10779	5532	0.0422978	0.041584	0.840988
+	RNaseP_WT	2	G	5505	3141	0.012441	0.0120808	0.840988
+	RNaseP_WT	3	T	289	249	0	0	0.840988
+	RNaseP_WT	4	C	381	306	0	0	0.840988
+	</pre>
+	<table CELLSPACING=15>
+	
+	<tr><td VALIGN=top nowrap>sequence</td><td VALIGN=top>	Name of target RNA</td></tr>
+	<tr><td VALIGN=top nowrap>five_prime_offset</td><td VALIGN=top>	Position in target RNA, 0=full length</td></tr>
+	<tr><td VALIGN=top nowrap>nucleotide</td><td VALIGN=top>	Base at position in target, *=full length</td></tr>
+	<tr><td VALIGN=top nowrap>treated_mods</td><td VALIGN=top>	Number of (+) fragments ending at position in target</td></tr>
+	<tr><td VALIGN=top nowrap>untreated_mods</td><td VALIGN=top>	Number of (-) fragments ending at position in target</td></tr>
+	<tr><td VALIGN=top nowrap>beta</td><td VALIGN=top>	Beta value at position in target</td></tr>
+	<tr><td VALIGN=top nowrap>theta	</td><td VALIGN=top>Theta value at position in target</td></tr>
+	<tr><td VALIGN=top nowrap>c</td><td VALIGN=top>	Estimated SHAPE modifications per target</td></tr>
+	</table>
 		
 	</div>
   </div>
