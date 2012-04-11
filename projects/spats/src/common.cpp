@@ -102,7 +102,7 @@ const char *short_options = "";
 #define OPT_MAX_MULTIHITS				46
 #define OPT_SEGMENT_LENGTH				50
 #define OPT_SEGMENT_MISMATCHES			51
-#define OPT_SOLEXA_QUALS			    63
+#define OPT_PHRED33_QUALS			    63
 #define OPT_PHRED64_QUALS				64
 #define OPT_NO_RELABEL                  65
 
@@ -113,7 +113,7 @@ static struct option long_options[] = {
 {"output-dir",			required_argument,	0,	OPT_OUTPUT_DIR},
 {"segment-length",		required_argument,	0,  OPT_SEGMENT_LENGTH},
 {"segment-mismatches",	required_argument,	0,  OPT_SEGMENT_MISMATCHES},
-{"phred33-quals",		no_argument,		0,	OPT_SOLEXA_QUALS},
+{"phred33-quals",		no_argument,		0,	OPT_PHRED33_QUALS},
 {"phred64-quals",		no_argument,		0,	OPT_PHRED64_QUALS},
 {"no-relabel",          no_argument,		0,	OPT_NO_RELABEL},
 {0, 0, 0, 0} // terminator
@@ -149,7 +149,7 @@ int parse_options(int argc, char** argv, void (*print_usage)())
 			case OPT_SEGMENT_MISMATCHES:
 				segment_mismatches = parseInt(0, "--segment-mismatches arg must be at least 0", print_usage);
 				break;
-			case OPT_SOLEXA_QUALS:
+			case OPT_PHRED33_QUALS:
 				phred33_quals = true;
 				break;
 			case OPT_PHRED64_QUALS:

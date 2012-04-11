@@ -388,8 +388,8 @@ def check_bowtie():
     if bowtie_version == None:
         print >> sys.stderr, "Error: Bowtie not found on this system"
         exit(1)
-    elif bowtie_version[0] == 0 and bowtie_version[1] < 10:
-        print >> sys.stderr, "Error: Spats requires Bowtie 0.10.0 or later"
+    elif bowtie_version[0] == 0 and bowtie_version[1] < 12:
+        print >> sys.stderr, "Error: Spats requires Bowtie 0.12.7 or later"
         exit(1)
     print >> sys.stderr, "\tBowtie version:\t\t %s" % ".".join([str(x) for x in bowtie_version])
         
@@ -546,7 +546,7 @@ def bowtie(params,
             unmapped_reads_fasta_name = None
         
         bowtie_cmd += ["--sam",
-                       "--allow-contain",
+                       #"--allow-contain",
                        #"-m 1",
                        "-y",
                        #"-k 1",
