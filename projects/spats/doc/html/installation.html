@@ -9,44 +9,72 @@
   </head>
   <body>
     <div id="wrap">
-      <div id="top">
-        <div class="lefts">
-          <table cellpadding="2" width="100%">
-            <tbody>
-              <tr>
-                <td> <a href="./index.html">
-                    <h1>Spats</h1>
-                  </a>
-                  <h2>RNA structure determination with SHAPE-Seq</h2>
-                </td>
-                <!-- <td align="right" valign="middle"> 
-                                    <a href="http://www.mcb.berkeley.edu/">
-                                      <img style="vertical-align:middle;padding-top:4px" 
-                                        border=0 src="images/UCBerkeley-seal.scaled.gif">
-                                    </a>&nbsp;
-                                    <a href="http://genomics.jhu.edu/">
-                                    <img style="vertical-align:middle;padding-top:4px"
-                                      src="images/JHU-seal.gif" border="0">
-                                    </a>&nbsp;
-                                  <a href="http://www.cbcb.umd.edu/"><img
-                                      style="vertical-align:middle;padding-top:4px"
-                                      src="images/cbcb_logo.gif" alt=""></a>&nbsp;&nbsp;
-
-                                </td> -->
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      	<div id="top">
+	        <div class="lefts">
+	          <table cellpadding="2" width="100%">
+	            <tbody>
+	              <tr>
+	                <td> <a href="./index.html">
+	                    <h1>Spats</h1>
+	                  </a>
+	                  <h2>Read Processing and Reactivity Generation for SHAPE-Seq</h2>
+	                </td>
+	                <td align="right" valign="middle"> 
+	                    <a href="http://bio.math.berkeley.edu/">
+	                    <img style="vertical-align:middle;padding-top:4px"
+	                      src="images/UCBerkeley-seal.scaled.gif" border="0">
+	                    </a>&nbsp;
+	                    <a href="http://http://www.cheme.cornell.edu/">
+	                    <img style="vertical-align:middle;padding-top:4px"
+	                      src="images/Cornell_logo.jpg" border="0">
+	                    </a>&nbsp;
+	                </td>
+	              </tr>
+	            </tbody>
+	          </table>
+	        </div>
+	      </div>
       </div>
-
       <div id="main">
-        
+        <div id="subheader">
+	        <table width="100%">
+	          <tbody>
+	            <tr>
+	              <td> <strong>Spats</strong> processes reads and calculates SHAPE reactivities for SHAPE-Seq
+	              experiments on multiple RNAs. It accepts raw paired-end sequencing reads in fastq format, and a target
+	              sequence file containing the sequences of RNAs present in the experimental pool. Spats then performs
+	              read alignment to calculate distributions of read ends in the SHAPE (+) and (-) channel for each
+	              nucleotide in each RNA. Spats then estimates nucleotide resolution SHAPE reactivities for each RNA,
+	              using a model-driven maximum likelihood procedure based on a model of the reverse transcriptase
+	              process used in the SHAPE-Seq experiment.	
+	                <br>
+	                Spats is a collaborative effort between the <a
+	                  href="http://bio.math.berkeley.edu/">Laboratory for
+	                  Mathematical and Computational Biology</a>, led by
+	                Lior Pachter at UC Berkeley, 
+	                <a href="http://www.broadinstitute.org/~cole/">Cole Trapnell</a>
+	                 at the Department of Stem Cell and Regenerative Biology at Harvard University, and
+	                <a href="http://luckslab.org/">the Lucks Lab</a>
+	                at Cornell University. <br>
+	                <br>
+	                Spats is provided under the OSI-approved <a
+	                  href="http://en.wikipedia.org/wiki/Boost_Software_License">Boost
+	                  License</a> </td>
+	              <td align="right" valign="middle"> <a
+	                  href="http://opensource.org"><img alt="Open Source
+	                    Software" src="images/osi-certified.gif" border="0"></a>
+	              </td>
+	            </tr>
+	          </tbody>
+	        </table>
+	      </div>
+	
 		<div id="rightside">
           <h2>Site Map</h2>
           <div class="box">
             <ul>
               <li><a href="index.html">Home</a></li>
-              <li><a href="tutorial.html">Installation</a></li>
+              <li><a href="installation.html">Installation</a></li>
               <li><a href="manual.html">Manual</a></li>
 			  <!-- <li><a href="http://www.nature.com/nprot/journal/v7/n3/full/nprot.2012.016.html">Protocol</a></li> -->
             </ul>
