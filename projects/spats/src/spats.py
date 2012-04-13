@@ -36,6 +36,7 @@ use_message = '''
      --adapter-t                 <string>    [ default: None ]
      --adapter-b                <string>    [ default: None ]
      --num-mismatches               <int>       [ default: 0    ]
+     --num-threads               <int>       [ default: 1    ]
      
 SAM Header Options (for embedding sequencing run metadata in output):
     --rg-id                        <string>    (read group ID)
