@@ -5,7 +5,7 @@ m4_include([ax_boost_thread.m4])
 
 define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))dnl
 #AC_INIT([spats], [0.1.svnversion], [myprog@example.com])
-AC_INIT([spats],0.0.1, [cole@cs.umd.edu])
+AC_INIT([spats],0.7.0, [cole@cs.umd.edu])
 
 AC_ARG_VAR(PYTHON, [python program])
 AC_PREFIX_DEFAULT([`pwd`])
