@@ -100,6 +100,11 @@ struct TargetProfile
     const Adducts treated() const { return _treated; }
     const Adducts untreated() const { return _untreated; }
     
+    const vector<double>& thetas() const { return _thetas; }
+    const vector<double>& betas() const { return _betas; }
+    
+    const double c() const { return _c; }
+    
     bool register_fragment(const MateHit& fragment, bool treated)
     {
         if (treated)
@@ -292,7 +297,125 @@ private:
     double _c;
 };
 
-map<RefID, TargetProfile> targets_by_id;
+class RandomerTargetProfile
+{
+public:
+    RandomerTargetProfile() {}
+    RandomerTargetProfile(const string& name, const string& seq) :
+        _name(name), 
+        _seq(seq)
+    {
+        for (size_t i = 1; i <= seq.length(); ++i)
+        {
+            string subseq = seq.substr(0,i);
+            _starts.push_back(TargetProfile(name, subseq));
+        }
+    }
+    
+    const string& name() const { return _name; }
+    const string& seq() const { return _seq; }
+    
+    bool register_fragment(const MateHit& fragment, bool treated)
+    {
+        int rt_start_site = fragment.right(); // fragment is 0-index, adduct array is 1-indexed, so we don't actually need to subtract
+
+        if (rt_start_site >= 1 && rt_start_site - 1 < _starts.size())
+        {                
+            return _starts[rt_start_site - 1].register_fragment(fragment, treated);
+        }
+        return false;
+    }
+    
+    void calc_poisson_reactivities()
+    {
+        for (size_t i = 0; i < _starts.size(); ++i)
+        {
+            _starts[i].calc_poisson_reactivities();
+        }
+    }
+    
+    
+    void print_adduct_counts(FILE* adducts_out)
+    {
+        for (int j = 0; j < _starts.size(); ++j)
+        {
+            const TargetProfile& curr_start = _starts[j];
+            
+            const vector<int>& treated_adducts = curr_start.treated().adducts();
+            const vector<int>& untreated_adducts = curr_start.untreated().adducts();
+            
+            vector<double> scaled_betas = curr_start.betas();
+            double total_beta = accumulate(scaled_betas.begin() + 1, scaled_betas.end(), 0.0);
+            if (total_beta == 0.0)
+            {
+                continue;
+            }
+            for (size_t i = 1; i < scaled_betas.size(); ++i)
+            {
+                scaled_betas[i] /= total_beta;
+            }
+            
+            //double total_theta = accumulate(curr_start.thetas().begin() + 1, curr_start.thetas().end(), 0.0);
+            total_beta = accumulate(scaled_betas.begin() + 1, scaled_betas.end(), 0.0);
+            //fprintf(stderr, "%s: total theta = %lg\n", _name.c_str(), total_theta);
+            //fprintf(stderr, "%s: total beta = %lg\n", _name.c_str(), total_beta);
+            
+            for (int i = 0; i < j+1; ++i)
+            {
+                if (i == 0)
+                {
+                    fprintf(adducts_out, 
+                            "%s\t%d\t%d\t*\t%d\t%d\t-\t-\t%lg\n", 
+                            _name.c_str(),
+                            j,
+                            i,
+                            treated_adducts[i], 
+                            untreated_adducts[i],
+                            curr_start.c()); 
+                }
+                else if (i < j)
+                {
+                    fprintf(adducts_out, 
+                            "%s\t%d\t%d\t%c\t%d\t%d\t%lg\t%lg\t%lg\n", 
+                            _name.c_str(),
+                            j,
+                            i,
+                            _seq[i-1],
+                            treated_adducts[i], 
+                            untreated_adducts[i],
+                            scaled_betas[i],
+                            curr_start.thetas()[i],
+                            curr_start.c()); 
+                }
+            }
+        }
+    }
+
+    void calculate_consensus_reactivities()
+    {
+        
+        for (int j = 0; j < _starts.size(); ++j)
+        {
+            const TargetProfile& curr_start = _starts[j];
+            
+            const vector<int>& treated_adducts = curr_start.treated().adducts();
+            const vector<int>& untreated_adducts = curr_start.untreated().adducts();
+            
+            vector<double> scaled_betas = curr_start.betas();
+            
+        }
+    }
+    
+    
+private:
+    string _name;
+    string _seq;
+    
+    vector<TargetProfile> _starts;
+    
+};
+
+map<RefID, RandomerTargetProfile> targets_by_id;
 
 void register_targets(RefSequenceTable rt,
                       FILE* target_fasta)
@@ -310,10 +433,10 @@ void register_targets(RefSequenceTable rt,
         string name = curr_target.name;
         RefID refid = rt.get_id(name, NULL);
       
-        map<RefID,TargetProfile>::iterator itr = targets_by_id.find(refid);
+        map<RefID,RandomerTargetProfile>::iterator itr = targets_by_id.find(refid);
         if (itr == targets_by_id.end())
         {
-            targets_by_id[refid] = TargetProfile(name, curr_target.seq);
+            targets_by_id[refid] = RandomerTargetProfile(name, curr_target.seq);
             assert(!(targets_by_id[refid].name().empty()));
         }
         else
@@ -325,7 +448,7 @@ void register_targets(RefSequenceTable rt,
 }
 
 void process_fragments(FragmentFactory& fragment_factory, 
-                       map<RefID, TargetProfile>& targets_by_id,
+                       map<RefID, RandomerTargetProfile>& targets_by_id,
                        int& processed_fragments,
                        int& num_frags,
                        int& num_kept_frags,
@@ -335,7 +458,7 @@ void process_fragments(FragmentFactory& fragment_factory,
     while(fragment_factory.next_fragment(fragment))
     {
         processed_fragments++;
-        map<RefID, TargetProfile>::iterator itr;
+        map<RefID, RandomerTargetProfile>::iterator itr;
         if (fragment.ref_id() == 0)
             return;
         itr = targets_by_id.find(fragment.ref_id());
@@ -346,7 +469,7 @@ void process_fragments(FragmentFactory& fragment_factory,
             exit(1);
         }
         
-        TargetProfile& target = itr->second;
+        RandomerTargetProfile& target = itr->second;
         bool kept = target.register_fragment(fragment, treated);
         
         num_frags++;
@@ -418,11 +541,11 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
         exit(1);
     }
     
-    fprintf(adducts_out, "sequence\tfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n");
-    map<RefID, TargetProfile>::iterator itr;
+    fprintf(adducts_out, "sequence\trt_start\tfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n");
+    map<RefID, RandomerTargetProfile>::iterator itr;
     for (itr = targets_by_id.begin(); itr != targets_by_id.end(); ++itr)
     {
-        TargetProfile target = itr->second;
+        RandomerTargetProfile target = itr->second;
         //string target_prefix = output_dir + "/" + target.name();
         //string adducts_out_name = target_prefix + ".adducts";
         
@@ -474,7 +597,7 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
     
 //    fprintf(stats_out, "Processed %d properly paired fragments, kept %d\n", 
 //            processed_fragments, num_kept_frags);
-    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d (%f\%) treated, %d/%d (%f\%) untreated\n", 
+    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d ( %f\% ) treated, %d/%d ( %f\% ) untreated\n", 
 			processed_fragments, 
 			num_kept_treated_frags,
 			num_treated_frags,
@@ -483,17 +606,17 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
 			num_untreated_frags,
 			(float)num_kept_untreated_frags/(float)num_untreated_frags);
     
-    fprintf(stats_out, "target\ttreated_fragments\tuntreated_fragments\ttreated_stops\tuntreated_stops\n");
-    for (map<RefID, TargetProfile>::iterator itr = targets_by_id.begin(); 
-         itr != targets_by_id.end(); ++itr) 
-    {
-        fprintf(stats_out, "%s\t%d\t%d\t%d\t%d\n", 
-                itr->second.name().c_str(),
-                itr->second.treated().total_fragments(),
-                itr->second.untreated().total_fragments(),
-                itr->second.treated().total_adducts(),
-                itr->second.untreated().total_adducts());
-    }
+//    fprintf(stats_out, "target\ttreated_fragments\tuntreated_fragments\ttreated_stops\tuntreated_stops\n");
+//    for (map<RefID, TargetProfile>::iterator itr = targets_by_id.begin(); 
+//         itr != targets_by_id.end(); ++itr) 
+//    {
+//        fprintf(stats_out, "%s\t%d\t%d\t%d\t%d\n", 
+//                itr->second.name().c_str(),
+//                itr->second.treated().total_fragments(),
+//                itr->second.untreated().total_fragments(),
+//                itr->second.treated().total_adducts(),
+//                itr->second.untreated().total_adducts());
+//    }
     
 }
 
