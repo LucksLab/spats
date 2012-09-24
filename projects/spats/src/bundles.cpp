@@ -87,7 +87,6 @@ bool FragmentFactory::next_fragment(MateHit& fragment_out)
         
         if (read_1->ref_id() != read_2->ref_id())
 		{
-			int a = 4;
 			continue;
         }
 		
@@ -114,9 +113,7 @@ bool FragmentFactory::next_fragment(MateHit& fragment_out)
 		
 		//fprintf(stderr, "%s: %s\n", left_name.c_str(), ++left_tab);
 		//fprintf(stderr, "%s: %s\n", right_name.c_str(), ++right_tab);
-		
-		int a = 43;
-		
+
         break;
     }
     
