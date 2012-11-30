@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+#!/usr/bin/python
+
 # encoding: utf-8
 """
 spats.py
@@ -35,8 +36,8 @@ use_message = '''
      -o/--output-dir                <string>    [ default: ./spats_out ] 
      --adapter-t                 <string>    [ default: None ]
      --adapter-b                <string>    [ default: None ]
+     --trim-match               <int>       [default: 9]
      --num-mismatches               <int>       [ default: 0    ]
-     --num-threads               <int>       [ default: 1    ]
      
 SAM Header Options (for embedding sequencing run metadata in output):
     --rg-id                        <string>    (read group ID)
@@ -92,6 +93,7 @@ class SpatsParams:
                      seed_length,
                      adapter_t,
                      adapter_b,
+                     trim_match,
                      num_mismatches,
                      reads_format,
                      read_group_id,
@@ -107,6 +109,7 @@ class SpatsParams:
             self.seed_length = seed_length
             self.adapter_t = adapter_t
             self.adapter_b = adapter_b
+            self.trim_match = trim_match #JBL - Option to adapter trimming match
             self.num_mismatches = num_mismatches
             self.reads_format = reads_format
             self.read_group_id = read_group_id 
@@ -130,6 +133,8 @@ class SpatsParams:
                     self.adapter_t = value
                 if option in ("--adapter-b"):
                     self.adapter_b = value
+                if option in ("--trim-match"):
+                    self.trim_match = value
                 if option in ("--num-mismatches"):
                     self.num_mismatches = int(value)
                 if option == "--rg-id":
@@ -165,8 +170,9 @@ class SpatsParams:
         self.read_params = self.ReadParams(True,                # phred33 qualities
                                            False,
                                            None,                # seed_length
-                                           None,
-                                           None,
+                                           None,                # adapter-t
+                                           None,                # adapter-b
+                                           9,                # trim_match
                                            0,
                                            "fastq",             # quality_format
                                            None,                # read group id
@@ -211,6 +217,7 @@ class SpatsParams:
                                          "keep-tmp",
                                          "adapter-b=",
                                          "adapter-t=",
+                                         "trim-match=",
                                          "rg-id=",
                                          "rg-sample=",
                                          "rg-library=",
@@ -479,7 +486,7 @@ def trim_read_adapters(params,
                        adapter,  
                        reads_file, 
                        output_name,
-                       min_adapter_len=16):    
+                       min_adapter_len=9):    
     #filter_cmd = ["prep_reads"]
       
     print >> sys.stderr, "[%s] Trimming adapters from reads in %s" % (right_now(), reads_file)
@@ -547,13 +554,13 @@ def bowtie(params,
             unmapped_reads_fasta_name = None
         
         bowtie_cmd += ["--sam",
-                       #"--allow-contain",
+                       "--allow-contain", # JBL bowtie option to allow overlap in revcomps
                        #"-m 1",
-                       "-y",
+                       #"-y", #JBL commented out - Langmead said don't need
                        #"-k 1",
                        "-v", str(params.read_params.num_mismatches),
                        "-X 2000",
-                       "--best",
+                       #"--best", #JBL commented out - does not work with --allow-contain
                        #"--strata",
                        #"-e", str(phred_thresh),
                        "-p", str(params.system_params.bowtie_threads),
@@ -837,11 +844,13 @@ def main(argv=None):
             left_trimmed_reads = trim_read_adapters(params, 
                                                     params.read_params.adapter_b,
                                                     left_labeled_reads,
-                                                    left_trimmed_reads)
+                                                    left_trimmed_reads,
+                                                    params.read_params.trim_match) #JBL adapter trimming matching option
             right_trimmed_reads = trim_read_adapters(params, 
                                                      reverse_complement(params.read_params.adapter_t),
                                                      right_labeled_reads,
-                                                     right_trimmed_reads)
+                                                     right_trimmed_reads,
+                                                     params.read_params.trim_match) #JBL adapter trimming matching option
             [left_kept_reads, right_kept_reads] = match_read_pairs(params,
                                                                    left_trimmed_reads, 
                                                                    right_trimmed_reads, 
@@ -895,7 +904,7 @@ def main(argv=None):
         
     except Usage, err:
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
-        print >> sys.stderr, "    for detailed help see http://spats.cbcb.umd.edu/manual.html"
+        print >> sys.stderr, "    for detailed help see http://spats.sourceforge.net/"
         return 2
 
 
