@@ -1,0 +1,29 @@
+LOCUS       agsA_WT_SC3p_AATT_         112 bp ds-DNA   linear       09-NOV-2012
+DEFINITION  .
+ACCESSION   
+VERSION     
+SOURCE      .
+  ORGANISM  .
+COMMENT     
+COMMENT     ApEinfo:methylated:1
+FEATURES             Location/Qualifiers
+     misc_feature    complement(join(1..22,27..47))
+                     /label=BC Structure Cassette
+                     /ApEinfo_fwdcolor=#ff19bb
+                     /ApEinfo_revcolor=green
+     misc_feature    complement(111..112)
+                     /label=T7 promoter (Ambion)
+                     /ApEinfo_fwdcolor=#ffff00
+                     /ApEinfo_revcolor=#ffff00
+     misc_feature    complement(1..18)
+                     /label=SHAPE RT Primer Binding
+                     /ApEinfo_fwdcolor=#00ff03
+                     /ApEinfo_revcolor=green
+     misc_feature    complement(48..112)
+                     /label=agsA_WT
+                     /ApEinfo_fwdcolor=#b32880
+                     /ApEinfo_revcolor=green
+ORIGIN
+        1 GAACCGGACC GAAGCCCGAT TTAATTGGAT CCGCCGAAGC GGATCGGGTG CCATCATTAA
+       61 CCTCCTGAAT CACTATTCAA AAGTTCAACA TCAAGGCAAG CATTGCTTGT CC
+//
