@@ -1,0 +1,2 @@
+target	treated_fragments	untreated_fragments	treated_stops	untreated_stops
+Barcoded_AATT	3	3	2	2
