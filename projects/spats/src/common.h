@@ -12,6 +12,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <string>
+#include <cstdio>
 
 extern int inner_dist_mean;
 extern int inner_dist_std_dev;
