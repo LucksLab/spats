@@ -412,7 +412,7 @@ bool SAMHitFactory::get_hit_from_buf(int line_num,
 	CuffStrand source_strand = CUFF_STRAND_UNKNOWN;
 	unsigned char num_mismatches = 0;
 	
-	const char* tag_buf = buf;
+    char* tag_buf = (char*)buf;
 	
 	while((tag_buf = strsep((char**)&buf,"\t")))
 	{
