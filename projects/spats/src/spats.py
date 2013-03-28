@@ -555,7 +555,7 @@ def bowtie(params,
         
         bowtie_cmd += ["--sam",
                        "--allow-contain", # JBL bowtie option to allow overlap in revcomps
-                       #"-m 1",
+                       #"-m 1", #JBL - uncomment to supress all matches that occurr more than once
                        #"-y", #JBL commented out - Langmead said don't need
                        #"-k 1",
                        "-v", str(params.read_params.num_mismatches),
