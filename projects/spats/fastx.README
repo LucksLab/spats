@@ -1,0 +1,5 @@
+Modified version of fastx toolkit included in fstx_toolkit-0.0.13.2-mod directory. (Based off of version 0.0.13.2 from http://hannonlab.cshl.edu/fastx_toolkit/download.html).
+
+Before installing spats, copy the entire directory to the build directory and go through the normal fastx installation.
+
+
