@@ -211,19 +211,24 @@ int adapter_cutoff_index ( const SequenceAlignmentResults& alignment_results )
 	     	//printf("--1\n");
 		return alignment_results.query_start ;
 	}
-
+//KEW - Changed alignment percentage required to 100% to only allow perfect matches
+//KEW - Altered for the following three 'if' statements
 	if ( alignment_size > 5
 	     &&
 	     alignment_results.target_start == 0
 	     &&
-	     (alignment_results.matches * 100 / alignment_size ) >= 75 ) {
+	     (alignment_results.matches * 100 / alignment_size ) >= 100 
+	     &&
+             alignment_results.mismatches == 0) {
 	     	//printf("--2\n");
 		return alignment_results.query_start ;
 	}
 
 	if ( alignment_size > 11 
 	     &&
-	     (alignment_results.matches * 100 / alignment_size ) >= 80 ) {
+	     (alignment_results.matches * 100 / alignment_size
+	     &&
+             alignment_results.mismatches == 0 ) >= 100 ) {
 	     	//printf("--2\n");
 		return alignment_results.query_start ;
 	}
@@ -232,7 +237,7 @@ int adapter_cutoff_index ( const SequenceAlignmentResults& alignment_results )
 	//Be very lenient regarding alignments at the end of the query sequence
 	if ( alignment_results.query_end >= alignment_results.query_size-2
 	     &&
-	     alignment_size <= 5 && alignment_results.matches >= 3) {
+	     alignment_size <= 5 && alignment_results.mismatches == 0) {
 			//printf("--3\n");
 			return alignment_results.query_start ;
 		}
