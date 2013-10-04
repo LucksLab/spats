@@ -555,7 +555,7 @@ def bowtie(params,
         
         bowtie_cmd += ["--sam",
                        "--allow-contain", # JBL bowtie option to allow overlap in revcomps
-                       #"-m 1", #JBL - uncomment to supress all matches that occurr more than once
+                       "-m 1", #JBL - uncomment to supress all matches that occurr more than once
                        #"-y", #JBL commented out - Langmead said don't need
                        #"-k 1",
                        "-v", str(params.read_params.num_mismatches),
@@ -563,6 +563,8 @@ def bowtie(params,
                        #"--best", #JBL commented out - does not work with --allow-contain
                        #"--strata",
                        #"-e", str(phred_thresh),
+                       "--fr", #KEW - added to define directions of R1 and R2
+                       "--nofw", #KEW - added to prevent alignment to opposite strand of targets
                        "-p", str(params.system_params.bowtie_threads),
                        bwt_idx_prefix, 
                        "-1", left_reads,

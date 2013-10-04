@@ -88,8 +88,8 @@ void  SequenceAlignmentResults::print(std::ostream& strm) const
 SequenceAlignment::SequenceAlignment ( ) :
 	_gap_panelty(-5),
 	_match_panelty(1),
-	_mismatch_panelty(-1),
-	_neutral_panelty(0.1)
+	_mismatch_panelty(-5), //KEW - Changed from -1
+	_neutral_panelty(-5)  //KEW - Changed from 0.1
 
 {
 }
