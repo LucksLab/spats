@@ -62,6 +62,8 @@ extern bool phred64_quals;
 
 extern bool fastq_db;
 
+extern bool compute_consensus_reactivities;
+
 int parseInt(int lower, const char *errmsg, void (*print_usage)());
 int parse_options(int argc, char** argv, void (*print_usage)());
 

@@ -356,7 +356,7 @@ public:
             }
             
             //double total_theta = accumulate(curr_start.thetas().begin() + 1, curr_start.thetas().end(), 0.0);
-            total_beta = accumulate(scaled_betas.begin() + 1, scaled_betas.end(), 0.0);
+            //total_beta = accumulate(scaled_betas.begin() + 1, scaled_betas.end(), 0.0);
             //fprintf(stderr, "%s: total theta = %lg\n", _name.c_str(), total_theta);
             //fprintf(stderr, "%s: total beta = %lg\n", _name.c_str(), total_beta);
             
@@ -391,8 +391,49 @@ public:
         }
     }
 
+    void print_consensus_reactivities(FILE* adducts_out)
+    {
+        for (int i = 0; i < _consensus_thetas.size(); ++i)
+        {
+            if (i == 0)
+            {
+                fprintf(adducts_out,
+                        "%s\t%lu\t%d\t*\t%d\t%d\t-\t-\t%lg\n",
+                        _name.c_str(),
+                        _seq.length(),
+                        i,
+                        _total_treated_adducts[i],
+                        _total_untreated_adducts[i],
+                        _consensus_c);
+            }
+            else
+            {
+                fprintf(adducts_out,
+                        "%s\t%lu\t%d\t%c\t%d\t%d\t%lg\t%lg\t%lg\n",
+                        _name.c_str(),
+                        _seq.length(),
+                        i,
+                        _seq[i-1],
+                        _total_treated_adducts[i],
+                        _total_untreated_adducts[i],
+                        _consensus_betas[i],
+                        _consensus_thetas[i],
+                        _consensus_c);
+            }
+        }
+    }
+    
     void calculate_consensus_reactivities()
     {
+        calc_poisson_reactivities();
+        
+        _consensus_thetas = vector<double>(_seq.length() + 1, 0);
+        _consensus_betas = vector<double>(_seq.length() + 1, 0);
+
+        _total_treated_adducts = vector<int>(_seq.length() + 1, 0);
+        _total_untreated_adducts = vector<int>(_seq.length() + 1, 0);
+        
+        _consensus_c = 0;
         
         for (int j = 0; j < _starts.size(); ++j)
         {
@@ -401,8 +442,59 @@ public:
             const vector<int>& treated_adducts = curr_start.treated().adducts();
             const vector<int>& untreated_adducts = curr_start.untreated().adducts();
             
-            vector<double> scaled_betas = curr_start.betas();
+            for (size_t i = 0; i < treated_adducts.size(); ++i)
+            {
+                _total_treated_adducts[i] += treated_adducts[i];
+                _total_untreated_adducts[i] += untreated_adducts[i];
+            }
+        }
+
+        for (int j = 0; j < _starts.size(); ++j)
+        {
+            const TargetProfile& curr_start = _starts[j];
             
+            const vector<int>& treated_adducts = curr_start.treated().adducts();
+            const vector<int>& untreated_adducts = curr_start.untreated().adducts();
+            
+            const vector<double>& curr_thetas = curr_start.thetas();
+            const vector<double>& curr_betas = curr_start.betas();
+
+            for (size_t i = 0; i < curr_thetas.size(); ++i)
+            {
+                double total_site_frags = (_total_treated_adducts[i] + _total_untreated_adducts[i]);
+                double curr_site_frags = (treated_adducts[i] + untreated_adducts[i]);
+                if (total_site_frags > 0)
+                {
+                    _consensus_thetas[i] += curr_thetas[i] * (curr_site_frags / total_site_frags);
+                    _consensus_betas[i] += curr_betas[i] * (curr_site_frags / total_site_frags);
+                }
+                else
+                {
+                    _consensus_thetas[i] = 0;
+                    _consensus_betas[i] = 0;
+                }
+            }
+        }
+        
+        double total_beta = accumulate(_consensus_betas.begin() + 1, _consensus_betas.end(), 0.0);
+        if (total_beta > 0.0)
+        {
+            for (size_t i = 1; i < _consensus_betas.size(); ++i)
+            {
+                _consensus_betas[i] /= total_beta;
+            }
+        }
+        
+        double total_treated_adducts_across_sites = accumulate(_total_treated_adducts.begin() + 1, _total_treated_adducts.end(), 0.0);
+        for (int j = 0; j < _starts.size(); ++j)
+        {
+            const TargetProfile& curr_start = _starts[j];
+            if (curr_start.c() > 0 && total_treated_adducts_across_sites > 0)
+            {
+                const vector<int>& treated_adducts = curr_start.treated().adducts();
+                double total_treated_adducts_in_curr_site = accumulate(treated_adducts.begin() + 1, treated_adducts.end(), 0.0);
+                _consensus_c += curr_start.c() * total_treated_adducts_in_curr_site / total_treated_adducts_across_sites;
+            }
         }
     }
     
@@ -412,6 +504,14 @@ private:
     string _seq;
     
     vector<TargetProfile> _starts;
+    
+    vector<double> _consensus_thetas;
+    vector<double> _consensus_betas;
+    
+    vector<int> _total_treated_adducts;
+    vector<int> _total_untreated_adducts;
+
+    double _consensus_c;
     
 };
 
@@ -549,9 +649,14 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
         //string target_prefix = output_dir + "/" + target.name();
         //string adducts_out_name = target_prefix + ".adducts";
         
-        target.calc_poisson_reactivities();
-        target.print_adduct_counts(adducts_out);
-        
+        if (compute_consensus_reactivities)
+        {
+            target.calculate_consensus_reactivities();
+            target.print_consensus_reactivities(adducts_out);
+        }else{
+            target.calc_poisson_reactivities();
+            target.print_adduct_counts(adducts_out);
+        }
     }
     fclose(adducts_out);
     string treated_library_file = output_dir + "/treated_library_length.hist";
