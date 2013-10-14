@@ -22,7 +22,7 @@ Options:
 -h, --help                  opens help message
 -v, --version               displays version number     
 --trim-match <N>            number of nucleotides of adapter to search for with clipper (default = 6) *Adjust trim length this way
---read-length <N>           Number of length of reads (ex. 35 for 2x35 bp paired end reads) (default = 35)
+--read-len <N>               Number of length of reads (ex. 35 for 2x35 bp paired end reads) (default = 35)
 --min-read-len <n>          Number of nt on the 3' end to leave after (w/ adapter) (default = 6)
 --A-b-sequence <string>     A_adapter_b sequence (default: AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG)
 --A-t-sequence <string>     A_adapter_t sequence (default: AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT)
