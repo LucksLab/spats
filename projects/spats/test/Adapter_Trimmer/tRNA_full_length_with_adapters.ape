@@ -1,0 +1,33 @@
+LOCUS       tRNA_full_length         200 bp ds-DNA     linear       17-DEC-2013
+DEFINITION  .
+ACCESSION   
+VERSION     
+SOURCE      .
+  ORGANISM  .
+COMMENT     
+COMMENT     ApEinfo:methylated:1
+FEATURES             Location/Qualifiers
+     misc_feature    1..58
+                     /label=A_t
+                     /ApEinfo_fwdcolor=#ff1321
+                     /ApEinfo_revcolor=#ffdde4
+                     /ApEinfo_graphicformat=arrow_data {{0 1 2 0 0 -1} {} 0}
+                     width 5 offset 0
+     misc_feature    140..200
+                     /label=A_b
+                     /ApEinfo_fwdcolor=#d2d3ff
+                     /ApEinfo_revcolor=#1524ff
+                     /ApEinfo_graphicformat=arrow_data {{0 1 2 0 0 -1} {} 0}
+                     width 5 offset 0
+     misc_feature    63..139
+                     /label=tRNA
+                     /ApEinfo_fwdcolor=#ff0097
+                     /ApEinfo_revcolor=#9a0fff
+                     /ApEinfo_graphicformat=arrow_data {{0 1 2 0 0 -1} {} 0}
+                     width 5 offset 0
+ORIGIN
+        1 AATGATACGG CGACCACCGA GATCTACACT CTTTCCCTAC ACGACGCTCT TCCGATCTAA
+       61 ACTGGTGCGA ATTCTGTGGA TCGAACACAG GACCTCCAGA TCTTCAGTCT GGCGCTCTCC
+      121 CAACTGAGCT AAATCCGCCA GATCGGAAGA GCGGTTCAGC AGGAATGCCG AGACCGATCT
+      181 CGTATGCCGT CTTCTGCTTG    
+//
