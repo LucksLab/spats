@@ -104,7 +104,7 @@ class Params:
                 final_dir = value
             if option in ("--max-handle-len"):
                 max_handle_len = int(value)
-        # JBL - A_t shows up as a revcomp in read2?
+        # JBL - A_t shows up as a revcomp in read2 because of library format
         A_t_sequence = reverse_complement(A_t_sequence)
         
         if len(args) != 3:
@@ -182,7 +182,7 @@ def reverse_complement(s):
 
 def relabel_reads(input_R1, input_R2, treated_handle, untreated_handle, current_dir,relabel=True):
     #filter_cmd = ["prep_reads"]
-	# relabels reads with names of increasing integers - #JBL - check with kyle
+	# relabels reads with names of increasing integers
     print >> sys.stderr, "[%s] Relabeling reads in %s and %s" % (right_now(), input_R1, input_R2)
     
     #filter_log = open(logging_dir + "relabel_reads.log", "w")
@@ -298,7 +298,6 @@ def trim_search(base,max_handle_len,output_dir,targets_dir,input_R1,input_R2):
 	# Reverse complement read 1
     os.system("fastx_reverse_complement -i {0} -o {1}".format(output_R1,output_revcomp_R1))
 	
-	# JBL CHECK - go over this - make sure -v 0 forcing perfect revcomps
 	# Construct bowtie command
 	## -q :: fastq input files
 	## -v 0 :: report hits with no mismatches - i.e. only perfect revcomps matched
@@ -372,7 +371,7 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	#Now do a stepwise manual trim to search for rev comp in the window that the clipper will miss
 	## Start at read_len - 1 to get reads that have at least one nt of adapter
 	## End at trim_len + 1 because clipper will find things with trim_len nts of adapter in later steps
-    for base in range(read_len-1,trim_len,-1): # JBL - should this start at read_len-1 to prevent overcounting? Should be range(read_len-1,trim_len,-1)?
+    for base in range(read_len-1,trim_len,-1): 
         
         R1_results, R2_results = trim_search(base,max_handle_len,output_dir,targets_dir,input_R1,input_R2)
         
@@ -412,31 +411,9 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	## -n :: keep sequences with N's
 	## -M trim_match :: require minimum adapter length of trim_match (if < trim_match align with adapter, don't clip it)
     os.system("fastx_clipper -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_b_sequence,input_R1,output_R1_clipped,trim_match,min_read_len))
-    # JBL - cleanup
-    # JBL - replaced A_b_sequence[:trim_match] -> A_b_sequence
-    #print("fastx_clipper -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_b_sequence[:trim_match],input_R1,output_R1_clipped,trim_match,min_read_len))
     
     # Actually using revcomp(A_t_sequence) since read 2 reads the revcomp of A_t
     os.system("fastx_clipper -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_t_sequence,input_R2,output_R2_clipped,trim_match,min_read_len))
-    # JBL - cleanup
-    # JBL - replaced A_t_sequence[:trim_match] -> A_t_sequence
-    #print("fastx_clipper -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_t_sequence[:trim_match],input_R2,output_R2_clipped,trim_match,min_read_len))
-    
-    # JBL - cleanup this block
-    # #JBL - Skipping this
-    # #trims leftover non-adapter sequences down in R1 and R2 to remove Ns problem from full length
-    # print >> sys.stderr, "[%s] Trimming down longer sequences to remove potential Ns at 3' end" % (right_now())
-    # output_R1_trimmed = output_dir + input_R1[:-3] + "_" + str(trim_len) + ".fastq"
-    # output_R2_trimmed = output_dir + input_R2[:-3] + "_" + str(trim_len) + ".fastq"
-    # os.system("fastx_trimmer -l {0} -i {1} -o {2}".format(trim_len,output_R1_clipped,output_R1_trimmed))
-    # os.system("fastx_trimmer -l {0} -i {1} -o {2}".format(trim_len,output_R2_clipped,output_R2_trimmed))
-    #     
-    # #rematch read pairs immediately
-    # ## match_read_pairs throws out any unique id reads - i.e. throws out an orphaned mate read
-    # ## orphan reads generated if sequencing error in adapter sequence in one of the mates prevents fastx_clipper from matching and clipping
-    # matched_R1 = output_dir + input_R1[:-3] + "_kept.fq"
-    # matched_R2 = output_dir + input_R2[:-3] + "_kept.fq"
-    # matched_reads = match_read_pairs(output_R1_trimmed, output_R2_trimmed, matched_R1, matched_R2)
     
     #rematch read pairs immediately
 	## match_read_pairs throws out any unique id reads - i.e. throws out an orphaned mate read
@@ -444,31 +421,7 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     matched_R1 = output_dir + input_R1[:-3] + "_kept.fq"
     matched_R2 = output_dir + input_R2[:-3] + "_kept.fq"
     matched_reads = match_read_pairs(output_R1_clipped, output_R2_clipped, matched_R1, matched_R2)
-    
-    # JBL - cleanup this block
-    # # JBL - don't need this anymore, just keep all reads and ones that have adapter will not align in spats analysis
-    #     #Check trimmed sequences for rev-comp (to avoid doubling counts of sequences that were found by sequential trimming; keep those that aren't rev-comp)
-    #     #In essence, this rejects any stops that are less than the read_len, leaving only reads that are 36 nt or longer (for 2x35 bp reads)
-    #   
-    #   # Construct bowtie command
-    #   ## Using bowtie in -n mode:
-    #   ## -n 0 :: alignments may have no more than 0 mismatches in the ...
-    #   ## -l trim_len :: ... first trim_len number of bases. i.e. making sure perfectly revcomped
-    #   ## -5 4 :: remove 4 nts from 5' end (this gets rid of YYYR and RRRY present in Read 1, otherwise would not match to targets)
-    #   ## -X read_len :: sets maximum insert size for valid alignments to be read_len. This means that only reads that are totally overlapped will be
-    #   ##                considered. (i.e. if the reads overlap, but the insert was > read_len then these reads are discarded).
-    #   ## -m 1 :: unique alignments
-    #   ## -un not_aligned.fq :: This will generate two files (not_aligned_1.fq,not_aligned_2.fq) containing the reads that did not align in fastq format
-    #   ## --allow-contain :: keeps reads that match perfectly
-    #   ## -1 {2} :: input file 1
-    #   ## -2 {3} :: input file 2
-    #     #JBL - do need to call with -3 4 here too?
-    #     #print("bowtie -q --quiet --sam -p 1 -n 0 -l {0} -5 4 -X {1} -m 1 --un not_aligned.fq --sam --allow-contain {2} -1 {3} -2 {4} {5}".format(trim_len,read_len,targets_dir + "targets",matched_reads[0],matched_reads[1],"trimmed_alignment.sam"))
-    #     os.system("bowtie -q --quiet --sam -p 1 -n 0 -l {0} -5 4 -X {1} -m 1 --un not_aligned.fq --sam --allow-contain {2} -1 {3} -2 {4} {5}".format(trim_len,read_len,targets_dir + "targets",matched_reads[0],matched_reads[1],"trimmed_alignment.sam"))
-    #     
-    #     filenames_R1.append("not_aligned_1.fq")
-    #     filenames_R2.append("not_aligned_2.fq")
-    
+        
     filenames_R1.append(matched_R1)
     filenames_R2.append(matched_R2)
     
@@ -518,10 +471,6 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     os.remove(input_R1)
     os.remove(input_R2)
     os.remove(combined_R2)
-    # JBL cleanup
-    #os.remove("trimmed_alignment.sam")
-    #for x in range(1,3):
-    #   os.remove("not_aligned_{0}.fq".format(x))
 
 def main(argv=None,):
     
