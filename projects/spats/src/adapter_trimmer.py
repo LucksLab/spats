@@ -218,7 +218,7 @@ def find_ids(filelist):
         with open(fname) as infile:
             for line in infile:
                 if re.match('^@',line):
-                    read_id = line[1:-1]
+                    read_id = str(line[1:-1])
                     id_list.append(read_id)
         infile.close()
     return id_list
@@ -229,14 +229,19 @@ def remove_reads(read_file,id_list):
     returns name of new file
     """
     new_read_file = read_file[:-3] + "_ids_removed.fastq"
+
+    # Make a full copy of the id_list 
+    # (We'll be removing ids from this list as we go, but we don't want to modify the master list)
+    ids_to_remove = id_list[:]
     
     read_chunk = [] #Each read consists of 4 lines
     with open(new_read_file, 'w') as outfile:
         with open(read_file) as infile:
             for line in infile:
-                read_chunk.append(line)
                 
                 # Grab read chunks
+                read_chunk.append(line)
+                # A read_chunk is 4 lines
                 if len(read_chunk) == 4:
                     
                     #Grab id for this read (on first line of chunk)
@@ -244,15 +249,18 @@ def remove_reads(read_file,id_list):
                     
                     #Test to see if id is in id_list
                     remove = False
-                    for remove_id in id_list:
-                        if re.match(read_id,remove_id):
-                            remove = True
+                    if read_id in ids_to_remove:
+                        # If found, set flag so don't print out and remove id from the list
+                        remove = True
+                        ids_to_remove.remove(read_id) # once removed don't need to search again
                     
                     if not remove:
                         #If don't remove, then write this read_chunk
                         for el in read_chunk:
                             outfile.write(el)
+                    
                     #reset read_chunk to go to next chunk
+                    read_chunk = None # clear memory
                     read_chunk = []
         infile.close()
     outfile.close()
