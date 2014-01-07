@@ -516,4 +516,7 @@ def main(argv=None,):
         return 2
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # JBL - need more elegant exit than this
+    # print result returned by main() to be able to capture in bash
+    print main()
+    sys.exit(0)
