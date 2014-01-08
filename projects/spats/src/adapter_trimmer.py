@@ -235,34 +235,33 @@ def remove_reads(read_file,id_list):
     ids_to_remove = id_list[:]
     
     read_chunk = [] #Each read consists of 4 lines
-    with open(new_read_file, 'w') as outfile:
-        with open(read_file) as infile:
-            for line in infile:
+    outfile = file(new_read_file,'w')
+    with open(read_file) as infile:
+        for line in infile:
+            
+            # Grab read chunks
+            read_chunk.append(line)
+            # A read_chunk is 4 lines
+            if len(read_chunk) == 4:
                 
-                # Grab read chunks
-                read_chunk.append(line)
-                # A read_chunk is 4 lines
-                if len(read_chunk) == 4:
+                #Grab id for this read (on first line of chunk)
+                read_id = str(read_chunk[0][1:-1])
+                
+                #Test to see if id is in id_list
+                remove = False
+                if read_id in ids_to_remove:
+                    # If found, set flag so don't print out and remove id from the list
+                    remove = True
+                    ids_to_remove.remove(read_id) # once removed don't need to search again
+                
+                if not remove:
+                    #If don't remove, then write this read_chunk
+                    for el in read_chunk:
+                        outfile.write(el)
                     
-                    #Grab id for this read (on first line of chunk)
-                    read_id = str(read_chunk[0][1:-1])
-                    
-                    #Test to see if id is in id_list
-                    remove = False
-                    if read_id in ids_to_remove:
-                        # If found, set flag so don't print out and remove id from the list
-                        remove = True
-                        ids_to_remove.remove(read_id) # once removed don't need to search again
-                    
-                    if not remove:
-                        #If don't remove, then write this read_chunk
-                        for el in read_chunk:
-                            outfile.write(el)
-                    
-                    #reset read_chunk to go to next chunk
-                    read_chunk = None # clear memory
-                    read_chunk = []
-        infile.close()
+                #reset read_chunk to go to next chunk
+                read_chunk = None # clear memory
+                read_chunk = []
     outfile.close()
     return new_read_file
 
@@ -449,20 +448,20 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     if os.path.exists(combined_R2):
         os.remove(combined_R2)
     
-    with open(combined_R1, 'w') as outfile:
-        for fname in filenames_R1:
-            with open(fname) as infile:
-                for line in infile:
-                    outfile.write(line)
-            infile.close()
+    outfile = file(combined_R1,'w')
+    for fname in filenames_R1:
+        with open(fname) as infile:
+            for line in infile:
+                outfile.write(line)
+        infile.close()
     outfile.close()
     
-    with open(combined_R2, 'w') as outfile:
-        for fname in filenames_R2:
-            with open(fname) as infile:
-                for line in infile:
-                    outfile.write(line)
-                infile.close()
+    outfile = file(combined_R2,'w')
+    for fname in filenames_R2:
+        with open(fname) as infile:
+            for line in infile:
+                outfile.write(line)
+            infile.close()
     outfile.close()
     
     # Final set of reads trimmed down by 4nts on 3' end of R2 to remove handle (YYYR,RRRY) that is in R2 for short inserts
