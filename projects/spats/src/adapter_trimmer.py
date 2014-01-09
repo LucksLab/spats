@@ -147,7 +147,7 @@ def right_now():
 
 def quality_mod(inputfile,read_len):
     #Modifies all of the quality reads to 'I' so that fastx ignores qualities
-    qualmodfile = inputfile[:-6] + '_Qs.fastq'
+    qualmodfile = inputfile[:-3] + '_Qs.fq'
     qualstring = "I"*read_len
     qualcommand = "awk \'BEGIN{s=0} {s += 1; if (s % 4 == 0) print \"" + qualstring + "\"; else print }\'"
     #this is needed to except the curly brackets in the below command
@@ -275,7 +275,7 @@ def trim_search(base,max_handle_len,output_dir,targets_dir,input_R1,input_R2):
     print >> sys.stderr, "[%s] Finding reads that are %s nt long" % (right_now(), (base-max_handle_len)) #JBLQ - what does this mean?
     
     #Make a temporary folder for intermediate files to delete after each trim
-    search_dir = current_dir + "search" + id_generator(10) + "/"
+    search_dir = current_dir + "search_" + id_generator(10) + "/"
     try:
         os.mkdir(search_dir)
     except:
@@ -289,13 +289,13 @@ def trim_search(base,max_handle_len,output_dir,targets_dir,input_R1,input_R2):
     ## Accumulate kept reads in files - will combine all reads at the end of analysis.
     
     #Block of filename constructions for outputfiles
-    output_R1 = search_dir + input_R1[:-6] + "_" + str(base) + ".fastq"
-    output_R2 = search_dir + input_R2[:-6] + "_" + str(base) + ".fastq"
-    output_revcomp_R1 = search_dir + input_R1[:-6] + "_" + str(base) + "_revcomp" + ".fastq"
-    output_bowtie = search_dir + "bowtie_output_" + str(base) + ".sam"
+    output_R1 = input_R1[:-3] + "_" + str(base) + ".fq"
+    output_R2 = input_R2[:-3] + "_" + str(base) + ".fq"
+    output_revcomp_R1 = input_R1[:-3] + "_" + str(base) + "_revcomp" + ".fq"
+    output_bowtie = output_dir + "bowtie_output_" + str(base) + ".sam"
     bowtie_results = output_dir + "bowtie_results{0}.fq".format(base)
     bowtie_results_rc = output_dir + "bowtie_results{0}_1_rc.fq".format(base)
-	
+    
 	#Trim down each file to base
 	## Construct fastx_trimmer command
 	## -l N = Last base to keep. Default is entire read.
@@ -317,7 +317,8 @@ def trim_search(base,max_handle_len,output_dir,targets_dir,input_R1,input_R2):
 	## --allow-contain :: keeps reads that match perfectly
 	## -1 {2} :: input file 1
 	## -2 {3} :: input file 2
-    os.system("bowtie -q --quiet --sam -p 1 -v 0 --ff --norc -3 4 -X 2000 -m 1 --al {4} --sam --allow-contain {0} -1 {1} -2 {2} {3}".format(targets_dir + "targets",output_revcomp_R1,output_R2,output_bowtie,bowtie_results))
+    os.system("bowtie -q --quiet --sam -p 1 -v 0 --ff --norc -3 4 -X 2000 -m 1 --al {4} --sam --allow-contain {0} -1 {1} -2 {2} {3}".format(targets_dir + "targets",
+              output_revcomp_R1,output_R2,output_bowtie,bowtie_results))
     
     # If we observe results (i.e. reads mapped)
     if os.path.isfile(bowtie_results[:-3]+"_1.fq"):
@@ -333,11 +334,24 @@ def trim_search(base,max_handle_len,output_dir,targets_dir,input_R1,input_R2):
     shutil.rmtree(search_dir,ignore_errors=True)
     
     #Return the files containing the matched reads
+    os.remove(output_R1)
+    os.remove(output_revcomp_R1)
+    os.remove(output_R2)
     return output_file_1, output_file_2
 
 
 def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_dir,trim_auto,min_read_auto,max_handle_len,input_R1,input_R2,input_targets):
     """execute full trimming algorithm"""
+    
+    
+    # The algorithm employed is as follows:
+    # 
+    # 1.) Filter reads into two sets: Case_I = do not have any adapters at all - i.e. long insert sizes, Case_II = have some adapter.
+    # 2.) For Case II, trim all possible with fastx_clipper (Case_II_clipped).
+    # 3.) For reads that aren't trimmed from Case II (Case_II_unclipped):
+    # 3.1) First filter these reads out with fastx_clipper (i.e. collect just Case_II_unclipped)
+    # 3.2) Execute trim_search algorithm
+    # 4.) Combine all reads into one file to send to spats
     
     # Keeping temporary files together, but use random suffix to prevent
     # run results from colliding
@@ -359,81 +373,144 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     os.system("bowtie-build -q {0} {1}targets".format(input_targets,targets_dir))
     
     #Decide what length is optimal for adapter clipping (shorter lengths save time/space)
-	#Also decide the minimum length to leave at the three prime end (if unspecified)
+	#Also decide the minimum length to leave at the three prime end for unique alignment to targets (if unspecified)
+    print >> sys.stderr, "[%s] Determining optimal trim_match and minimum read length" % (right_now())
     trim_match,min_read_len = trim_min_read_calculator(trim_auto,min_read_auto,input_targets,A_b_sequence,max_handle_len,trim_match,min_read_len,read_len)
 	
 	#trim_len = length of reads that will end up with after processing
 	## Set to the read length minus the match length
     trim_len = read_len-trim_match
     
+    #Define a list of files for R1 and R2 to store all of subsets of reads want to keep
+    combine_files_R1 = []
+    combine_files_R2 = []
+    
     #Modify all of of the quality scores to 'I' so that the fastx tools don't get hung up
     print >> sys.stderr, "[%s] Adjusting quality scores" % (right_now())
     input_R1 = quality_mod(input_R1,read_len)
     input_R2 = quality_mod(input_R2,read_len)
-	    
-    #Define a list of files for R1 and R2 to store all of subsets of adapter matching (could clean up this section)
-    filenames_R1 = []
-    filenames_R2 = []
 	
-	#Now do a stepwise manual trim to search for rev comp in the window that the clipper will miss
-	## Start at read_len - 1 to get reads that have at least one nt of adapter
-	## End at trim_len + 1 because clipper will find things with trim_len nts of adapter in later steps
-    for base in range(read_len-1,trim_len,-1): 
-        
-        R1_results, R2_results = trim_search(base,max_handle_len,output_dir,targets_dir,input_R1,input_R2)
-        
-        #Add the aligned rev-comp files to the list of files to be recombined
-        if R1_results and R2_results: 
-            filenames_R1.append(R1_results)
-            filenames_R2.append(R2_results)            
-                
-    #Gather the id's we picked up with trim_search above
-    #then remove these reads from input files to prevent overcounting
-    trim_search_ids = find_ids(filenames_R1) #id's should be identical to those in filenames_R2
-    input_R1_removed = remove_reads(input_R1,trim_search_ids)
-    input_R2_removed = remove_reads(input_R2,trim_search_ids)
-    os.remove(input_R1)
-    os.remove(input_R2)
-    
-    #Relabel reads before clipping
+	#Relabel reads before clipping
 	## This will allow us to detect a mate pair where only one of the pair is
 	## clipped or dropped (i.e. other side has a mismatch so is not detected) by fastx_clipper below.
 	## match_read_pairs will be used later to throw out these anomolies and pair up reads with same indexes
 	
 	#Generates files NOMASK_1.fq and NOMASK_2.fq
-    relabel_reads(input_R1_removed,input_R2_removed,None,None,current_dir)
-    os.remove(input_R1_removed)
-    os.remove(input_R2_removed)
+    relabel_reads(input_R1,input_R2,None,None,current_dir)
     input_R1 = "NOMASK_1.fq"
     input_R2 = "NOMASK_2.fq"
     
+    # 1.) Filter reads into two sets: Case_I = do not have any adapters at all - i.e. long insert sizes, Case_II = have some adapter.
+    ## Using Bowtie
+    ## Will need to use -5 4 option to get rid of 5' handle sequence on Read 1, otherwise won't match targets
+    ## Will also use -3 4 option to get rid of 4nts on 3' end - this will remove dangling handle bases on Read 2 for 
+    ## the special case where read does not have adapter, but starts to bleed into read 2
+    print >> sys.stderr, "[%s] Filtering reads and storing Case I reads" % (right_now())
+    
+    bowtie_results_I = output_dir + "Case_I.fq"
+    bowtie_results_I_1 = output_dir + "Case_I_1.fq"
+    bowtie_results_I_2 = output_dir + "Case_I_2.fq"
+    
+    bowtie_results_II = output_dir + "Case_II.fq"
+    bowtie_results_II_1 = output_dir + "Case_II_1.fq"
+    bowtie_results_II_2 = output_dir + "Case_II_2.fq"
+    
+    output_bowtie = output_dir + "bowtie_output_filter_cases.sam"
+    
+    # Construct bowtie command
+	## -q :: fastq input files
+	## -v 0 :: report hits with no mismatches - i.e. only perfect revcomps matched
+	## -5 4 :: remove 4 nts from 5' end (this gets rid of handle sequence in Read 1, otherwise would not align)
+	## -3 4 :: remove 4 nts from 3' end (in special case, read 2 will have a little bit of handle before the adapter - need to trim this)
+	## -X 2000 :: setting huge upper limit on insert size (i.e. no limit)
+	## -m 1 :: unique alignments
+	## --al {4}:: This will generate two files ({4}_1.fq,{4}_2.fq) containing the reads that aligned in fastq format (Case I)
+	## --un {5}:: This will generate two files ({5}_1.fq,{5}_2.fq) containing the reads that did NOT align in fastq format (Case II)
+	## --allow-contain :: keeps reads that match perfectly
+	## -1 {1} :: input file 1
+	## -2 {2} :: input file 2
+    os.system("bowtie -q --quiet --sam -p 1 -v 0 -5 4 -3 4 -X 2000 -m 1 --al {4} --un {5} --sam --allow-contain {0} -1 {1} -2 {2} {3}".format(targets_dir + "targets",
+              input_R1,input_R2,output_bowtie,bowtie_results_I,bowtie_results_II))
+        
+    # add Case I reads to the combined list
+    # If we observe results Case I reads, add to combined list 
+    if os.path.isfile(bowtie_results_I_1):
+        combine_files_R1.append(bowtie_results_I_1)
+        combine_files_R2.append(bowtie_results_I_2)
+    
+	# 2.) For Case II, trim all possible with fastx_clipper.
+	    
+    print >> sys.stderr, "[%s] Clipping Case II reads" % (right_now())
+    
     #Clip off adapter from the raw reads
-    output_R1_clipped = output_dir + input_R1[:-3] + "_clipped.fastq"
-    output_R2_clipped = output_dir + input_R2[:-3] + "_clipped.fastq"
+    output_II_1_clipped = bowtie_results_II_1[:-3] + "_clipped.fq"
+    output_II_2_clipped = bowtie_results_II_2[:-3] + "_clipped.fq"
 	
 	# Construct fastx_clipper command
 	## Options:
+	## -c :: Discard non-clipped sequences (i.e. - keep only sequences which contained the adapter).
+	## -M trim_match :: require minimum adapter length of trim_match (if < trim_match align with adapter, don't clip it)
 	## -a :: adapter string
 	## -l {4} :: discard sequences shorter than {4} nts
 	## -n :: keep sequences with N's
-	## -M trim_match :: require minimum adapter length of trim_match (if < trim_match align with adapter, don't clip it)
-    os.system("fastx_clipper -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_b_sequence,input_R1,output_R1_clipped,trim_match,min_read_len))
+    os.system("fastx_clipper -c -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_b_sequence,bowtie_results_II_1,output_II_1_clipped,trim_match,min_read_len))
     
     # Actually using revcomp(A_t_sequence) since read 2 reads the revcomp of A_t
-    os.system("fastx_clipper -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_t_sequence,input_R2,output_R2_clipped,trim_match,min_read_len))
+    os.system("fastx_clipper -c -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_t_sequence,bowtie_results_II_2,output_II_2_clipped,trim_match,min_read_len))
     
     #rematch read pairs immediately
 	## match_read_pairs throws out any unique id reads - i.e. throws out an orphaned mate read
 	## orphan reads generated if sequencing error in adapter sequence in one of the mates prevents fastx_clipper from matching and clipping
-    matched_R1 = output_dir + input_R1[:-3] + "_kept.fq"
-    matched_R2 = output_dir + input_R2[:-3] + "_kept.fq"
-    matched_reads = match_read_pairs(output_R1_clipped, output_R2_clipped, matched_R1, matched_R2)
+    matched_II_1_clipped = bowtie_results_II_1[:-3] + "_clipped_kept.fq"
+    matched_II_2_clipped = bowtie_results_II_2[:-3] + "_clipped_kept.fq"
+    matched_reads = match_read_pairs(output_II_1_clipped, output_II_2_clipped, matched_II_1_clipped, matched_II_2_clipped)
+    
+    # Add these reads to final set
+    combine_files_R1.append(matched_II_1_clipped)
+    combine_files_R2.append(matched_II_2_clipped)
+	
+    print >> sys.stderr, "[%s] Excecuting trim_search on remaining Case II reads" % (right_now())
+	
+    # 3.) For reads that aren't trimmed from Case II:
+    
+    # 3.1) First filter these reads out with fastx_clipper
+    output_II_1_unclipped = bowtie_results_II_1[:-3] + "_unclipped.fq"
+    output_II_2_unclipped = bowtie_results_II_2[:-3] + "_unclipped.fq"
+	
+	# Construct fastx_clipper command
+	## Options:
+	## -C :: Discard clipped sequences (i.e. - keep only sequences which did not contained the adapter).
+	## -M trim_match :: require minimum adapter length of trim_match (if < trim_match align with adapter, don't clip it)
+	## -a :: adapter string
+	## -l {4} :: discard sequences shorter than {4} nts
+	## -n :: keep sequences with N's
+    os.system("fastx_clipper -C -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_b_sequence,bowtie_results_II_1,output_II_1_unclipped,trim_match,min_read_len))
+    
+    # Actually using revcomp(A_t_sequence) since read 2 reads the revcomp of A_t
+    os.system("fastx_clipper -C -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_t_sequence,bowtie_results_II_2,output_II_2_unclipped,trim_match,min_read_len))
+    
+    #rematch read pairs immediately
+	## match_read_pairs throws out any unique id reads - i.e. throws out an orphaned mate read
+	## orphan reads generated if sequencing error in adapter sequence in one of the mates prevents fastx_clipper from matching and clipping
+    matched_II_1_unclipped = bowtie_results_II_1[:-3] + "_unclipped_kept.fq"
+    matched_II_2_unclipped = bowtie_results_II_2[:-3] + "_unclipped_kept.fq"
+    matched_reads = match_read_pairs(output_II_1_unclipped, output_II_2_unclipped, matched_II_1_unclipped, matched_II_2_unclipped)    
+    
+    # 3.2) Execute trim_search algorithm
+	
+	#Now do a stepwise manual trim to search for rev comp in the window that the clipper misses
+	## Start at read_len - 1 to get reads that have at least one nt of adapter
+	## End at trim_len + 1 because clipper will find things with trim_len nts of adapter in later steps
+    for base in range(read_len-1,trim_len,-1): 
         
-    filenames_R1.append(matched_R1)
-    filenames_R2.append(matched_R2)
-    
-    
-    #Combine the found rev-comp pairs with the trimmed
+        R1_results, R2_results = trim_search(base,max_handle_len,output_dir,targets_dir,matched_II_1_unclipped,matched_II_2_unclipped)
+        
+        #Add the aligned rev-comp files to the list of files to be recombined
+        if R1_results and R2_results: 
+            combine_files_R1.append(R1_results)
+            combine_files_R2.append(R2_results)            
+        
+    # 3.) Combine all reads into one file to send to spats
     print >> sys.stderr, "[%s] Combining all processed reads" % (right_now())
     try:
         os.mkdir(final_dir)
@@ -448,8 +525,9 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     if os.path.exists(combined_R2):
         os.remove(combined_R2)
     
+    # JBL - define combine_files function
     outfile = file(combined_R1,'w')
-    for fname in filenames_R1:
+    for fname in combine_files_R1:
         with open(fname) as infile:
             for line in infile:
                 outfile.write(line)
@@ -457,7 +535,7 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     outfile.close()
     
     outfile = file(combined_R2,'w')
-    for fname in filenames_R2:
+    for fname in combine_files_R2:
         with open(fname) as infile:
             for line in infile:
                 outfile.write(line)
@@ -475,9 +553,10 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     #Delete the rest of the temporary files
     shutil.rmtree(output_dir,ignore_errors=True)
     shutil.rmtree(targets_dir,ignore_errors=True)
+    os.remove(combined_R2)
     os.remove(input_R1)
     os.remove(input_R2)
-    os.remove(combined_R2)
+
 
 def main(argv=None,):
     
