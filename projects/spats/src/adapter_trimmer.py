@@ -291,9 +291,9 @@ def trim_search(base,max_handle_len,output_dir,targets_dir,input_R1,input_R2):
     ## Accumulate kept reads in files - will combine all reads at the end of analysis.
     
     #Block of filename constructions for outputfiles
-    output_R1 = input_R1[:-3] + "_" + str(base) + ".fq"
-    output_R2 = input_R2[:-3] + "_" + str(base) + ".fq"
-    output_revcomp_R1 = input_R1[:-3] + "_" + str(base) + "_revcomp" + ".fq"
+    output_R1 = os.path.splitext(input_R1)[0] + "_" + str(base) + ".fq"
+    output_R2 = os.path.splitext(input_R2)[0] + "_" + str(base) + ".fq"
+    output_revcomp_R1 = os.path.splitext(input_R1)[0] + "_" + str(base) + "_revcomp" + ".fq"
     output_bowtie = output_dir + "bowtie_output_" + str(base) + ".sam"
     bowtie_results = output_dir + "bowtie_results{0}.fq".format(base)
     bowtie_results_rc = output_dir + "bowtie_results{0}_1_rc.fq".format(base)
@@ -323,9 +323,9 @@ def trim_search(base,max_handle_len,output_dir,targets_dir,input_R1,input_R2):
               output_revcomp_R1,output_R2,output_bowtie,bowtie_results))
     
     # If we observe results (i.e. reads mapped)
-    if os.path.isfile(bowtie_results[:-3]+"_1.fq"):
+    if os.path.isfile(os.path.splitext(bowtie_results)[0]+"_1.fq"):
         #Have to switch rev-comp of R1 back to original
-        os.system("fastx_reverse_complement -i {0} -o {1}".format((bowtie_results[:-3]+"_1.fq"),bowtie_results_rc))    
+        os.system("fastx_reverse_complement -i {0} -o {1}".format((os.path.splitext(bowtie_results)[0]+"_1.fq"),bowtie_results_rc))    
         output_file_1 = bowtie_results_rc
         output_file_2 = output_dir + "bowtie_results{0}_2.fq".format(base)
     else:
@@ -445,8 +445,8 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     print >> sys.stderr, "[%s] Clipping Case II reads" % (right_now())
     
     #Clip off adapter from the raw reads
-    output_II_1_clipped = bowtie_results_II_1[:-3] + "_clipped.fq"
-    output_II_2_clipped = bowtie_results_II_2[:-3] + "_clipped.fq"
+    output_II_1_clipped = os.path.splitext(bowtie_results_II_1)[0] + "_clipped.fq"
+    output_II_2_clipped = os.path.splitext(bowtie_results_II_2)[0] + "_clipped.fq"
 	
 	# Construct fastx_clipper command
 	## Options:
@@ -463,8 +463,8 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     #rematch read pairs immediately
 	## match_read_pairs throws out any unique id reads - i.e. throws out an orphaned mate read
 	## orphan reads generated if sequencing error in adapter sequence in one of the mates prevents fastx_clipper from matching and clipping
-    matched_II_1_clipped = bowtie_results_II_1[:-3] + "_clipped_kept.fq"
-    matched_II_2_clipped = bowtie_results_II_2[:-3] + "_clipped_kept.fq"
+    matched_II_1_clipped = os.path.splitext(bowtie_results_II_1)[0] + "_clipped_kept.fq"
+    matched_II_2_clipped = os.path.splitext(bowtie_results_II_2)[0] + "_clipped_kept.fq"
     matched_reads = match_read_pairs(output_II_1_clipped, output_II_2_clipped, matched_II_1_clipped, matched_II_2_clipped)
     
     # Add these reads to final set
@@ -476,8 +476,8 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     # 3.) For reads that aren't trimmed from Case II:
     
     # 3.1) First filter these reads out with fastx_clipper
-    output_II_1_unclipped = bowtie_results_II_1[:-3] + "_unclipped.fq"
-    output_II_2_unclipped = bowtie_results_II_2[:-3] + "_unclipped.fq"
+    output_II_1_unclipped = os.path.splitext(bowtie_results_II_1)[0] + "_unclipped.fq"
+    output_II_2_unclipped = os.path.splitext(bowtie_results_II_2)[0] + "_unclipped.fq"
 	
 	# Construct fastx_clipper command
 	## Options:
@@ -494,8 +494,8 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     #rematch read pairs immediately
 	## match_read_pairs throws out any unique id reads - i.e. throws out an orphaned mate read
 	## orphan reads generated if sequencing error in adapter sequence in one of the mates prevents fastx_clipper from matching and clipping
-    matched_II_1_unclipped = bowtie_results_II_1[:-3] + "_unclipped_kept.fq"
-    matched_II_2_unclipped = bowtie_results_II_2[:-3] + "_unclipped_kept.fq"
+    matched_II_1_unclipped = os.path.splitext(bowtie_results_II_1)[0] + "_unclipped_kept.fq"
+    matched_II_2_unclipped = os.path.splitext(bowtie_results_II_2)[0] + "_unclipped_kept.fq"
     matched_reads = match_read_pairs(output_II_1_unclipped, output_II_2_unclipped, matched_II_1_unclipped, matched_II_2_unclipped)    
     
     # 3.2) Execute trim_search algorithm
