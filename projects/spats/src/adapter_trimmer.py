@@ -36,12 +36,13 @@ Options:
 JBL - if trim-match or min-read-len are not set, they will automatically be determined
 
 The algorithm employed is as follows:
-
-1.) Trim all adapters that are possible with fastx_clipper
-2.) For reads that aren't trimmed, chop off n nucleotides and check for complementarity
-2.1) If sequences are not complementary, discard
-2.2) If sequences are complementary, keep
-2.3) Iterate through n
+ 
+1.) Filter reads into two sets: Case_I = do not have any adapters at all - i.e. long insert sizes, Case_II = have some adapter.
+2.) For Case II, trim all possible with fastx_clipper (Case_II_clipped).
+3.) For reads that aren't trimmed from Case II (Case_II_unclipped):
+3.1) First filter these reads out with fastx_clipper (i.e. collect just Case_II_unclipped)
+3.2) Execute trim_search algorithm
+4.) Combine all reads into one file to send to spats
 
 '''
 
