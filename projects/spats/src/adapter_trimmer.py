@@ -147,7 +147,9 @@ def right_now():
 
 def quality_mod(inputfile,read_len):
     #Modifies all of the quality reads to 'I' so that fastx ignores qualities
-    qualmodfile = inputfile[:-3] + '_Qs.fq'
+    
+    #qualmodfile = inputfile[:-3] + '_Qs.fq'
+    qualmodfile = os.path.splitext(inputfile)[0] + '_Qs.fq'
     qualstring = "I"*read_len
     qualcommand = "awk \'BEGIN{s=0} {s += 1; if (s % 4 == 0) print \"" + qualstring + "\"; else print }\'"
     #this is needed to except the curly brackets in the below command
