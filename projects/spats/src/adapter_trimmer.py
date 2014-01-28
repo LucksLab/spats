@@ -399,9 +399,9 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	## match_read_pairs will be used later to throw out these anomolies and pair up reads with same indexes
 	
 	#Generates files NOMASK_1.fq and NOMASK_2.fq
-    relabel_reads(input_R1,input_R2,None,None,current_dir)
-    input_R1 = "NOMASK_1.fq"
-    input_R2 = "NOMASK_2.fq"
+    relabel_reads(input_R1,input_R2,None,None,output_dir)
+    input_R1 = output_dir+"NOMASK_1.fq"
+    input_R2 = output_dir+"NOMASK_2.fq"
     
     # 1.) Filter reads into two sets: Case_I = do not have any adapters at all - i.e. long insert sizes, Case_II = have some adapter.
     ## Using Bowtie
@@ -557,8 +557,6 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     shutil.rmtree(output_dir,ignore_errors=True)
     shutil.rmtree(targets_dir,ignore_errors=True)
     os.remove(combined_R2)
-    os.remove(input_R1)
-    os.remove(input_R2)
 
 
 def main(argv=None,):
