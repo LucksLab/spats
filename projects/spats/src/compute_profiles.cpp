@@ -79,6 +79,7 @@ private:
     vector<double> reactivity;
 };
 
+//code to compute reactivities starting from specific priming site
 struct TargetProfile
 {
     TargetProfile() {}
@@ -297,6 +298,9 @@ private:
     double _c;
 };
 
+//wraps TargetProfile
+//contains list of TargetProfiles, one at each priming spotp
+
 class RandomerTargetProfile
 {
 public:
@@ -326,6 +330,7 @@ public:
         return false;
     }
     
+    //calc reactivities profile for each start
     void calc_poisson_reactivities()
     {
         for (size_t i = 0; i < _starts.size(); ++i)
@@ -423,6 +428,7 @@ public:
         }
     }
     
+    //averaging process
     void calculate_consensus_reactivities()
     {
         calc_poisson_reactivities();
@@ -435,6 +441,7 @@ public:
         
         _consensus_c = 0;
         
+        //get SUM_n = Y_i,n, X_i,n
         for (int j = 0; j < _starts.size(); ++j)
         {
             const TargetProfile& curr_start = _starts[j];
@@ -449,6 +456,7 @@ public:
             }
         }
 
+        //performing weighted average here
         for (int j = 0; j < _starts.size(); ++j)
         {
             const TargetProfile& curr_start = _starts[j];
