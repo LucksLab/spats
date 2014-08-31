@@ -226,9 +226,9 @@ int adapter_cutoff_index ( const SequenceAlignmentResults& alignment_results )
 
 	if ( alignment_size > 11 
 	     &&
-	     (alignment_results.matches * 100 / alignment_size
+	     (alignment_results.matches * 100 / alignment_size ) >= 100
 	     &&
-             alignment_results.mismatches == 0 ) >= 100 ) {
+             alignment_results.mismatches == 0  ) {
 	     	//printf("--2\n");
 		return alignment_results.query_start ;
 	}
