@@ -707,11 +707,11 @@ MFLAGS=
 MAKEFLAGS=
 
 # Identity of this package.
-PACKAGE_NAME='FASTX Toolkit'
-PACKAGE_TARNAME='fastx_toolkit'
-PACKAGE_VERSION='0.0.13.2'
-PACKAGE_STRING='FASTX Toolkit 0.0.13.2'
-PACKAGE_BUGREPORT='Assaf Gordon gordon@cshl.edu'
+PACKAGE_NAME='FASTX Spats Toolkit'
+PACKAGE_TARNAME='fastx_spats_toolkit'
+PACKAGE_VERSION='0.1'
+PACKAGE_STRING='FASTX Spats Toolkit 0.0.1 (Built off of FASTX Toolkit 0.0.13.2)'
+PACKAGE_BUGREPORT='Assaf Gordon gordon@cshl.edu, jblucks@cornell.edu'
 PACKAGE_URL=''
 
 # Factoring default headers for most tests.
