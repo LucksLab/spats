@@ -38,9 +38,9 @@ JBL - if trim-match or min-read-len are not set, they will automatically be dete
 The algorithm employed is as follows:
  
 1.) Filter reads into two sets: Case_I = do not have any adapters at all - i.e. long insert sizes, Case_II = have some adapter.
-2.) For Case II, trim all possible with fastx_clipper (Case_II_clipped).
+2.) For Case II, trim all possible with fastx_spats_clipper (Case_II_clipped).
 3.) For reads that aren't trimmed from Case II (Case_II_unclipped):
-3.1) First filter these reads out with fastx_clipper (i.e. collect just Case_II_unclipped)
+3.1) First filter these reads out with fastx_spats_clipper (i.e. collect just Case_II_unclipped)
 3.2) Execute trim_search algorithm
 4.) Combine all reads into one file to send to spats
 
@@ -350,9 +350,9 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     # The algorithm employed is as follows:
     # 
     # 1.) Filter reads into two sets: Case_I = do not have any adapters at all - i.e. long insert sizes, Case_II = have some adapter.
-    # 2.) For Case II, trim all possible with fastx_clipper (Case_II_clipped).
+    # 2.) For Case II, trim all possible with fastx_spats_clipper (Case_II_clipped).
     # 3.) For reads that aren't trimmed from Case II (Case_II_unclipped):
-    # 3.1) First filter these reads out with fastx_clipper (i.e. collect just Case_II_unclipped)
+    # 3.1) First filter these reads out with fastx_spats_clipper (i.e. collect just Case_II_unclipped)
     # 3.2) Execute trim_search algorithm
     # 4.) Combine all reads into one file to send to spats
     
@@ -395,7 +395,7 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	
 	#Relabel reads before clipping
 	## This will allow us to detect a mate pair where only one of the pair is
-	## clipped or dropped (i.e. other side has a mismatch so is not detected) by fastx_clipper below.
+	## clipped or dropped (i.e. other side has a mismatch so is not detected) by fastx_spats_clipper below.
 	## match_read_pairs will be used later to throw out these anomolies and pair up reads with same indexes
 	
 	#Generates files NOMASK_1.fq and NOMASK_2.fq
@@ -441,7 +441,7 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
         combine_files_R1.append(bowtie_results_I_1)
         combine_files_R2.append(bowtie_results_I_2)
     
-	# 2.) For Case II, trim all possible with fastx_clipper.
+	# 2.) For Case II, trim all possible with fastx_spats_clipper.
 	    
     print >> sys.stderr, "[%s] Clipping Case II reads" % (right_now())
     
@@ -449,21 +449,21 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     output_II_1_clipped = os.path.splitext(bowtie_results_II_1)[0] + "_clipped.fq"
     output_II_2_clipped = os.path.splitext(bowtie_results_II_2)[0] + "_clipped.fq"
 	
-	# Construct fastx_clipper command
+	# Construct fastx_spats_clipper command
 	## Options:
 	## -c :: Discard non-clipped sequences (i.e. - keep only sequences which contained the adapter).
 	## -M trim_match :: require minimum adapter length of trim_match (if < trim_match align with adapter, don't clip it)
 	## -a :: adapter string
 	## -l {4} :: discard sequences shorter than {4} nts
 	## -n :: keep sequences with N's
-    os.system("fastx_clipper -c -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_b_sequence,bowtie_results_II_1,output_II_1_clipped,trim_match,min_read_len))
+    os.system("fastx_spats_clipper -c -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_b_sequence,bowtie_results_II_1,output_II_1_clipped,trim_match,min_read_len))
     
     # Actually using revcomp(A_t_sequence) since read 2 reads the revcomp of A_t
-    os.system("fastx_clipper -c -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_t_sequence,bowtie_results_II_2,output_II_2_clipped,trim_match,min_read_len))
+    os.system("fastx_spats_clipper -c -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_t_sequence,bowtie_results_II_2,output_II_2_clipped,trim_match,min_read_len))
     
     #rematch read pairs immediately
 	## match_read_pairs throws out any unique id reads - i.e. throws out an orphaned mate read
-	## orphan reads generated if sequencing error in adapter sequence in one of the mates prevents fastx_clipper from matching and clipping
+	## orphan reads generated if sequencing error in adapter sequence in one of the mates prevents fastx_spats_clipper from matching and clipping
     matched_II_1_clipped = os.path.splitext(bowtie_results_II_1)[0] + "_clipped_kept.fq"
     matched_II_2_clipped = os.path.splitext(bowtie_results_II_2)[0] + "_clipped_kept.fq"
     matched_reads = match_read_pairs(output_II_1_clipped, output_II_2_clipped, matched_II_1_clipped, matched_II_2_clipped)
@@ -476,25 +476,25 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	
     # 3.) For reads that aren't trimmed from Case II:
     
-    # 3.1) First filter these reads out with fastx_clipper
+    # 3.1) First filter these reads out with fastx_spats_clipper
     output_II_1_unclipped = os.path.splitext(bowtie_results_II_1)[0] + "_unclipped.fq"
     output_II_2_unclipped = os.path.splitext(bowtie_results_II_2)[0] + "_unclipped.fq"
 	
-	# Construct fastx_clipper command
+	# Construct fastx_spats_clipper command
 	## Options:
 	## -C :: Discard clipped sequences (i.e. - keep only sequences which did not contained the adapter).
 	## -M trim_match :: require minimum adapter length of trim_match (if < trim_match align with adapter, don't clip it)
 	## -a :: adapter string
 	## -l {4} :: discard sequences shorter than {4} nts
 	## -n :: keep sequences with N's
-    os.system("fastx_clipper -C -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_b_sequence,bowtie_results_II_1,output_II_1_unclipped,trim_match,min_read_len))
+    os.system("fastx_spats_clipper -C -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_b_sequence,bowtie_results_II_1,output_II_1_unclipped,trim_match,min_read_len))
     
     # Actually using revcomp(A_t_sequence) since read 2 reads the revcomp of A_t
-    os.system("fastx_clipper -C -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_t_sequence,bowtie_results_II_2,output_II_2_unclipped,trim_match,min_read_len))
+    os.system("fastx_spats_clipper -C -M {3} -a {0} -l {4} -n -i {1} -o {2}".format(A_t_sequence,bowtie_results_II_2,output_II_2_unclipped,trim_match,min_read_len))
     
     #rematch read pairs immediately
 	## match_read_pairs throws out any unique id reads - i.e. throws out an orphaned mate read
-	## orphan reads generated if sequencing error in adapter sequence in one of the mates prevents fastx_clipper from matching and clipping
+	## orphan reads generated if sequencing error in adapter sequence in one of the mates prevents fastx_spats_clipper from matching and clipping
     matched_II_1_unclipped = os.path.splitext(bowtie_results_II_1)[0] + "_unclipped_kept.fq"
     matched_II_2_unclipped = os.path.splitext(bowtie_results_II_2)[0] + "_unclipped_kept.fq"
     matched_reads = match_read_pairs(output_II_1_unclipped, output_II_2_unclipped, matched_II_1_unclipped, matched_II_2_unclipped)    

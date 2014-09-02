@@ -1,0 +1,1 @@
+fastx_spats_clipper - built off of fastx_clipper, but uses a no-mismatch matching criteria to find adapters.

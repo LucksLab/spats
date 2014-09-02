@@ -9,13 +9,13 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
-bin_PROGRAMS = fastx_clipper
+bin_PROGRAMS = fastx_spats_clipper
 
 AM_CPPFLAGS = \
 	$(CC_WARNINGS) \
 	-I../libfastx
 
-fastx_clipper_SOURCES = fastx_clipper.cpp
+fastx_spats_clipper_SOURCES = fastx_spats_clipper.cpp
 
-fastx_clipper_LDADD = ../libfastx/libfastx.a $(LT_LDFLAGS)
+fastx_spats_clipper_LDADD = ../libfastx/libfastx.a $(LT_LDFLAGS)
 

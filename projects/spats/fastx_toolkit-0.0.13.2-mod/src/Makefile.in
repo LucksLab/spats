@@ -223,7 +223,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = libfastx \
-	fastx_clipper \
+	fastx_spats_clipper \
 	fastx_trimmer \
 	fastx_quality_stats \
 	fastq_quality_converter \
