@@ -61,9 +61,10 @@ FASTX-Barcode-Splitter - A common practice is to sequence multiple biological
 	from those samples. This tool separates FASTA/Q files into several 
 	individual files, based on the barcodes.
 	
-FASTX-Clipper - Adapters (aka Linkers) are added to the library (before 
+FASTX-SPATS-Clipper - Adapters (aka Linkers) are added to the library (before 
 	sequencing), and should be removed from the resulting FASTA/Q file.
-	This tool removes (clips) adapters.
+	This tool removes (clips) adapters. The fastx_spats_clipper uses a stringent (no-mismatch)
+	criterion for finding adpaters.
 	
 FASTA-Clipping-Histogram - After clipping a FASTA file, this tool generates a
 	chart showing the length of the clipped sequences.

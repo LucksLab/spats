@@ -40,8 +40,9 @@
 #define MAX_ADAPTER_LEN 100
 
 const char* usage=
-"usage: fastx_clipper [-h] [-a ADAPTER] [-D] [-l N] [-n] [-d N] [-c] [-C] [-o] [-v] [-z] [-i INFILE] [-o OUTFILE]\n" \
-"Part of " PACKAGE_STRING " by A. Gordon (gordon@cshl.edu)\n" \
+"usage: fastx_spats_clipper [-h] [-a ADAPTER] [-D] [-l N] [-n] [-d N] [-c] [-C] [-o] [-v] [-z] [-i INFILE] [-o OUTFILE]\n" \
+"Part of " PACKAGE_STRING " by A. Gordon (gordon@cshl.edu)\nModified for use in the Spats pipeline by K.E. Watters and J.B. Lucks\n" \
+"Modifications made to stringently match adapter sequence (no mismatches).\n" \
 "\n" \
 "   [-h]         = This helpful help screen.\n" \
 "   [-a ADAPTER] = ADAPTER string. default is CCTTAAGG (dummy adapter).\n" \

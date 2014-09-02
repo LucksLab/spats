@@ -2,3 +2,4 @@ Authors of FASTX toolkit.
 See also the files THANKS and ChangeLog.
 
 Assaf Gordon designed and implemented FASTX toolkit.
+fastx_clipper was modified to be fastx_spats_clipper by Kyle E. Watters and Julius B. Lucks

@@ -9,7 +9,7 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 SUBDIRS = libfastx \
-	fastx_clipper \
+	fastx_spats_clipper \
 	fastx_trimmer \
 	fastx_quality_stats \
 	fastq_quality_converter \

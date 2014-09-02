@@ -14606,7 +14606,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile doc/Makefile m4/Makefile src/Makefile src/libfastx/Makefile src/fastx_clipper/Makefile src/fastq_to_fasta/Makefile src/fastx_quality_stats/Makefile src/fastq_quality_converter/Makefile src/fastx_trimmer/Makefile src/fastq_quality_filter/Makefile src/fastq_quality_trimmer/Makefile src/fastx_artifacts_filter/Makefile src/fastx_reverse_complement/Makefile src/fastx_collapser/Makefile src/fastx_uncollapser/Makefile src/seqalign_test/Makefile src/fasta_formatter/Makefile src/fasta_nucleotide_changer/Makefile src/fastx_renamer/Makefile src/fastq_masker/Makefile galaxy/Makefile galaxy/tools/Makefile galaxy/tools/fastx_toolkit/Makefile galaxy/tools/cshl_custom_fastx_toolkit/Makefile galaxy/test-data/Makefile galaxy/static/Makefile galaxy/static/fastx_icons/Makefile galaxy/tool-data/Makefile scripts/Makefile build_scripts/Makefile"
+ac_config_files="$ac_config_files Makefile doc/Makefile m4/Makefile src/Makefile src/libfastx/Makefile src/fastx_spats_clipper/Makefile src/fastq_to_fasta/Makefile src/fastx_quality_stats/Makefile src/fastq_quality_converter/Makefile src/fastx_trimmer/Makefile src/fastq_quality_filter/Makefile src/fastq_quality_trimmer/Makefile src/fastx_artifacts_filter/Makefile src/fastx_reverse_complement/Makefile src/fastx_collapser/Makefile src/fastx_uncollapser/Makefile src/seqalign_test/Makefile src/fasta_formatter/Makefile src/fasta_nucleotide_changer/Makefile src/fastx_renamer/Makefile src/fastq_masker/Makefile galaxy/Makefile galaxy/tools/Makefile galaxy/tools/fastx_toolkit/Makefile galaxy/tools/cshl_custom_fastx_toolkit/Makefile galaxy/test-data/Makefile galaxy/static/Makefile galaxy/static/fastx_icons/Makefile galaxy/tool-data/Makefile scripts/Makefile build_scripts/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -15705,7 +15705,7 @@ do
     "m4/Makefile") CONFIG_FILES="$CONFIG_FILES m4/Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/libfastx/Makefile") CONFIG_FILES="$CONFIG_FILES src/libfastx/Makefile" ;;
-    "src/fastx_clipper/Makefile") CONFIG_FILES="$CONFIG_FILES src/fastx_clipper/Makefile" ;;
+    "src/fastx_spats_clipper/Makefile") CONFIG_FILES="$CONFIG_FILES src/fastx_spats_clipper/Makefile" ;;
     "src/fastq_to_fasta/Makefile") CONFIG_FILES="$CONFIG_FILES src/fastq_to_fasta/Makefile" ;;
     "src/fastx_quality_stats/Makefile") CONFIG_FILES="$CONFIG_FILES src/fastx_quality_stats/Makefile" ;;
     "src/fastq_quality_converter/Makefile") CONFIG_FILES="$CONFIG_FILES src/fastq_quality_converter/Makefile" ;;

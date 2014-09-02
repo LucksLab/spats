@@ -44,8 +44,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = fastx_clipper$(EXEEXT)
-subdir = src/fastx_clipper
+bin_PROGRAMS = fastx_spats_clipper$(EXEEXT)
+subdir = src/fastx_spats_clipper
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_c_long_long.m4 \
@@ -61,10 +61,10 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_fastx_clipper_OBJECTS = fastx_clipper.$(OBJEXT)
-fastx_clipper_OBJECTS = $(am_fastx_clipper_OBJECTS)
+am_fastx_spats_clipper_OBJECTS = fastx_spats_clipper.$(OBJEXT)
+fastx_spats_clipper_OBJECTS = $(am_fastx_spats_clipper_OBJECTS)
 am__DEPENDENCIES_1 =
-fastx_clipper_DEPENDENCIES = ../libfastx/libfastx.a \
+fastx_spats_clipper_DEPENDENCIES = ../libfastx/libfastx.a \
 	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -79,8 +79,8 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(fastx_clipper_SOURCES)
-DIST_SOURCES = $(fastx_clipper_SOURCES)
+SOURCES = $(fastx_spats_clipper_SOURCES)
+DIST_SOURCES = $(fastx_spats_clipper_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -210,8 +210,8 @@ AM_CPPFLAGS = \
 	$(CC_WARNINGS) \
 	-I../libfastx
 
-fastx_clipper_SOURCES = fastx_clipper.cpp
-fastx_clipper_LDADD = ../libfastx/libfastx.a $(LT_LDFLAGS)
+fastx_spats_clipper_SOURCES = fastx_spats_clipper.cpp
+fastx_spats_clipper_LDADD = ../libfastx/libfastx.a $(LT_LDFLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -225,9 +225,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/fastx_clipper/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/fastx_spats_clipper/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/fastx_clipper/Makefile
+	  $(AUTOMAKE) --gnu src/fastx_spats_clipper/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -289,9 +289,9 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-fastx_clipper$(EXEEXT): $(fastx_clipper_OBJECTS) $(fastx_clipper_DEPENDENCIES) $(EXTRA_fastx_clipper_DEPENDENCIES) 
-	@rm -f fastx_clipper$(EXEEXT)
-	$(CXXLINK) $(fastx_clipper_OBJECTS) $(fastx_clipper_LDADD) $(LIBS)
+fastx_spats_clipper$(EXEEXT): $(fastx_spats_clipper_OBJECTS) $(fastx_spats_clipper_DEPENDENCIES) $(EXTRA_fastx_spats_clipper_DEPENDENCIES) 
+	@rm -f fastx_spats_clipper$(EXEEXT)
+	$(CXXLINK) $(fastx_spats_clipper_OBJECTS) $(fastx_spats_clipper_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -299,7 +299,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fastx_clipper.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fastx_spats_clipper.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
