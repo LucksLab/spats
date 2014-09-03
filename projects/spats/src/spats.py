@@ -754,7 +754,7 @@ def compute_profiles(params, target_fasta, treated_alignments, untreated_alignme
     cmd = [bin_dir + "compute_profiles"]
     cmd.extend(params.cmd())
     
-    if params.all_RT_starts:
+    if params.read_params.all_RT_starts:
         cmd.append("--all-RT-starts")
     
     cmd.extend([target_fasta, treated_alignments, untreated_alignments])
