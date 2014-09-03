@@ -1,4 +1,5 @@
-Modified version of fastx toolkit included in fstx_toolkit-0.0.13.2-mod directory. (Based off of version 0.0.13.2 from http://hannonlab.cshl.edu/fastx_toolkit/download.html).
+fastx_spats_toolkit_0.0.1 is a modified version of fastx toolkit Based off of version 0.0.13.2 from http://hannonlab.cshl.edu/fastx_toolkit/download.html.
+Modifications include adjustments to fastx_clipper to allow stringent (no mismatch) matching of adapters.
 
 Before installing spats, copy the entire directory to the build directory and go through the normal fastx installation.
 

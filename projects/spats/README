@@ -1,16 +1,60 @@
-Spats is a package developed to support Aviran et al, 2011, and Lucks et al, 2011
-for the analysis of SHAPE-Seq experiments.  This package consists of the 
-read mapping and census routines.  The output files of Spats are fed to 
-a set of MATLAB scripts that compute SHAPE reactivities.
+About Spats
+===========
+
+Spats is a package originally developed to support: 
+
+- Julius B. Lucks, Stefanie A. Mortimer, Cole Trapnell, Shujun Luo, 
+	Sharon Aviron, Gary P. Schroth, Lior Pachter, Jennifer A. Doudna, and Adam P. Arkin, 
+	SHAPE-Seq: Multiplexed RNA Secondary and Tertiary Structure Determination 
+        PNAS, 2011, doi: 10.1073/pnas.1106501108
+- Sharon Aviran, Cole Trapnell, Julius B. Lucks, Stefanie A. Mortimer, Shujun Luo,
+	Gary P. Schroth, Jennifer A. Doudna, Adam P. Arkin, and Lior Pachter, 
+	Modeling and automation of SHAPE-Seq analysis 
+        PNAS, 2011, doi: 10.1073/pnas.1106541108
+
+and now supports:
+
+- David Loughrey, Kyle E. Watters, Alexander H. Settle, and Julius B. Lucks
+  SHAPE-Seq 2.0: Systematic Optimization and Extension of High-Throughput
+  Chemical Probing of RNA Structure with Next Generation Sequencing
+      Nucleic Acids Research, 2014
+
+The Spats package implements a read mapping and reactivity analysis pipeline for calculating
+SHAPE-Seq reactivities from an input set of next-generation reads. The reactivity calculation
+implemented is described in:
+
+- Sharon Aviran, Julius B. Lucks, and Lior Pachter
+  RNA Structure characterization from chemical mapping experiments.
+  49th Allerton Conference, UIUC 2011. doi: 10.1109/Allerton.2011.6120379 .
+
+
+For more information about the SHAPE-Seq experiment, and the application of spats for data analysis,
+please see:
+
+- Stephanie A. Mortimer, Cole Trapnell, Sharon Aviran, Lior Pachter, and Julius B. Lucks
+  SHAPE-Seq: High Throughput RNA Structure Analysis
+      Current Protocols in Chemical Biology, 2012, doi: 10.1002/9780470559277.ch120019
+
+Spats Installation
+==================
+
+Spats requires several dependencies before being installed. For up-to-date
+installation instructions for these dependencies and spats itself, please
+visit http://spats.sourceforge.net .
 
 Spats depends on Bowtie 0.12.8 or higher, which you can get from here:
 http://bowtie-bio.sourceforge.net/index.shtml
 
-Spats also uses the FASTX package from Greg Hannon's lab:
-http://hannonlab.cshl.edu/fastx_toolkit/
+Spats also uses a modified version the FASTX package fastx_spats_toolkit_0.0.1, which
+is available from http://spats.sourceforge.net .
 
 Please install these and make sure they are accessible through your PATH
 environment variable before trying to run the mapping pipeline.
+
+
+Spats Usage
+===========
+UPDATE
 
 Usage:
      spats [options] <rna.fasta> <treated_handle> <untreated_handle> <barcode_reads> <adduct_reads>

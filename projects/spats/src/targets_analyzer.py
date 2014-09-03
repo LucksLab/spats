@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
-#Written by Ray Zhuang 2013 to analysis input target fasta files for Spats
-#Looks for 3' uniqueness (defines default for min_read_len), as well as 
-#minimum required length of adapter to search for with clipper (defines trim-match by default)
+"""
+targets_analyzer.py
+
+Created by Ray Zhuang, Kyle E. Watters and Julius B. Lucks 2013-2014.
+Copyright (c) 2014 Ray Zhuang, Kyle E. Watters and Julius B. Lucks. All rights reserved.
+"""
 
 import sys
 import os
