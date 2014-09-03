@@ -62,8 +62,22 @@ struct Adducts
     bool register_fragment(const MateHit& fragment)
     {
         int adduct_site = fragment.left(); // fragment is 0-index, adduct array is 1-indexed, so we don't actually need to subtract
+        
+        //JBL - example of why don't need to subtract
+        // SEQUENCE GGACU ...
+        // FRAGMENT 01234 ...
+        // ADDUCT   12345 ...
+        // OBSERVE   GACU ...
+        // fragment.left() = 1
+        // increment adduct[1]++, which actually means FRAGMENT[0] which means the 5' end
+        // since fragment is 0-indexed and adduct array is 1-indexed, the shift to the left is taken care of
+        
         if (adduct_site >= 0 && adduct_site < adduct_counts.size())
         {
+            //JBL - only register this fragment if the left read is within the sequence and the right read aligns with the end of
+            //the RNA (or RNA subsequence)
+            //fragment.right() should be N-1 for an RNA subsequence of length N because of the 0-indexing
+            //adduct_counts.size() should be N
             int end = min((int)adduct_counts.size(), fragment.right());
             if (end == adduct_counts.size() - 1)
             {
@@ -196,9 +210,11 @@ struct TargetProfile
             minus_denom += untreated_adducts[i];
         }
         
+        //calculate c
         //double c = log(untreated_adducts[0] / minus_denom) - log(treated_adducts[0]/plus_denom);
         double c = 0.0;
-        for (size_t i = 1; i < plus_channel_freq.size(); ++i)
+        //JBL - does not matter that this sum runs backward according to the code (vs. paper) indexing convention
+        for (size_t i = 1; i < plus_channel_freq.size(); ++i) 
         {
             if (_betas[i] > 0)
                 c -= log(1 - _betas[i]);
@@ -210,6 +226,7 @@ struct TargetProfile
             return;
         }
         
+        //calculate theta
         for (size_t k = 1; k < plus_channel_freq.size(); k++)
         {
             double plus_denom = 0.0;
@@ -299,7 +316,7 @@ private:
 };
 
 //wraps TargetProfile
-//contains list of TargetProfiles, one at each priming spotp
+//contains list of TargetProfiles, one at each priming spot
 
 class RandomerTargetProfile
 {
@@ -309,6 +326,7 @@ public:
         _name(name), 
         _seq(seq)
     {
+        //constructing list of all possible starting positions for RT
         for (size_t i = 1; i <= seq.length(); ++i)
         {
             string subseq = seq.substr(0,i);
@@ -321,11 +339,14 @@ public:
     
     bool register_fragment(const MateHit& fragment, bool treated)
     {
-        int rt_start_site = fragment.right(); // fragment is 0-index, adduct array is 1-indexed, so we don't actually need to subtract
+        int rt_start_site = fragment.right(); // fragment is 0-indexed, adduct array is 1-indexed, so we don't actually need to subtract
 
+        //if the rt_start_site is within the possible range, then register the fragment to that start site
         if (rt_start_site >= 1 && rt_start_site - 1 < _starts.size())
         {                
-            return _starts[rt_start_site - 1].register_fragment(fragment, treated);
+            //JBL - not sure why the rt_start_site - 1 here
+            //_starts[] is 0-indexed
+            return _starts[rt_start_site - 1].register_fragment(fragment, treated); 
         }
         return false;
     }
@@ -342,7 +363,15 @@ public:
     
     void print_adduct_counts(FILE* adducts_out)
     {
-        for (int j = 0; j < _starts.size(); ++j)
+        //JBL - only print out all RT start site information if
+        // all_RT_starts is set to true
+        int j_start = _starts.size()-1;
+        if (all_RT_starts) 
+        {
+            j_start = 0;
+        }
+        
+        for (int j = j_start; j < _starts.size(); ++j)
         {
             const TargetProfile& curr_start = _starts[j];
             
@@ -428,7 +457,7 @@ public:
         }
     }
     
-    //averaging process
+    //JBL - Trapnell's averaging process over different start sites ocurrs here
     void calculate_consensus_reactivities()
     {
         calc_poisson_reactivities();
@@ -668,6 +697,8 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
         }
     }
     fclose(adducts_out);
+    
+    //JBL START - not sure this code block is correctly implemented/relevant now
     string treated_library_file = output_dir + "/treated_library_length.hist";
     FILE* treated_library_out = fopen(treated_library_file.c_str(), "w");
     if (treated_library_out == NULL)
@@ -707,7 +738,7 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
     {
         fprintf(untreated_library_out, "%d\t%d\n", i, untreated_frag_length_dist[i]); 
     }
-    
+    //JBL END
     
 //    fprintf(stats_out, "Processed %d properly paired fragments, kept %d\n", 
 //            processed_fragments, num_kept_frags);

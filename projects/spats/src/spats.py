@@ -38,6 +38,7 @@ use_message = '''
      --adapter-b                <string>    [ default: None ]
      --trim-match               <int>       [default: 9]
      --num-mismatches               <int>       [ default: 0    ]
+     --all-RT-starts                <noarg> [if present prints out reactivties for each RT site detected. default: false]
      
 SAM Header Options (for embedding sequencing run metadata in output):
     --rg-id                        <string>    (read group ID)
@@ -103,7 +104,8 @@ class SpatsParams:
                      seq_platform_unit,
                      seq_center,
                      seq_run_date,
-                     seq_platform):
+                     seq_platform,
+                     all_RT_starts):
             self.phred33_quals = phred33_quals
             self.phred64_quals = phred64_quals
             self.seed_length = seed_length
@@ -120,6 +122,7 @@ class SpatsParams:
             self.seq_center = seq_center
             self.seq_run_date = seq_run_date
             self.seq_platform = seq_platform
+            self.all_RT_starts = all_RT_starts
             
         def parse_options(self, opts):
             for option, value in opts:
@@ -152,7 +155,9 @@ class SpatsParams:
                 if option == "--rg-date":
                     self.seq_run_date = value    
                 if option == "--rg-platform":
-                    self.seq_platform = value            
+                    self.seq_platform = value
+                if option == "--all-RT-starts":
+                    self.all_RT_starts = True
 
         def check(self):
             if self.seed_length != None and self.seed_length < 20:
@@ -182,7 +187,8 @@ class SpatsParams:
                                            None,                # platform unit (i.e. lane)
                                            None,                # sequencing center
                                            None,                # run date
-                                           None)                # sequencing platform
+                                           None,                # sequencing platform
+                                           False)               # per site reactivity printing
         
         self.system_params = self.SystemParams(1,               # bowtie_threads
                                                False)           # keep_tmp   
@@ -225,7 +231,8 @@ class SpatsParams:
                                          "rg-platform-unit=",
                                          "rg-center=",
                                          "rg-date=",
-                                         "rg-platform="])
+                                         "rg-platform=",
+                                         "all-RT-starts"])
         except getopt.error, msg:
             raise Usage(msg)
             
@@ -745,6 +752,10 @@ def compute_profiles(params, target_fasta, treated_alignments, untreated_alignme
     
     cmd = [bin_dir + "compute_profiles"]
     cmd.extend(params.cmd())
+    
+    if params.all_RT_starts:
+        cmd.append("--all-RT-starts")
+    
     cmd.extend([target_fasta, treated_alignments, untreated_alignments])
        
     # print "\t executing: `%s'" % " ".join(cmd)    

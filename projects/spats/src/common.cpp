@@ -35,7 +35,8 @@ bool phred64_quals = false;
 
 bool fastq_db = true;
 
-bool compute_consensus_reactivities = true;
+bool compute_consensus_reactivities = false;
+bool all_RT_starts = false;
 
 extern void print_usage();
 
@@ -107,7 +108,8 @@ const char *short_options = "";
 #define OPT_PHRED33_QUALS			    63
 #define OPT_PHRED64_QUALS				64
 #define OPT_NO_RELABEL                  65
-#define OPT_PER_SITE_REACTIVITIES       66
+#define OPT_ALL_RT_STARTS               66
+#define OPT_COMPUTE_CONSENSUS_REACTIVITIES 67
 
 static struct option long_options[] = {
 {"fasta",				no_argument,		0,	OPT_FASTA},
@@ -119,7 +121,8 @@ static struct option long_options[] = {
 {"phred33-quals",		no_argument,		0,	OPT_PHRED33_QUALS},
 {"phred64-quals",		no_argument,		0,	OPT_PHRED64_QUALS},
 {"no-relabel",          no_argument,		0,	OPT_NO_RELABEL},
-{"per-site-reactivities",          no_argument,		0,	OPT_PER_SITE_REACTIVITIES},
+{"all-RT-starts",          no_argument,		0,	OPT_ALL_RT_STARTS},
+{"compute-consensus-reactivities",          no_argument,		0,	OPT_COMPUTE_CONSENSUS_REACTIVITIES},
 {0, 0, 0, 0} // terminator
 };
 
@@ -162,9 +165,13 @@ int parse_options(int argc, char** argv, void (*print_usage)())
             case OPT_NO_RELABEL:
 				fastq_db = false;
 				break;
-            case OPT_PER_SITE_REACTIVITIES:
-				compute_consensus_reactivities = false;
+            case OPT_ALL_RT_STARTS:
+				all_RT_starts = true;
 				break;
+			case OPT_COMPUTE_CONSENSUS_REACTIVITIES:
+			    //JBL change this to true if want to turn on consensus reactivities
+    			compute_consensus_reactivities = false;
+    			break;
 			default:
 				print_usage();
 				return 1;
