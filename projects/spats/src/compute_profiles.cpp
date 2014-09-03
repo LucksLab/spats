@@ -71,15 +71,15 @@ struct Adducts
         // fragment.left() = 1
         // increment adduct[1]++, which actually means FRAGMENT[0] which means the 5' end
         // since fragment is 0-indexed and adduct array is 1-indexed, the shift to the left is taken care of
-        
-        if (adduct_site >= 0 && adduct_site < adduct_counts.size())
+
+        if (adduct_site >= 0 && adduct_site < (int)adduct_counts.size())
         {
             //JBL - only register this fragment if the left read is within the sequence and the right read aligns with the end of
             //the RNA (or RNA subsequence)
             //fragment.right() should be N-1 for an RNA subsequence of length N because of the 0-indexing
             //adduct_counts.size() should be N
             int end = min((int)adduct_counts.size(), fragment.right());
-            if (end == adduct_counts.size() - 1)
+            if (end == (int)adduct_counts.size() - 1)
             {
                 adduct_counts[adduct_site]++;
                 return true;
@@ -268,7 +268,7 @@ struct TargetProfile
             scaled_betas[i] /= total_beta;
         }
         
-        double total_theta = accumulate(_thetas.begin() + 1, _thetas.end(), 0.0);
+        //double total_theta = accumulate(_thetas.begin() + 1, _thetas.end(), 0.0); //JBL - not used
         total_beta = accumulate(scaled_betas.begin() + 1, scaled_betas.end(), 0.0);
         //fprintf(stderr, "%s: total theta = %lg\n", _name.c_str(), total_theta);
         //fprintf(stderr, "%s: total beta = %lg\n", _name.c_str(), total_beta);
@@ -285,7 +285,7 @@ struct TargetProfile
                         untreated_adducts[i],
                         _c); 
             }
-            else if (i < _seq.length())
+            else if (i < (int)_seq.length())
             {
                 fprintf(adducts_out, 
                         "%s\t%d\t%c\t%d\t%d\t%lg\t%lg\t%lg\n", 
@@ -309,8 +309,8 @@ private:
     
     Adducts _treated;
     Adducts _untreated;
-    vector<double> _betas;
     vector<double> _thetas;
+    vector<double> _betas;
     //vector<double> _normalized_thetas;
     double _c;
 };
@@ -342,7 +342,7 @@ public:
         int rt_start_site = fragment.right(); // fragment is 0-indexed, adduct array is 1-indexed, so we don't actually need to subtract
 
         //if the rt_start_site is within the possible range, then register the fragment to that start site
-        if (rt_start_site >= 1 && rt_start_site - 1 < _starts.size())
+        if (rt_start_site >= 1 && rt_start_site - 1 < (int)_starts.size())
         {                
             //JBL - not sure why the rt_start_site - 1 here
             //_starts[] is 0-indexed
@@ -371,7 +371,7 @@ public:
             j_start = 0;
         }
         
-        for (int j = j_start; j < _starts.size(); ++j)
+        for (int j = j_start; j < (int)_starts.size(); ++j)
         {
             const TargetProfile& curr_start = _starts[j];
             
@@ -427,7 +427,7 @@ public:
 
     void print_consensus_reactivities(FILE* adducts_out)
     {
-        for (int i = 0; i < _consensus_thetas.size(); ++i)
+        for (int i = 0; i < (int)_consensus_thetas.size(); ++i)
         {
             if (i == 0)
             {
@@ -471,7 +471,7 @@ public:
         _consensus_c = 0;
         
         //get SUM_n = Y_i,n, X_i,n
-        for (int j = 0; j < _starts.size(); ++j)
+        for (int j = 0; j < (int)_starts.size(); ++j)
         {
             const TargetProfile& curr_start = _starts[j];
             
@@ -486,7 +486,7 @@ public:
         }
 
         //performing weighted average here
-        for (int j = 0; j < _starts.size(); ++j)
+        for (int j = 0; j < (int)_starts.size(); ++j)
         {
             const TargetProfile& curr_start = _starts[j];
             
@@ -523,7 +523,7 @@ public:
         }
         
         double total_treated_adducts_across_sites = accumulate(_total_treated_adducts.begin() + 1, _total_treated_adducts.end(), 0.0);
-        for (int j = 0; j < _starts.size(); ++j)
+        for (int j = 0; j < (int)_starts.size(); ++j)
         {
             const TargetProfile& curr_start = _starts[j];
             if (curr_start.c() > 0 && total_treated_adducts_across_sites > 0)
@@ -613,7 +613,7 @@ void process_fragments(FragmentFactory& fragment_factory,
         if (kept)
             num_kept_frags++;
 		
-        int length = fragment.right() - fragment.left();
+        //int length = fragment.right() - fragment.left(); //JBL - unused
 //        if (length > 0)
 //        {
 //			if (treated)
@@ -742,7 +742,7 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
     
 //    fprintf(stats_out, "Processed %d properly paired fragments, kept %d\n", 
 //            processed_fragments, num_kept_frags);
-    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d ( %f\% ) treated, %d/%d ( %f\% ) untreated\n", 
+    fprintf(stderr, "Processed %d properly paired fragments, kept %d/%d (%f %%) treated, %d/%d (%f %%)  untreated\n", 
 			processed_fragments, 
 			num_kept_treated_frags,
 			num_treated_frags,
