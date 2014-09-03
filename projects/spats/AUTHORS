@@ -1,20 +1,38 @@
 Spats
 ----------------------------
 Copyright 2011, Cole Trapnell
+Copyright 2014, Cole Trapnell, Julius B. Lucks
 
-Spats was written to support:
+Spats was originally written to support:
 
 - Julius B. Lucks, Stefanie A. Mortimer, Cole Trapnell, Shujun Luo, 
 	Sharon Aviron, Gary P. Schroth, Lior Pachter, Jennifer A. Doudna, and Adam P. Arkin, 
 	SHAPE-Seq: Multiplexed RNA Secondary and Tertiary Structure Determination 
-        PNAS, 2011
+        PNAS, 2011, doi: 10.1073/pnas.1106501108
 - Sharon Aviran, Cole Trapnell, Julius B. Lucks, Stefanie A. Mortimer, Shujun Luo,
 	Gary P. Schroth, Jennifer A. Doudna, Adam P. Arkin, and Lior Pachter, 
 	Modeling and automation of SHAPE-Seq analysis 
-        PNAS, 2011
-	
-Cole Trapnell wrote the code in the Spats package, which creates the input
-for a reactivity analysis pipeline written by Sharon Aviran.  See the second 
-reference for more information about SHAPE-Seq and for Matlab code used to 
-generate SHAPE-Seq reactivities from Spats output.
+        PNAS, 2011, doi: 10.1073/pnas.1106541108
 
+and now supports:
+
+- David Loughrey, Kyle E. Watters, Alexander H. Settle, and Julius B. Lucks
+  SHAPE-Seq 2.0: Systematic Optimization and Extension of High-Throughput
+  Chemical Probing of RNA Structure with Next Generation Sequencing
+      Nucleic Acids Research, 2014
+	
+Cole Trapnell wrote the original code in the Spats package, with updates by Julius B. Lucks.
+The Spats package implements a read mapping and reactivity analysis pipeline for calculating
+SHAPE-Seq reactivities from an input set of next-generation reads. The reactivity calculation
+implemented is described in:
+
+- Sharon Aviran, Julius B. Lucks, and Lior Pachter
+  RNA Structure characterization from chemical mapping experiments.
+      49th Allerton Conference, UIUC 2011. doi: 10.1109/Allerton.2011.6120379 .
+
+For more information about the SHAPE-Seq experiment, and the application of spats for data analysis,
+please see:
+
+- Stephanie A. Mortimer, Cole Trapnell, Sharon Aviran, Lior Pachter, and Julius B. Lucks
+  SHAPE-Seq: High Throughput RNA Structure Analysis
+      Current Protocols in Chemical Biology, 2012, doi: 10.1002/9780470559277.ch120019

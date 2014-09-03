@@ -38,7 +38,6 @@ use_message = '''
      --adapter-b                <string>    [ default: None ]
      --trim-match               <int>       [default: 9]
      --num-mismatches               <int>       [ default: 0    ]
-     --all-RT-starts                <noarg> [if present prints out reactivties for each RT site detected. default: false]
      
 SAM Header Options (for embedding sequencing run metadata in output):
     --rg-id                        <string>    (read group ID)
@@ -50,6 +49,8 @@ SAM Header Options (for embedding sequencing run metadata in output):
     --rg-date                      <string>    (ISO 8601 date of the sequencing run)
     --rg-platform                  <string>    (Sequencing platform descriptor) 
 '''
+
+#     --all-RT-starts                <noarg> [if present prints out reactivties for each RT site detected. default: false]
 
 class Usage(Exception):
     def __init__(self, msg):

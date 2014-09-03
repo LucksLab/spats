@@ -7,6 +7,12 @@ Software Foundation, Inc.
 This file is free documentation; the Free Software Foundation gives
 unlimited permission to copy, distribute and modify it.
 
+Spats Installation
+==================
+Spats requires several dependencies before being installed. For up-to-date
+installation instructions for these dependencies and spats itself, please
+visit http://spats.sourceforge.net .
+
 Basic Installation
 ==================
 

@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""
+adapter_trimmer.py
+
+Created by Kyle E. Watters and Julius B. Lucks 2014.
+Copyright (c) 2014 Kyle E. Watters and Julius B. Lucks. All rights reserved.
+"""
 
 import targets_analyzer
 import sys
