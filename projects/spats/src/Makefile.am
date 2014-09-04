@@ -24,7 +24,9 @@ bin_PROGRAMS = \
     compute_profiles
 
 dist_bin_SCRIPTS = \
-	spats.py 
+	spats.py \
+	adapter_trimmer.py 
+	targets_analyzer.py
 
 noinst_HEADERS = \
 	assert_helpers.h \
@@ -44,7 +46,7 @@ libspats_a_SOURCES = \
 	reads.cpp \
 	tokenize.cpp \
     bundles.cpp \
-    hits.cpp
+    hits.cpp 
 
 relabel_reads_SOURCES = relabel_reads.cpp  
 relabel_reads_LDADD = libspats.a $(BOOST_THREAD_LIB)
