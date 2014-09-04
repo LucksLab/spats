@@ -65,9 +65,9 @@ install-bin-scripts-hook: $(dist_bin_SCRIPTS) $(bin_SCRIPTS)
 ##   include directives point to the correct locations, and that variable
 ##   substitution is performed as expected
 ##
-install-scripts-hook: $(dist_SCRIPTS) $(bin_SCRIPTS)
+install-scripts-hook: $(dist_SCRIPTS) 
 	@$(NORMAL_INSTALL)
-	@list='$(dist_bin_SCRIPTS) $(bin_SCRIPTS)'; for p in $$list; do \
+	@list='$(dist_nobin_SCRIPTS)'; for p in $$list; do \
           f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
           b=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
           if test -f "$(DESTDIR)$(bindir)/$$f"  &&  test "$$f" != "$$b"; then \

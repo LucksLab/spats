@@ -2,6 +2,8 @@ include $(top_srcdir)/config/spats.mk
 
 AM_CPPFLAGS = -I$(top_srcdir)/src 
 
+nobindir = $(bindir)
+
 EXTRA_DIST = $(top_srcdir)/AUTHORS $(top_srcdir)/make_bin.sh \
 matlab/barcodes_statistics.m \
 matlab/bootstrap_error_bars.m \
@@ -27,7 +29,7 @@ dist_bin_SCRIPTS = \
 	spats.py \
 	adapter_trimmer.py 
 
-dist_SCRIPTS = \
+dist_nobin_SCRIPTS = \
 	targets_analyzer.py
 
 noinst_HEADERS = \
