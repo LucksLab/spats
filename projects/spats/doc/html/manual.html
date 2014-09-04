@@ -43,17 +43,18 @@
               nucleotide in each RNA. Spats then estimates nucleotide resolution SHAPE reactivities for each RNA,
               using a model-driven maximum likelihood procedure based on a model of the reverse transcriptase
               process used in the SHAPE-Seq experiment.	
-                <br>
-                Spats is a collaborative effort between 
-				 <a href="http://math.berkeley.edu/~saviran/">Sharon Aviran</a> and the <a href="http://math.berkeley.edu/~lpachter/">Pachter lab</a> at UC Berkeley, 
-                <a href="http://www.broadinstitute.org/~cole/">Cole Trapnell</a>
-                 at the Department of Stem Cell and Regenerative Biology at Harvard University, and
+                Spats is a collaborative effort between the
+				 <a href="http://bme.ucdavis.edu/aviranlab/">Aviran Lab</a> at UC Davis, the <a href="http://math.berkeley.edu/~lpachter/">Pachter Lab</a> at UC Berkeley, the 
+                <a href="http://cole-trapnell-lab.github.io">Trapnell Lab</a>
+                 at the University of Washington, and
                 <a href="http://luckslab.org/">the Lucks Lab</a>
                 at Cornell University. <br>
                 <br>
                 Spats is provided under the OSI-approved <a
                   href="http://en.wikipedia.org/wiki/Boost_Software_License">Boost
-                  License</a> </td>
+                  License</a>. fastx_spats_toolkit_v_0.1.0 is provided under the <a
+                  href="http://en.wikipedia.org/wiki/Affero_General_Public_License">AGPLv3
+                  License</a>. </td> 
               <td align="right" valign="middle"> <a
                   href="http://opensource.org"><img alt="Open Source
                     Software" src="images/osi-certified.gif" border="0"></a>
@@ -142,17 +143,22 @@
 
         <h2>Publications</h2>
         <div class="box">
-          <ul>
+            <ul>
 
-			  <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Trapnell C, Lucks JB, Mortimer SA, Luo S, Schroth GP, Doudna JA, Arkin AP, Pachter L.<b> <a href="http://www.pnas.org/content/108/27/11069.long">Modeling and automation of sequencing-based characterization of RNA structure</b></a> <br/><i><a href="http://www.pnas.org">PNAS</a></i> 10.1073/pnas.1106541108</p><br/></li>
+ 			  <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Trapnell C, Lucks JB, Mortimer SA, Luo S, Schroth GP, Doudna JA, Arkin AP, Pachter L.<b> <a href="http://www.pnas.org/content/108/27/11069.long">Modeling and automation of sequencing-based characterization of RNA structure</b></a> <br/><i><a href="http://www.pnas.org">PNAS</a></i> 10.1073/pnas.1106541108</p><br/></li>
 
 		      <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Lucks JB, Pachter L.<b> <a href="http://arxiv.org/abs/1106.5061v2">RNA structure characterization from chemical mapping experiments</a></b> <br><i><a href="Aviran_Allerton_2011.pdf"></a>Proceedings of the 49th Allerton Conference on Communication, Control, and Computing, 1743-1750, 2011</i></p></li>
 
 			  <li style="font-size: x-small; line-height: 130%"><p>Lucks JB, Mortimer SA, Trapnell C, Luo S, Aviran S, Schroth GP, Pachter L, Doudna JA, Arkin AP. <b> <a href="http://www.pnas.org/content/108/27/11063.long">Multiplexed RNA structure characterization with selective 2'-hydroxyl acylation analyzed by primer extension sequencing (SHAPE-Seq)</a></b> <br/>
 				<i><a href="http://www.pnas.org">PNAS</a></i> 10.1073/pnas.1106501108</p><br/>
-			  </li>
+				
+			  <li style="font-size: x-small; line-height: 130%"><p>Mortimer SA, Trapnell C, Aviran S, Pachter L and Lucks JB. <b> <a href="http://onlinelibrary.wiley.com/doi/10.1002/9780470559277.ch120019/abstract">SHAPE-Seq High Throughput RNA Structure Analysis</a></b> <br/>
+			  <i><a href="http://onlinelibrary.wiley.com/book/10.1002/9780470559277">Current Protocols in Chemical Biology</a></i>10.1002/9780470559277.ch120019</p><br/>
 
-          </ul>
+			  <li style="font-size: x-small; line-height: 130%"><p>Loughrey D, Watters KE, Settle AH, and Lucks JB. <b> <a href="XXX">SHAPE-Seq 2.0: Systematic Optimization and Extension of High-Throughput Chemical Probing of RNA Structure with Next Generation Sequencing</a></b> <br/>
+			  <i><a href=""></a></i></p><br/>
+			  </li>
+            </ul>
         </div>
         <h2>Other Contributors</h2>
         <div class="box">
@@ -195,7 +201,7 @@
 	  <p>
 	  Spats runs on intel-based computers running Linux or Mac OS X and 
 	  that have GCC 4.0 or greater installed.  Currently spats must be built from the source code, though we recognize the need
-	  for an easier installation system. Detailed instructions on building from the source are described <a href="installation.html">here</a>. 
+	  for an easier installation system. Detailed instructions on building from the source are described in the <a href="installation.html">installation manual</a>. 
       </p><br/>
  	  <br/>
 
@@ -209,7 +215,7 @@
         3' end of molecules.
       </p>
       <br/>	
-		<b>We highly recommend using the available adapter trimming algorithm available via the spats v0.8.0 release.</b>
+		<b>We highly recommend using the adapter trimming algorithm available via the spats v0.8.0 release.</b>
 	  <p>
       </p>
  	  <br/>
@@ -524,13 +530,20 @@
 	</div>
   </div>
   <div id="footer">
-  	<table width="100%" cellspacing=15><tr><td>
-		<td> This research was supported in part by
-            the Miller Institute for Basic Research in Science at UC
-            Berkeley. </td>
-    </td><td align=right>
-    Administrator: <a href="mailto:cole@cs.umd.edu">Cole Trapnell</a>. Design by <a href="http://www.free-css-templates.com" title="Design by David Herreman">David Herreman</a>
-    </td></tr></table>
+      <table cellspacing="15" width="100%">
+        <tbody>
+          <tr>
+            <td> This research was supported in part by
+              the Miller Institute for Basic Research in Science at UC
+              Berkeley, the Alfred P. Sloan Foundation, and the National Institutes of Health. </td>
+            <td align="right"> Administrators: <a
+                href="mailto:cole@cs.umd.edu">Cole Trapnell</a> and <a
+	                  href="">Julius B. Lucks (j b lucks at cornell dot edu)</a>.
+              Design by <a href="http://www.free-css-templates.com"
+                title="Design by David Herreman">David Herreman</a> </td>
+          </tr>
+        </tbody>
+      </table>
   </div>
 </div>
 

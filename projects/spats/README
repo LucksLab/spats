@@ -17,7 +17,7 @@ and now supports:
 - David Loughrey, Kyle E. Watters, Alexander H. Settle, and Julius B. Lucks
   SHAPE-Seq 2.0: Systematic Optimization and Extension of High-Throughput
   Chemical Probing of RNA Structure with Next Generation Sequencing
-      Nucleic Acids Research, 2014
+      Nucleic Acids Research, 2014 .
 
 The Spats package implements a read mapping and reactivity analysis pipeline for calculating
 SHAPE-Seq reactivities from an input set of next-generation reads. The reactivity calculation
