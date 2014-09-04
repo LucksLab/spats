@@ -26,6 +26,8 @@ bin_PROGRAMS = \
 dist_bin_SCRIPTS = \
 	spats.py \
 	adapter_trimmer.py 
+
+dist_SCRIPTS = \
 	targets_analyzer.py
 
 noinst_HEADERS = \
