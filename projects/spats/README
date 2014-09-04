@@ -54,22 +54,31 @@ environment variable before trying to run the mapping pipeline.
 
 Spats Usage
 ===========
-UPDATE
+For detailed usage and examples, please see http://spats.sourceforge.net/manual.html
+
+The spats pipeline is run in two stages: adapter trimming and spats analysis. Adapter trimming is implemented in the adapter_trimmer code, while spats analysis is implemented in the spats toolkit. A typical workflow is as follows:
+
+adapter_trimmer --A-b-sequence=<second_adapter_sequence> --A-t-sequence=<first_adapter_sequence> --read-len=35 R1.fastq R2.fastq RNA_targets.fa
+
+spats --num-mismatches 0 -o Output RNA_targets.fa RRRY YYYR combined_R1.fastq combined_R2.fastq
+
+where <second_adapter_sequence> is the sequence of the second adapter (present at the 3' end of cDNAs), <first_adapter_sequence> is the sequence of the first adapter (present at the 5' end of cDNAs), R1.fastq and R2.fastq are the fastq sequencing files from the sequencing run, and RNA_targets.fa is the FASTA formatted file containing the RNA sequences under study. Spats outputs text files (in Output) containing (+) and (-) fragment counts, beta's and theta’s, for each position in each RNA in the targets file.
 
 Usage:
-     spats [options] <rna.fasta> <treated_handle> <untreated_handle> <barcode_reads> <adduct_reads>
+	 adapter_trimmer [options]* <R1_seq.fastq> <R2_seq.fastq> <targets.fa>
 
-The treated_handle and untreated_handle are IUPAC strings indicating the barcoding
+     spats [options]* <targets.fa> <treated_handle> <untreated_handle> <R1_seq.fastq> <R2_seq.fastq>
+
+<targets.fa> is a fasta file containing the RNA sequences under study.
+<R1_seq.fastq> is a fastq file containing "_1" reads from a paired-end Illumina run.
+<R2_seq.fastq> is a fastq file containing "_2" reads from a paired-end Illumina run.
+<treated_handle> and <untreated_handle> are IUPAC strings indicating the barcoding
 scheme for the 1M7-treated and untreated pools.
 
-Given a paired end run with unbarcoded target sequences (in DNA alphabet) in the file 
-target_bcs.fa, barcode reads in HCT20611_50bp_s_7_1_sequence, and 
-adduct reads in HCT20611_50bp_s_7_2_sequence, you can run the mapping pipeline like this:
+Given a paired end run (2x35bp) with target sequences (in DNA alphabet) in the file 
+target_bcs.fa, "_1" reads in HCT20611_50bp_s_7_1_sequence.fq, and 
+"_2" reads in HCT20611_50bp_s_7_2_sequence.fq, you can run the mapping pipeline like this:
 
-spats -p 4 \
- --adapter-t AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATC \
- --adapter-b AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG \
- -o HCT20611_50bp.final \
- target_bcs.fa \
- RRRY YYYR \
- HCT20611_50bp_s_7_1_sequence HCT20611_50bp_s_7_2_sequence
+adapter_trimmer --A-b-sequence=AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG --A-t-sequence=AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATC --read-len=35 HCT20611_50bp_s_7_1_sequence.fq HCT20611_50bp_s_7_2_sequence.fq target_bcs.fa
+
+spats --num-mismatches 0 -o HCT20611_50bp.final RRRY YYYR combined_R1.fastq combined_R2.fastq

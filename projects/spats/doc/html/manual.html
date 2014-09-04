@@ -180,10 +180,13 @@
       <div id="toc">
   	    <ul>
   	    <li><a href="#prer">Prerequisites</a></li>
-  	    <li><a href="#cufflinks">Running Spats</a></li>
+		<li><a href="#trim">Adapter Trimming</a></li>
+  	    <li><a href="#spats">Running Spats</a></li>
 		<ul>
-  	      <li><a href="#cufflinks_input">Input Files</a></li>
-  	  	  <li><a href="#cufflinks_output">Output Files</a></li>
+		  <li><a href="#example">Example</a></li>
+  	      <li><a href="#details">Detailed Usage</a></li>
+		  <li><a href="#spats_input">Input Files</a></li>
+  	  	  <li><a href="#spats_output">Output Files</a></li>
  	    </ul>
   	    </ul><br/>
   	  </div>
@@ -191,9 +194,8 @@
 	  <h2 id="prer">Prerequisites</h2><br/>
 	  <p>
 	  Spats runs on intel-based computers running Linux or Mac OS X and 
-	  that have GCC 4.0 or greater installed.  You can install pre-compiled 
-	  binaries or build Spats from the source code.
-	  If you wish to build Spats yourself, you will need to install several required pieces of software as described <a href="installation.html">here</a>. 
+	  that have GCC 4.0 or greater installed.  Currently spats must be built from the source code, though we recognize the need
+	  for an easier installation system. Detailed instructions on building from the source are described <a href="installation.html">here</a>. 
       </p><br/>
  	  <br/>
 
@@ -207,16 +209,144 @@
         3' end of molecules.
       </p>
       <br/>	
-		Currently, spats can do adapter trimming using the options --adapter-t and --adapter-b that specifies the
-        specific adapter sequences as described below. However, this requires the additional installation of the
-        FASTX toolkit and LibGTextUtils as described in <a href="installation.html">installation</a>.
+		<b>We highly recommend using the available adapter trimming algorithm available via the spats v0.8.0 release.</b>
 	  <p>
       </p>
  	  <br/>
 
   	  <h2 id="spats">Running Spats</h2><br/>
-		Run <tt>spats</tt> from the command line as follows:
-	  <blockquote>
+		The spats pipeline is run in two stages: adapter trimming and spats analysis. Adapter trimming is implemented in the 
+		<tt>adapter_trimmer</tt> code, while spats analysis is implemented in the <tt>spats</tt> toolkit. A typical workflow is as follows:
+		<p></p></br>
+	   <blockquote>
+		adapter_trimmer --A-b-sequence=&lt;second_adapter_sequence&gt; --A-t-sequence=&lt;first_adapter_sequence&gt; --read-len=35 R1.fastq R2.fastq RNA_targets.fa
+	   </blockquote>
+	   <blockquote>
+		spats --num-mismatches 0 -o Output RNA_targets.fa RRRY YYYR combined_R1.fastq combined_R2.fastq
+	   </blockquote>
+		<p></p></br>
+	    where <tt>&lt;second_adapter_sequence&gt;</tt> is the sequence of the second adapter (present at the 3' end of cDNAs), 
+	    <tt>&lt;first_adapter_sequence&gt;</tt> is the 
+	    sequence of the first adapter (present at the 5' end of cDNAs), <tt>R1.fastq</tt> and <tt>R2.fastq</tt> are the fastq sequencing files from the sequencing 
+	    run, and <tt>RNA_targets.fa</tt> is the FASTA formatted file containing the RNA sequences under study. 
+	    Spats outputs text files (in <tt>Output</tt>) containing (+) and (-) fragment counts, beta's and theta’s, for each position in each RNA in the targets file 
+	    as discussed below. Note that <tt>adapter_trimmer</tt> creates the files <tt>combined_R1.fastq</tt> and <tt>combined_R2.fastq</tt> which are then fed into 
+	    the spats command.
+		<p>
+	    </p>
+	 	<br/>
+		
+	  	<h2 id="example">Example</h2><br/>
+		Given a paired end run (2x35bp) with target sequences (in DNA alphabet) in the file 
+		target_bcs.fa, "_1" reads in HCT20611_50bp_s_7_1_sequence.fq, and 
+		"_2" reads in HCT20611_50bp_s_7_2_sequence.fq, you can run the mapping pipeline like this:
+		<p></p><br/>
+		<blockquote>
+		adapter_trimmer --A-b-sequence=AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG 
+		                --A-t-sequence=AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATC 
+		                --read-len=35 HCT20611_50bp_s_7_1_sequence.fq HCT20611_50bp_s_7_2_sequence.fq target_bcs.fa
+	    </blockquote>
+	    <blockquote>
+		spats --num-mismatches 0 -o HCT20611_50bp.final RRRY YYYR combined_R1.fastq combined_R2.fastq
+		</blockquote>
+		<p></p><br/>	
+		
+	  <h2 id="details">Detailed Usage</h2><br/>	
+
+    <b><tt>adapter_trimmer</tt></b><p></p><br/>
+	<blockquote>
+ 	   Usage: adapter_trimmer [options]* &lt;R1_seq.fastq&gt; &lt;R2_seq.fastq&gt; &lt;targets.fa&gt;
+	</blockquote>  
+
+	  <table CELLSPACING=15>
+	  <tr><td VALIGN=top>
+	  <b>Arguments:</b>
+	  </td><td VALIGN=top>
+	  </td></tr>
+	  <tr><td VALIGN=top nowrap>
+
+	  <tr><td VALIGN=top nowrap>
+	  <tt>&lt;R1_seq.fastq&gt;</tt>
+	  </td><td VALIGN=top>
+	  A fastq file containing "_1" reads from a paired-end Illumina run.
+	  </td></tr>
+
+	  <tr><td VALIGN=top nowrap>
+	  <tt>&lt;R2_seq.fastq&gt;</tt>
+	  </td><td VALIGN=top>
+	  A fastq file containing "_2" reads from a paired-end Illumina run.
+	  </td></tr>
+
+	  <tr><td VALIGN=top nowrap>
+	  <tt>&lt;targets.fa&gt;</tt>
+	  </td><td VALIGN=top>
+	  A FASTA file containing the target RNA sequences in the SHAPE experiment 
+	  (excluding reactivty handles, Spats will add these automatically).
+	  </td></tr>
+
+	  <tr><td VALIGN=top>
+	  <b>Options:</b>
+	  </td><td VALIGN=top>
+	  </td></tr>
+	  
+	  <tr><td VALIGN=top nowrap>
+	  <tt>--trim-match &lt;N&gt;</tt>
+	  </td><td VALIGN=top>
+	  Number of nucleotides of adapter to search for with clipper (default = 6).
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>--read-len &lt;N&gt;</tt>
+	  </td><td VALIGN=top>
+	  Number of length of reads (ex. 35 for 2x35 bp paired end reads) (default = 35).
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>--min-read-len &lt;N&gt;</tt>
+	  </td><td VALIGN=top>
+	  Number of nt on the 3' end to leave after (w/ adapter) (default = 6).
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>--A-b-sequence &lt;string&gt;</tt>
+	  </td><td VALIGN=top>
+	  The sequence of A_adapter_b (which is ligated to the single-stranded cDNA products of the RT reaction). (default: 
+	  AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG).	
+	  </td></tr>
+		
+	  <tr><td VALIGN=top nowrap>
+	  <tt>--A-t-sequence &lt;string&gt;</tt>
+	  </td><td VALIGN=top>
+	  The sequence of A_adapter_t (which contains the RT primer). (default: AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT).
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>--max-handle-len &lt;N&gt;</tt>
+	  </td><td VALIGN=top>
+	  Number of nucleotides in the longest (+/-) handle (default = 4 for RRRY/YYYR).
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>-o/--output-dir &lt;string&gt;</tt>
+	  </td><td VALIGN=top>
+	  If running many simultaneously runs in the same folder, use this option to name the treated reads folder to avoid overwriting during processing.
+	  </td></tr>
+      
+      <tr><td VALIGN=top>
+	  <b>Output:</b>
+	  </td><td VALIGN=top>
+	  </td></tr>
+	  <tr><td VALIGN=top nowrap>
+
+	  <tr><td VALIGN=top nowrap>
+	  <tt>combined_R1.fastq, combined_R2.fastq</tt>
+	  </td><td VALIGN=top>
+	  Fastq files containing "_1" and "_2" reads (respectively) for which all adpater sequences have been removed.
+	  </td></tr>
+   	  </table><br/>
+	
+	<b><tt>spats</tt></b><p></p><br/>
+	<blockquote>
  	   Usage: spats [options]* &lt;rna_targets.fa&gt; &lt;treated_handle&gt; &lt;untreated_handle&gt;  &lt;reads1_1[,...,readsN_1]&gt; &lt;reads1_1[,...,readsN_1]&gt;
 	  </blockquote>
 	  <p>
@@ -233,19 +363,19 @@
 	  <tt>&lt;rna_targets.fa&gt;</tt>
 	  </td><td VALIGN=top>
 	  A FASTA file containing the target RNA sequences in the SHAPE experiment 
-	  (excluding reactivty handles, Spats will add these automatically)
+	  (excluding reactivty handles (i.e. RRRY/YYYR), Spats will add these automatically).
 	  </td></tr>
 
 	  <tr><td VALIGN=top nowrap>
 	  <tt>&lt;treated_handle&gt;</tt>
 	  </td><td VALIGN=top>
-	  A nucleotide sequence with which all targets in the <b>treated</b> sample are tagged.  You can use IUPAC codes here, e.g. <tt>RRRY</tt>
+	  A nucleotide sequence with which all targets in the <b>treated</b> sample are tagged.  You can use IUPAC codes here, e.g. <tt>RRRY</tt>.
 	  </td></tr>
 	
 	  <tr><td VALIGN=top nowrap>
 	  <tt>&lt;untreated_handle&gt;</tt>
 	  </td><td VALIGN=top>
-	  A nucleotide sequence with which all targets in the <b>untreated</b> sample are tagged. You can use IUPAC codes here, e.g. <tt>YYYR</tt>
+	  A nucleotide sequence with which all targets in the <b>untreated</b> sample are tagged. You can use IUPAC codes here, e.g. <tt>YYYR</tt>.
 	  </td></tr>
 
 	  <tr><td VALIGN=top nowrap>
@@ -268,7 +398,6 @@
 	  </td><td VALIGN=top>
 	  </td></tr>
 	  
-	
 	  <tr><td VALIGN=top nowrap>
 	  <tt>-o/--output-dir &lt;output_dir_name&gt;</tt>
 	  </td><td VALIGN=top>
@@ -278,19 +407,24 @@
 	  <tr><td VALIGN=top nowrap>
 	  <tt>--adapter-t &lt;adapter sequence&gt;</tt>
 	  </td><td VALIGN=top>
-	  The sequence of adapter_t (which contains the RT primer).  This option is used when adapter trimming is desired. Example <tt>AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATC</tt>
+	  <b>Deprecatated in v0.8.0. It is preferrable to handle adapter trimming via the <tt>adapter_trimmer</tt> script outlined above. </b> The sequence of 
+	  adapter_t (which contains the RT primer).  This option is used when adapter trimming is desired. Example 
+	  <tt>AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATC</tt>
 	  </td></tr>
 		
 	  <tr><td VALIGN=top nowrap>
 	  <tt>--adapter-b &lt;adapter sequence&gt;</tt>
 	  </td><td VALIGN=top>
-	  The sequence of adapter_b (which is ligated to the single-stranded cDNA products of the RT reaction).  This option is used when adapter trimming is desired. Example <tt>AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG</tt>
+	  <b>Deprecatated in v0.8.0. It is preferrable to handle adapter trimming via the <tt>adapter_trimmer</tt> script outlined above. </b> The sequence of 
+	  adapter_b (which is ligated to the single-stranded cDNA products of the RT reaction).  This option is used when adapter trimming is desired. Example    
+	  <tt>AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG</tt>
 	  </td></tr>
 	
 	  <tr><td VALIGN=top nowrap>
 	  <tt>--num-mismatches &lt;0-3&gt;</tt>
 	  </td><td VALIGN=top>
-	  The number of mismatches you want Bowtie to allow in its alignments for each read to the target RNAs.
+	  The number of mismatches you want Bowtie to allow in its alignments for each read to the target RNAs.<b>Note: this option does not work in v0.8.0 because of 
+	  the algorithm implemented in <tt>adapter_trimmer</tt>.
 	  </td></tr>
 	
 	  <tr><td VALIGN=top nowrap>
@@ -298,12 +432,23 @@
 	  </td><td VALIGN=top>
 	  The number of threads you want Bowtie to use when aligning the reads to the target RNAs
 	  </td></tr>
+	  
+	  <tr><td VALIGN=top>
+	  <b>Output:</b>
+	  </td><td VALIGN=top>
+	  </td></tr>
+	  <tr><td VALIGN=top nowrap>
+
+	  <tr><td VALIGN=top nowrap>
+	  <tt>see below</tt>
+	  </td><td VALIGN=top>
+	  </td></tr>
 	  </table><br/>
 	
-	  <h2 id="spats_input">Spats Input</h2><br/>
+	  <h2 id="spats_input">Spats Pipeline Input</h2><br/>
 		<p>
-		Spats takes three files as input: the target RNA file in FASTA format, and two files containing the paired-end sequencing
-        reads from the experiment in FASTQ format. The sequecing reads for both the plus and minus channels of the
+		The spats pipeline (<tt>adapter_trimmer</tt> and <tt>spats</tt>) takes three files as input: the target RNA file in FASTA format, and two files containing 
+		the paired-end sequencing reads from the experiment in FASTQ format. The sequecing reads for both the plus and minus channels of the
         SHAPE experiment must be contained in the files. Please refer to the references on the right hand side for
         more information on how these handles are included in library preparation and sequencing. It is critical
         that the mated reads appear in the same order in each file. The target RNA file is in FASTA format, and
@@ -327,41 +472,55 @@
         experiment.
       <br/>
       <br/>
-  <h2 id="spats_output">Spats Output</h2><br/>
+  <h2 id="spats_output">Spats Pipeline Output</h2><br/>
 	
-	Spats produces a directory (by default called <tt>spats_out</tt>) containing several output files.
+	The spats pipeline produces a directory (by default called <tt>spats_out</tt>) containing several output files.
+	<p></p></br>
+	
 	<h3>De-multiplexed reads</h3>
 	Spats splits the reads into the plus and minus channels according to the 
 	handle sequences you've specified.  The output directory will contain FASTQ
 	files named <tt>&lt;treated_handle&gt;_1.fq</tt>, <tt>&lt;treated_handle&gt;_2.fq</tt>, <tt>&lt;untreated_handle&gt;_1.fq</tt> and <tt>&lt;untreated_handle&gt;_2.fq</tt> 
+	<p></p></br>
 	<h3>Reactivities</h3>
 		<p>
 		The <tt>reactivities.out</tt> file is a tab-delimited file of values 
-		providing the reactivity at each base of the target RNAs.  The example 
-		below shows the first few rows of a run against wild-type RNaseP:
+		providing the reactivity at each base of each target RNAs.  The example 
+		below shows the first few rows of a run against wild-type RNaseP (barcoded with <tt>CTTG</tt>) and 
+		tRNA (barcoded with <tt>AAAG</tt>>). Data for different targets are concatenated within the same output file.
 		</p>
 		<br/>
 	<pre>
-	sequence  five_prime_offset	nucleotide	treated_mods	untreated_mods	beta  	    theta	c
-	RNaseP_WT	0	            *	           77211	55078	        -	    -	        0.840988
-	RNaseP_WT	1	            G	           10779	5532	        0.0422978   0.041584	0.840988
-	RNaseP_WT	2	            G	           5505	        3141	        0.012441    0.0120808	0.840988
-	RNaseP_WT	3	            T	           289	        249	        0	    0	        0.840988
-	RNaseP_WT	4	            C	           381	        306	        0	    0	        0.840988
-	...
+		sequence        rt_start  five_prime_offset  nucleotide  treated_mods  untreated_mods  beta           theta                c
+		RNASeP_WT_CTTG     202            0               *          1144           4201         -              -               1.22577
+		RNASeP_WT_CTTG     202            1               G          28             110          0              0               1.22577
+		RNASeP_WT_CTTG     202            2               G          87             315          0.000908854    0.000883849     1.22577
+		RNASeP_WT_CTTG     202            3               T          10             6            0.00553418     0.00539681      1.22577
+		RNASeP_WT_CTTG     202            4               C          7              23           0.000459691    0.000446923     1.22577
+		RNASeP_WT_CTTG     202            5               G          8              21           0.00146664     0.00142677      1.22577	
+		...
+		tRNA_AAAG          136            0               *          1267           30440        -              -               2.53892
+		tRNA_AAAG          136            1               G          118            1145         0.0213467      0.0205298       2.53892
+		tRNA_AAAG          136            2               G          28             123          0.00672447     0.00635241      2.53892
+		tRNA_AAAG          136            3               C          17             51           0.00432867     0.0040774       2.53892
+		tRNA_AAAG          136            4               C          84             319          0.0193321      0.0185458       2.53892
+		tRNA_AAAG          136            5               T          95             529          0.0182941      0.0175276       2.53892
+		...
 	</pre>
 	<table CELLSPACING=15>
 	
-	<tr><td VALIGN=top nowrap>sequence</td><td VALIGN=top>	Name of target RNA (from the input sequences FASTA file.)</td></tr>
-	<tr><td VALIGN=top nowrap>five_prime_offset</td><td VALIGN=top>	Position in target RNA, 0=full length</td></tr>
-	<tr><td VALIGN=top nowrap>nucleotide</td><td VALIGN=top>	Base at position in target, *=full length</td></tr>
-	<tr><td VALIGN=top nowrap>treated_mods</td><td VALIGN=top>	Number of (+) fragments ending at position in target</td></tr>
-	<tr><td VALIGN=top nowrap>untreated_mods</td><td VALIGN=top>	Number of (-) fragments ending at position in target</td></tr>
-	<tr><td VALIGN=top nowrap>beta</td><td VALIGN=top>	Beta value at position in target</td></tr>
-	<tr><td VALIGN=top nowrap>theta	</td><td VALIGN=top>Theta value at position in target</td></tr>
-	<tr><td VALIGN=top nowrap>c</td><td VALIGN=top>	Estimated SHAPE modifications per target</td></tr>
+	<tr><td VALIGN=top nowrap><tt>sequence</tt></td><td VALIGN=top>	Name of target RNA (from the input sequences FASTA file).</td></tr>
+	<tr><td VALIGN=top nowrap><tt>rt_start</tt></td><td VALIGN=top>	The base index where RT priming started. For SHAPE-Seq v2.0 this is the end of the RNA. For RT 
+		                                                            primers that target internal sequences this is internal to the RNA sequence.</td></tr>
+	<tr><td VALIGN=top nowrap><tt>five_prime_offset</tt></td><td VALIGN=top>	Position in target RNA, 0=full length</td></tr>
+	<tr><td VALIGN=top nowrap><tt>nucleotide</tt></td><td VALIGN=top>	Base at position in target, *=full length</td></tr>
+	<tr><td VALIGN=top nowrap><tt>treated_mods</tt></td><td VALIGN=top>	Number of (+) fragments ending at position in target</td></tr>
+	<tr><td VALIGN=top nowrap><tt>untreated_mods</tt></td><td VALIGN=top>	Number of (-) fragments ending at position in target</td></tr>
+	<tr><td VALIGN=top nowrap><tt>beta</tt></td><td VALIGN=top>	Beta value at position in target</td></tr>
+	<tr><td VALIGN=top nowrap><tt>theta</tt></td><td VALIGN=top>Theta value at position in target</td></tr>
+	<tr><td VALIGN=top nowrap><tt>c</tt></td><td VALIGN=top>	Estimated SHAPE modifications per target</td></tr>
 	</table>
-	See the references for definitions of beta, theta and c.
+	See the references, and especially <a href="http://arxiv.org/abs/1106.5061v2">Aviran, Lucks, Pachter: RNA structure characterization from chemical mapping experiments</a>, for definitions of beta, theta and c.
 	</div>
   </div>
   <div id="footer">
