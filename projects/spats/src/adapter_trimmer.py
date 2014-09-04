@@ -19,25 +19,27 @@ import re
 current_dir = os.getcwd()+'/'
 
 help_message = '''
-Adapter_trim trims adapter sequences from fastq files in preparatino for processing by spats.
+adapter_trimmer trims adapter sequences from fastq files in preparatino for processing by spats.
 
 takes fastq files, searches for short sequences that are reverse complimentary,
 trims off adapter sequences, and prepares reads for processing directly with spats
 
 Usage:
-   Adapter_trim [options] <R1_seq.fastq> <R2_seq.fastq> <targets.fa>
+   adapter_trimmer [options] <R1_seq.fastq> <R2_seq.fastq> <targets.fa>
 
 Options:
 -h, --help                  opens help message
 -v, --version               displays version number
---trim-match <N>            number of nucleotides of adapter to search for with clipper (default = 6) *Adjust trim length this way.
---read-len <N>              Number of length of reads (ex. 35 for 2x35 bp paired end reads) (default = 35)
---min-read-len <n>          Number of nt on the 3' end to leave after (w/ adapter) (default = 6)
---A-b-sequence <string>     A_adapter_b sequence (default: AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG)
---A-t-sequence <string>     A_adapter_t sequence (default: AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT)
---max-handle-len <N>        Number of nucleotides in the longest (+/-) handle (default = 4 for RRRY/YYYR)
+--trim-match <N>            Number of nucleotides of adapter to search for with clipper (default = 6) *Adjust trim length this way.
+--read-len <N>              Number of length of reads (ex. 35 for 2x35 bp paired end reads) (default = 35).
+--min-read-len <n>          Number of nt on the 3' end to leave after (w/ adapter) (default = 6).
+--A-b-sequence <string>     The sequence of A_adapter_b (which is ligated to the single-stranded cDNA products of the RT reaction). 
+                            (default: AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG).
+--A-t-sequence <string>     The sequence of A_adapter_t (which contains the RT primer). 
+                            (default: AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT).
+--max-handle-len <N>        Number of nucleotides in the longest (+/-) handle (default = 4 for RRRY/YYYR).
 -o, --output <string>       If running many simultaneously runs in the same folder, use this option to name the treated reads
-                            folder to avoid overwriting during processing
+                            folder to avoid overwriting during processing.
 
 JBL - if trim-match or min-read-len are not set, they will automatically be determined
 
