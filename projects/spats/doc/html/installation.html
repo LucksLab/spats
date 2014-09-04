@@ -180,99 +180,151 @@
           <table>
             <tbody>
               <tr>
-                <td>
+                <td><h3>Installation</h3>
+			  	  <br/>
+					Spats runs on intel-based computers running Linux or Mac OS X and that have GCC 4.0 or greater installed.  Currently spats must be built from the source code, though we recognize the need for an easier installation system.<p></p></br>
+					
+					Several pieces of software are required to run the <tt>spats</tt> pipeline. The software below should be installed in the order listed.
+					Detailed instructions are given for a <it>local</it> installation on a unix system (<b>recommended</b>)- i.e. where the software is installed 
+					into a specified location rather than the default unix locations such as <tt>/usr/local</tt>. If a default installation is required,
+					<tt>/usr/local</tt> may be specified in place of the custom location, or the <tt>--prefix</tt> options may be left out.					
+			       	
+			      </p><br/>
+				  <div id="toc">
+			  	    <ul>
+			  	    <li><a href="#path">Path Setup</a></li>
+					<li><a href="#fastx">FastX_Spats and Libgtextutils</a></li>
+			  	    <li><a href="#bowtie">Bowtie</a></li>
+				    <li><a href="#boost">Boost</a></li>
+    				<li><a href="#spats">Spats</a></li>
+			  	    </ul><br/>
+			  	  </div>
+					
+				  <h3 id="path">Path Setup</h3><br/>
+					  <p> The creation of a local installation of spats is recommended. Currently we recommend creating the following directory
+						  structure:
+						<p></p></br>
+						<blockquote>
+							&lt;path_prefix&gt;/SHAPE-Seq/
+						</blockquote>
+						<p></p></br>
+						which should contain:
+						<p></p></br>
+						<blockquote>
+							&lt;path_prefix&gt;/SHAPE-Seq/bin/ &lt;path_prefix&gt;/SHAPE-Seq/bin/bin/ &lt;path_prefix&gt;/SHAPE-Seq/bin/lib/ &lt;path_prefix&gt;/SHAPE-Seq/src/ &lt;path_prefix&gt;/SHAPE-Seq/build/
+						</blockquote>
+						<p></p></br>
+						Here <tt>&lt;path_prefix&gt;</tt> is the location of this directory on your system. To ensure that these paths will be used correctly
+						by the installation system, it is helpful to add them to your default shell, for example in bash by including the following lines in
+						your <tt>.bash_profile</tt>:
+						<p></p></br>
+						<blockquote>
+							export PATH=$PATH:&lt;path_prefix&gt;/SHAPE-Seq/bin:&lt;path_prefix&gt;/SHAPE-Seq/bin/bin
+						</blockquote>
+						<blockquote>
+							export LD_LIBRARY_PATH=&lt;path_prefix&gt;/SHAPE-Seq/bin/lib
+						</blockquote>
+						
+				      </p><br/>
+				 	  <br/>
+				
+					<h3 id="fastx">Installing FastX_Spats_Toolkit and LibGTextUtils (Required)</h3>  
+					     <tt>fastx_spats_toolkit</tt> and <tt>libgtextutils</tt> are required for adapter trimming.
+					     <ol>
+							<li> Download the software. <tt>fastx_spats_toolkit-0.1.0</tt> can be gotten from the spats website <a 
+								href="./downloads/fastx_spats_toolkit-0.1.0.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">here</a>. <tt>libgtextutils-0.6.1.tar.bz2</tt> can be gotten from the 
+		 						<a href="http://hannonlab.cshl.edu/fastx_toolkit/download.html">Hannon Lab Fastx Site</a> at this <a 
+			                    href="http://hannonlab.cshl.edu/fastx_toolkit/libgtextutils-0.6.1.tar.bz2"> link </a>.
+							<li> Untar the libgtextutil file: <tt>tar -xvjf libgtextutils-0.6.tar.bz2 </tt>
+							<li> Move the folder created to the build directory: <tt>mv libgtextutils-0.6 &lt;path_prefix&gt;/SHAPE-Seq/build/ </tt>
+						    <li> Change into the libgtextutils build directory: <tt>cd &lt;path_prefix&gt;/build/libgtextutils-0.6/</tt>
+							<li> Configure the libgtextutils install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin </tt>
+							<li> Run: <tt>make</tt> and <tt>make install</tt>.
+						    <li> Now tell package config tool where to look for libgtextutils: <tt>export 
+							     PKG_CONFIG_PATH=&lt;path_prefix&gt;/SHAPE-Seq/bin/lib/pkgconfig:$PKG_CONFIG_PATH</tt>
+							<li> Untar the FastX file: <tt>tar -xvjf fastx_spats_toolkit-0.1.0.tar.bz2</tt>
+							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit-0.1.0 &lt;path_prefix&gt;/build/</tt>
+							<li> Change into the FastX build directory: <tt>cd &lt;path_prefix&gt;/build/fastx_spats_toolkit-0.1.0/ </tt>
+							<li> Configure the FastX install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>
+							<li> Run: <tt>make</tt> and <tt>make install</tt>.
+						 </ol>
+					
+					
+					   
+						<br/>
+				
 					<h3 id="bowtie">Installing Bowtie (Required)</h3> 
-					Please install <a href="http://bowtie-bio.sourceforge.net">Bowtie</a> version 0.12.7.  Spats is not currently compatible with Bowtie 2. You will need the following Bowtie programs in your <tt>PATH</tt>:
-		            <ul>
-		        	      <li><tt>bowtie</tt></li>
-		        	      <li><tt>bowtie-build</tt></li>
-						  <li><tt>bowtie-inspect</tt></li>
-		        	</ul>
+					<tt>bowtie</tt> is used to align next-generation sequencing reads. <b>Bowtie version 0.12.8 is required.</b> Spats is not currently compatible 
+					with Bowtie 2.
+						<ol>
+							<li> Download the software. Version 0.12.8 can be gotten from <a 
+								 href="http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.8/">the bowtie sourceforge site</a>.
+							<li> Copy the bowtie zip into the <tt>&lt;path_prefix&gt;/src/</tt> directory using the <tt>cp</tt> command.
+							<li> Unzip the bowtie zip file: <tt>unzip bowtie-0.12.8.zip</tt>
+							<li> Move the folder created to the build directory: <tt>mv bowtie-0.12.8 &lt;path_prefix&gt;/build/</tt>
+							<li> Link the <tt>bowtie</tt> and <tt>bowtie-build</tt> binaries into the <tt>&lt;path_prefix&gt;/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/bin; ln -s &lt;path_prefix&gt;/build/bowtie-0.12.8/bowtie .; ln -s &lt;path_prefix&gt;/build/bowtie-0.12.8/bowtie-build .</tt>
+						</ol>
+					
 					<br/>
-				  <h3 id="fastx">Installing FASTX and LibGTextUtils (Optional)</h3>  
-				     If you would like to include adapter trimming from reads, you will need to install FASTX and
-                     LibGTextUtils, developed by members of Greg Hannon's lab, as described <a
-                     href="http://hannonlab.cshl.edu/fastx_toolkit/">here</a>. The following tools must be in your
-                     PATH:
-					<ul>
-		        	      <li><tt>fastx-clipper</tt></li>
-		        	</ul> 
-					<br/>
+				  
                   <h3 id="boost">Installing Boost (Required)</h3>
+				  <tt>boost</tt> version 1.49.0 is required.
                   <br/>
-                  <ol>
-                    <li><a href="http://www.boost.org/users/download/">Download</a>
-                      Boost and the <tt>bjam</tt> build engine.</li>
-                    <li>Unpack bjam with the command
-	                    <blockquote>
-		                 ./bootstrap.sh
-		                </blockquote>
-	                </li>
-                    <li>Add bjam to your PATH.</li>
-                    <li>Unpack the Boost tarball and <tt>cd</tt> to the
-                      Boost source directory. This directory is called
-                      the BOOST_ROOT in some Boost installation
-                      instructions.</li>
-                    <li>Build Boost. Note that you can specify where to
-                      put Boost with the --prefix option. The default
-                      Boost installation directory is <tt>/usr/local</tt>.
-                      Take note of the boost installation directory,
-                      because you will need to tell the Spats
-                      installer where to find Boost later on.
-                      <p>If you are on Mac OS X, type (all on one line):
-                        <br/>
-                      </p>
-                      <blockquote>bjam
-                        --prefix=&lt;YOUR_BOOST_INSTALL_DIRECTORY&gt;
-                        --toolset=darwin --architecture=x86
-                        --address_model=32_64 --link=static
-                        --runtime-link=static --layout=versioned --stage=install</blockquote>
-                    </li>
-                    <p>If you are on a 32-bit Linux system, type (all on
-                      one line): <br/>
-                    </p>
-                    <blockquote>bjam
-                      --prefix=&lt;YOUR_BOOST_INSTALL_DIRECTORY&gt;
-                      --toolset=gcc --architecture=x86 --address_model=32
-                      --link=static --runtime-link=static --stage=install</blockquote>
-                    <p>If you are on a 64-bit Linux system, type (all on
-                      one line): <br/>
-                    </p>
-                    <blockquote>bjam
-                      --prefix=&lt;YOUR_BOOST_INSTALL_DIRECTORY&gt;
-                      --toolset=gcc --architecture=x86 --address_model=64
-                      --link=static --runtime-link=static --stage=install</blockquote>
-                  </ol>
+					<ol>
+						<li> Download the software. Version 1.49.0 can be gotten from <a 
+							 href="http://www.boost.org/users/download/">here</a>.
+						<li> Copy the boost tarball into the <tt>&lt;path_prefix&gt;/src/</tt> directory using the <tt>cp</tt> command.
+						<li> Untar the boost file: <tt>tar xzvf boost_1_49_0.tar.gz</tt>
+						<li> Move the folder created to the build directory: <tt>mv boost_1_49_0 &lt;path_prefix&gt;/build/</tt>
+						<li> Change into the boost build directory: cd <tt>&lt;path_prefix&gt;/build/boost_1_49_0/</tt>
+						<li> Setup the boost build process: <tt>./bootstrap.sh</tt>
+						<li> Link the <tt>bjam</tt> into the <tt>&lt;path_prefix&gt;/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/bin; ln -s &lt;path_prefix&gt;/build/boost_1_49_0/bjam .; cd &lt;path_prefix&gt;/build/boost_1_49_0</tt>
+						<li>Build Boost. <p>If you are on Mac OS X, type (all on one line):
+		                        <br/>
+		                      </p>
+		                      <blockquote>bjam
+		                        --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin/
+		                        --toolset=darwin --architecture=x86
+		                        --address_model=32_64 --link=static
+		                        --runtime-link=static --layout=versioned --stage=install</blockquote>
+		                    </li>
+		                    <p>If you are on a 32-bit Linux system, type (all on
+		                      one line): <br/>
+		                    </p>
+		                    <blockquote>bjam
+		                      --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin/
+		                      --toolset=gcc --architecture=x86 --address_model=32
+		                      --link=static --runtime-link=static --stage=install</blockquote>
+		                    <p>If you are on a 64-bit Linux system, type (all on
+		                      one line): <br/>
+		                    </p>
+		                    <blockquote>bjam
+		                      --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin/
+		                      --toolset=gcc --architecture=x86 --address_model=64
+		                      --link=static --runtime-link=static --stage=install</blockquote>
+ 					</ol>
                   <br/>
                  
-                  <h3 id="boost">Building Spats (Required)</h3>
+                  <h3 id="spats">Building Spats (Required)</h3>
+				  <b>We currently recommend installing <tt>spats</tt> version 0.8.0.</b>
                   <br/>
                   <ol>
-                    <li>Unpack the Spats source tarball:
-                      <blockquote>tar zxvf spats-0.7.0.tar.gz</blockquote>
-                    </li>
-                    <li>Change to the Spats directory:
-                      <blockquote>cd spats-0.7.0</blockquote>
-                    </li>
-                    <li>Configure Spats. If Boost is installed
-                      somewhere other than <tt>/usr/local</tt>, you
-                      will need to tell the installer where to find it
-                      using the <tt>--with-boost</tt> option. Specify
-                      where to install Spats using the <tt>--prefix</tt>
-                      option.
-                      <blockquote>./configure
-                        --prefix=/path/to/spats/install
-                        --with-boost=/path/to/boost</blockquote>
-                      If you see any errors during configuration, verify
-                      that you are using Boost version 1.38 or higher,
-                      and that the directory you specified via <tt>--with-boost</tt>
-                      contains the boost header files and libraries. See
-                      the Boost <a href="">Getting started</a> page for
-                      more details.  </li>
-                    <li>Finally, make and install Spats.
-                      <blockquote>make</blockquote>
-                      <blockquote>make install</blockquote>
-                    </li>
+                    <li> Download the software. <tt>spats-0.8.0</tt> can be gotten from the spats website <a 
+							href="./downloads/spats-0.8.0.tar.gz"
+	                        onclick="javascript:
+	                        pageTracker._trackPageview('/downloads/cufflinks_source');
+	                        ">here</a>.
+					<li> Untar the spats file: <tt>tar -xvzf spats-0.8.0.tar.gz</tt>
+					<li> Move the folder created to the build directory: <tt>mv spats-0.8.0 &lt;path_prefix&gt;/build/</tt>
+					<li> Change into the spats build directory: <tt>cd &lt;path_prefix&gt;/build/spats-0.8.0/ </tt>
+					<li> Configure the spats install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin 
+						 --with-boost=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>. If you encounter errors in this step, make sure the 
+						<tt>LD_LIBRARY_PATH</tt> variable is set to where the boost libraries are found. 
+						See <a href="#path">Path Setup</a> above.
+					<li> Run: <tt>make</tt> and <tt>make install</tt>.			
                   </ol>
                   <!-- <h2 id="test">Testing the installation</h2>
                   <br/>
