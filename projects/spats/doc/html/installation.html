@@ -111,37 +111,55 @@
  		              </ul>
  		            </div> -->
 
-          <a href="./downloads">
-            <h2><u>Releases</u></h2>
-          </a>
-          <div class="box">
-            <ul>
-              <table width="100%">
-                <tbody>
-                  <tr>
-                    <td>version 0.7.0</td>
-                    <td align="right">X/X/2012</td>
-                  </tr>
-                  <tr>
-                    <td><a href="./downloads/spats-0.7.0.tar.gz"
-                        onclick="javascript:
-                        pageTracker._trackPageview('/downloads/cufflinks_source');
-                        ">&nbsp;&nbsp;&nbsp;Source code</a></td>
-                  </tr>
-                </tbody>
-              </table>
-            </ul>
-          </div>
-
-          <h2>Related Tools</h2>
-          <div class="box">
-            <ul>
-              <li><a href="http://bowtie.cbcb.umd.edu">Bowtie</a>:
-                Ultrafast short read alignment</li>
-              <li><a href="http://hannonlab.cshl.edu/fastx_toolkit/">FastX Toolkit</a>:
-                FASTQ/A short-reads pre-processing tools</li>
-            </ul>
-          </div>
+		          <a href="./downloads">
+		            <h2><u>Releases</u></h2>
+		          </a>
+		          <div class="box">
+		            <ul>
+		              <table width="100%">
+		                <tbody>
+		                  <tr>
+		                    <td>spats version 0.8.0</td>
+		                    <td align="right">X/X/2014</td>
+		                  </tr>
+		                  <tr>
+		                    <td><a href="./downloads/spats-0.8.0.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">&nbsp;&nbsp;&nbsp;Source code</a></td>
+		                  </tr>
+		                  <tr>
+		                    <td>fastx_spats_toolkit version 0.1.0</td>
+		                    <td align="right">X/X/2014</td>
+		                  </tr>
+		                  <tr>
+		                    <td><a href="./downloads/fastx_spats_toolkit-0.1.0.tar.bz2"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">&nbsp;&nbsp;&nbsp;Source code</a></td>
+		                  </tr>
+						  <td>fastx_spats_toolkit version 0.1.0 - binary distribution for 64-bit GNU/Linux 2.6.18</td>
+		                  <td align="right">X/X/2014</td>
+						  <tr>
+		                    <td><a href="./downloads/fastx_spats_toolkit_0.0.1_bin_dist.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">&nbsp;&nbsp;&nbsp;Source code</a></td>
+		                  </tr>
+		                  <tr>
+		                    <td>spats version 0.7.0</td>
+		                    <td align="right">4/10/2012</td>
+		                  </tr>
+		                  <tr>
+		                    <td><a href="./downloads/spats-0.7.0.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">&nbsp;&nbsp;&nbsp;Source code</a></td>
+		                  </tr>
+		                </tbody>
+		              </table>
+		            </ul>
+		          </div>
 
           <h2>Publications</h2>
           <div class="box">
@@ -238,7 +256,8 @@
 				 	  <br/>
 				
 					<h3 id="fastx">Installing FastX_Spats_Toolkit and LibGTextUtils (Required)</h3>  
-					     <tt>fastx_spats_toolkit</tt> and <tt>libgtextutils</tt> are required for adapter trimming.
+					     <tt>fastx_spats_toolkit</tt> and <tt>libgtextutils</tt> are required for adapter trimming. Instructions for
+					     installing via sourcecode:
 					     <ol>
 							<li> Download the software. <tt>fastx_spats_toolkit-0.1.0</tt> can be gotten from the spats website <a 
 								href="./downloads/fastx_spats_toolkit-0.1.0.tar.gz"
@@ -260,7 +279,19 @@
 							<li> Configure the FastX install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>
 							<li> Run: <tt>make</tt> and <tt>make install</tt>.
 						 </ol>
-					
+						<p></p></br>
+						For 64-bit GNU/Linux 2.6.18 (and probably above), there is a binary distribution of the necessary fastx tools which
+						can be installed with these instructions. <b> Note - this will only work on 64-bit GNU Linux Systems with Kernel >= 2.6.18</b>
+						<ol>
+							<li> Download the software. <tt>fastx_spats_toolkit-0.1.0_bin_dist</tt> can be gotten from the spats website <a 
+								href="./downloads/fastx_spats_toolkit_0.0.1_bin_dist.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">here</a>.
+							<li> Untar the FastX file: <tt>tar -xvzf fastx_spats_toolkit_0.0.1_bin_dist.tar.gz</tt>
+							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit_0.0.1_bin_dist &lt;path_prefix&gt;/build/</tt>
+							<li> Link the <tt>fastx_reverse_complement</tt>, <tt>fastx_spats_clipper</tt> and <tt>fastx_trimmer</tt> binaries into the <tt>&lt;path_prefix&gt;/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/bin; ln -s &lt;path_prefix&gt;/build/fastx_spats_toolkit_0.0.1_bin_dist/* .</tt>
+						</ol>
 					
 					   
 						<br/>
