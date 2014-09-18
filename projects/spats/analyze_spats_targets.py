@@ -10,8 +10,8 @@ import sys
 import os
 import getopt
 import re
-import NAU
 from sys import stdout
+from collections import OrderedDict
 
 
 present_dir = os.getcwd()+"/"
@@ -71,10 +71,61 @@ class Params:
     def check(self):
         pass           
 
+def readFasta(fasta):
+    #Check that the file is fasta
+    extension = fasta.split(".")[-1]
+    if extension != "fa" and extension != "fasta":
+        print("File is not a fasta extension (fa,fasta)")
+    
+    #Check file exists
+    elif not os.path.isfile(fasta):
+        print("No such file as {0}".format(fasta))
+        
+    else:    
+        #Load the fasta file to parse
+        targets = file(fasta,"r")
+            
+        lines = []
+        for line in targets:
+            read_line = line.strip()
+            if read_line != "":
+                if read_line[0] == ">":
+                    read_line = read_line + " "
+                lines.append(read_line)
+        split_lines = ''.join(lines).split(">")[1:]
+        all_targets = OrderedDict()
+        for target in split_lines:                                
+            #Takes the target name and sequence pairs, and splits them into a dictionary
+            all_targets[target.split(" ")[0]] = target.split(" ")[1].strip()
+        
+        return all_targets        
+
+def rev(s):
+                              
+    #This section was taken from Cole's code
+    nuc_table = { 'A' : 'T',
+                'T' : 'A',
+                'C' : 'G',
+                'G' : 'C',
+                'a' : 't',
+                't' : 'a',
+                'c' : 'g',
+                'g' : 'c'  }
+    sl = list(s)
+    
+    try:
+        rsl = [nuc_table[x] for x in sl]
+    except KeyError, k:
+        print >> sys.stderr, "Error: adapter sequences must contain only A,C,G,T"
+        exit(1)
+    rsl.reverse()
+    
+    return ''.join(rsl) 
+    
 def analyze_unique(inputfile,quiet=False):
     
     #Load fasta formatted targets  
-    targets = NAU.read(inputfile)
+    targets = readFasta(inputfile)
       
     #Search for the 3' end for uniqueness across all targets to find the minimum length to uniquely align
     #each target to a set of reads with bowtie
@@ -98,7 +149,6 @@ def analyze_unique(inputfile,quiet=False):
         else:
             unique += 1
     
-    
     if quiet == False:
         stdout.write("Number of nucleotides from 3' end needed to be unique: {0}\n".format(unique))  
         stdout.flush()
@@ -109,7 +159,7 @@ def analyze_unique(inputfile,quiet=False):
 def analyze_clip_min(inputfile,adapter,quiet=False):             
     
     #Load fasta formatted targets  
-    targets = NAU.read(inputfile)
+    targets = readFasta(inputfile)
 
     #adapter comes in reads as a revcomp
     #First obtain reverse complement of the file, 
@@ -119,7 +169,7 @@ def analyze_clip_min(inputfile,adapter,quiet=False):
     for seq in targets.values():
         #concatenate sequences w/ adapter for easy searching, buffer with space
         #Note that beginning of adapter addition is to mimic the index appearing
-        allseqs += (adapter[0:4].upper() + NAU.rev(seq).upper()  + " ")
+        allseqs += (adapter[0:4].upper() + rev(seq).upper()  + " ")
     
     #upper bound on search for adapter sequence
     upper_bound = len(adapter)
@@ -146,7 +196,7 @@ def analyze_clip_min(inputfile,adapter,quiet=False):
         print("Adapter clipping search length recommended: {0}".format(clip_min))  
         print("Suggested error rate for cutadapt is: {0}\n".format(error_rate))
     
-    return clip_min
+    return clip_min,error_rate
     
     
 def main(argv=None):
@@ -170,9 +220,9 @@ def main(argv=None):
 	       stdout.flush()     
         
 	unique = analyze_unique(inputfile,quiet)           
-        clip_min = analyze_clip_min(inputfile,adapter,quiet)
+        clip_min,error_rate = analyze_clip_min(inputfile,adapter,quiet)
 
-        return unique,clip_min
+        return clip_min,unique,error_rate
 
     except Usage, err:
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
