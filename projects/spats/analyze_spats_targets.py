@@ -155,7 +155,7 @@ def analyze_unique(inputfile,quiet=False):
     return unique
 
              
-def analyze_clip_min(inputfile,adapter,quiet=False):             
+def analyze_clip_min(inputfile,adapter,quiet=True):             
     
     #Load fasta formatted targets  
     targets = readFasta(inputfile)
