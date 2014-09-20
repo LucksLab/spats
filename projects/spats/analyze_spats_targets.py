@@ -75,7 +75,7 @@ def readFasta(fasta):
     #Check that the file is fasta
     extension = fasta.split(".")[-1]
     if extension != "fa" and extension != "fasta":
-        print("File is not a fasta extension (fa,fasta)")
+        print >> sys.stderr, "File is not a fasta extension (fa,fasta)"
     
     #Check file exists
     elif not os.path.isfile(fasta):
@@ -150,8 +150,7 @@ def analyze_unique(inputfile,quiet=False):
             unique += 1
     
     if quiet == False:
-        stdout.write("Number of nucleotides from 3' end needed to be unique: {0}\n".format(unique))  
-        stdout.flush()
+        print >> sys.stderr, "Number of nucleotides from 3' end needed to be unique: {0}\n".format(unique)
         
     return unique
 
@@ -193,8 +192,8 @@ def analyze_clip_min(inputfile,adapter,quiet=False):
                           #similarity with long adapter sequences
                                                                                                                                                                                                                                                                                               
     if quiet == False:
-        print("Adapter clipping search length recommended: {0}".format(clip_min))  
-        print("Suggested error rate for cutadapt is: {0}\n".format(error_rate))
+        print >> sys.stderr, "Adapter clipping search length recommended: {0}".format(clip_min)  
+        print >> sys.stderr, "Suggested error rate for cutadapt is: {0}\n".format(error_rate)
     
     return clip_min,error_rate
     
