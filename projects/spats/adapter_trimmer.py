@@ -604,6 +604,5 @@ def main(argv=None,):
 if __name__ == "__main__":
     # JBL - need more elegant exit than this
     # print result returned by main() to be able to capture in bash
-    final_dir = main()
-    return final_dir
+    main()
     sys.exit(0)
