@@ -137,9 +137,9 @@ class Params:
             elif option in ("--set-quality"):
                 if int(value) >= 0 and int(value) <= 93:
                     quality_change = int(value)
-                    print("Manually changing all phred scores to '{0}'.".format(chr(quality_change))) 
+                    print >> sys.stderr, "Manually changing all phred scores to '{0}'.".format(chr(quality_change))
                 else:
-                    print("Quality to set {0} is out of range".format(value))    
+                    print >> sys.stderr, "Quality to set {0} is out of range".format(value)   
         # JBL - A_t shows up as a revcomp in read2 because of library format
         A_t_sequence = reverse_complement(A_t_sequence)
         if read_len == -1:
@@ -171,11 +171,11 @@ def find_read_len(fastq):
     #Check that the file is fasta
     extension = fastq.split(".")[-1]
     if extension != "fq" and extension != "fastq":
-        print("File is not a fasta extension (fq,fastq)")
+        print >> sys.stderr, "File is not a fasta extension (fq,fastq)"
     
     #Check file exists
     elif not os.path.isfile(fastq):
-        print("No such file as {0}".format(fastq))
+        print >> sys.stderr, "No such file as {0}".format(fastq)
         
     else:
         #Detect the read length in the collapsed file
@@ -594,7 +594,7 @@ def main(argv=None,):
         print >> sys.stderr, "Run complete [%s elapsed]" % formatTD(duration)
         print >> sys.stderr
     
-        return final_dir
+        print final_dir
     
     except Usage, err:
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
