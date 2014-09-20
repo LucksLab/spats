@@ -593,7 +593,7 @@ def main(argv=None,):
         print >> sys.stderr,"-----------------------------------------------"
         print >> sys.stderr, "Run complete [%s elapsed]" % formatTD(duration)
         print >> sys.stderr
-        
+    
         return final_dir
     
     except Usage, err:
@@ -604,5 +604,6 @@ def main(argv=None,):
 if __name__ == "__main__":
     # JBL - need more elegant exit than this
     # print result returned by main() to be able to capture in bash
-    main()
+    final_dir = main()
+    return final_dir
     sys.exit(0)
