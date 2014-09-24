@@ -455,13 +455,13 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	## -o {} :: output destination  
 	## -p {} :: Write reads from the paired-end input to {}
     #First pass clips one of the fastq files, and deletes any removed sequences from matching read to prevent orphan sequences
-    os.system("cutadapt --quiet --discard-untrimmed -O {0} -a {1} -m {2} -o tmp.1.fastq -p tmp.2.fastq {3} {4}".format(trim_match,adapt_1,min_read_len,bowtie_results_II_1,bowtie_results_II_2))
+    os.system("cutadapt --quiet --discard-untrimmed -O {0} -a {1} -m {2} -o tmp{5}.1.fastq -p tmp{5}.2.fastq {3} {4}".format(trim_match,adapt_1,min_read_len,bowtie_results_II_1,bowtie_results_II_2,directory_suffix))
     
     #Second pass clips the other fastq file, and similarly removes any deleted lines from the other paired file
-    os.system("cutadapt --quiet --discard-untrimmed -O {0} -a {1} -m {2} -o {3} -p {4} tmp.2.fastq tmp.1.fastq".format(trim_match,adapt_2,min_read_len,output_II_2_clipped,output_II_1_clipped))
+    os.system("cutadapt --quiet --discard-untrimmed -O {0} -a {1} -m {2} -o {3} -p {4} tmp{5}.2.fastq tmp{5}.1.fastq".format(trim_match,adapt_2,min_read_len,output_II_2_clipped,output_II_1_clipped,directory_suffix))
     
     #Remove the temporary files     
-    os.system("rm tmp.1.fastq tmp.2.fastq")
+    os.system("rm tmp{0}.1.fastq tmp{0}.2.fastq".format(directory_suffix))
      
     # Add these reads to final set
     combine_files_R1.append(output_II_1_clipped)
@@ -486,13 +486,13 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	## -p {} :: Write reads from the paired-end input to {}
 
     #First pass clips one of the fastq files, and deletes any removed sequences from other to prevent orphan sequences
-    os.system("cutadapt --quiet --discard-trimmed -O {0} -a {1} -m {2} -o tmp2.1.fastq -p tmp2.2.fastq {3} {4}".format(trim_match,adapt_1,min_read_len,bowtie_results_II_1,bowtie_results_II_2)) 
+    os.system("cutadapt --quiet --discard-trimmed -O {0} -a {1} -m {2} -o tmp{5}_2.1.fastq -p tmp{5}_2.2.fastq {3} {4}".format(trim_match,adapt_1,min_read_len,bowtie_results_II_1,bowtie_results_II_2,directory_suffix)) 
     
     #Second pass clips the other fastq file, and similarly removes any deleted lines from the other paired file
-    os.system("cutadapt --quiet --discard-trimmed -O {0} -a {1} -m {2} -o {3} -p {4} tmp2.2.fastq tmp2.1.fastq".format(trim_match,adapt_2,min_read_len,output_II_2_unclipped,output_II_1_unclipped)) 
+    os.system("cutadapt --quiet --discard-trimmed -O {0} -a {1} -m {2} -o {3} -p {4} tmp{5}_2.2.fastq tmp{5}_2.1.fastq".format(trim_match,adapt_2,min_read_len,output_II_2_unclipped,output_II_1_unclipped,directory_suffix)) 
     
     #Remove the temporary files 
-    os.system("rm tmp2.1.fastq tmp2.2.fastq")    
+    os.system("rm tmp{0}_2.1.fastq tmp{0}_2.2.fastq".format(directory_suffix))    
             
     # 3.2) Execute trim_search algorithm
 	
