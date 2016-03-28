@@ -681,6 +681,7 @@ void driver(FILE* target_fasta, FILE* treated_sam_hits_file, FILE* untreated_sam
     //printing reactivities for each target
     fprintf(adducts_out, "sequence\trt_start\tfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n");
     map<RefID, RandomerTargetProfile>::iterator itr;
+
     for (itr = targets_by_id.begin(); itr != targets_by_id.end(); ++itr)
     {
         RandomerTargetProfile target = itr->second;

@@ -6,6 +6,10 @@ spats.py
 
 Created by Cole Trapnell on 2010-4-11.
 Copyright (c) 2010 Cole Trapnell. All rights reserved.
+
+Revision by Kyle Watters on 2014-9-20.
+change notes:
+    -switched fastx_toolkit to cutadapt script (v1.5 at time of change)
 """
 
 import sys
@@ -37,7 +41,10 @@ use_message = '''
      --adapter-t                 <string>    [ default: None ]
      --adapter-b                <string>    [ default: None ]
      --trim-match               <int>       [default: 9]
-     --num-mismatches               <int>       [ default: 0    ]
+     --num-mismatches           <int>       [ default: 0    ]
+     -m                         <int>       [default: not stringent] This option adds stringency to alignments, where <int> is the max # of aligenments allowed
+     -p/--num-threads           <int>       [deafult: 1 ]   Number of threads to use
+     
      
 SAM Header Options (for embedding sequencing run metadata in output):
     --rg-id                        <string>    (read group ID)
@@ -48,9 +55,9 @@ SAM Header Options (for embedding sequencing run metadata in output):
     --rg-center                    <string>    (sequencing center name)
     --rg-date                      <string>    (ISO 8601 date of the sequencing run)
     --rg-platform                  <string>    (Sequencing platform descriptor) 
+    --all-RT-starts                <noarg> [if present prints out reactivties for each RT site detected. default: false]
 '''
 
-#     --all-RT-starts                <noarg> [if present prints out reactivties for each RT site detected. default: false]
 
 class Usage(Exception):
     def __init__(self, msg):
@@ -106,7 +113,9 @@ class SpatsParams:
                      seq_center,
                      seq_run_date,
                      seq_platform,
-                     all_RT_starts):
+                     all_RT_starts,
+                     stringent,
+                     max_alignments):
             self.phred33_quals = phred33_quals
             self.phred64_quals = phred64_quals
             self.seed_length = seed_length
@@ -124,6 +133,8 @@ class SpatsParams:
             self.seq_run_date = seq_run_date
             self.seq_platform = seq_platform
             self.all_RT_starts = all_RT_starts
+            self.stringent = stringent
+            self.max_alignments = max_alignments
             
         def parse_options(self, opts):
             for option, value in opts:
@@ -140,7 +151,7 @@ class SpatsParams:
                 if option in ("--trim-match"):
                     self.trim_match = value
                 if option in ("--num-mismatches"):
-                    self.num_mismatches = int(value)
+                    self.num_mismatches = value
                 if option == "--rg-id":
                     self.read_group_id = value
                 if option == "--rg-sample":
@@ -189,7 +200,9 @@ class SpatsParams:
                                            None,                # sequencing center
                                            None,                # run date
                                            None,                # sequencing platform
-                                           False)               # per site reactivity printing
+                                           False,
+                                           False,
+                                           None)               # per site reactivity printing
         
         self.system_params = self.SystemParams(1,               # bowtie_threads
                                                False)           # keep_tmp   
@@ -249,6 +262,9 @@ class SpatsParams:
                 raise Usage(use_message)
             if option == "--skip-check-reads":
                 self.skip_check_reads = True
+            if option in ("-m"):
+                self.stringent = True
+                self.max_alignments = value
             if option in ("-o", "--output-dir"):
                 global output_dir
                 global logging_dir
@@ -489,7 +505,15 @@ def match_read_pairs(params, left_in_reads, right_in_reads, left_out_reads, righ
         exit(1)
         
     return [left_out_reads_filename, right_out_reads_filename]
-    
+ 
+    #
+    #
+    #
+    #
+    #
+    #Can probably remove function or alter to call/load adapter_trimmer
+    #
+    #   
 def trim_read_adapters(params, 
                        adapter,  
                        reads_file, 
@@ -527,6 +551,7 @@ def trim_read_adapters(params,
         
     return trimmed_reads_filename
 
+
 def bowtie(params,
            bwt_idx_prefix,
            left_reads,
@@ -561,9 +586,12 @@ def bowtie(params,
         else:
             unmapped_reads_fasta_name = None
         
+        if params.read_params.stringent == True:     #defaults to False
+            bowtie_cmd += "-m {0}".format(params.read_params.max_alignments)
+            #"-m 1", #JBL - uncomment to supress all matches that occurr more than once
+            #KEW - adding option to remove this stringency when desired
         bowtie_cmd += ["--sam",
                        "--allow-contain", # JBL bowtie option to allow overlap in revcomps
-                       "-m 1", #JBL - uncomment to supress all matches that occurr more than once
                        #"-y", #JBL commented out - Langmead said don't need
                        #"-k 1",
                        "-v", str(params.read_params.num_mismatches),
@@ -662,7 +690,7 @@ def write_sam_header(read_params, sam_file):
     print >> sam_file, "@PG\tID:Spats\tVN:%s\tCL:%s" % (get_version(), run_cmd)
 
 def get_version():
-   return "0.8.0"
+   return "0.2.0"
 
 # From http://www.dalkescientific.com/writings/NBN/parsing.html
 class FastaRecord(object):
