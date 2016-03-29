@@ -263,7 +263,8 @@ struct TargetProfile
         
         vector<double> scaled_betas = _betas;
         double total_beta = accumulate(_betas.begin() + 1, _betas.end(), 0.0);
-        //for (size_t i = 1; i < scaled_betas.size(); ++i)    //KEW - commented out to prevent beta averaging
+        // We are not re-normalizing betas
+        //for (size_t i = 1; i < scaled_betas.size(); ++i)
         //{
         //    scaled_betas[i] /= total_beta;
         //}
@@ -384,10 +385,11 @@ public:
             {
                 continue;
             }
-            for (size_t i = 1; i < scaled_betas.size(); ++i)
-            {
-                scaled_betas[i] /= total_beta;
-            }
+            // We are not re-normalizing betas
+            // for (size_t i = 1; i < scaled_betas.size(); ++i)
+            // {
+            //     scaled_betas[i] /= total_beta;
+            // }
             
             //double total_theta = accumulate(curr_start.thetas().begin() + 1, curr_start.thetas().end(), 0.0);
             //total_beta = accumulate(scaled_betas.begin() + 1, scaled_betas.end(), 0.0);
