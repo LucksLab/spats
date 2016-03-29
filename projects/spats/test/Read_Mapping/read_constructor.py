@@ -31,7 +31,7 @@ Options
 -f, --file                  File containing DNA sequences to use.
 -a, --adapter <sequence>    Adapter sequence (5'->3') to add at the 3' end of the RNA w/ barcodes (if applicable)
                             as it appears on the RT primer (after handle) (ex CACTCGGGCACCAAGGA)
---permutation               Select which permutation of set of 4 expected reactivity mappings to use. 1-16, default 1
+--permutation               Select which permutation of set of 4 expected reactivity mappings to use. 0-15, default 1
 '''
 
 def get_version():
@@ -146,9 +146,6 @@ def write_read_files(f_out_1, f_out_2, read_1_string, read_2_string):
     f_out_1.write('\n')
     f_out_2.write(read_2_string)
     f_out_2.write('\n')
-    print "read: "
-    print read_1_string
-    print read_2_string
 
 
 def main(argv=None,):
@@ -166,7 +163,6 @@ def main(argv=None,):
             argv = sys.argv
             args,out_1,out_2,read_length,input_file,sequence,adapter,permutation = params.parse_options(argv)
             params.check()
-        print "permutation: " + str(permutation)
         input_fragments = [] 
         
         #Load sequences to build with
@@ -188,7 +184,7 @@ def main(argv=None,):
 
         read_i = -1
         read_ii = 0
-        create_reads_perm = all_permutations[permutation-1]
+        create_reads_perm = all_permutations[permutation]
         print create_reads_perm
         for seq in input_fragments:
             read = adapter+reverse_complement(seq)
