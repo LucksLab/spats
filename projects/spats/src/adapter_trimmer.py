@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+"""
+spats.py
+
+Created by Kyle Watters and Julius Lucks 2014
+Copyright (c) 2016 Lucks Laboratory. All rights reserved.
+
+Revision by Kyle Watters on 2014-9-20.
+change notes:
+    -switched fastx_toolkit to cutadapt script (v1.5 at time of change)
+"""
 
 import analyze_spats_targets
 import fastq_revcomp
@@ -38,7 +48,7 @@ Options:
 --A-b-sequence <string>     A_adapter_b sequence (default: AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC)
 --A-t-sequence <string>     A_adapter_t sequence (default: AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT)
 --max-handle-len <N>        Number of nucleotides in the longest (+/-) handle (default = 4 for RRRY/YYYR)
--o, --output <string>       If running many simultaneously runs in the same folder, use this option to name the treated reads
+-o, --output <string>       If running many simultaneous runs in the same folder, use this option to name the treated reads
                             folder to avoid overwriting during processing
 
 JBL - if trim-match or min-read-len are not set, they will automatically be determined
@@ -46,9 +56,9 @@ JBL - if trim-match or min-read-len are not set, they will automatically be dete
 The algorithm employed is as follows:
  
 1.) Filter reads into two sets: Case_I = do not have any adapters at all - i.e. long insert sizes, Case_II = have some adapter.
-2.) For Case II, trim all possible with fastx_spats_clipper (Case_II_clipped).
+2.) For Case II, trim all possible with cutadapt (Case_II_clipped).
 3.) For reads that aren't trimmed from Case II (Case_II_unclipped):
-3.1) First filter these reads out with fastx_spats_clipper (i.e. collect just Case_II_unclipped)
+3.1) First filter these reads out with cutadapt (i.e. collect just Case_II_unclipped)
 3.2) Execute trim_search algorithm
 4.) Combine all reads into one file to send to spats
 
@@ -262,7 +272,7 @@ def clip_search(base,read_len,max_handle_len,output_dir,targets_dir,input_R1,inp
     except:
         exit # should terminate here since need this search_dir to proceed
     
-    #Implement Adapter Clipping Step 1: Find reads that the clipper will miss
+    #Implement Adapter Clipping Step 3: Find reads that the clipper will miss
     ## Trim base-by-base and look for revcomp sequences. 3 cases:
         ## 1) Reads contain no adapter, thus will not revcomp and will not keep these mate pairs.
         ## 2) Reads contain some adapter, will not revcomp and will not keep these mate pairs.
@@ -291,7 +301,7 @@ def clip_search(base,read_len,max_handle_len,output_dir,targets_dir,input_R1,inp
 	## Construct cutadapt trimming command to remove nucleotides unconditionally
 	## -u N = Number of nucleotides to remove from the end of a read (when N < 0)
     trim_num = read_len - base
-    trim_num = 1
+    trim_num = 1 #JBL FLAG
     os.system("cutadapt --quiet -u -{0} -o {1} {2}".format(trim_num,output_R1,input_R1))
     os.system("cutadapt --quiet -u -{0} -o {1} {2}".format(trim_num,output_R2,input_R2))
     
@@ -430,18 +440,14 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
         combine_files_R1.append(bowtie_results_I_1)
         combine_files_R2.append(bowtie_results_I_2)
     
-	# 2.) For Case II, trim all possible with fastx_spats_clipper.
+	# 2.) For Case II, trim all possible with cutadapt.
 	    
     print >> sys.stderr, "[%s] Clipping Case II reads" % (right_now())
     
     #Clip off adapter from the raw reads
     output_II_1_clipped = os.path.splitext(bowtie_results_II_1)[0] + "_clipped.fq"
     output_II_2_clipped = os.path.splitext(bowtie_results_II_2)[0] + "_clipped.fq"
-	
-    
-    ##Shorten the adapter sequences based on trim-match:
-    #adapt_1 = A_b_sequence[:trim_match]
-    #adapt_2 = A_t_sequence[:trim_match]
+	    
     adapt_1 = A_b_sequence
     adapt_2 = A_t_sequence
     
@@ -455,10 +461,20 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	## -o {} :: output destination  
 	## -p {} :: Write reads from the paired-end input to {}
     #First pass clips one of the fastq files, and deletes any removed sequences from matching read to prevent orphan sequences
-    os.system("cutadapt --quiet --discard-untrimmed -O {0} -a {1} -m {2} -o tmp{5}.1.fastq -p tmp{5}.2.fastq {3} {4}".format(trim_match,adapt_1,min_read_len,bowtie_results_II_1,bowtie_results_II_2,directory_suffix))
+    os.system("cutadapt --quiet --discard-untrimmed -O {0} -a {1} -m {2} -o tmp{5}.1.fastq -p tmp{5}.2.fastq {3} {4}".format(trim_match,
+                                                                                                                             adapt_1,
+                                                                                                                             min_read_len,
+                                                                                                                             bowtie_results_II_1,
+                                                                                                                             bowtie_results_II_2,
+                                                                                                                             directory_suffix))
     
     #Second pass clips the other fastq file, and similarly removes any deleted lines from the other paired file
-    os.system("cutadapt --quiet --discard-untrimmed -O {0} -a {1} -m {2} -o {3} -p {4} tmp{5}.2.fastq tmp{5}.1.fastq".format(trim_match,adapt_2,min_read_len,output_II_2_clipped,output_II_1_clipped,directory_suffix))
+    os.system("cutadapt --quiet --discard-untrimmed -O {0} -a {1} -m {2} -o {3} -p {4} tmp{5}.2.fastq tmp{5}.1.fastq".format(trim_match,
+                                                                                                                             adapt_2,
+                                                                                                                             min_read_len,
+                                                                                                                             output_II_2_clipped,
+                                                                                                                             output_II_1_clipped,
+                                                                                                                             directory_suffix))
     
     #Remove the temporary files     
     os.system("rm tmp{0}.1.fastq tmp{0}.2.fastq".format(directory_suffix))
@@ -486,10 +502,20 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	## -p {} :: Write reads from the paired-end input to {}
 
     #First pass clips one of the fastq files, and deletes any removed sequences from other to prevent orphan sequences
-    os.system("cutadapt --quiet --discard-trimmed -O {0} -a {1} -m {2} -o tmp{5}_2.1.fastq -p tmp{5}_2.2.fastq {3} {4}".format(trim_match,adapt_1,min_read_len,bowtie_results_II_1,bowtie_results_II_2,directory_suffix)) 
+    os.system("cutadapt --quiet --discard-trimmed -O {0} -a {1} -m {2} -o tmp{5}_2.1.fastq -p tmp{5}_2.2.fastq {3} {4}".format(trim_match,
+                                                                                                                               adapt_1,
+                                                                                                                               min_read_len,
+                                                                                                                               bowtie_results_II_1,
+                                                                                                                               bowtie_results_II_2,
+                                                                                                                               directory_suffix)) 
     
     #Second pass clips the other fastq file, and similarly removes any deleted lines from the other paired file
-    os.system("cutadapt --quiet --discard-trimmed -O {0} -a {1} -m {2} -o {3} -p {4} tmp{5}_2.2.fastq tmp{5}_2.1.fastq".format(trim_match,adapt_2,min_read_len,output_II_2_unclipped,output_II_1_unclipped,directory_suffix)) 
+    os.system("cutadapt --quiet --discard-trimmed -O {0} -a {1} -m {2} -o {3} -p {4} tmp{5}_2.2.fastq tmp{5}_2.1.fastq".format(trim_match,
+                                                                                                                               adapt_2,
+                                                                                                                               min_read_len,
+                                                                                                                               output_II_2_unclipped,
+                                                                                                                               output_II_1_unclipped,
+                                                                                                                               directory_suffix)) 
     
     #Remove the temporary files 
     os.system("rm tmp{0}_2.1.fastq tmp{0}_2.2.fastq".format(directory_suffix))    
@@ -498,11 +524,19 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
 	
 	#Now do a stepwise manual trim to search for rev comp in the window that the clipper misses
 	## Start at read_len - 1 to get reads that have at least one nt of adapter
-	## End at trim_len + 1 because clipper will find things with trim_len nts of adapter in later steps
+	## End at trim_len + 1 because clipper will have found things with trim_len nts of adapter in previous steps
     for base in range(read_len-1,trim_len,-1): 
         
-        R1_results,R2_results,update_1,update_2 = clip_search(base,read_len,max_handle_len,output_dir,targets_dir,output_II_1_unclipped,output_II_2_unclipped,threads)
-        
+        R1_results,R2_results,update_1,update_2 = clip_search(base,
+                                                              read_len,
+                                                              max_handle_len,
+                                                              output_dir,
+                                                              targets_dir,
+                                                              output_II_1_unclipped,
+                                                              output_II_2_unclipped,
+                                                              threads)
+
+        # Using unclipped reads as input for next iteration of clip_search
         output_II_1_unclipped = update_1
         output_II_2_unclipped = update_2
         
@@ -552,7 +586,7 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     outfile.close()
     
     # Final set of reads trimmed down by 4nts on 3' end of R2 to remove handle (YYYR,RRRY) that is in R2 for short inserts
-	## Construct fastx_trimmer command
+	## Construct cutadapt command
 	## -t N = trim N nts from the end of the read
     final_R2 = final_dir + 'combined_R2.fastq'
     os.system("cutadapt --quiet -u -4 {0} > {1}".format(combined_R2,final_R2))
