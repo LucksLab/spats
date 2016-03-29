@@ -9,12 +9,9 @@ Copyright (c) 2016 Lucks Laboratory - all rights reserved.
 import sys
 import os
 import getopt
-import shutil
-from datetime import datetime, date, time
 import string
 import fileinput
 import random
-from itertools import product
 
 current_dir = os.getcwd()+'/'
 
@@ -31,9 +28,9 @@ Options
 -l, --length                Read length of output reads. Default is 35.
 -s, --sequence              DNA sequence to use to construct reads representing a stop at each position.
 -f, --file                  File containing DNA sequences to use.
--a, --adapter <sequence>    Adapter sequence (5'->3') to add at the 3' end of the RNA w/ barcodes (if applicable)
+-a, --linker <sequence>    Adapter sequence (5'->3') to add at the 3' end of the RNA w/ barcodes (if applicable)
                             as it appears on the RT primer (after handle) (ex CACTCGGGCACCAAGGA)
---permutation               Select which permutation of set of 4 expected reactivity mappings to use. 0-15, default 1
+--case               Select which case of set of 2 expected reactivity mappings to use. 0 or 1, default 0
 '''
 
 def get_version():
@@ -59,11 +56,9 @@ class Params:
                                         "length=",
                                         "sequence=",
                                         "file=",
-                                        "adapter=",
-                                        "permutation="])
+                                        "linker=",
+                                        "case="])
         
-        #Add linker option
-    
 
         except getopt.error, msg:
             raise Usage(msg)
@@ -73,8 +68,8 @@ class Params:
         input_file = None
         sequence = None
         read_length = 35
-        adapter = ''
-        permutation = 1
+        linker = ''
+        case = 0
 
         for option, value in opts:
             if option in ("-v", "--version"):
@@ -91,15 +86,15 @@ class Params:
                 sequence = value
             if option in ("-f","--file"):
                 input_file = value
-            if option in ("-a","--adapter"):
-                adapter = value
-            if option == "--permutation":
-                permutation = int(value)
+            if option in ("-a","--linker"):
+                linker = value
+            if option == "--case":
+                case = int(value)
             
         if (sequence is None) and (input_file is None):
             raise Usage('At least one of -s and -f must be specified'+help_message)
         
-        return args,out_1,out_2,read_length,input_file,sequence,adapter,permutation
+        return args,out_1,out_2,read_length,input_file,sequence,linker,case
     
     def check(self):
         pass
@@ -137,7 +132,7 @@ def reverse_complement(s):
     try:
         rsl = [nuc_table[x] for x in sl]
     except KeyError, k:
-        print >> sys.stderr, "Error: adapter sequences must contain only A,C,G,T"
+        print >> sys.stderr, "Error: linker sequences must contain only A,C,G,T"
         exit(1)
     rsl.reverse()
     return ''.join(rsl)
@@ -151,19 +146,16 @@ def write_read_files(f_out_1, f_out_2, read_1_string, read_2_string):
 
 
 def main(argv=None,):
-    
     #Definitions of A_T and A_B based on SHAPE-Seq 2.0 (Loughrey, Watters NAR Figure S4)
-    adapter_T = 'AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT'
-    adapter_B = 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC'
+    linker_T = 'AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT'
+    linker_B = 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC'
 
-    all_permutations = [seq for seq in product([0,1], repeat=4)]
-    
     params = Params()
         
     try:
         if argv is None:
             argv = sys.argv
-            args,out_1,out_2,read_length,input_file,sequence,adapter,permutation = params.parse_options(argv)
+            args,out_1,out_2,read_length,input_file,sequence,linker,case = params.parse_options(argv)
             params.check()
         input_fragments = [] 
         
@@ -186,38 +178,32 @@ def main(argv=None,):
 
         read_i = -1
         read_ii = 0
-        create_reads_perm = all_permutations[permutation]
         for seq in input_fragments:
-            read = adapter+reverse_complement(seq)
-            read_i += 1
+            if True:
+                read = linker+reverse_complement(seq)
+                read_i += 1
 
-            #Append +/- barcode
-            plus_read = 'GGGC'+read
-            minus_read = 'CCCG'+read
+                #Append +/- barcode
+                plus_read = 'GGGC'+read
+                minus_read = 'CCCG'+read
             
-            for lib_read in (plus_read,minus_read):
-                read_ii += 1
-                #Construct Read_1 and Read_2 based on length
-                temp_read = lib_read+adapter_T
-                temp_read = lib_read+adapter_B
-                read_1 = temp_read[:read_length]
+                for lib_read in (plus_read,minus_read):
+                    read_ii += 1
+                    #Construct Read_1 and Read_2 based on length
+                    temp_read = lib_read+linker_B
+                    read_1 = temp_read[:read_length]
                 
-                temp_read = reverse_complement(adapter_B+lib_read)
-                temp_read = reverse_complement(adapter_T+lib_read)
-                read_2 = temp_read[:read_length]
+                    temp_read = reverse_complement(linker_T+lib_read)
+                    read_2 = temp_read[:read_length]
 
-                #Format read into Fastq
-                read_1_string,read_2_string = fastq_format(read_1,read_2,str(read_i)+"_"+str((read_ii+1)%2))
-                
-                #Print to out_1 and out_2 if defined by permutation
-                if read_ii % 4 == 1 and create_reads_perm[0] == 1:
-                    write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
-                if read_ii % 4 == 2 and create_reads_perm[1] == 1:
-                    write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
-                if read_ii % 4 == 3 and create_reads_perm[2] == 1:
-                    write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
-                if read_ii % 4 == 0 and create_reads_perm[3] == 1:
-                    write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
+                    #Format read into Fastq
+                    read_1_string,read_2_string = fastq_format(read_1,read_2,str(read_i)+"_"+str((read_ii+1)%2))
+
+                    if read_ii % 2 == case:
+                        for _ in range(len(seq)):
+                            write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
+                    else:
+                        write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
 
         f_out_1.close()
         f_out_2.close()

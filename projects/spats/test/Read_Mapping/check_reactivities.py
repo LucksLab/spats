@@ -2,12 +2,12 @@
 
 """
 Summarizes resulting reactivities.out of spats based on expected results. Part of Read_Mapping tests.
-Usage: python check_reactivities.py --input <> --output <> --permutation <> --adapter <> --sequence <>
+Usage: python check_reactivities.py --input <> --output <> --case <> --linker <> --sequence <>
 Options: 
  --input	reactivities.out file from spats
  --output	File to output result summary
- --permutation	Choice of all 16 binary permutations of length 4. This represents the pattern of reads mapped we expect for every 2 reads in their + and - channel. Limited to 0-15.
- --adapter	Adapter sequence
+ --case		Choice of one of two cases
+ --linker	Linker sequence
  --sequence	Sequence of RNA target
 Version: 0.1
 Date: March 29, 2016
@@ -15,9 +15,9 @@ Author: Angela M Yu
 Copyright (c) 2016 Lucks Laboratory - all rights reserved.
 """
 
-from itertools import product, cycle
 import getopt
 import sys
+from itertools import repeat
 
 def getopts(short_arg_string, long_arg_list):
     """
@@ -30,17 +30,14 @@ def getopts(short_arg_string, long_arg_list):
         sys.exit(2)
     return dict(opts)
 
-opts = getopts("", ["input=", "output=", "permutation=", "adapter=", "sequence="])
+opts = getopts("", ["input=", "output=", "case=", "linker=", "sequence="])
 spats_reactivities_out = opts["--input"]
 output = opts["--output"]
-permutation = int(opts["--permutation"])
-adapter_len = len(opts["--adapter"])
+case = int(opts["--case"])
+linker_len = len(opts["--linker"])
 sequence_len = len(opts["--sequence"])
 
-all_permutations = [seq for seq in product([0,1], repeat=4)]
-permutation_cycle = cycle(all_permutations[permutation])
-print "Checking permutation %s: %s..."%(permutation, all_permutations[permutation])
-
+# Read in reactivities.out
 reads = []
 with open(spats_reactivities_out, "r") as f:
     header = f.readline()
@@ -48,15 +45,29 @@ with open(spats_reactivities_out, "r") as f:
         fields = line.split("\t")
         reads += [int(fields[4]), int(fields[5])]
 
-correct = sum([1 if a[0] == a[1] else 0 for a in zip(permutation_cycle, reads[:2*(sequence_len+1)])])
-correct += sum([1 if a == 0 else 0 for a in reads[2*(sequence_len+1):]])
-incorrect = len(reads) - correct
-exp_read_lines = 2 * (sequence_len + adapter_len + 1)
-
-if correct == len(reads) and len(reads) == exp_read_lines:
-    result = "Permutation %s %s: OK - %s read positions out of %s expected, %s correct\n"%(permutation, all_permutations[permutation], len(reads), exp_read_lines, correct)
+# Build expected reads
+case_exp = range(sequence_len+1)[::-1]
+print case_exp
+print case
+if case:
+    case_exp = zip(case_exp, repeat(1, sequence_len+1))
 else:
-    result = "Permutation %s %s: FAILED - %s read positions out of %s expected, %s incorrect, %s correct\n"%(permutation, all_permutations[permutation], len(reads), exp_read_lines, incorrect, correct)
+    case_exp = zip(repeat(1, sequence_len+1), case_exp)
+case_exp = [ele for i in case_exp for ele in i] + [0]*(2*linker_len-4)
+
+print case_exp
+print reads
+
+# Calculate summary
+correct = sum([1 if a[0] == a[1] else 0 for a in zip(case_exp, reads)])
+incorrect = len(reads) - correct
+exp_read_lines = 2 * (sequence_len + linker_len - 1)
+
+print [1 if a[0] == a[1] else 0 for a in zip(case_exp, reads)]
+if correct == len(reads) and len(reads) == exp_read_lines:
+    result = "Case %s: OK - %s read positions out of %s expected, %s correct, %s incorrect\n"%(case, len(reads), exp_read_lines, correct, incorrect)
+else:
+    result = "Case %s: FAILED - %s read positions out of %s expected, %s correct, %s incorrect\n"%(case, len(reads), exp_read_lines, correct, incorrect)
 
 print result
 with open(output, "a") as f:
