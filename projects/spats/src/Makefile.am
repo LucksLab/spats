@@ -27,10 +27,12 @@ bin_PROGRAMS = \
 
 dist_bin_SCRIPTS = \
 	spats.py \
-	adapter_trimmer.py 
+	adapter_trimmer.py
 
 dist_nobin_SCRIPTS = \
-	targets_analyzer.py
+	targets_analyzer.py \
+	analyze_spats_targets.py \
+	fastq_revcomp.py
 
 noinst_HEADERS = \
 	assert_helpers.h \
