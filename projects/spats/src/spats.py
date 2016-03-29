@@ -684,7 +684,7 @@ def write_sam_header(read_params, sam_file):
     print >> sam_file, "@PG\tID:Spats\tVN:%s\tCL:%s" % (get_version(), run_cmd)
 
 def get_version():
-   return "1.0.0"
+   return "TEST1.0.0"
 
 # From http://www.dalkescientific.com/writings/NBN/parsing.html
 class FastaRecord(object):
