@@ -222,9 +222,14 @@ def reverse_complement(s):
 def trim_min_read_calculator(trim_auto,min_len_auto,input_targets,A_b_sequence,max_handle_len,trim_match,min_read_len,read_len):
     
     #Find the minimal lengths of A_b to search and number of nucleotides to trim from 3' end
-    uniqueness = analyze_spats_targets.analyze_unique(input_targets,A_b_sequence)
+    # uniqueness = minimum length to align to all 3' ends uniquely
+    uniqueness = analyze_spats_targets.analyze_unique(input_targets,A_b_sequence) 
+    
+    # A_b_search_len = minimum length that does not match A_adapter_b on 3' ends of the targets
     A_b_search_len,error_rate = analyze_spats_targets.analyze_clip_min(input_targets,A_b_sequence)
     
+    #set min_read_len = minimum sequence length cutoff for sequences to keep (discard if under {2} long)
+    # defined by uniqueness of the targets + length of the handle sequences
     if min_len_auto == True:
         # Add handle length to uniqueness length to find min_read_length considering
         if uniqueness < 6:
@@ -235,8 +240,11 @@ def trim_min_read_calculator(trim_auto,min_len_auto,input_targets,A_b_sequence,m
     else:
         print >> sys.stderr, "[%s] Manually dropping %s nt from end of reads" % (right_now(),min_read_len)
     
+    #set trim_match = how many nts of the adapter we are trying to match
     if trim_auto == True:
+        # A_b_search_len = minimum length that does not match A_adapter_b on 3' ends of the targets
         if A_b_search_len >= read_len:
+            # If A_b_search_len is greated than the read length we have available, use all sequence available to match
             trim_match = read_len - min_read_len 
         else:
             trim_match = A_b_search_len
@@ -385,10 +393,12 @@ def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_d
     #Decide what length is optimal for adapter clipping (shorter lengths save time/space)
 	#Also decide the minimum length to leave at the three prime end for unique alignment to targets (if unspecified)
     print >> sys.stderr, "[%s] Determining optimal trim_match and minimum read length" % (right_now())
+    #trim_match = how many nts of the adapter we are trying to match
     trim_match,min_read_len,error_rate = trim_min_read_calculator(trim_auto,min_read_auto,input_targets,A_b_sequence,max_handle_len,trim_match,min_read_len,read_len)
 	
 	#trim_len = length of reads that will end up with after processing
 	## Set to the read length minus the match length
+	## Defines the window over which we do manual trimming
     trim_len = read_len-trim_match
     
     #Define a list of files for R1 and R2 to store all of subsets of reads want to keep
