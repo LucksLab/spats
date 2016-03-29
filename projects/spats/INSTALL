@@ -76,7 +76,7 @@ The simplest way to compile this package is:
 Typical Spats Installation
 ==========================
 
-Please see http://github.com/LucksLab/spats for the most up to date installation instructions.
+Please see http://luckslab.github.io/spats/manual.html for the most up to date installation instructions.
 
 A detailed list of instructions for MacOSX (and similarly any Unix environment) that covers most of the Spats v1.0.0 dependencies follows:
 
@@ -199,6 +199,16 @@ Installation Instructions:
  - Follow the detailed installation instructions on the spats website (http://spats.sourceforge.net/installation.html). Note this will differ based on the system you are working on:
  - use the option --prefix=<path_prefix>/SHAPE-Seq/bin, where <path_prefix> is described in 5b of the 'Setting up the Shell Environment' section of this document.
  - Mac: type the command: bjam --prefix=<path_prefix>/SHAPE-Seq/bin/ --toolset=darwin --architecture=x86 --address_model=32_64 --link=static --runtime-link=static --layout=versioned install
+
+Cutadapt
+--------
+Usage: Adapter trimming utility.
+
+Software Location: https://cutadapt.readthedocs.org/en/stable/
+
+Version Needed: 1.5
+
+Installation Instructions: https://cutadapt.readthedocs.org/en/stable/installation.html
 
 Spats
 -----
