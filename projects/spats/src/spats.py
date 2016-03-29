@@ -44,6 +44,7 @@ use_message = '''
      --num-mismatches           <int>       [ default: 0    ]
      -m                         <int>       [default: not stringent] This option adds stringency to alignments, where <int> is the max # of aligenments allowed
      -p/--num-threads           <int>       [deafult: 1 ]   Number of threads to use
+     --all-RT-starts            <noarg> [if present prints out reactivties for each RT site detected. default: false]
      
      
 SAM Header Options (for embedding sequencing run metadata in output):
@@ -55,7 +56,6 @@ SAM Header Options (for embedding sequencing run metadata in output):
     --rg-center                    <string>    (sequencing center name)
     --rg-date                      <string>    (ISO 8601 date of the sequencing run)
     --rg-platform                  <string>    (Sequencing platform descriptor) 
-    --all-RT-starts                <noarg> [if present prints out reactivties for each RT site detected. default: false]
 '''
 
 
@@ -200,9 +200,9 @@ class SpatsParams:
                                            None,                # sequencing center
                                            None,                # run date
                                            None,                # sequencing platform
-                                           False,
-                                           False,
-                                           None)               # per site reactivity printing
+                                           False,               # per site reactivity printing
+                                           False,               # stringency
+                                           None)                # max alignments    
         
         self.system_params = self.SystemParams(1,               # bowtie_threads
                                                False)           # keep_tmp   
@@ -246,7 +246,8 @@ class SpatsParams:
                                          "rg-center=",
                                          "rg-date=",
                                          "rg-platform=",
-                                         "all-RT-starts"])
+                                         "all-RT-starts",
+                                         "m="])
         except getopt.error, msg:
             raise Usage(msg)
             
@@ -506,14 +507,7 @@ def match_read_pairs(params, left_in_reads, right_in_reads, left_out_reads, righ
         
     return [left_out_reads_filename, right_out_reads_filename]
  
-    #
-    #
-    #
-    #
-    #
-    #Can probably remove function or alter to call/load adapter_trimmer
-    #
-    #   
+#   DEPRECATED - Using standalone adapter_trimmer.py
 def trim_read_adapters(params, 
                        adapter,  
                        reads_file, 
@@ -690,7 +684,7 @@ def write_sam_header(read_params, sam_file):
     print >> sam_file, "@PG\tID:Spats\tVN:%s\tCL:%s" % (get_version(), run_cmd)
 
 def get_version():
-   return "0.2.0"
+   return "1.0.0"
 
 # From http://www.dalkescientific.com/writings/NBN/parsing.html
 class FastaRecord(object):
@@ -874,6 +868,7 @@ def main(argv=None):
         left_labeled_reads = output_dir + "/NOMASK_1.fq"
         right_labeled_reads = output_dir + "/NOMASK_2.fq"
         
+        # DEPRECATED - Using external adapter_trimmer.py 
         if params.read_params.adapter_t != None \
             and params.read_params.adapter_b != None:
 
