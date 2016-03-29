@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 #Brief module for reverse-complementing a fastq file with fastx_reverse_complement
+#Designed to be replaced with code that does fast revcomping to remove dependency on fastx tools
 
 import os
 
