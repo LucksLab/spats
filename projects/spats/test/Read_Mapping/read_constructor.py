@@ -30,7 +30,6 @@ Options
 -f, --file                  File containing DNA sequences to use.
 -a, --linker <sequence>    Adapter sequence (5'->3') to add at the 3' end of the RNA w/ barcodes (if applicable)
                             as it appears on the RT primer (after handle) (ex CACTCGGGCACCAAGGA)
---case               Select which case of set of 2 expected reactivity mappings to use. 0 or 1, default 0
 '''
 
 def get_version():
@@ -56,8 +55,7 @@ class Params:
                                         "length=",
                                         "sequence=",
                                         "file=",
-                                        "linker=",
-                                        "case="])
+                                        "linker="])
         
 
         except getopt.error, msg:
@@ -69,7 +67,6 @@ class Params:
         sequence = None
         read_length = 35
         linker = ''
-        case = 0
 
         for option, value in opts:
             if option in ("-v", "--version"):
@@ -88,13 +85,11 @@ class Params:
                 input_file = value
             if option in ("-a","--linker"):
                 linker = value
-            if option == "--case":
-                case = int(value)
             
         if (sequence is None) and (input_file is None):
             raise Usage('At least one of -s and -f must be specified'+help_message)
         
-        return args,out_1,out_2,read_length,input_file,sequence,linker,case
+        return args,out_1,out_2,read_length,input_file,sequence,linker
     
     def check(self):
         pass
@@ -155,7 +150,7 @@ def main(argv=None,):
     try:
         if argv is None:
             argv = sys.argv
-            args,out_1,out_2,read_length,input_file,sequence,linker,case = params.parse_options(argv)
+            args,out_1,out_2,read_length,input_file,sequence,linker = params.parse_options(argv)
             params.check()
         input_fragments = [] 
         
@@ -199,11 +194,12 @@ def main(argv=None,):
                     #Format read into Fastq
                     read_1_string,read_2_string = fastq_format(read_1,read_2,str(read_i)+"_"+str((read_ii+1)%2))
 
-                    if read_ii % 2 == case:
-                        for _ in range(len(seq)):
+                    if read_ii % 2 == 0:
+                        for _ in range(len(seq)+1):
                             write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
                     else:
-                        write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
+                        for _ in range(len(sequence)-len(seq)+1):
+                            write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
 
         f_out_1.close()
         f_out_2.close()
