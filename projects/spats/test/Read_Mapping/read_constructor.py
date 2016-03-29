@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+"""
+read_constructor.py builds fastq reads from input RNA sequence fragments to help simulate read mapping by spats.
 
-#read_constructor.py builds fastq reads from input RNA sequence fragments to help simulate read mapping by spats.
-
-#This script was written in July 2015 by JBL and edited in March 2016 by AMY.
+This script was written in July 2015 by JBL and edited in March 2016 by AMY.
+Copyright (c) 2016 Lucks Laboratory - all rights reserved.
+"""
 
 import sys
 import os
@@ -185,7 +187,6 @@ def main(argv=None,):
         read_i = -1
         read_ii = 0
         create_reads_perm = all_permutations[permutation]
-        print create_reads_perm
         for seq in input_fragments:
             read = adapter+reverse_complement(seq)
             read_i += 1
