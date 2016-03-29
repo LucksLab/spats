@@ -263,7 +263,7 @@ def clip_search(base,read_len,max_handle_len,output_dir,targets_dir,input_R1,inp
     Assuming input_R1 and input_R2 are filenames of files that have been quality_mod()'d
     
     """
-    print >> sys.stderr, "[%s] Finding reads that are %s nt long" % (right_now(), (base-max_handle_len)) #JBLQ - what does this mean?
+    print >> sys.stderr, "[%s] Finding reads that are %s nt long" % (right_now(), (base-max_handle_len)) #Printing what step we are on
     
     #Make a temporary folder for intermediate files to delete after each trim
     search_dir = current_dir + "search_" + id_generator(10) + "/"
