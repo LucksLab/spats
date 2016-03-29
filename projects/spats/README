@@ -18,6 +18,12 @@ and now supports:
   SHAPE-Seq 2.0: Systematic Optimization and Extension of High-Throughput
   Chemical Probing of RNA Structure with Next Generation Sequencing
       Nucleic Acids Research, 2014 .
+- Kyle E. Watters, Timothy R. Abbott, and Julius B. Lucks
+  Simultaneous characterization of cellular RNA structure and function
+  with in-cell SHAPE-Seq
+	  Nucleic Acids Research, 2015
+
+and other papers from the SHAPE-Seq community.
 
 The Spats package implements a read mapping and reactivity analysis pipeline for calculating
 SHAPE-Seq reactivities from an input set of next-generation reads. The reactivity calculation
@@ -40,21 +46,23 @@ Spats Installation
 
 Spats requires several dependencies before being installed. For up-to-date
 installation instructions for these dependencies and spats itself, please
-visit http://spats.sourceforge.net .
+visit http://github.com/LucksLab/spats .
 
 Spats depends on Bowtie 0.12.8 or higher, which you can get from here:
 http://bowtie-bio.sourceforge.net/index.shtml
 
 Spats also uses a modified version the FASTX package fastx_spats_toolkit_0.0.1, which
-is available from http://spats.sourceforge.net .
+is available from http://github.com/LucksLab/spats .
 
 Please install these and make sure they are accessible through your PATH
 environment variable before trying to run the mapping pipeline.
 
+For example installation instructions suited to MacOSX or a Unix environment see the INSTALL file included within this distribution or for more up-to-date installation instructions see http://github.com/LucksLab/spats .
+
 
 Spats Usage
 ===========
-For detailed usage and examples, please see http://spats.sourceforge.net/manual.html
+For detailed usage and examples, please see http://luckslab.github.io/spats/manual.html
 
 The spats pipeline is run in two stages: adapter trimming and spats analysis. Adapter trimming is implemented in the adapter_trimmer code, while spats analysis is implemented in the spats toolkit. A typical workflow is as follows:
 
