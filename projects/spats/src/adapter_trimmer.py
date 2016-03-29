@@ -297,13 +297,14 @@ def clip_search(base,read_len,max_handle_len,output_dir,targets_dir,input_R1,inp
     bowtie_unmatched_1_rc = output_dir + "bowtie_results{0}_unmatched_1_rc.fq".format(base)
     bowtie_unmatched_2 = output_dir + "bowtie_results{0}_unmatched_2.fq".format(base)
     
-	#Trim down each file to base
+	#Trim down each file by 1 base at a time. 
+	#Hardcoded to reflect clip_search() being called iteratively to process the unclipped reads from
+	#the previous call within full_trim()
 	## Construct cutadapt trimming command to remove nucleotides unconditionally
 	## -u N = Number of nucleotides to remove from the end of a read (when N < 0)
-    trim_num = read_len - base
-    trim_num = 1 #JBL FLAG
-    os.system("cutadapt --quiet -u -{0} -o {1} {2}".format(trim_num,output_R1,input_R1))
-    os.system("cutadapt --quiet -u -{0} -o {1} {2}".format(trim_num,output_R2,input_R2))
+    os.system("cutadapt --quiet -u -1 -o {0} {1}".format(output_R1,input_R1))
+    os.system("cutadapt --quiet -u -1 -o {0} {1}".format(output_R2,input_R2))
+
     
     #Use a loaded function to do the reverse comps
     fastq_revcomp.rev_comp(output_R1,output_revcomp_R1)
