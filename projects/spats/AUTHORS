@@ -2,6 +2,7 @@ Spats
 ----------------------------
 Copyright 2011, Cole Trapnell
 Copyright 2014, Cole Trapnell, Julius B. Lucks
+Copyright 2016, Cole Trapnell, Julius B. Lucks, Kyle E. Watters, Angela M. Yu
 
 Spats was originally written to support:
 
@@ -20,8 +21,14 @@ and now supports:
   SHAPE-Seq 2.0: Systematic Optimization and Extension of High-Throughput
   Chemical Probing of RNA Structure with Next Generation Sequencing
       Nucleic Acids Research, 2014
+- Kyle E. Watters, Timothy R. Abbott, and Julius B. Lucks
+  Simultaneous characterization of cellular RNA structure and function
+  with in-cell SHAPE-Seq
+      Nucleic Acids Research, 2015
+
+and other papers from the SHAPE-Seq community.
 	
-Cole Trapnell wrote the original code in the Spats package, with updates by Julius B. Lucks.
+Cole Trapnell wrote the original code in the Spats package, with updates by Julius B. Lucks, Kyle E. Watters and Angela M. Yu.
 The Spats package implements a read mapping and reactivity analysis pipeline for calculating
 SHAPE-Seq reactivities from an input set of next-generation reads. The reactivity calculation
 implemented is described in:

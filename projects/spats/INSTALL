@@ -11,7 +11,7 @@ Spats Installation
 ==================
 Spats requires several dependencies before being installed. For up-to-date
 installation instructions for these dependencies and spats itself, please
-visit http://spats.sourceforge.net .
+visit http://github.com/LucksLab/spats .
 
 Basic Installation
 ==================
@@ -72,6 +72,159 @@ The simplest way to compile this package is:
      for the package's developers.  If you use it, you may have to get
      all sorts of other programs in order to regenerate files that came
      with the distribution.
+
+Typical Spats Installation
+==========================
+
+Please see http://github.com/LucksLab/spats for the most up to date installation instructions.
+
+A detailed list of instructions for MacOSX (and similarly any Unix environment) that covers most of the Spats v1.0.0 dependencies follows:
+
+Setting up the Shell Environment
+--------------------------------
+The SHAPE-Seq pipeline currently uses a suite of command-line tools to perform the data analysis pipeline. The Mac OSX command line can be opened up using the Terminal.app found in Applications/Utilities. Follow the steps below to setup a directory system on the local disk that will be used to run SHAPE-Seq data analysis.
+
+ - Open Terminal.app
+ - Create a SHAPE-Seq folder in your home directory: mkdir SHAPE-Seq
+ - Change into the SHAPE-Seq directory: cd SHAPE-Seq
+ - Create the following sub-directories: mkdir src; mkdir bin; mkdir build; mkdir data
+  - src/ - will contain the source files for each element of the software pipeline
+  - bin/ - will contain the executable files for the software pipeline
+  - build/ - will contain files needed to build and compile the software
+  - data/ - will contain the raw SHAPE-Seq data
+ - Add the bin/ directory to your path
+ - open -a TextEdit ~/.bash_profile
+ - create the following line: export PATH=$PATH:<path_prefix>/SHAPE-Seq/bin:<path_prefix>/SHAPE-Seq/bin/bin where <path_prefix> is the absolute path to the directory you created SHAPE-Seq in. You can find your path by typing pwd. Typically this will be /Users/<your_username> on a Mac system. On the CBE server this is /fs/europa/g_jbl/Software/ .
+ - create the following line: echo "PATH set to" $PATH
+ - create the following line: export LD_LIBRARY_PATH=/fs/europa/g_jbl/Software/SHAPE-Seq/bin/lib (this sets the path where dynamically linked libraries can be found).
+ - create the following line: echo "LD_LIBRARY_PATH set to" $LD_LIBRARY_PATH
+ - save the file
+ - in terminal type: source ~/.bash_profile
+ - You should see the line "PATH set to (lots of things here)" if this was done correctly this time.
+ - Open a new terminal window and type: echo $PATH . You should see "SHAPE-Seq/bin" here if this step was done correctly.
+ 
+
+Small Read Archive (SRA) Toolkit
+--------------------------------
+Usage: To convert files obtained from the small read archive into fastq format for processing with the SHAPE-Seq pipeline. This is only required if you want to analyze data available on SRA (i.e. not required for data generated in the lab.)
+
+Software Location: http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software
+
+Installation Instructions:
+
+ - cd ~/SHAPE-Seq
+ - Download software.
+ - Move the sra toolkit tarball into the src/ directory using the mv command.
+ - cd src/
+ - Untar the sra toolkit file: tar xzvf sratoolkit.2.1.10-mac64.tar.gz
+ - Move the folder created to the build directory: mv sratoolkit.2.1.10-mac64 ../build/
+ - Link the binary files into the bin directory:
+ - cd ../bin
+ - ln -s ../build/sratoolkit.2.1.10-mac64/bin/* .
+
+FastX and Libgtextutils
+-----------------------
+Usage: FastX is a suite of tools for manipulating NGS data files. Here it is used for trimming adapter sequences from reads.
+
+Software Location: http://github.com/LucksLab/spats
+
+Version Needed: fastx_spats_toolkit_0.0.1 included in the spats repository
+
+Installation Instructions:
+
+ - cd ~/SHAPE-Seq
+ - Download the software. You will need Libgtextutils, which can be gotten from: http://hannonlab.cshl.edu/fastx_toolkit/download.html . Get the files  libgtextutils-0.6.1.tar.bz2 (specific link: http://hannonlab.cshl.edu/fastx_toolkit/libgtextutils-0.6.1.tar.bz2). Note that these may be updated from time to time so we'll have to keep this updated. Also get the fastx_spats_toolkit_0.0.1/ files from the spats git repo.
+ - Move the tarballs into the src/ directory using the mv command.
+ - cd src/
+ - Untar the libgtextutil file: tar -xvjf libgtextutils-0.6.tar.bz2
+ - Move the folder created to the build directory: mv libgtextutils-0.6 ../build/
+ - Change into the libgtextutils build directory: cd ../build/libgtextutils-0.6/
+ - Configure the libgtextutils install: ./configure --prefix=<path_prefix>/SHAPE-Seq/bin
+ - Note: this requires an absolute directory path so change the <path_prefix> part with your path. You can find your path by typing pwd and copy everything before '/SHAPE-Seq/...'.
+ - Note: if there are errors with configure like ./configure: line 15258: AX_C_LONG_LONG: command not found then re-run ./reconf which will copy macro files from the m4 directory for the configuration process.
+ - Make: make
+ - Install: make install
+ - Now tell package config tool where to look for libgtextutils: export PKG_CONFIG_PATH=<path_prefix>/SHAPE-Seq/bin/lib/pkgconfig:$PKG_CONFIG_PATH
+ - Once again, replace <path_prefix> with your path as in step 8a above.
+ - Copy the folder for fastx within spats to build: cp -r fastx_spats_toolkit_0.0.1 ../build/
+ - Change into the FastX build directory: cd ../build/fastx_spats_toolkit_0.0.01/
+ - Configure the FastX install: ./configure --prefix=<path_prefix>/SHAPE-Seq/bin
+ - See step above for setting <path_prefix> to your path.
+ - Make: make
+ - Install: make install
+
+Bowtie
+------
+Usage: Small read aligner used to align Illumina reads to RNA sequences.
+
+Software Location: http://bowtie-bio.sourceforge.net/index.shtml
+
+Version Needed: 0.12.8
+
+Installation Instructions:
+
+ - cd ~/SHAPE-Seq
+ - Download the appropriate software for Mac or Linux systems http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.8/ .
+ - Move the bowtie zip into the src/ directory using the mv command.
+ - cd src/
+ - Unzip the bowtie zip file: unzip bowtie-0.12.8.zip
+ - Move the folder created to the build directory: mv bowtie-0.12.8 ../build/
+ - Link the bowtie and bowtie-build binaries into the bin directory (Note ending periods are important.):
+ - cd ../bin
+ - ln -s ../build/bowtie-0.12.8/bowtie .
+ - ln -s ../build/bowtie-0.12.8/bowtie-build .
+
+Boost
+-----
+Usage: Libraries for efficient data processing.
+
+Software Location: http://www.boost.org/users/download/#live
+
+Version Needed: 1.49.0
+
+Installation Instructions:
+
+ - cd ~/SHAPE-Seq
+ - Download the software (boost_1_49_0.tar.gz)
+ - Move the boost tarball into the src/ directory using the mv command.
+ - cd src/
+ - Untar the boost file: tar xzvf boost_1_49_0.tar.gz
+ - Move the folder created to the build directory: mv boost_1_49_0 ../build/
+ - Change into the boost build directory: cd ../build/boost_1_49_0/
+ - Setup the boost build process: ./bootstrap.sh
+ - Link bjam to the bin directory (Note ending periods are important.):
+ - cd ../../bin
+ - ln -s ../build/boost_1_49_0/bjam .
+ - cd ../build/boost_1_49_0
+ - Follow the detailed installation instructions on the spats website (http://spats.sourceforge.net/installation.html). Note this will differ based on the system you are working on:
+ - use the option --prefix=<path_prefix>/SHAPE-Seq/bin, where <path_prefix> is described in 5b of the 'Setting up the Shell Environment' section of this document.
+ - Mac: type the command: bjam --prefix=<path_prefix>/SHAPE-Seq/bin/ --toolset=darwin --architecture=x86 --address_model=32_64 --link=static --runtime-link=static --layout=versioned install
+
+Spats
+-----
+Usage: The SHAPE-Seq data analysis pipeline.
+
+Software Location: (http://github.com/LucksLab/spats)
+
+Version Needed: 1.0.0
+
+Installation Instructions:
+
+ - cd ~/SHAPE-Seq
+ - Download the software.
+ - Move the spats tarball into the src/ directory using the mv command.
+ - cd src/
+ - Untar the spats file: tar xzvf spats-1.0.0.tar.gz
+ - Move the folder created to the build directory: mv mv spats-1.0.0 ../build/
+ - Change into the spats build directory: cd ../build/spats-1.0.0/
+ - Configure the spats install:
+ - ./configure --prefix=<path_prefix>/SHAPE-Seq/bin --with-boost=<path_prefix>/SHAPE-Seq/bin
+ - If you encounter errors, make sure the LD_LIBRARY_PATH variable is set to where the boost libraries are found. See "Setting Up the Shell Environment" above.
+ - If static linking is desired to the following workaround: For some reason the make process can find the boost includes but not the libs. To fix this, a hack is to edit src/Makefile line 689 to be "CXXFLAGS = -Wall -Wno-strict-aliasing -g -gdwarf-2 -m64 -O3 -DNDEBUG -pthread -I/fs/cbe/g_jbl/SHAPE-Seq/bin/include -static" (basically just adding the '-static' flag). The configure process should be changed to add this flag during the generation of src/Makefile. This ensures that the libraries are statically linked to the spats executables.
+ - Make: make
+ - Install: make install
+ - Edit the PATH variable as above to include <path_prefix>/SHAPE-Seq/bin/bin
+
 
 Compilers and Options
 =====================
