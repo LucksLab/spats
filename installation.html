@@ -1,0 +1,445 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Spats - Getting Started</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+	<meta name="description" content="A brief guide to using Spats for RNA structure determination with SHAPE-Seq"></meta>
+    <link rel="stylesheet" type="text/css" href="css/style.css"
+      media="screen"></link>
+  </head>
+  <body>
+    <div id="wrap">
+     	<div id="top">
+        <div class="lefts">
+          <table cellpadding="2" width="100%">
+            <tbody>
+              <tr>
+                <td> <a href="./index.html">
+                    <h1>Spats</h1>
+                  </a>
+                  <h2>Read Processing and Reactivity Generation for SHAPE-Seq</h2>
+                </td>
+                <td align="right" valign="middle"> 
+                    <a href="http://bio.math.berkeley.edu/">
+                    <img style="vertical-align:middle;padding-top:4px"
+                      src="images/UCBerkeley-seal.scaled.gif" border="0">
+                    </a>&nbsp;
+                    <a href="http://http://www.cheme.cornell.edu/">
+                    <img style="vertical-align:middle;padding-top:4px"
+                      src="images/Cornell_logo.jpg" border="0">
+                    </a>&nbsp;
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      <div id="main">
+       	<div id="subheader">
+	        <table width="100%">
+	          <tbody>
+	            <tr>
+	              <td> <strong>Spats</strong> processes reads and calculates SHAPE reactivities for SHAPE-Seq
+	              experiments on multiple RNAs. It accepts raw paired-end sequencing reads in fastq format, and a target
+	              sequence file containing the sequences of RNAs present in the experimental pool. Spats then performs
+	              read alignment to calculate distributions of read ends in the SHAPE (+) and (-) channel for each
+	              nucleotide in each RNA. Spats then estimates nucleotide resolution SHAPE reactivities for each RNA,
+	              using a model-driven maximum likelihood procedure based on a model of the reverse transcriptase
+	              process used in the SHAPE-Seq experiment.	
+	                Spats is a collaborative effort between the
+					 <a href="http://bme.ucdavis.edu/aviranlab/">Aviran Lab</a> at UC Davis, the <a href="http://math.berkeley.edu/~lpachter/">Pachter Lab</a> at UC Berkeley, the 
+	                <a href="http://cole-trapnell-lab.github.io">Trapnell Lab</a>
+	                 at the University of Washington, and
+	                <a href="http://luckslab.org/">the Lucks Lab</a>
+	                at Cornell University. <br>
+	                <br>
+	                Spats is provided under the OSI-approved <a
+	                  href="http://en.wikipedia.org/wiki/Boost_Software_License">Boost
+	                  License</a>. fastx_spats_toolkit_v_0.1.0 is provided under the <a
+	                  href="http://en.wikipedia.org/wiki/Affero_General_Public_License">AGPLv3
+	                  License</a>. </td> 
+	              <td align="right" valign="middle"> <a
+	                  href="http://opensource.org"><img alt="Open Source
+	                    Software" src="images/osi-certified.gif" border="0"></a>
+	              </td>
+	            </tr>
+	          </tbody>
+	        </table>
+	      </div>
+	
+        <div id="rightside">
+          <h2>Site Map</h2>
+          <div class="box">
+            <ul>
+              <li><a href="index.html">Home</a></li>
+              <li><a href="installation.html">Installation</a></li>
+              <li><a href="manual.html">Manual</a></li>
+			  <!-- <li><a href="http://www.nature.com/nprot/journal/v7/n3/full/nprot.2012.016.html">Protocol</a></li> -->
+            </ul>
+          </div>
+          <!-- <h2>News and updates</h2>
+                    <div class="box">
+                      <ul>
+                        <table width="100%">
+                          <tbody>
+                            <tr>
+                              <td>New releases and related tools will be announced
+                                through the <a
+                                  href="https://lists.sourceforge.net/lists/listinfo/bowtie-bio-announce"><b>mailing
+
+
+                                    list</b></a></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </ul>
+                    </div> -->
+
+ 		  <!-- <h2>Getting Help</h2>
+ 		            <div class="box">
+ 		              <ul>
+ 		                <table width="100%">
+ 		                  <tbody>
+ 		                    <tr>
+ 		                      <td>Questions about Cufflinks should be sent to <a
+ 		                          href="mailto:tophat.cufflinks@gmail.com"><b>tophat.cufflinks@gmail.com</b></a>.
+ 		                        Please do not email technical questions to
+ 		                        Cufflinks contributors directly.</td>
+ 		                    </tr>
+ 		                  </tbody>
+ 		                </table>
+ 		              </ul>
+ 		            </div> -->
+
+		          <a href="./downloads">
+		            <h2><u>Releases</u></h2>
+		          </a>
+		          <div class="box">
+		            <ul>
+		              <table width="100%">
+		                <tbody>
+		                  <tr>
+		                    <td>spats version 0.8.0</td>
+		                    <td align="right">9/4/2014</td>
+		                  </tr>
+		                  <tr>
+		                    <td><a href="./downloads/spats-0.8.0.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">&nbsp;&nbsp;&nbsp;Source code</a></td>
+		                  </tr>
+		                  <tr>
+		                    <td>fastx_spats_toolkit version 0.1.0</td>
+		                    <td align="right">9/4/2014</td>
+		                  </tr>
+		                  <tr>
+		                    <td><a href="./downloads/fastx_spats_toolkit-0.1.0.tar.bz2"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">&nbsp;&nbsp;&nbsp;Source code</a></td>
+		                  </tr>
+						  <td>fastx_spats_toolkit version 0.1.0 - binary distribution for 64-bit GNU/Linux 2.6.18</td>
+		                  <td align="right">9/4/2014</td>
+						  <tr>
+		                    <td><a href="./downloads/fastx_spats_toolkit_0.0.1_bin_dist.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">&nbsp;&nbsp;&nbsp;Source code</a></td>
+		                  </tr>
+		                  <tr>
+		                    <td>spats version 0.7.0</td>
+		                    <td align="right">4/10/2012</td>
+		                  </tr>
+		                  <tr>
+		                    <td><a href="./downloads/spats-0.7.0.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">&nbsp;&nbsp;&nbsp;Source code</a></td>
+		                  </tr>
+		                </tbody>
+		              </table>
+		            </ul>
+		          </div>
+
+          <h2>Publications</h2>
+          <div class="box">
+            <ul>
+
+ 			  <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Trapnell C, Lucks JB, Mortimer SA, Luo S, Schroth GP, Doudna JA, Arkin AP, Pachter L.<b> <a href="http://www.pnas.org/content/108/27/11069.long">Modeling and automation of sequencing-based characterization of RNA structure</b></a> <br/><i><a href="http://www.pnas.org">PNAS</a></i> 10.1073/pnas.1106541108</p><br/></li>
+
+		      <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Lucks JB, Pachter L.<b> <a href="http://arxiv.org/abs/1106.5061v2">RNA structure characterization from chemical mapping experiments</a></b> <br><i><a href="Aviran_Allerton_2011.pdf"></a>Proceedings of the 49th Allerton Conference on Communication, Control, and Computing, 1743-1750, 2011</i></p></li>
+
+			  <li style="font-size: x-small; line-height: 130%"><p>Lucks JB, Mortimer SA, Trapnell C, Luo S, Aviran S, Schroth GP, Pachter L, Doudna JA, Arkin AP. <b> <a href="http://www.pnas.org/content/108/27/11063.long">Multiplexed RNA structure characterization with selective 2'-hydroxyl acylation analyzed by primer extension sequencing (SHAPE-Seq)</a></b> <br/>
+				<i><a href="http://www.pnas.org">PNAS</a></i> 10.1073/pnas.1106501108</p><br/>
+
+			  <li style="font-size: x-small; line-height: 130%"><p>Mortimer SA, Trapnell C, Aviran S, Pachter L and Lucks JB. <b> <a href="http://onlinelibrary.wiley.com/doi/10.1002/9780470559277.ch120019/abstract">SHAPE-Seq High Throughput RNA Structure Analysis</a></b> <br/>
+			  <i><a href="http://onlinelibrary.wiley.com/book/10.1002/9780470559277">Current Protocols in Chemical Biology</a></i>10.1002/9780470559277.ch120019</p><br/>
+
+			  <li style="font-size: x-small; line-height: 130%"><p>Loughrey D, Watters KE, Settle AH, and Lucks JB. <b> <a href="XXX">SHAPE-Seq 2.0: Systematic Optimization and Extension of High-Throughput Chemical Probing of RNA Structure with Next Generation Sequencing</a></b> <br/>
+			  <i><a href=""></a></i></p><br/>
+			  </li>
+            </ul>
+          </div>
+          <h2>Other Contributors</h2>
+          <div class="box">
+            <ul>
+              <li><a href="http://rna.berkeley.edu/">Stefanie Mortimer</a></li>
+              <li>Shujun Luo</li>
+              <li>Gary Schroth</li>
+              <li>Adam Arkin</li>
+		  	  <li><a href="http://rna.berkeley.edu/">Jennifer Doudna</a></li>
+            </ul>
+          </div>
+          <h2>Links</h2>
+          <div class="box">
+            <ul>
+              <li><a href="http://math.berkeley.edu/~lpachter/">Pachter Lab</a></li>
+              <li><a href="http://luckslab.org/">Lucks Lab</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- End of "rightside" -->
+        <div id="leftside">
+          <table>
+            <tbody>
+              <tr>
+                <td><h3>Installation</h3>
+			  	  <br/>
+					Spats runs on intel-based computers running Linux or Mac OS X and that have GCC 4.0 or greater installed.  Currently spats must be built from the source code, though we recognize the need for an easier installation system.<p></p></br>
+					
+					Several pieces of software are required to run the <tt>spats</tt> pipeline. The software below should be installed in the order listed.
+					Detailed instructions are given for a <it>local</it> installation on a unix system (<b>recommended</b>)- i.e. where the software is installed 
+					into a specified location rather than the default unix locations such as <tt>/usr/local</tt>. If a default installation is required,
+					<tt>/usr/local</tt> may be specified in place of the custom location, or the <tt>--prefix</tt> options may be left out.					
+			       	
+			      </p><br/>
+				  <div id="toc">
+			  	    <ul>
+			  	    <li><a href="#path">Path Setup</a></li>
+					<li><a href="#fastx">FastX_Spats and Libgtextutils</a></li>
+			  	    <li><a href="#bowtie">Bowtie</a></li>
+				    <li><a href="#boost">Boost</a></li>
+    				<li><a href="#spats">Spats</a></li>
+			  	    </ul><br/>
+			  	  </div>
+					
+				  <h3 id="path">Path Setup</h3><br/>
+					  <p> The creation of a local installation of spats is recommended. Currently we recommend creating the following directory
+						  structure:
+						<p></p></br>
+						<blockquote>
+							&lt;path_prefix&gt;/SHAPE-Seq/
+						</blockquote>
+						<p></p></br>
+						which should contain:
+						<p></p></br>
+						<blockquote>
+							&lt;path_prefix&gt;/SHAPE-Seq/bin/ &lt;path_prefix&gt;/SHAPE-Seq/bin/bin/ &lt;path_prefix&gt;/SHAPE-Seq/bin/lib/ &lt;path_prefix&gt;/SHAPE-Seq/src/ &lt;path_prefix&gt;/SHAPE-Seq/build/
+						</blockquote>
+						<p></p></br>
+						Here <tt>&lt;path_prefix&gt;</tt> is the location of this directory on your system. To ensure that these paths will be used correctly
+						by the installation system, it is helpful to add them to your default shell, for example in bash by including the following lines in
+						your <tt>.bash_profile</tt>:
+						<p></p></br>
+						<blockquote>
+							export PATH=$PATH:&lt;path_prefix&gt;/SHAPE-Seq/bin:&lt;path_prefix&gt;/SHAPE-Seq/bin/bin
+						</blockquote>
+						<blockquote>
+							export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:&lt;path_prefix&gt;/SHAPE-Seq/bin/lib
+						</blockquote>
+						<blockquote>
+							export PYTHONPATH=$PYTHONPATH:&lt;path_prefix&gt;/SHAPE-Seq/bin/bin
+						</blockquote>
+						
+				      </p><br/>
+				 	  <br/>
+				
+					<h3 id="fastx">Installing FastX_Spats_Toolkit and LibGTextUtils (Required)</h3>  
+					     <tt>fastx_spats_toolkit</tt> and <tt>libgtextutils</tt> are required for adapter trimming. Instructions for
+					     installing via sourcecode:
+					     <ol>
+							<li> Download the software. <tt>fastx_spats_toolkit-0.1.0</tt> can be gotten from the spats website <a 
+								href="./downloads/fastx_spats_toolkit-0.1.0.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">here</a>. <tt>libgtextutils-0.6.1.tar.bz2</tt> can be gotten from the 
+		 						<a href="http://hannonlab.cshl.edu/fastx_toolkit/download.html">Hannon Lab Fastx Site</a> at this <a 
+			                    href="http://hannonlab.cshl.edu/fastx_toolkit/libgtextutils-0.6.1.tar.bz2"> link </a>.
+							<li> Untar the libgtextutil file: <tt>tar -xvjf libgtextutils-0.6.tar.bz2 </tt>
+							<li> Move the folder created to the build directory: <tt>mv libgtextutils-0.6 &lt;path_prefix&gt;/SHAPE-Seq/build/ </tt>
+						    <li> Change into the libgtextutils build directory: <tt>cd &lt;path_prefix&gt;/build/libgtextutils-0.6/</tt>
+							<li> Configure the libgtextutils install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin </tt>
+							<li> Run: <tt>make</tt> and <tt>make install</tt>.
+						    <li> Now tell package config tool where to look for libgtextutils: <tt>export 
+							     PKG_CONFIG_PATH=&lt;path_prefix&gt;/SHAPE-Seq/bin/lib/pkgconfig:$PKG_CONFIG_PATH</tt>
+							<li> Untar the FastX file: <tt>tar -xvjf fastx_spats_toolkit-0.1.0.tar.bz2</tt>
+							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit-0.1.0 &lt;path_prefix&gt;/build/</tt>
+							<li> Change into the FastX build directory: <tt>cd &lt;path_prefix&gt;/build/fastx_spats_toolkit-0.1.0/ </tt>
+							<li> Configure the FastX install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>
+							<li> Run: <tt>make</tt> and <tt>make install</tt>.
+						 </ol>
+						<p></p></br>
+						For 64-bit GNU/Linux 2.6.18 (and probably above), there is a binary distribution of the necessary fastx tools which
+						can be installed with these instructions. <b> Note - this will only work on 64-bit GNU Linux Systems with Kernel >= 2.6.18</b>
+						<ol>
+							<li> Download the software. <tt>fastx_spats_toolkit-0.1.0_bin_dist</tt> can be gotten from the spats website <a 
+								href="./downloads/fastx_spats_toolkit_0.0.1_bin_dist.tar.gz"
+		                        onclick="javascript:
+		                        pageTracker._trackPageview('/downloads/cufflinks_source');
+		                        ">here</a>.
+							<li> Untar the FastX file: <tt>tar -xvzf fastx_spats_toolkit_0.0.1_bin_dist.tar.gz</tt>
+							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit_0.0.1_bin_dist &lt;path_prefix&gt;/build/</tt>
+							<li> Link the <tt>fastx_reverse_complement</tt>, <tt>fastx_spats_clipper</tt> and <tt>fastx_trimmer</tt> binaries into the <tt>&lt;path_prefix&gt;/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/bin; ln -s &lt;path_prefix&gt;/build/fastx_spats_toolkit_0.0.1_bin_dist/* .</tt>
+						</ol>
+					
+					   
+						<br/>
+				
+					<h3 id="bowtie">Installing Bowtie (Required)</h3> 
+					<tt>bowtie</tt> is used to align next-generation sequencing reads. <b>Bowtie version 0.12.8 is required.</b> Spats is not currently compatible 
+					with Bowtie 2.
+						<ol>
+							<li> Download the software. Version 0.12.8 can be gotten from <a 
+								 href="http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.8/">the bowtie sourceforge site</a>.
+							<li> Copy the bowtie zip into the <tt>&lt;path_prefix&gt;/src/</tt> directory using the <tt>cp</tt> command.
+							<li> Unzip the bowtie zip file: <tt>unzip bowtie-0.12.8.zip</tt>
+							<li> Move the folder created to the build directory: <tt>mv bowtie-0.12.8 &lt;path_prefix&gt;/build/</tt>
+							<li> Link the <tt>bowtie</tt> and <tt>bowtie-build</tt> binaries into the <tt>&lt;path_prefix&gt;/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/bin; ln -s &lt;path_prefix&gt;/build/bowtie-0.12.8/bowtie .; ln -s &lt;path_prefix&gt;/build/bowtie-0.12.8/bowtie-build .</tt>
+						</ol>
+					
+					<br/>
+				  
+                  <h3 id="boost">Installing Boost (Required)</h3>
+				  <tt>boost</tt> version 1.49.0 is required.
+                  <br/>
+					<ol>
+						<li> Download the software. Version 1.49.0 can be gotten from <a 
+							 href="http://www.boost.org/users/download/">here</a>.
+						<li> Copy the boost tarball into the <tt>&lt;path_prefix&gt;/src/</tt> directory using the <tt>cp</tt> command.
+						<li> Untar the boost file: <tt>tar xzvf boost_1_49_0.tar.gz</tt>
+						<li> Move the folder created to the build directory: <tt>mv boost_1_49_0 &lt;path_prefix&gt;/build/</tt>
+						<li> Change into the boost build directory: cd <tt>&lt;path_prefix&gt;/build/boost_1_49_0/</tt>
+						<li> Setup the boost build process: <tt>./bootstrap.sh</tt>
+						<li> Link the <tt>bjam</tt> into the <tt>&lt;path_prefix&gt;/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/bin; ln -s &lt;path_prefix&gt;/build/boost_1_49_0/bjam .; cd &lt;path_prefix&gt;/build/boost_1_49_0</tt>
+						<li>Build Boost. <p>If you are on Mac OS X, type (all on one line):
+		                        <br/>
+		                      </p>
+		                      <blockquote>bjam
+		                        --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin/
+		                        --toolset=darwin --architecture=x86
+		                        --address_model=32_64 --link=static
+		                        --runtime-link=static --layout=versioned --stage=install</blockquote>
+		                    </li>
+		                    <p>If you are on a 32-bit Linux system, type (all on
+		                      one line): <br/>
+		                    </p>
+		                    <blockquote>bjam
+		                      --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin/
+		                      --toolset=gcc --architecture=x86 --address_model=32
+		                      --link=static --runtime-link=static --stage=install</blockquote>
+		                    <p>If you are on a 64-bit Linux system, type (all on
+		                      one line): <br/>
+		                    </p>
+		                    <blockquote>bjam
+		                      --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin/
+		                      --toolset=gcc --architecture=x86 --address_model=64
+		                      --link=static --runtime-link=static --stage=install</blockquote>
+ 					</ol>
+                  <br/>
+                 
+                  <h3 id="spats">Building Spats (Required)</h3>
+				  <b>We currently recommend installing <tt>spats</tt> version 0.8.0.</b>
+                  <br/>
+                  <ol>
+                    <li> Download the software. <tt>spats-0.8.0</tt> can be gotten from the spats website <a 
+							href="./downloads/spats-0.8.0.tar.gz"
+	                        onclick="javascript:
+	                        pageTracker._trackPageview('/downloads/cufflinks_source');
+	                        ">here</a>.
+					<li> Untar the spats file: <tt>tar -xvzf spats-0.8.0.tar.gz</tt>
+					<li> Move the folder created to the build directory: <tt>mv spats-0.8.0 &lt;path_prefix&gt;/build/</tt>
+					<li> Change into the spats build directory: <tt>cd &lt;path_prefix&gt;/build/spats-0.8.0/ </tt>
+					<li> Configure the spats install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin 
+						 --with-boost=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>. If you encounter errors in this step, make sure the 
+						<tt>LD_LIBRARY_PATH</tt> variable is set to where the boost libraries are found. 
+						See <a href="#path">Path Setup</a> above.
+					<li> Run: <tt>make</tt> and <tt>make install</tt>.			
+                  </ol>
+                  <!-- <h2 id="test">Testing the installation</h2>
+                  <br/>
+                  <ol>
+                    <li>Download the <a href="downloads/test_data.sam">test
+                        data</a> </li>
+                    <li>In the directory where you placed the test file,
+                      type:<br/>
+                      <blockquote>cufflinks ./test_data.sam</blockquote>
+                      <br/>
+                      You should see the following output:
+                      <pre>[bam_header_read] EOF marker is absent. The input is probably truncated.
+[bam_header_read] invalid BAM binary header (this is not a BAM file).
+File ./test_data.sam doesn't appear to be a valid BAM file, trying SAM...
+[13:23:15] Inspecting reads and determining fragment length distribution.
+&gt; Processed 1 loci.                            [*************************] 100%
+Warning: Using default Gaussian distribution due to insufficient paired-end reads in open ranges.  
+It is recommended that correct paramaters (--frag-len-mean and --frag-len-std-dev) be provided.
+&gt; Map Properties:
+&gt;       Total Map Mass: 102.50
+&gt;       Read Type: 75bp x 75bp
+&gt;       Fragment Length Distribution: Truncated Gaussian (default)
+&gt;                     Estimated Mean: 200
+&gt;                  Estimated Std Dev: 80
+[13:23:15] Assembling transcripts and estimating abundances.
+&gt; Processed 1 loci.                            [*************************] 100%
+</pre>
+                    </li>
+                    <li>Verify that the file <tt>transcripts.gtf</tt>
+                      is in the current directory and looks like this
+                      (your file will have GTF attributes, omitted here
+                      for clarity)
+                      <pre>test_chromosome Spats       exon    53      250     1000    +       . 
+test_chromosome Spats       exon    351     400     1000    +       . 
+test_chromosome Spats       exon    501     550     1000    +       .
+					
+				</pre>
+                    </li>
+                  </ol>
+                  <br/> -->
+                 
+                  
+                  <div id="footer">
+                    <table cellspacing="15" width="100%">
+			          <tbody>
+			            <tr>
+			              <td> This research was supported in part by
+			                the Miller Institute for Basic Research in Science at UC
+			                Berkeley, the Alfred P. Sloan Foundation, and the National Institutes of Health. </td>
+			              <td align="right"> Administrators: <a
+			                  href="mailto:cole@cs.umd.edu">Cole Trapnell</a> and <a
+				                  href="">Julius B. Lucks (j b lucks at cornell dot edu)</a>.
+			                Design by <a href="http://www.free-css-templates.com"
+			                  title="Design by David Herreman">David Herreman</a> </td>
+			            </tr>
+			          </tbody>
+			        </table>
+                  </div>
+
+                  <!-- Google analytics code -->
+                  <script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+                  <script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-6101038-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+                  <!-- End google analytics code --> </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
