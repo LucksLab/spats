@@ -2,7 +2,7 @@
 """
 read_constructor.py builds fastq reads from input RNA sequence fragments to help simulate read mapping by spats.
 
-This script was written in July 2015 by JBL and edited in March 2016 by AMY.
+This script was written in July 2015 by J. B. Lucks and edited in March 2016 by Angela M.Yu.
 Copyright (c) 2016 Lucks Laboratory - all rights reserved.
 """
 
@@ -26,9 +26,13 @@ Options
 -v, --version               displays version number
 -o, --output                Output file name. Default R1.fq, R2.fq
 -l, --length                Read length of output reads. Default is 35.
--s, --sequence              DNA sequence to use to construct reads representing a stop at each position.
--f, --file                  File containing DNA sequences to use.
--a, --linker <sequence>    Adapter sequence (5'->3') to add at the 3' end of the RNA w/ barcodes (if applicable)
+-s, --sequence              DNA sequence to use to construct reads for each stop position. N Plus reads are generated at
+                              each position where N increments from 5' to 3' (i.e. there is one full length plus read, two
+                              N-1 plus reads, etc.) L-N minus Minus reads are generated at each position where L is the length
+                              of the sequence (i.e. there are L full length minus reads, L-1 minus reads at position N-1, etc.)
+-f, --file                  File containing specific DNA sequences to use. Only these sequences will be mapped. Use --sequence to automatically
+                              construct a comprehensive test case.
+-a, --linker <sequence>     Linker sequence (5'->3') to add at the 3' end of the RNA w/ barcodes (if applicable)
                             as it appears on the RT primer (after handle) (ex CACTCGGGCACCAAGGA)
 '''
 
@@ -141,9 +145,9 @@ def write_read_files(f_out_1, f_out_2, read_1_string, read_2_string):
 
 
 def main(argv=None,):
-    #Definitions of A_T and A_B based on SHAPE-Seq 2.0 (Loughrey, Watters NAR Figure S4)
-    linker_T = 'AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT'
-    linker_B = 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC'
+    #Definitions of A_T and A_B based on SHAPE-Seq 2.0 (Loughrey, Watters NAR Figure S4, doi: 10.1093/nar/gku909)
+    Adapter_T = 'AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT'
+    Adapter_B = 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC'
 
     params = Params()
         
@@ -161,7 +165,8 @@ def main(argv=None,):
         
         if sequence is not None:
             for i in range(len(sequence)):
-                input_fragments.append(sequence[i:])
+                #build sequence fragments with decreasing length stopping at every position
+                input_fragments.append(sequence[i:]) 
         
         input_fragments.append('') #always include empty fragment
         
@@ -174,30 +179,37 @@ def main(argv=None,):
         read_i = -1
         read_ii = 0
         for seq in input_fragments:
-            if True:
+            if True: #JBL - need this?
+                # Constructing reads. See Loughrey, Watters NAR Figure S4, doi: 10.1093/nar/gku909
                 read = linker+reverse_complement(seq)
                 read_i += 1
 
-                #Append +/- barcode
-                plus_read = 'GGGC'+read
-                minus_read = 'CCCG'+read
+                #Prepend +/- handle index
+                plus_read = 'GGGC'+read # Plus is RRRY
+                minus_read = 'CCCG'+read # Minus is YYYR
             
                 for lib_read in (plus_read,minus_read):
                     read_ii += 1
                     #Construct Read_1 and Read_2 based on length
-                    temp_read = lib_read+linker_B
-                    read_1 = temp_read[:read_length]
+                    temp_read = lib_read+Adapter_B #temp_read contains full top strand
+                    read_1 = temp_read[:read_length] #cut down by read_length to get read_1
                 
-                    temp_read = reverse_complement(linker_T+lib_read)
-                    read_2 = temp_read[:read_length]
+                    temp_read = reverse_complement(Adapter_T+lib_read) #temp_read contains full bottow strand, revcomp based on sequencing process
+                    read_2 = temp_read[:read_length] #cut down by read_length to get read_2
 
                     #Format read into Fastq
                     read_1_string,read_2_string = fastq_format(read_1,read_2,str(read_i)+"_"+str((read_ii+1)%2))
 
                     if read_ii % 2 == 0:
+                        #For every minus read, repeat this mate pair as many times as the length of the sequence
+                        # Since fragments are in a list in descending length, this creates a pattern of descending 
+                        # number of reads at each postion. i.e. Full length minus reads equal the sequence length,
+                        # full length -1 minus reads equal sequence length -1 etc.
                         for _ in range(len(seq)+1):
                             write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
                     else:
+                        #For every plus read, repeat this mate pair in ascending length. i.e. 1 full length plus read,
+                        # 2 full length -1 plus reads, etc.
                         for _ in range(len(sequence)-len(seq)+1):
                             write_read_files(f_out_1, f_out_2, read_1_string, read_2_string)
 
