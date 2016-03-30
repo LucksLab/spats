@@ -65,7 +65,7 @@ The algorithm employed is as follows:
 '''
 
 def get_version():
-    return "TEST0.2.0"
+    return "0.2.0"
 
 class Usage(Exception):
     def __init__(self,msg):
