@@ -1,7 +1,0 @@
-/Users/jblucks/current_local/SHAPE-Seq/bin/bin/spats -p 2 -o Negative Targets.fa RRRY YYYR R1.fastq R2.fastq
-/Users/jblucks/current_local/SHAPE-Seq/bin/bin/relabel_reads --output-dir Negative/ --phred33-quals --fastq R1.fastq R2.fastq
-bowtie-build Negative/tmp/targets.fa Negative/tmp/targets
-/Users/jblucks/current_local/SHAPE-Seq/bin/bin/relabel_reads --output-dir Negative/ --phred33-quals --no-relabel --fastq Negative//NOMASK_1.fq Negative//NOMASK_2.fq RRRY YYYR
-bowtie -q --sam --allow-contain -v 0 -X 2000 -p 2 Negative/tmp/targets -1 Negative/RRRY_1.fq -2 Negative/RRRY_2.fq Negative/RRRY.sam
-bowtie -q --sam --allow-contain -v 0 -X 2000 -p 2 Negative/tmp/targets -1 Negative/YYYR_1.fq -2 Negative/YYYR_2.fq Negative/YYYR.sam
-/Users/jblucks/current_local/SHAPE-Seq/bin/bin/compute_profiles --output-dir Negative/ --phred33-quals Negative/tmp/targets.fa Negative/RRRY.sam Negative/YYYR.sam
