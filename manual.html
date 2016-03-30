@@ -313,17 +313,17 @@
 	  <b>Options:</b>
 	  </td><td VALIGN=top>
 	  </td></tr>
-	  
+
 	  <tr><td VALIGN=top nowrap>
 	  <tt>--trim-match &lt;N&gt;</tt>
 	  </td><td VALIGN=top>
 	  Number of nucleotides of adapter to search for with clipper (default = 6).
 	  </td></tr>
-	
+
 	  <tr><td VALIGN=top nowrap>
 	  <tt>--read-len &lt;N&gt;</tt>
 	  </td><td VALIGN=top>
-	  Number of length of reads (ex. 35 for 2x35 bp paired end reads) (default = 35).
+	  Number of length of reads (ex. 35 for 2x35 bp paired end reads) (default = 35). (autodetected)
 	  </td></tr>
 	
 	  <tr><td VALIGN=top nowrap>
@@ -331,12 +331,42 @@
 	  </td><td VALIGN=top>
 	  Number of nt on the 3' end to leave after (w/ adapter) (default = 6).
 	  </td></tr>
+
+	  <tr><td VALIGN=top nowrap>
+	  <tt>-e, --error-rate &lt;N&gt;</tt>
+	  </td><td VALIGN=top>
+	  Allowed error rate when clipping adapters (0.1 is 1/10 bases, etc.)
+	  </td></tr>
+
+	  <tr><td VALIGN=top nowrap>
+	  <tt>-q, --quality-min &lt;N&gt;</tt>
+	  </td><td VALIGN=top>
+	  Minimum quality score to consider.
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>-p, --num-threads &lt;N&gt;</tt>
+	  </td><td VALIGN=top>
+	   Number of processors to use (default = 1).	
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>--allow-mismatches &lt;N&gt;</tt>
+	  </td><td VALIGN=top>
+	  Allow downstream mismatches for Spats (keep sequences that don't perfectly align).
+	  </td></tr>
+	
+	  <tr><td VALIGN=top nowrap>
+	  <tt>--set-quality &lt;N&gt;</tt>
+	  </td><td VALIGN=top>
+	  Sets all read qualities to the given quality where ascii is (N+33).               
+	  </td></tr>
 	
 	  <tr><td VALIGN=top nowrap>
 	  <tt>--A-b-sequence &lt;string&gt;</tt>
 	  </td><td VALIGN=top>
 	  The sequence of A_adapter_b (which is ligated to the single-stranded cDNA products of the RT reaction). (default: 
-	  AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG).	
+	  AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC used for Illumina TrueSeq indexed reads).	
 	  </td></tr>
 		
 	  <tr><td VALIGN=top nowrap>

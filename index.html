@@ -217,10 +217,14 @@
 
           <h2>1.0.0 release - 3/31/16</h2>
           <p> Spats v 1.0.0 is now available for download. This release mostly focuses on moving away from the fastxtoolkit which has been 
-	          mostly replaced with <a href="https://cutadapt.readthedocs.org/en/stable/">cutadapt</a> in the adapter_trimmer. There is also test
-			  code for correct read mapping in the test/ directory.
+	          mostly replaced with <a href="https://cutadapt.readthedocs.org/en/stable/">cutadapt</a> in the adapter_trimmer. Cutadapt allows
+			  for more flexibility including the ability to include mismatches in the adapter trimming step so that spats can handle mismatches downstream.
+			  There are also several more options available for adapter trimming, see the <a href="manual.html">manual</a> for more information. In addition, 
+			  there is also test code for correct read mapping in the test/ directory. 
 			
-			  As part of this release, spats is now officially hosted on github at <a href="https://github.com/LucksLab/spats">https://github.com/LucksLab/spats</a>.
+		  <p> This release sets up the eventual deprecation of using the fastx tools. Note: only fastx_revcomp is still used by spats with this release.
+			
+		  <p> As part of this release, spats is now officially hosted on github at <a href="https://github.com/LucksLab/spats">https://github.com/LucksLab/spats</a>.
 		  <p></p></br>
 		
           <h2>0.8.0 release - 9/4/2014</h2>
