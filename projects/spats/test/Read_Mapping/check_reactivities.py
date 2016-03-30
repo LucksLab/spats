@@ -53,9 +53,9 @@ incorrect = len(reads) - correct
 expected_read_lines = 2 * (sequence_len + linker_len - 1)
 
 if correct == len(reads) and len(reads) == expected_read_lines:
-    result = "OK - %s read positions out of %s expected, %s correct, %s incorrect\n"%(len(reads), exp_read_lines, correct, incorrect)
+    result = "OK - %s read positions out of %s expected, %s correct, %s incorrect\n"%(len(reads), expected_read_lines, correct, incorrect)
 else:
-    result = "FAILED - %s read positions out of %s expected, %s correct, %s incorrect\n"%(len(reads), exp_read_lines, correct, incorrect)
+    result = "FAILED - %s read positions out of %s expected, %s correct, %s incorrect\n"%(len(reads), expected_read_lines, correct, incorrect)
 
 with open(output, "a") as f:
     f.write(result)
