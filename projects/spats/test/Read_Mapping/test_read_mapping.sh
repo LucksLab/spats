@@ -5,8 +5,6 @@
 # Created by Angela M Yu, March 29, 2016
 # Copyright (c) 2016 Lucks Laboratory - all rights reserved.
 
-source /fs/europa/g_jbl/Software/Test/test_bash_profile
-
 output_name="SRP_All_Stops"
 spats_output_dir="Output_test"
 test_results_file="./test_results.txt"

@@ -41,18 +41,18 @@ with open(spats_reactivities_out, "r") as f:
     header = f.readline()
     for line in f:
         fields = line.split("\t")
-        reads += [int(fields[4]), int(fields[5])]
+        reads += [int(fields[4]), int(fields[5])] # treated_reads is [4], untreated_reads is [5]
 
 # Build expected reads
-case_exp = zip(range(1,sequence_len+2), range(1, sequence_len+2)[::-1])
-case_exp = [ele for i in case_exp for ele in i] + [0]*(2*linker_len-4)
+case_exp = zip(range(1,sequence_len+2), range(1, sequence_len+2)[::-1]) #creates pairs [(1,N), (2,N-1), ..., (N+1,1)]
+case_exp = [ele for i in case_exp for ele in i] + [0]*(2*linker_len-4)  #add 0s where linker does not map
 
 # Calculate summary
 correct = sum([1 if a[0] == a[1] else 0 for a in zip(case_exp, reads)])
 incorrect = len(reads) - correct
-exp_read_lines = 2 * (sequence_len + linker_len - 1)
+expected_read_lines = 2 * (sequence_len + linker_len - 1)
 
-if correct == len(reads) and len(reads) == exp_read_lines:
+if correct == len(reads) and len(reads) == expected_read_lines:
     result = "OK - %s read positions out of %s expected, %s correct, %s incorrect\n"%(len(reads), exp_read_lines, correct, incorrect)
 else:
     result = "FAILED - %s read positions out of %s expected, %s correct, %s incorrect\n"%(len(reads), exp_read_lines, correct, incorrect)

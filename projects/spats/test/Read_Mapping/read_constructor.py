@@ -30,6 +30,7 @@ Options
                               each position where N increments from 5' to 3' (i.e. there is one full length plus read, two
                               N-1 plus reads, etc.) L-N minus Minus reads are generated at each position where L is the length
                               of the sequence (i.e. there are L full length minus reads, L-1 minus reads at position N-1, etc.)
+                              Note: read stops are not generated within the linker sequence as is normal for a SHAPE-Seq experiment.
 -f, --file                  File containing specific DNA sequences to use. Only these sequences will be mapped. Use --sequence to automatically
                               construct a comprehensive test case.
 -a, --linker <sequence>     Linker sequence (5'->3') to add at the 3' end of the RNA w/ barcodes (if applicable)
