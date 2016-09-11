@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 # encoding: utf-8
 """
 spats.py
@@ -10,6 +11,12 @@ Copyright (c) 2010 Cole Trapnell. All rights reserved.
 Revision by Kyle Watters on 2014-9-20.
 change notes:
     -switched fastx_toolkit to cutadapt script (v1.5 at time of change)
+
+
+Revised by Angela Yu on 2016-8-28
+change notes:
+    -bugfix in mismatch option
+    -some code spacing and removing unused imports
 """
 
 import sys
@@ -19,25 +26,21 @@ try:
 except ImportError:
     pass
 
-import sys
 import getopt
 import subprocess
 import errno
 import os
-import tempfile
 import warnings
-import shutil
-import copy
-from datetime import datetime, date, time
+from datetime import datetime
 
 use_message = '''
  Spats builds reactivity profiles from SHAPE-Seq experiments.
- 
+
  Usage:
      spats [options] <rna.fasta> <treated_handle> <untreated_handle> <reads1[,reads2,...,readsN]> <reads1[,reads2,...,readsN]>
-     
+
  Options:
-     -o/--output-dir                <string>    [ default: ./spats_out ] 
+     -o/--output-dir                <string>    [ default: ./spats_out ]
      --adapter-t                 <string>    [ default: None ]
      --adapter-b                <string>    [ default: None ]
      --trim-match               <int>       [default: 9]
@@ -45,8 +48,8 @@ use_message = '''
      -m                         <int>       [default: not stringent] This option adds stringency to alignments, where <int> is the max # of aligenments allowed
      -p/--num-threads           <int>       [deafult: 1 ]   Number of threads to use
      --all-RT-starts            <noarg> [if present prints out reactivties for each RT site detected. default: false]
-     
-     
+
+
 SAM Header Options (for embedding sequencing run metadata in output):
     --rg-id                        <string>    (read group ID)
     --rg-sample                    <string>    (sample ID)
@@ -55,7 +58,7 @@ SAM Header Options (for embedding sequencing run metadata in output):
     --rg-platform-unit             <string>    (e.g Illumina lane ID)
     --rg-center                    <string>    (sequencing center name)
     --rg-date                      <string>    (ISO 8601 date of the sequencing run)
-    --rg-platform                  <string>    (Sequencing platform descriptor) 
+    --rg-platform                  <string>    (Sequencing platform descriptor)
 '''
 
 
@@ -71,30 +74,29 @@ run_cmd = None
 tmp_dir = output_dir + "tmp/"
 bin_dir = sys.path[0] + "/"
 
-#ok_str = "\t\t\t\t[OK]\n"
+# ok_str = "\t\t\t\t[OK]\n"
 fail_str = "\t[FAILED]\n"
 
 
 class SpatsParams:
-        
+
     class SystemParams:
         def __init__(self,
                      bowtie_threads,
                      keep_tmp):
             self.bowtie_threads = bowtie_threads
             self.keep_tmp = keep_tmp
-            
+
         def parse_options(self, opts):
             for option, value in opts:
                 if option in ("-p", "--num-threads"):
                     self.bowtie_threads = int(value)
-                if option in ("--keep-tmp"):
+                if option == "--keep-tmp":
                     self.keep_tmp = True
-        
+
         def check(self):
             pass
-        
-    
+
     class ReadParams:
         def __init__(self,
                      phred33_quals,
@@ -121,10 +123,10 @@ class SpatsParams:
             self.seed_length = seed_length
             self.adapter_t = adapter_t
             self.adapter_b = adapter_b
-            self.trim_match = trim_match #JBL - Option to adapter trimming match
+            self.trim_match = trim_match  # JBL - Option to adapter trimming match
             self.num_mismatches = num_mismatches
             self.reads_format = reads_format
-            self.read_group_id = read_group_id 
+            self.read_group_id = read_group_id
             self.sample_id = sample_id
             self.library_id = library_id
             self.description = description
@@ -135,55 +137,57 @@ class SpatsParams:
             self.all_RT_starts = all_RT_starts
             self.stringent = stringent
             self.max_alignments = max_alignments
-            
+
         def parse_options(self, opts):
             for option, value in opts:
                 if option == "--phred33-quals":
                     self.phred33_quals = True
-                if option == "--phred64-quals":
-                    self.phred64_quals = True    
-                if option in ("-s", "--seed-length"):
+                elif option == "--phred64-quals":
+                    self.phred64_quals = True
+                elif option in ("-s", "--seed-length"):
                     self.seed_length = int(value)
-                if option in ("--adapter-t"):
+                elif option == "--adapter-t":
                     self.adapter_t = value
-                if option in ("--adapter-b"):
+                elif option == "--adapter-b":
                     self.adapter_b = value
-                if option in ("--trim-match"):
+                elif option == "--trim-match":
                     self.trim_match = value
-                if option in ("--num-mismatches"):
+                elif option == "--num-mismatches":
                     self.num_mismatches = value
-                if option == "--rg-id":
+                elif option == "--rg-id":
                     self.read_group_id = value
-                if option == "--rg-sample":
+                elif option == "--rg-sample":
                     self.sample_id = value
-                if option == "--rg-library":
+                elif option == "--rg-library":
                     self.library_id = value
-                if option == "--rg-description":
+                elif option == "--rg-description":
                     self.description = value
-                if option == "--rg-platform-unit":
+                elif option == "--rg-platform-unit":
                     self.seq_platform_unit = value
-                if option == "--rg-center":
+                elif option == "--rg-center":
                     self.seq_center = value
-                if option == "--rg-date":
-                    self.seq_run_date = value    
-                if option == "--rg-platform":
+                elif option == "--rg-date":
+                    self.seq_run_date = value
+                elif option == "--rg-platform":
                     self.seq_platform = value
-                if option == "--all-RT-starts":
+                elif option == "--all-RT-starts":
                     self.all_RT_starts = True
+                elif option == "-m":
+                    self.stringent = True
+                    self.max_alignments = value
 
         def check(self):
-            if self.seed_length != None and self.seed_length < 20:
+            if self.seed_length is not None and self.seed_length < 20:
                 print >> sys.stderr, "Error: arg to --seed-length must be at least 20"
                 exit(1)
             if (not self.read_group_id and self.sample_id) or (self.read_group_id and not self.sample_id):
                 print >> sys.stderr, "Error: --rg-id and --rg-sample must be specified or omitted together"
                 exit(1)
-            
-            #TODO validate adapters for nucleotide chars
-                
-                    
-    def __init__(self):        
-        
+
+            # TODO validate adapters for nucleotide chars
+
+    def __init__(self):
+
         self.read_params = self.ReadParams(True,                # phred33 qualities
                                            False,
                                            None,                # seed_length
@@ -202,58 +206,56 @@ class SpatsParams:
                                            None,                # sequencing platform
                                            False,               # per site reactivity printing
                                            False,               # stringency
-                                           None)                # max alignments    
-        
+                                           None)                # max alignments
+
         self.system_params = self.SystemParams(1,               # bowtie_threads
-                                               False)           # keep_tmp   
-        
+                                               False)           # keep_tmp
 
         self.skip_check_reads = False
-        
+
     def check(self):
         self.read_params.check()
         self.system_params.check()
-        
+
     def cmd(self):
         cmd = ["--output-dir", output_dir]
-        
-        if self.read_params.phred33_quals == True:
+
+        if self.read_params.phred33_quals:
             cmd.append("--phred33-quals")
-        if self.read_params.phred64_quals == True:
+        if self.read_params.phred64_quals:
             cmd.append("--phred64-quals")
         return cmd
-        
+
     def parse_options(self, argv):
         try:
-            opts, args = getopt.getopt(argv[1:], "hvp:m:o:", 
-                                        ["version",
-                                         "help",  
-                                         "output-dir=",
-                                         "phred33-quals",
-                                         "phred64-quals",
-                                         "num-threads=",
-                                         "num-mismatches=",
-                                         "skip-check-reads",
-                                         "keep-tmp",
-                                         "adapter-b=",
-                                         "adapter-t=",
-                                         "trim-match=",
-                                         "rg-id=",
-                                         "rg-sample=",
-                                         "rg-library=",
-                                         "rg-description=",
-                                         "rg-platform-unit=",
-                                         "rg-center=",
-                                         "rg-date=",
-                                         "rg-platform=",
-                                         "all-RT-starts",
-                                         "m="])
+            opts, args = getopt.getopt(argv[1:], "hvp:m:o:",
+                                       ["version",
+                                        "help",
+                                        "output-dir=",
+                                        "phred33-quals",
+                                        "phred64-quals",
+                                        "num-threads=",
+                                        "num-mismatches=",
+                                        "skip-check-reads",
+                                        "keep-tmp",
+                                        "adapter-b=",
+                                        "adapter-t=",
+                                        "trim-match=",
+                                        "rg-id=",
+                                        "rg-sample=",
+                                        "rg-library=",
+                                        "rg-description=",
+                                        "rg-platform-unit=",
+                                        "rg-center=",
+                                        "rg-date=",
+                                        "rg-platform=",
+                                        "all-RT-starts"])
         except getopt.error, msg:
             raise Usage(msg)
-            
+
         self.system_params.parse_options(opts)
         self.read_params.parse_options(opts)
-        
+
         # option processing
         for option, value in opts:
             if option in ("-v", "--version"):
@@ -263,9 +265,6 @@ class SpatsParams:
                 raise Usage(use_message)
             if option == "--skip-check-reads":
                 self.skip_check_reads = True
-            if option in ("-m"):
-                self.stringent = True
-                self.max_alignments = value
             if option in ("-o", "--output-dir"):
                 global output_dir
                 global logging_dir
@@ -273,14 +272,16 @@ class SpatsParams:
                 output_dir = value + "/"
                 logging_dir = output_dir + "logs/"
                 tmp_dir = output_dir + "tmp/"
-            
+
         if len(args) < 5:
             raise Usage(use_message)
         return args
 
+
 def right_now():
     curr_time = datetime.now()
     return curr_time.strftime("%c")
+
 
 def prepare_output_dir():
     
@@ -300,44 +301,46 @@ def prepare_output_dir():
     else:        
         os.mkdir(tmp_dir)
 
+
 def check_bowtie_index(idx_prefix):
     print >> sys.stderr, "[%s] Checking for Bowtie index files" % right_now()
-    
+
     idx_fwd_1 = idx_prefix + ".1.ebwt"
     idx_fwd_2 = idx_prefix + ".2.ebwt"
     idx_rev_1 = idx_prefix + ".rev.1.ebwt"
     idx_rev_2 = idx_prefix + ".rev.2.ebwt"
-    
+
     if os.path.exists(idx_fwd_1) and \
        os.path.exists(idx_fwd_2) and \
        os.path.exists(idx_rev_1) and \
        os.path.exists(idx_rev_2):
-        return 
+        return
     else:
         bowtie_idx_env_var = os.environ.get("BOWTIE_INDEXES")
-        if bowtie_idx_env_var == None:
+        if bowtie_idx_env_var is not None:
             print >> sys.stderr, "Error: Could not find Bowtie index files " + idx_prefix + ".*"
             exit(1)
-        idx_prefix = bowtie_idx_env_var + idx_prefix 
+        idx_prefix = bowtie_idx_env_var + idx_prefix
         idx_fwd_1 = idx_prefix + ".1.ebwt"
         idx_fwd_2 = idx_prefix + ".2.ebwt"
         idx_rev_1 = idx_prefix + ".rev.1.ebwt"
         idx_rev_2 = idx_prefix + ".rev.2.ebwt"
-        
+
         if os.path.exists(idx_fwd_1) and \
            os.path.exists(idx_fwd_2) and \
            os.path.exists(idx_rev_1) and \
            os.path.exists(idx_rev_2):
-            return 
+            return
         else:
             print >> sys.stderr, "Error: Could not find Bowtie index files " + idx_prefix + ".*"
             exit(1)
 
+
 def bowtie_idx_to_fa(idx_prefix):
     idx_name = idx_prefix.split('/')[-1]
     print >> sys.stderr, "[%s] Reconstituting reference FASTA file from Bowtie index" % (right_now())
-    
-    try:    
+
+    try:
         tmp_fasta_file_name = output_dir + idx_name + ".fa"
         tmp_fasta_file = open(tmp_fasta_file_name, "w")
 
@@ -346,21 +349,22 @@ def bowtie_idx_to_fa(idx_prefix):
         inspect_cmd = ["bowtie-inspect",
                        idx_prefix]
         #print >> sys.stderr, "Executing: " + " ".join(inspect_cmd) + " > " + tmp_fasta_file_name   
-        ret = subprocess.call(inspect_cmd, 
+        ret = subprocess.call(inspect_cmd,
                               stdout=tmp_fasta_file,
                               stderr=inspect_log)
 
         # Bowtie reported an error
         if ret != 0:
-           print >> sys.stderr, fail_str, "Error: bowtie-inspect returned an error"
-           exit(1)
-           
+            print >> sys.stderr, fail_str, "Error: bowtie-inspect returned an error"
+            exit(1)
+
     # Bowtie not found
     except OSError, o:
         if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
             print >> sys.stderr, fail_str, "Error: bowtie-inspect not found on this system.  Did you forget to include it in your PATH?"
-  
+
     return tmp_fasta_file_name
+
 
 def check_fasta(idx_prefix):
     print >> sys.stderr, "[%s] Checking for reference FASTA file" % right_now()
@@ -368,29 +372,29 @@ def check_fasta(idx_prefix):
     if os.path.exists(idx_fasta):
         return idx_fasta
     else:
-        idx_name = idx_prefix.split('/')[-1]
         bowtie_idx_env_var = os.environ.get("BOWTIE_INDEXES")
-        if bowtie_idx_env_var != None:
-            idx_fasta = bowtie_idx_env_var + idx_prefix + ".fa" 
+        if bowtie_idx_env_var is not None:
+            idx_fasta = bowtie_idx_env_var + idx_prefix + ".fa"
             if os.path.exists(idx_fasta):
                 return idx_fasta
-        
+
         print >> sys.stderr, "\tWarning: Could not find FASTA file " + idx_fasta
         idx_fa = bowtie_idx_to_fa(idx_prefix)
         return idx_fa
         #print >> sys.stderr, "Error: Could not find Maq binary fasta file " + idx_bfa
         #exit(1)
-    
+
+
 def check_index(idx_prefix):
     check_bowtie_index(idx_prefix)
     ref_fasta_file = check_fasta(idx_prefix)
-    
     return (ref_fasta_file, None)
+
 
 def get_bowtie_version():
     try:
         # Launch Bowtie to capture its version info
-        proc = subprocess.Popen(['bowtie', '--version'],stdout=subprocess.PIPE)
+        proc = subprocess.Popen(['bowtie', '--version'], stdout=subprocess.PIPE)
         stdout_value = proc.communicate()[0]
         bowtie_version = None
         bowtie_out = repr(stdout_value)
@@ -407,12 +411,13 @@ def get_bowtie_version():
             bowtie_version = [int(x) for x in version_val.split('.')]
         if len(bowtie_version) == 3:
             bowtie_version.append(0)
-        
+
         return bowtie_version
     except OSError, o:
-       if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
-           print >> sys.stderr, fail_str, "Error: bowtie not found on this system"
-       exit(1)
+        if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
+            print >> sys.stderr, fail_str, "Error: bowtie not found on this system"
+        exit(1)
+
 
 def check_bowtie():
     print >> sys.stderr, "[%s] Checking for Bowtie" % right_now()
@@ -425,45 +430,44 @@ def check_bowtie():
         print >> sys.stderr, "Error: Spats requires Bowtie 0.12.7 or later"
         exit(1)
     print >> sys.stderr, "\tBowtie version:\t\t %s" % ".".join([str(x) for x in bowtie_version])
-        
 
 
 def formatTD(td):
     hours = td.seconds // 3600
     minutes = (td.seconds % 3600) // 60
     seconds = td.seconds % 60
-    return '%02d:%02d:%02d' % (hours, minutes, seconds) 
+    return '%02d:%02d:%02d' % (hours, minutes, seconds)
 
-def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handle, untreated_handle, relabel=True):    
+
+def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handle, untreated_handle, relabel=True):
     #filter_cmd = ["prep_reads"]
     print >> sys.stderr, "[%s] Relabeling reads in %s and %s" % (right_now(), handle_reads_list, nonhandle_reads_list)
-    
+
     #filter_log = open(logging_dir + "relabel_reads.log", "w")
-    
+
     filter_cmd = [bin_dir + "relabel_reads"]
     filter_cmd.extend(params.cmd())
-    
-    if relabel == False:
+
+    if relabel is False:
         filter_cmd += ["--no-relabel"]
     if params.read_params.reads_format == "fastq":
         filter_cmd += ["--fastq"]
     elif params.read_params.reads_format == "fasta":
         filter_cmd += ["--fasta"]
     filter_cmd.append(handle_reads_list)
-    filter_cmd.append(nonhandle_reads_list) 
-    
-    
-    if treated_handle != None and untreated_handle != None:
+    filter_cmd.append(nonhandle_reads_list)
+
+    if treated_handle is not None and untreated_handle is not None:
         filter_cmd.append(treated_handle)
-        filter_cmd.append(untreated_handle) 
-    
-    #print "\t executing: `%s'" % " ".join(filter_cmd)    
+        filter_cmd.append(untreated_handle)
+
+    #print "\t executing: `%s'" % " ".join(filter_cmd)
     # files = reads_list.split(',')
     # for reads_file in files:
-    try:       
+    try:
         print >> run_log, " ".join(filter_cmd)
         ret = subprocess.call(filter_cmd)
-                              # Bowtie reported an error
+        # Bowtie reported an error
         if ret != 0:
             print >> sys.stderr, fail_str, "Error: could not execute relabel_reads"
             exit(1)
@@ -472,7 +476,8 @@ def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handl
         if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
             print >> sys.stderr, fail_str, "Error: relabel_reads not found on this system.  Did you forget to include it in your PATH?"
         exit(1)
-    
+
+
 def match_read_pairs(params, left_in_reads, right_in_reads, left_out_reads, right_out_reads):
     #filter_cmd = ["prep_reads"]
     print >> sys.stderr, "[%s] Rematching read pairs" % (right_now())
@@ -581,7 +586,7 @@ def bowtie(params,
             unmapped_reads_fasta_name = None
         
         if params.read_params.stringent == True:     #defaults to False
-            bowtie_cmd += "-m {0}".format(params.read_params.max_alignments)
+            bowtie_cmd += ["-m {0}".format(params.read_params.max_alignments)]
             #"-m 1", #JBL - uncomment to supress all matches that occurr more than once
             #KEW - adding option to remove this stringency when desired
         bowtie_cmd += ["--sam",
@@ -684,7 +689,7 @@ def write_sam_header(read_params, sam_file):
     print >> sam_file, "@PG\tID:Spats\tVN:%s\tCL:%s" % (get_version(), run_cmd)
 
 def get_version():
-   return "1.0.0"
+   return "1.0.1"
 
 # From http://www.dalkescientific.com/writings/NBN/parsing.html
 class FastaRecord(object):
@@ -855,7 +860,7 @@ def main(argv=None):
                 
         # Now start the time consuming stuff
         relabel_reads(params,
-                      left_reads_list, 
+                      left_reads_list,
                       right_reads_list,
                       None,
                       None)
@@ -869,8 +874,8 @@ def main(argv=None):
         right_labeled_reads = output_dir + "/NOMASK_2.fq"
         
         # DEPRECATED - Using external adapter_trimmer.py 
-        if params.read_params.adapter_t != None \
-            and params.read_params.adapter_b != None:
+        if params.read_params.adapter_t is not None \
+            and params.read_params.adapter_b is not None:
 
             left_trimmed_reads = "NOMASK_1.trimmed"
             right_trimmed_reads = "NOMASK_2.trimmed"

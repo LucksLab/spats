@@ -78,7 +78,7 @@ Typical Spats Installation
 
 Please see http://luckslab.github.io/spats/manual.html for the most up to date installation instructions.
 
-A detailed list of instructions for MacOSX (and similarly any Unix environment) that covers most of the Spats v1.0.0 dependencies follows:
+A detailed list of instructions for MacOSX (and similarly any Unix environment) that covers most of the Spats v1.0.1 dependencies follows:
 
 Setting up the Shell Environment
 --------------------------------
@@ -216,7 +216,7 @@ Usage: The SHAPE-Seq data analysis pipeline.
 
 Software Location: (http://github.com/LucksLab/spats)
 
-Version Needed: 1.0.0
+Version Needed: 1.0.1
 
 Installation Instructions:
 
@@ -224,9 +224,9 @@ Installation Instructions:
  - Download the software.
  - Move the spats tarball into the src/ directory using the mv command.
  - cd src/
- - Untar the spats file: tar xzvf spats-1.0.0.tar.gz
- - Move the folder created to the build directory: mv mv spats-1.0.0 ../build/
- - Change into the spats build directory: cd ../build/spats-1.0.0/
+ - Untar the spats file: tar xzvf spats-1.0.1.tar.gz
+ - Move the folder created to the build directory: mv mv spats-1.0.1 ../build/
+ - Change into the spats build directory: cd ../build/spats-1.0.1/
  - Configure the spats install:
  - ./configure --prefix=<path_prefix>/SHAPE-Seq/bin --with-boost=<path_prefix>/SHAPE-Seq/bin
  - If you encounter errors, make sure the LD_LIBRARY_PATH variable is set to where the boost libraries are found. See "Setting Up the Shell Environment" above.

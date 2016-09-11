@@ -21,7 +21,11 @@ and now supports:
 - Kyle E. Watters, Timothy R. Abbott, and Julius B. Lucks
   Simultaneous characterization of cellular RNA structure and function
   with in-cell SHAPE-Seq
-	  Nucleic Acids Research, 2015
+      Nucleic Acids Research, 2015
+- Kyle E. Watters, Angela M Yu, Eric J. Strobel, Alexander H. Settle, and Julius B. Lucks
+  Characterizing RNA structures in vitro and in vivo with selective 2'-hydroxyl acylation
+  analyzed by primer extension sequencing (SHAPE-Seq)
+      Methods, 2016
 
 and other papers from the SHAPE-Seq community.
 
@@ -48,7 +52,7 @@ Spats requires several dependencies before being installed. For up-to-date
 installation instructions for these dependencies and spats itself, please
 visit http://github.com/LucksLab/spats .
 
-Spats depends on Bowtie 0.12.8 or higher, which you can get from here:
+Spats depends on Bowtie 0.12.8, which you can get from here:
 http://bowtie-bio.sourceforge.net/index.shtml
 
 Spats also uses a modified version the FASTX package fastx_spats_toolkit_0.0.1, which
@@ -73,15 +77,18 @@ spats --num-mismatches 0 -o Output RNA_targets.fa RRRY YYYR combined_R1.fastq co
 where <second_adapter_sequence> is the sequence of the second adapter (present at the 3' end of cDNAs), <first_adapter_sequence> is the sequence of the first adapter (present at the 5' end of cDNAs), R1.fastq and R2.fastq are the fastq sequencing files from the sequencing run, and RNA_targets.fa is the FASTA formatted file containing the RNA sequences under study. Spats outputs text files (in Output) containing (+) and (-) fragment counts, beta's and theta’s, for each position in each RNA in the targets file.
 
 Usage:
-	 adapter_trimmer [options]* <R1_seq.fastq> <R2_seq.fastq> <targets.fa>
+     adapter_trimmer [options]* <R1_seq.fastq> <R2_seq.fastq> <targets.fa>
 
      spats [options]* <targets.fa> <treated_handle> <untreated_handle> <R1_seq.fastq> <R2_seq.fastq>
+
+     reactivities_split [options] <reactivities_file.out>
 
 <targets.fa> is a fasta file containing the RNA sequences under study.
 <R1_seq.fastq> is a fastq file containing "_1" reads from a paired-end Illumina run.
 <R2_seq.fastq> is a fastq file containing "_2" reads from a paired-end Illumina run.
 <treated_handle> and <untreated_handle> are IUPAC strings indicating the barcoding
 scheme for the 1M7-treated and untreated pools.
+<reactivities_file.out> is the output reactivities file from spats.
 
 Given a paired end run (2x35bp) with target sequences (in DNA alphabet) in the file 
 target_bcs.fa, "_1" reads in HCT20611_50bp_s_7_1_sequence.fq, and 
@@ -90,3 +97,6 @@ target_bcs.fa, "_1" reads in HCT20611_50bp_s_7_1_sequence.fq, and
 adapter_trimmer --A-b-sequence=AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG --A-t-sequence=AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATC --read-len=35 HCT20611_50bp_s_7_1_sequence.fq HCT20611_50bp_s_7_2_sequence.fq target_bcs.fa
 
 spats --num-mismatches 0 -o HCT20611_50bp.final RRRY YYYR combined_R1.fastq combined_R2.fastq
+
+cd HCT20611_50bp.final
+reactivities_split reactivities.out

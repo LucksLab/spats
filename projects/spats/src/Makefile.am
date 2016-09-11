@@ -27,7 +27,8 @@ bin_PROGRAMS = \
 
 dist_bin_SCRIPTS = \
 	spats.py \
-	adapter_trimmer.py
+	adapter_trimmer.py \
+        reactivities_split.py
 
 dist_nobin_SCRIPTS = \
 	targets_analyzer.py \

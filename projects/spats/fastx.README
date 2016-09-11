@@ -3,6 +3,6 @@ Modifications include adjustments to fastx_clipper to allow stringent (no mismat
 
 Before installing spats, copy the entire directory to the build directory and go through the normal fastx installation.
 
-Spats v1.0.0 - Only fastx_revcomp is required
+Spats v1.0.1 - Only fastx_revcomp is required
 
 

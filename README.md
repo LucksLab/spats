@@ -22,7 +22,11 @@ and now supports:
 - Kyle E. Watters, Timothy R. Abbott, and Julius B. Lucks
   Simultaneous characterization of cellular RNA structure and function
   with in-cell SHAPE-Seq
-	  Nucleic Acids Research, 2015
+      Nucleic Acids Research, 2015
+- Kyle E. Watters, Angela M Yu, Eric J. Strobel, Alexander H. Settle, and Julius B. Lucks
+  Characterizing RNA structures in vitro and in vivo with selective 2'-hydroxyl acylation
+  analyzed by primer extension sequencing (SHAPE-Seq)
+      Methods, 2016
 
 and other papers from the SHAPE-Seq community.
 
