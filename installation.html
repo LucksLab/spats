@@ -24,7 +24,7 @@
                     <img style="vertical-align:middle;padding-top:4px"
                       src="images/UCBerkeley-seal.scaled.gif" border="0">
                     </a>&nbsp;
-                    <a href="http://www.cheme.cornell.edu/">
+                    <a href="http://http://www.mccormick.northwestern.edu/chemical-biological/">
                     <img style="vertical-align:middle;padding-top:4px"
                       src="images/Northwestern Formal_horizontal_shrunk.png" border="0">
                     </a>&nbsp;
@@ -40,7 +40,7 @@
 	          <tbody>
 	            <tr>
 	              <td> <strong>Spats</strong> processes reads and calculates SHAPE reactivities for SHAPE-Seq
-	              experiments on multiple RNAs. It accepts raw paired-end sequencing reads in fastq format, and a target
+	              experiments on multiple RNAs. It accepts raw paired-end sequencing reads in FASTQ format, and a target
 	              sequence file containing the sequences of RNAs present in the experimental pool. Spats then performs
 	              read alignment to calculate distributions of read ends in the SHAPE (+) and (-) channel for each
 	              nucleotide in each RNA. Spats then estimates nucleotide resolution SHAPE reactivities for each RNA,
@@ -118,12 +118,19 @@
 		            <ul>
 		              <table width="100%">
 		                <tbody>
-			              <tr>
+                                  <tr>
+                                    <td>spats version 1.0.1</td>
+                                    <td align="right">9/10/2016</td>
+                                  </tr>
+                                  <tr>
+                                    <td><a href="https://github.com/LucksLab/spats/releases/tag/v1.0.1">&nbsp;&nbsp;&nbsp;Source code</a></td>
+                                  </tr>
+			          <tr>
 		                    <td>spats version 1.0.0</td>
 		                    <td align="right">3/21/2016</td>
 		                  </tr>
 		                  <tr>
-		                    <td><a href="https://github.com/LucksLab/spats/releases/">&nbsp;&nbsp;&nbsp;Source code</a></td>
+		                    <td><a href="https://github.com/LucksLab/spats/releases/tag/v1.0.0">&nbsp;&nbsp;&nbsp;Source code</a></td>
 		                  </tr>
 		                  <tr>
 		                    <td>spats version 0.8.0</td>
@@ -165,7 +172,7 @@
 
  			  <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Trapnell C, Lucks JB, Mortimer SA, Luo S, Schroth GP, Doudna JA, Arkin AP, Pachter L.<b> <a href="http://www.pnas.org/content/108/27/11069.long">Modeling and automation of sequencing-based characterization of RNA structure</b></a> <br/><i><a href="http://www.pnas.org">PNAS</a></i> 10.1073/pnas.1106541108</p><br/></li>
 
-		      <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Lucks JB, Pachter L.<b> <a href="http://arxiv.org/abs/1106.5061v2">RNA structure characterization from chemical mapping experiments</a></b> <br><i><a href="Aviran_Allerton_2011.pdf"></a>Proceedings of the 49th Allerton Conference on Communication, Control, and Computing, 1743-1750, 2011</i></p></li>
+		      <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Lucks JB, Pachter L.<b> <a href="http://arxiv.org/abs/1106.5061v2">RNA structure characterization from chemical mapping experiments</a></b> <br><i><a href="Aviran_Allerton_2011.pdf"></a>Proceedings of the 49th Allerton Conference on Communication, Control, and Computing, 1743-1750, 2011</i></p><br/></li>
 
 			  <li style="font-size: x-small; line-height: 130%"><p>Lucks JB, Mortimer SA, Trapnell C, Luo S, Aviran S, Schroth GP, Pachter L, Doudna JA, Arkin AP. <b> <a href="http://www.pnas.org/content/108/27/11063.long">Multiplexed RNA structure characterization with selective 2'-hydroxyl acylation analyzed by primer extension sequencing (SHAPE-Seq)</a></b> <br/>
 				<i><a href="http://www.pnas.org">PNAS</a></i> 10.1073/pnas.1106501108</p><br/>
@@ -182,6 +189,9 @@
 			  <li style="font-size: x-small; line-height: 130%"><p>Watters KE, Abbott TR, and Lucks JB. <b> <a href="http://dx.doi.org/10.1093/nar/gkv879">Simultaneous characterization of cellular RNA structure and function with in-cell SHAPE-Seq</a></b> <br/>
 			  <i><a href="http://dx.doi.org/10.1093/nar/gkv879"></a>Nucleic Acids Research</i> 10.1093/nar/gkv879</p><br/>
 			  </li>
+                          <li style="font-size: x-small; line-height: 130%"><p>Watters KE, Yu AM, Strobel EJ, Settle AH, Lucks JB.<b> <a href="http://dx.doi.org/10.1016/j.ymeth.2016.04.002">Characterizing RNA structures in vitro and in vivo with selective 2'-hydroxyl acylation analyzed by primer extension sequencing (SHAPE-Seq)</a></b> <br/>
+                          <i><a href="http://dx.doi.org/10.1016/j.ymeth.2016.04.002"></a>Methods</i> 10.1016/j.ymeth.2016.04.002 </p><br/>
+                          </li>
             </ul>
           </div>
           <h2>Other Contributors</h2>
@@ -215,8 +225,8 @@
 					Spats runs on intel-based computers running Linux or Mac OS X and that have GCC 4.0 or greater installed.  Currently spats must be built from the source code, though we recognize the need for an easier installation system.<p></p></br>
 					
 					Several pieces of software are required to run the <tt>spats</tt> pipeline. The software below should be installed in the order listed.
-					Detailed instructions are given for a <it>local</it> installation on a unix system (<b>recommended</b>)- i.e. where the software is installed 
-					into a specified location rather than the default unix locations such as <tt>/usr/local</tt>. If a default installation is required,
+					Detailed instructions are given for a <it>local</it> installation on a Unix system (<b>recommended</b>)- i.e. where the software is installed 
+					into a specified location rather than the default Unix locations such as <tt>/usr/local</tt>. If a default installation is required,
 					<tt>/usr/local</tt> may be specified in place of the custom location, or the <tt>--prefix</tt> options may be left out.					
 			       	
 			      </p><br/>
@@ -260,7 +270,6 @@
 						</blockquote>
 						
 				      </p><br/>
-				 	  <br/>
 				
 					<h3 id="fastx">Installing FastX_Spats_Toolkit and LibGTextUtils (Required)</h3>  
 					     <tt>fastx_spats_toolkit</tt> and <tt>libgtextutils</tt> are required for adapter trimming. Instructions for
@@ -275,14 +284,14 @@
 			                    href="http://hannonlab.cshl.edu/fastx_toolkit/libgtextutils-0.6.1.tar.bz2"> link </a>.
 							<li> Untar the libgtextutil file: <tt>tar -xvjf libgtextutils-0.6.tar.bz2 </tt>
 							<li> Move the folder created to the build directory: <tt>mv libgtextutils-0.6 &lt;path_prefix&gt;/SHAPE-Seq/build/ </tt>
-						    <li> Change into the libgtextutils build directory: <tt>cd &lt;path_prefix&gt;/build/libgtextutils-0.6/</tt>
+						    <li> Change into the libgtextutils build directory: <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/build/libgtextutils-0.6/</tt>
 							<li> Configure the libgtextutils install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin </tt>
 							<li> Run: <tt>make</tt> and <tt>make install</tt>.
 						    <li> Now tell package config tool where to look for libgtextutils: <tt>export 
 							     PKG_CONFIG_PATH=&lt;path_prefix&gt;/SHAPE-Seq/bin/lib/pkgconfig:$PKG_CONFIG_PATH</tt>
 							<li> Untar the FastX file: <tt>tar -xvjf fastx_spats_toolkit-0.1.0.tar.bz2</tt>
-							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit-0.1.0 &lt;path_prefix&gt;/build/</tt>
-							<li> Change into the FastX build directory: <tt>cd &lt;path_prefix&gt;/build/fastx_spats_toolkit-0.1.0/ </tt>
+							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit-0.1.0 &lt;path_prefix&gt;/SHAPE-Seq/build/</tt>
+							<li> Change into the FastX build directory: <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/build/fastx_spats_toolkit-0.1.0/ </tt>
 							<li> Configure the FastX install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>
 							<li> Run: <tt>make</tt> and <tt>make install</tt>.
 						 </ol>
@@ -296,8 +305,8 @@
 		                        pageTracker._trackPageview('/downloads/cufflinks_source');
 		                        ">here</a>.
 							<li> Untar the FastX file: <tt>tar -xvzf fastx_spats_toolkit_0.0.1_bin_dist.tar.gz</tt>
-							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit_0.0.1_bin_dist &lt;path_prefix&gt;/build/</tt>
-							<li> Link the <tt>fastx_reverse_complement</tt>, <tt>fastx_spats_clipper</tt> and <tt>fastx_trimmer</tt> binaries into the <tt>&lt;path_prefix&gt;/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/bin; ln -s &lt;path_prefix&gt;/build/fastx_spats_toolkit_0.0.1_bin_dist/* .</tt>
+							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit_0.0.1_bin_dist &lt;path_prefix&gt;/SHAPE-Seq/build/</tt>
+							<li> Link the <tt>fastx_reverse_complement</tt>, <tt>fastx_spats_clipper</tt> and <tt>fastx_trimmer</tt> binaries into the <tt>&lt;path_prefix&gt;/SHAPE-Seq/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/bin; ln -s &lt;path_prefix&gt;/SHAPE-Seq/build/fastx_spats_toolkit_0.0.1_bin_dist/* .</tt>
 						</ol>
 					
 					   
@@ -311,8 +320,8 @@
 								 href="http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.8/">the bowtie sourceforge site</a>.
 							<li> Copy the bowtie zip into the <tt>&lt;path_prefix&gt;/src/</tt> directory using the <tt>cp</tt> command.
 							<li> Unzip the bowtie zip file: <tt>unzip bowtie-0.12.8.zip</tt>
-							<li> Move the folder created to the build directory: <tt>mv bowtie-0.12.8 &lt;path_prefix&gt;/build/</tt>
-							<li> Link the <tt>bowtie</tt> and <tt>bowtie-build</tt> binaries into the <tt>&lt;path_prefix&gt;/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/bin; ln -s &lt;path_prefix&gt;/build/bowtie-0.12.8/bowtie .; ln -s &lt;path_prefix&gt;/build/bowtie-0.12.8/bowtie-build .</tt>
+							<li> Move the folder created to the build directory: <tt>mv bowtie-0.12.8 &lt;path_prefix&gt;/SHAPE-Seq/build/</tt>
+							<li> Link the <tt>bowtie</tt> and <tt>bowtie-build</tt> binaries into the <tt>&lt;path_prefix&gt;/SHAPE-Seq/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/bin; ln -s &lt;path_prefix&gt;/SHAPE-Seq/build/bowtie-0.12.8/bowtie .; ln -s &lt;path_prefix&gt;/SHAPE-Seq/build/bowtie-0.12.8/bowtie-build .</tt>
 						</ol>
 					
 					<br/>
@@ -323,12 +332,12 @@
 					<ol>
 						<li> Download the software. Version 1.49.0 can be gotten from <a 
 							 href="http://www.boost.org/users/download/">here</a>.
-						<li> Copy the boost tarball into the <tt>&lt;path_prefix&gt;/src/</tt> directory using the <tt>cp</tt> command.
+						<li> Copy the boost tarball into the <tt>&lt;path_prefix&gt;/SHAPE-Seq/src/</tt> directory using the <tt>cp</tt> command.
 						<li> Untar the boost file: <tt>tar xzvf boost_1_49_0.tar.gz</tt>
 						<li> Move the folder created to the build directory: <tt>mv boost_1_49_0 &lt;path_prefix&gt;/build/</tt>
-						<li> Change into the boost build directory: cd <tt>&lt;path_prefix&gt;/build/boost_1_49_0/</tt>
+						<li> Change into the boost build directory: cd <tt>&lt;path_prefix&gt;/SHAPE-Seq/build/boost_1_49_0/</tt>
 						<li> Setup the boost build process: <tt>./bootstrap.sh</tt>
-						<li> Link the <tt>bjam</tt> into the <tt>&lt;path_prefix&gt;/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/bin; ln -s &lt;path_prefix&gt;/build/boost_1_49_0/bjam .; cd &lt;path_prefix&gt;/build/boost_1_49_0</tt>
+						<li> Link the <tt>bjam</tt> into the <tt>&lt;path_prefix&gt;/SHAPE-Seq/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/bin; ln -s &lt;path_prefix&gt;/SHAPE-Seq/build/boost_1_49_0/bjam .; cd &lt;path_prefix&gt;/SHAPE-Seq/build/boost_1_49_0</tt>
 						<li>Build Boost. <p>If you are on Mac OS X, type (all on one line):
 		                        <br/>
 		                      </p>
@@ -355,32 +364,26 @@
  					</ol>
                   <br/>
 
-                  <h3 id="cutadapt">Installing Cutadapt</h3>
+                  <h3 id="cutadapt">Installing Cutadapt (Required)</h3>
 				  <b>We currently use <tt>cutadapt</tt> version 1.5</b>
                   <br/>
                   <ol>
-                    <li> Download the software. <tt>cutadapt v 1.5</tt> can be gotten from the cutadapt website <a 
-							href="https://cutadapt.readthedocs.org/en/stable//">here</a>.
+                    <li> Download the software. <tt>cutadapt v1.5</tt> can be gotten from the cutadapt GitHub website <a 
+							href="https://github.com/marcelm/cutadapt/releases/tag/v1.5">here</a>.
 					<li> Follow the installation instructions for cutadapt <a href="https://cutadapt.readthedocs.org/en/stable/installation.html">here</a>
-					<li> Move the folder created to the build directory: <tt>mv spats-1.0.0 &lt;path_prefix&gt;/build/</tt>
-					<li> Change into the spats build directory: <tt>cd &lt;path_prefix&gt;/build/spats-1.0.0/ </tt>
-					<li> Configure the spats install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin 
-						 --with-boost=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>. If you encounter errors in this step, make sure the 
-						<tt>LD_LIBRARY_PATH</tt> variable is set to where the boost libraries are found. 
-						See <a href="#path">Path Setup</a> above.
-					<li> Run: <tt>make</tt> and <tt>make install</tt>.			
                   </ol>
+                  <br/>
 
                  
                   <h3 id="spats">Building Spats (Required)</h3>
 				  <b>We currently recommend installing <tt>spats</tt> version 1.0.0.</b>
                   <br/>
                   <ol>
-                    <li> Download the software. <tt>spats-1.0.0</tt> can be gotten from the spats website <a 
+                    <li> Download the software. <tt>spats-1.0.1</tt> can be gotten from the spats website <a 
 							href="https://github.com/LucksLab/spats/releases/">here</a>.
-					<li> Untar the spats file: <tt>tar -xvzf spats-1.0.0.tar.gz</tt>
-					<li> Move the folder created to the build directory: <tt>mv spats-1.0.0 &lt;path_prefix&gt;/build/</tt>
-					<li> Change into the spats build directory: <tt>cd &lt;path_prefix&gt;/build/spats-1.0.0/ </tt>
+					<li> Untar the spats file: <tt>tar -xvzf spats-1.0.1.tar.gz</tt>
+					<li> Move the folder created to the build directory: <tt>mv spats-1.0.1 &lt;path_prefix&gt;/build/</tt>
+					<li> Change into the spats build directory: <tt>cd &lt;path_prefix&gt;/build/spats-1.0.1/ </tt>
 					<li> Configure the spats install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin 
 						 --with-boost=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>. If you encounter errors in this step, make sure the 
 						<tt>LD_LIBRARY_PATH</tt> variable is set to where the boost libraries are found. 
@@ -437,7 +440,7 @@ test_chromosome Spats       exon    501     550     1000    +       .
 			                Berkeley, the Alfred P. Sloan Foundation, and the National Institutes of Health. </td>
 			              <td align="right"> Administrators: <a
 			                  href="mailto:cole@cs.umd.edu">Cole Trapnell</a> and <a
-				                  href="">Julius B. Lucks (j b lucks at cornell dot edu)</a>.
+				                  href="">Julius B. Lucks (j b lucks at northwestern dot edu)</a>.
 			                Design by <a href="http://www.free-css-templates.com"
 			                  title="Design by David Herreman">David Herreman</a> </td>
 			            </tr>

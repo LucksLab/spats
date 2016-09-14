@@ -25,9 +25,9 @@
                     <img style="vertical-align:middle;padding-top:4px"
                       src="images/UCBerkeley-seal.scaled.gif" border="0">
                     </a>&nbsp;
-                    <a href="http://www.cheme.cornell.edu/">
+                    <a href="http://www.mccormick.northwestern.edu/chemical-biological/">
                     <img style="vertical-align:middle;padding-top:4px"
-                      src="images/Cornell_logo.jpg" border="0">
+                      src="images/Northwestern Formal_horizontal_shrunk.png" border="0">
                     </a>&nbsp;
                 </td>
               </tr>
@@ -51,7 +51,7 @@
                 <a href="http://cole-trapnell-lab.github.io">Trapnell Lab</a>
                  at the University of Washington, and
                 <a href="http://luckslab.org/">the Lucks Lab</a>
-                at Cornell University. <br>
+                at Northwestern University. <br>
                 <br>
                 Spats is provided under the OSI-approved <a
                   href="http://en.wikipedia.org/wiki/Boost_Software_License">Boost
@@ -118,12 +118,19 @@
             <ul>
               <table width="100%">
                 <tbody>
-	              <tr>
+                 <tr>
+                   <td>spats version 1.0.1</td>
+                   <td align="right">9/10/2016</td>
+                 </tr>
+                 <tr>
+                    <td><a href="https://github.com/LucksLab/spats/releases/tag/v1.0.1">&nbsp;&nbsp;&nbsp;Source code</a></td>
+                  </tr>
+                  <tr>
                     <td>spats version 1.0.0</td>
                     <td align="right">3/21/2016</td>
                   </tr>
                   <tr>
-                    <td><a href="https://github.com/LucksLab/spats/releases/">&nbsp;&nbsp;&nbsp;Source code</a></td>
+                    <td><a href="https://github.com/LucksLab/spats/releases/tag/v1.0.0">&nbsp;&nbsp;&nbsp;Source code</a></td>
                   </tr>
                   <tr>
                     <td>spats version 0.8.0</td>
@@ -175,7 +182,7 @@
 
  			  <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Trapnell C, Lucks JB, Mortimer SA, Luo S, Schroth GP, Doudna JA, Arkin AP, Pachter L.<b> <a href="http://www.pnas.org/content/108/27/11069.long">Modeling and automation of sequencing-based characterization of RNA structure</b></a> <br/><i><a href="http://www.pnas.org">PNAS</a></i> 10.1073/pnas.1106541108</p><br/></li>
 
-		      <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Lucks JB, Pachter L.<b> <a href="http://arxiv.org/abs/1106.5061v2">RNA structure characterization from chemical mapping experiments</a></b> <br><i><a href="Aviran_Allerton_2011.pdf"></a>Proceedings of the 49th Allerton Conference on Communication, Control, and Computing, 1743-1750, 2011</i></p></li>
+		      <li style="font-size: x-small; line-height: 130%"><p>Aviran S, Lucks JB, Pachter L.<b> <a href="http://arxiv.org/abs/1106.5061v2">RNA structure characterization from chemical mapping experiments</a></b> <br><i><a href="Aviran_Allerton_2011.pdf"></a>Proceedings of the 49th Allerton Conference on Communication, Control, and Computing, 1743-1750, 2011</i></p><br/></li>
 
 			  <li style="font-size: x-small; line-height: 130%"><p>Lucks JB, Mortimer SA, Trapnell C, Luo S, Aviran S, Schroth GP, Pachter L, Doudna JA, Arkin AP. <b> <a href="http://www.pnas.org/content/108/27/11063.long">Multiplexed RNA structure characterization with selective 2'-hydroxyl acylation analyzed by primer extension sequencing (SHAPE-Seq)</a></b> <br/>
 				<i><a href="http://www.pnas.org">PNAS</a></i> 10.1073/pnas.1106501108</p><br/>
@@ -192,6 +199,9 @@
 			  <li style="font-size: x-small; line-height: 130%"><p>Watters KE, Abbott TR, and Lucks JB. <b> <a href="http://dx.doi.org/10.1093/nar/gkv879">Simultaneous characterization of cellular RNA structure and function with in-cell SHAPE-Seq</a></b> <br/>
 			  <i><a href="http://dx.doi.org/10.1093/nar/gkv879"></a>Nucleic Acids Research</i> 10.1093/nar/gkv879</p><br/>
 			  </li>
+                          <li style="font-size: x-small; line-height: 130%"><p>Watters KE, Yu AM, Strobel EJ, Settle AH, Lucks JB.<b> <a href="http://dx.doi.org/10.1016/j.ymeth.2016.04.002">Characterizing RNA structures in vitro and in vivo with selective 2'-hydroxyl acylation analyzed by primer extension sequencing (SHAPE-Seq)</a></b> <br/>
+                          <i><a href="http://dx.doi.org/10.1016/j.ymeth.2016.04.002"></a>Methods</i> 10.1016/j.ymeth.2016.04.002 </p><br/>
+                          </li>
             </ul>
           </div>
           <h2>Other Contributors</h2>
@@ -218,6 +228,13 @@
         <!-- End of "rightside" -->
         <div id="leftside">
 
+          <h2>1.0.1 release - 9/10/16</h2>
+          <p> Spats v 1.0.1 is now available for download. This release fixes a bug in <tt>spats</tt> for proper option
+              parsing of number of mismatches allowed. Additionally, we included an optional utility to split the output
+              reactivities file from <tt>spats</tt> into individual files per target sequence.
+                  <p> As part of this release, Spats is now officially hosted on GitHub at <a href="https://github.com/LucksLab/spats">https://github.com/LucksLab/spats</a>.
+                  <p></p></br>
+
           <h2>1.0.0 release - 3/31/16</h2>
           <p> Spats v 1.0.0 is now available for download. This release mostly focuses on moving away from the fastxtoolkit which has been 
 	          mostly replaced with <a href="https://cutadapt.readthedocs.org/en/stable/">cutadapt</a> in the adapter_trimmer. Cutadapt allows
@@ -227,7 +244,7 @@
 			
 		  <p> This release sets up the eventual deprecation of using the fastx tools. Note: only fastx_revcomp is still used by spats with this release.
 			
-		  <p> As part of this release, spats is now officially hosted on github at <a href="https://github.com/LucksLab/spats">https://github.com/LucksLab/spats</a>.
+		  <p> As part of this release, spats is now officially hosted on GitHub at <a href="https://github.com/LucksLab/spats">https://github.com/LucksLab/spats</a>.
 		  <p></p></br>
 		  
 		  <h2>New SHAPE-Seq Experiment Simulator - 5/24/2015</h2>
@@ -281,7 +298,7 @@
                 Berkeley, the Alfred P. Sloan Foundation, and the National Institutes of Health. </td>
               <td align="right"> Administrators: <a
                   href="mailto:cole@cs.umd.edu">Cole Trapnell</a> and <a
-	                  href="">Julius B. Lucks (j b lucks at cornell dot edu)</a>.
+	                  href="">Julius B. Lucks (j b lucks at northwestern dot edu)</a>.
                 Design by <a href="http://www.free-css-templates.com"
                   title="Design by David Herreman">David Herreman</a> </td>
             </tr>
