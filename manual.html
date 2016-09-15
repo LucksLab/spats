@@ -479,7 +479,7 @@
 	  <tr><td VALIGN=top nowrap>
 	  <tt>--adapter-t &lt;adapter sequence&gt;</tt>
 	  </td><td VALIGN=top>
-	  <b>Deprecatated in v0.8.0. It is preferrable to handle adapter trimming via the <tt>adapter_trimmer</tt> script outlined above. </b> The sequence of 
+	  <b>Deprecatated in v0.8.0 and later. It is preferrable to handle adapter trimming via the <tt>adapter_trimmer</tt> script outlined above. </b> The sequence of 
 	  adapter_t (which contains the RT primer).  This option is used when adapter trimming is desired. Example 
 	  <tt>AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATC</tt>
 	  </td></tr>
@@ -487,7 +487,7 @@
 	  <tr><td VALIGN=top nowrap>
 	  <tt>--adapter-b &lt;adapter sequence&gt;</tt>
 	  </td><td VALIGN=top>
-	  <b>Deprecatated in v0.8.0. It is preferrable to handle adapter trimming via the <tt>adapter_trimmer</tt> script outlined above. </b> The sequence of 
+	  <b>Deprecatated in v0.8.0 and later. It is preferrable to handle adapter trimming via the <tt>adapter_trimmer</tt> script outlined above. </b> The sequence of 
 	  adapter_b (which is ligated to the single-stranded cDNA products of the RT reaction).  This option is used when adapter trimming is desired. Example    
 	  <tt>AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG</tt>
 	  </td></tr>
@@ -495,15 +495,27 @@
 	  <tr><td VALIGN=top nowrap>
 	  <tt>--num-mismatches &lt;0-3&gt;</tt>
 	  </td><td VALIGN=top>
-	  The number of mismatches you want Bowtie to allow in its alignments for each read to the target RNAs.<b>Note: this option does not work in v0.8.0 because of 
+	  The number of mismatches you want Bowtie to allow in its alignments for each read to the target RNAs.<b>Note: this option does not work in v0.8.0 and later because of 
 	  the algorithm implemented in <tt>adapter_trimmer</tt>.
 	  </td></tr>
+
+          <tr><td VALIGN=top nowrap>
+          <tt>--m &lt;int&gt;</tt>
+          </td><td VALIGN=top>
+          This option adds stringency to alignments, where &lt;int&gt; is the max number of aligenments allowed for each read. Reads with more than &lt;int&gt; number of valid alignments are not used in the reactivities calculation. Default is not stringent.
+          </td></tr>
 	
 	  <tr><td VALIGN=top nowrap>
-	  <tt>--num-threads &lt;threads&gt;</tt>
+	  <tt>-p/--num-threads &lt;threads&gt;</tt>
 	  </td><td VALIGN=top>
 	  The number of threads you want Bowtie to use when aligning the reads to the target RNAs
 	  </td></tr>
+
+          <tr><td VALIGN=top nowrap>
+          <tt>--all-RT-starts</tt>
+          </td><td VALIGN=top>
+          If present prints out reactivties for each RT site detected. Default not used.
+          </td></tr>
 	  
 	  <tr><td VALIGN=top>
 	  <b>Output:</b>
