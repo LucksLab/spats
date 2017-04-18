@@ -26,11 +26,11 @@ $(BINDIR)/%.py : $(SCRIPTDIR)/%.py
 
 .PHONY: clean
 clean :
-	rm -rf $(OBJDIR)
+
 
 .PHONY: clear
 clear : clean
-	rm -rf $(DISTDIR) $(BINDIR)
+	rm -rf $(BINDIR)
 
 TEST_PATH=$(shell pwd)/$(BINDIR):$(PATH)
 .PHONY: test
