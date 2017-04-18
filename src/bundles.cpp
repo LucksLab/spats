@@ -20,8 +20,8 @@ bool FragmentFactory::next_fragment(MateHit& fragment_out)
 	char left_bwt_buf[2048];
     char right_bwt_buf[2048];
     
-    shared_ptr<ReadHit> read_1(new ReadHit());
-    shared_ptr<ReadHit> read_2(new ReadHit());
+    ReadHit_ptr read_1(new ReadHit());
+    ReadHit_ptr read_2(new ReadHit());
     int refid = 0;
     bool treated = false;
     

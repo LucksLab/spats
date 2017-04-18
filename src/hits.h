@@ -15,9 +15,10 @@
 #include <cassert>
 
 #include <boost/shared_ptr.hpp>
+struct ReadHit;
+typedef boost::shared_ptr<ReadHit> ReadHit_ptr;
 
 using namespace std;
-using boost::shared_ptr;
 
 /*
  *  hits.h
@@ -497,8 +498,8 @@ public:
     
 	MateHit(uint32_t refid,
             bool treated,
-			shared_ptr<ReadHit const> left_alignment, 
-			shared_ptr<ReadHit const> right_alignment,
+			ReadHit_ptr left_alignment, 
+			ReadHit_ptr right_alignment,
 			int expected_inner_dist,
 			int max_inner_dist) : 
 	_refid(refid), 
@@ -514,19 +515,9 @@ public:
 
 	//bool closed() {return _closed;}
 	
-	shared_ptr<ReadHit const> left_alignment() const {return _left_alignment;}
-	void left_alignment(shared_ptr<ReadHit const> left_alignment) 
-	{
-		_left_alignment = shared_ptr<ReadHit const>(left_alignment);
-		//_closed = true;
-	}
+	ReadHit_ptr left_alignment() const {return _left_alignment;}
 	
-	shared_ptr<ReadHit const> right_alignment() const {return _right_alignment;}					
-	void right_alignment(shared_ptr<ReadHit const> right_alignment)  
-	{
-		_right_alignment = right_alignment;
-		//_closed = true;
-	}
+	ReadHit_ptr right_alignment() const {return _right_alignment;}					
 	
 	int left() const 
 	{
@@ -631,8 +622,8 @@ public:
 	}
 	
 	RefID _refid;
-	shared_ptr<ReadHit const> _left_alignment;
-	shared_ptr<ReadHit const> _right_alignment;
+	ReadHit_ptr _left_alignment;
+	ReadHit_ptr _right_alignment;
     
 	//int _expected_inner_dist;
 	//int _max_inner_dist;
