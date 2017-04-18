@@ -168,6 +168,19 @@ class SamRecord(object):
         # rest of bits are not used afaict
         self.right = self.left + self.length
 
+def fasta_parse(target_path):
+    names = []
+    seqs = []
+    with open(target_path, 'rb') as infile:
+        while True:
+            line = infile.readline()
+            if 0 == len(line):
+                break
+            names.append(line.strip('>\n'))
+            line = infile.readline()
+            seqs.append(line.strip())
+    return names, seqs
+
 def get_counts(sam_path, target_length):
     num_sites = target_length + 1
     counts = [ 0 for x in range(num_sites) ] # TODO: numpy.empty(num_sites, dtype=int) is better
@@ -196,23 +209,14 @@ def get_counts(sam_path, target_length):
                 num_chucked += 1
     return counts, num_fragments, num_fragments - num_chucked
 
-def compute_from_counts(num_sites, treated_path, untreated_path):
+def compute_from_counts(num_sites, treated_counts, untreated_counts):
     n = int(num_sites)
-    treated_counts, treated_total, treated_kept = get_counts(treated_path, n)
-    untreated_counts, untreated_total, untreated_kept = get_counts(untreated_path, n)
-    print "Processed {} properly paired fragments, kept {}/{} ({:.2f}%) treated, {}/{} ({:2f}%) untreated".format(treated_total + untreated_total,
-                                                                                                                  treated_kept,
-                                                                                                                  treated_total,
-                                                                                                                  (100.0 * float(treated_kept)) / float(treated_total),
-                                                                                                                  untreated_kept,
-                                                                                                                  untreated_total,
-                                                                                                                  (100.0 * float(untreated_kept)) / float(untreated_total))
-
     betas = [ 0 for x in range(n+1) ]
     thetas = [ 0 for x in range(n+1) ]
     treated_sum = 0.0    # keeping a running sum for both
     untreated_sum = 0.0  # channels is much faster
     running_c_sum = 0.0  # can also do it for c
+
     for k in range(n):
         X_k = float(treated_counts[k])
         Y_k = float(untreated_counts[k])
@@ -231,39 +235,41 @@ def compute_from_counts(num_sites, treated_path, untreated_path):
                 betas[k] = max(0, (Xbit - Ybit) / (1 - Ybit))
                 thetas[k] = math.log(1.0 - Ybit) - math.log(1.0 - Xbit)
                 running_c_sum -= math.log(1.0 - betas[k])
-        #print "b_{}: {:.7f} [{}]".format(k, betas[k], running_c_sum)
+
     c = running_c_sum
     c_factor = 1.0 / c
     for k in range(n+1):
         thetas[k] = c_factor * thetas[k]
-        #print "th_{}: {:.7f}".format(k, thetas[k])
 
-    return betas, thetas, c, treated_counts, untreated_counts
+    return betas, thetas, c
 
 def compute_profiles(target_path, treated_path, untreated_path, output_dir):
-    names = []
-    seqs = []
-    with open(target_path, 'rb') as infile:
-        while True:
-            line = infile.readline()
-            if 0 == len(line):
-                break
-            names.append(line.strip('>\n'))
-            line = infile.readline()
-            seqs.append(line.strip())
+    names, seqs = fasta_parse(target_path)
 
     # TODO: handle multiple sequences?
+
     name = names[0]
     seq = seqs[0]
-    betas, thetas, c, treated_counts, untreated_counts = compute_from_counts(len(seq), treated_path, untreated_path)
+    n = len(seq)
+    treated_counts, treated_total, treated_kept = get_counts(treated_path, n)
+    untreated_counts, untreated_total, untreated_kept = get_counts(untreated_path, n)
+    print "Processed {} properly paired fragments, kept {}/{} ({:.2f}%) treated, {}/{} ({:2f}%) untreated".format(treated_total + untreated_total,
+                                                                                                                  treated_kept,
+                                                                                                                  treated_total,
+                                                                                                                  (100.0 * float(treated_kept)) / float(treated_total),
+                                                                                                                  untreated_kept,
+                                                                                                                  untreated_total,
+                                                                                                                  (100.0 * float(untreated_kept)) / float(untreated_total))
+
+    betas, thetas, c = compute_from_counts(n, treated_counts, untreated_counts)
 
     out_path = os.path.join(output_dir, "reactivities.out")
     with open(out_path, 'wb') as outfile:
         outfile.write('sequence\trt_start\tfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n')
-        format_str = "{name}\t{rt}\t".format(name = name, rt = len(seq) - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = c)
+        format_str = "{name}\t{rt}\t".format(name = name, rt = n - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = c)
         # TODO: xref https://trello.com/c/OtbxyiYt/23-3-nt-missing-from-reactivities-out
-        # looks like we may want this to be range(len(seq)), chopping off was unintentional bug of previous version
-        for i in range(len(seq) - 1):
+        # looks like we may want this to be range(n), chopping off was unintentional bug of previous version
+        for i in range(n - 1):
             outfile.write(format_str.format(i = i,
                                             nuc = seq[i - 1] if i > 0 else '*',
                                             tm = treated_counts[i],
