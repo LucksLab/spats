@@ -15,6 +15,7 @@
 #endif
 
 #include <stdio.h>
+#include <unistd.h>
 #include <cassert>
 #include <vector>
 #include <cstring>
