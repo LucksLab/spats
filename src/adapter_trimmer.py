@@ -11,7 +11,7 @@ change notes:
 """
 
 import analyze_spats_targets
-import spats_common
+from spats_common import rev_comp
 import sys
 import os
 import getopt
@@ -315,7 +315,7 @@ def clip_search(base,read_len,max_handle_len,output_dir,targets_dir,input_R1,inp
 
     
     #Use a loaded function to do the reverse comps
-    spats_common.rev_comp(output_R1,output_revcomp_R1)
+    rev_comp(output_R1,output_revcomp_R1)
     #os.system("fastx_reverse_complement -i {0} -o {1}".format(output_R1,output_revcomp_R1))
 	
 	# Construct bowtie command
@@ -337,7 +337,7 @@ def clip_search(base,read_len,max_handle_len,output_dir,targets_dir,input_R1,inp
     # If we observe results (i.e. reads mapped)
     if os.path.isfile(os.path.splitext(bowtie_results)[0]+"_1.fq"):
         #Have to switch rev-comp of R1 back to original
-        spats_common.rev_comp(bowtie_results_1,bowtie_results_1_rc)
+        rev_comp(bowtie_results_1,bowtie_results_1_rc)
         output_file_1 = bowtie_results_1_rc
         output_file_2 = output_dir + "bowtie_results{0}_2.fq".format(base)
     else:
@@ -347,7 +347,7 @@ def clip_search(base,read_len,max_handle_len,output_dir,targets_dir,input_R1,inp
     #Update the search list so that not trimming the same reads again that already already matched
     #revcomp Read 1 reads that were not aligned 
     if os.path.exists(bowtie_unmatched_1):
-        spats_common.rev_comp(bowtie_unmatched_1,bowtie_unmatched_1_rc)
+        rev_comp(bowtie_unmatched_1,bowtie_unmatched_1_rc)
     #Delete temporary files
     shutil.rmtree(search_dir,ignore_errors=True)
     
@@ -356,6 +356,7 @@ def clip_search(base,read_len,max_handle_len,output_dir,targets_dir,input_R1,inp
     os.remove(output_R2)
     os.remove(output_revcomp_R1)
     return output_file_1, output_file_2,bowtie_unmatched_1_rc,bowtie_unmatched_2
+
 
 def full_trim(trim_match,read_len,A_b_sequence,A_t_sequence,min_read_len,final_dir,trim_auto,min_read_auto,max_handle_len,input_R1,
                                                                 input_R2,input_targets,error_rate,quality_min,quality_change,threads,mismatches):

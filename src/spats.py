@@ -19,6 +19,7 @@ change notes:
     -some code spacing and removing unused imports
 """
 
+
 import sys
 try:
     import psyco
@@ -32,6 +33,8 @@ import errno
 import os
 import warnings
 from datetime import datetime
+
+import spats_common
 
 use_message = '''
  Spats builds reactivity profiles from SHAPE-Seq experiments.
@@ -440,42 +443,13 @@ def formatTD(td):
 
 
 def relabel_reads(params, handle_reads_list, nonhandle_reads_list, treated_handle, untreated_handle, relabel=True):
-    #filter_cmd = ["prep_reads"]
+
     print >> sys.stderr, "[%s] Relabeling reads in %s and %s" % (right_now(), handle_reads_list, nonhandle_reads_list)
 
-    #filter_log = open(logging_dir + "relabel_reads.log", "w")
-
-    filter_cmd = [bin_dir + "relabel_reads"]
-    filter_cmd.extend(params.cmd())
-
-    if relabel is False:
-        filter_cmd += ["--no-relabel"]
-    if params.read_params.reads_format == "fastq":
-        filter_cmd += ["--fastq"]
-    elif params.read_params.reads_format == "fasta":
-        filter_cmd += ["--fasta"]
-    filter_cmd.append(handle_reads_list)
-    filter_cmd.append(nonhandle_reads_list)
-
-    if treated_handle is not None and untreated_handle is not None:
-        filter_cmd.append(treated_handle)
-        filter_cmd.append(untreated_handle)
-
-    #print "\t executing: `%s'" % " ".join(filter_cmd)
-    # files = reads_list.split(',')
-    # for reads_file in files:
-    try:
-        print >> run_log, " ".join(filter_cmd)
-        ret = subprocess.call(filter_cmd)
-        # Bowtie reported an error
-        if ret != 0:
-            print >> sys.stderr, fail_str, "Error: could not execute relabel_reads"
-            exit(1)
-    # prep_reads not found
-    except OSError, o:
-        if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
-            print >> sys.stderr, fail_str, "Error: relabel_reads not found on this system.  Did you forget to include it in your PATH?"
-        exit(1)
+    if treated_handle or untreated_handle or relabel is False:
+        spats_common.filter_reads(handle_reads_list, nonhandle_reads_list, (treated_handle, untreated_handle), output_dir)
+    else:
+        spats_common.relabel_reads(handle_reads_list, nonhandle_reads_list, output_dir)
 
 
 def match_read_pairs(params, left_in_reads, right_in_reads, left_out_reads, right_out_reads):
@@ -776,31 +750,7 @@ def compute_profiles(params, target_fasta, treated_alignments, untreated_alignme
     #filter_cmd = ["prep_reads"]
     print >> sys.stderr, "[%s] Building reactivity profiles" % (right_now())
 
-    #filter_log = open(logging_dir + "relabel_reads.log", "w")
-    
-    cmd = [bin_dir + "compute_profiles"]
-    cmd.extend(params.cmd())
-    
-    if params.read_params.all_RT_starts:
-        cmd.append("--all-RT-starts")
-    
-    cmd.extend([target_fasta, treated_alignments, untreated_alignments])
-       
-    # print "\t executing: `%s'" % " ".join(cmd)    
-    # files = reads_list.split(',')
-    # for reads_file in files:
-    try:       
-        print >> run_log, " ".join(cmd)
-        ret = subprocess.call(cmd)
-                              # Bowtie reported an error
-        if ret != 0:
-            print >> sys.stderr, fail_str, "Error: could not execute compute_profiles"
-            exit(1)
-    # prep_reads not found
-    except OSError, o:
-        if o.errno == errno.ENOTDIR or o.errno == errno.ENOENT:
-            print >> sys.stderr, fail_str, "Error: compute_profiles not found on this system.  Did you forget to include it in your PATH?"
-        exit(1)
+    spats_common.compute_profiles(target_fasta, treated_alignments, untreated_alignments, output_dir)
 
 def reverse_complement(s):
     nuc_table = { 'A' : 'T',
@@ -857,25 +807,21 @@ def main(argv=None):
         #(ref_fasta, ref_seq_dict) = check_index(bwt_idx_prefix)
         
         check_bowtie()
-                
-        # Now start the time consuming stuff
-        relabel_reads(params,
-                      left_reads_list,
-                      right_reads_list,
-                      None,
-                      None)
+
+        left_labeled_reads = left_reads_list
+        right_labeled_reads = right_reads_list
                       
         index_prefix = index_targets(rna_targets_filename)
         
         maps = []
         
         
-        left_labeled_reads = output_dir + "/NOMASK_1.fq"
-        right_labeled_reads = output_dir + "/NOMASK_2.fq"
         
         # DEPRECATED - Using external adapter_trimmer.py 
         if params.read_params.adapter_t is not None \
             and params.read_params.adapter_b is not None:
+
+            raise Exception("jjb: assuming unused")
 
             left_trimmed_reads = "NOMASK_1.trimmed"
             right_trimmed_reads = "NOMASK_2.trimmed"
@@ -931,7 +877,7 @@ def main(argv=None):
         treated_map = maps[0]
         untreated_map = maps[1]
         
-        compute_profiles(params, index_prefix + ".fa", treated_map, untreated_map)
+        compute_profiles(params, rna_targets_filename, treated_map, untreated_map)
                
         if params.system_params.keep_tmp == False:
             tmp_files = os.listdir(tmp_dir)
