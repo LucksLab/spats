@@ -107,11 +107,11 @@ bool mate_hit_lt(const MateHit& lhs, const MateHit& rhs)
 	assert ((lhs.right_alignment() == NULL) == (rhs.right_alignment() == NULL));
 	assert ((lhs.left_alignment() == NULL) == (rhs.left_alignment() == NULL));
 	
-	shared_ptr<const ReadHit> lhs_l = lhs.left_alignment();
-	shared_ptr<const ReadHit> lhs_r = lhs.right_alignment();
+	ReadHit_ptr lhs_l = lhs.left_alignment();
+	ReadHit_ptr lhs_r = lhs.right_alignment();
 	
-	shared_ptr<const ReadHit> rhs_l = rhs.left_alignment();
-	shared_ptr<const ReadHit> rhs_r = rhs.right_alignment();
+	ReadHit_ptr rhs_l = rhs.left_alignment();
+	ReadHit_ptr rhs_r = rhs.right_alignment();
 	
 	if (lhs_l && rhs_l)
 	{
