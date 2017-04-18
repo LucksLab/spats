@@ -55,15 +55,9 @@ Check for latest instructions at: http://luckslab.github.io/spats/installation.h
   * Bowtie 0.12.8, must be available in your `PATH`. Get it at: http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.8/
   * cutadapt: python package (`pip install cutadapt`)
 
-* Binary Distributions
-  * Available for Linux/x64 and Mac at: https://github.com/LucksLab/spats/releases/
-
 * Build from Source
   * `make -s`
   * add `bin` directory to your `PATH`
-
-* Create binary distribution (current OS/architecture)
-  * `make -s dist`
 
 
 Spats Usage
