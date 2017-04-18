@@ -13,7 +13,7 @@ linker="CTGACTCGGGCACCAAGGAC"
 rev_comp_linker="GTCCTTGGTGCCCGAGTCAG"
 
 # Remove previous test results and create target FASTA file
-rm $test_results_file
+rm -rf $test_results_file $spats_output_dir ${output_name}*
 printf ">${output_name}_${#sequence}nt\n$sequence$rev_comp_linker\n" > ${output_name}.fa
 
 python read_constructor.py --output $output_name --length 35 --sequence $sequence --linker $linker
@@ -28,5 +28,5 @@ python check_reactivities.py --input $spats_output_dir/reactivities.out --output
 
 #Print results and remove combined_reads_*/
 echo -e "\n-----------------------------------------------\nResults:"
-cat test_results.txt
+cat test_results.txt  ||  echo "FAIL"
 rm -r $OUTPUT/
