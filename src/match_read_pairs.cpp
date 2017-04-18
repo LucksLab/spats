@@ -10,8 +10,6 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#else
-#define PACKAGE_VERSION "INTERNAL"
 #endif
 
 #include <stdio.h>
