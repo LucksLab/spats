@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <getopt.h>
+#include <unistd.h>
 #include <string>
 #include <functional>
 #include <numeric>
