@@ -16,11 +16,12 @@ BASE_CFLAGS = -I$(DEPSDIR) -DPACKAGE_VERSION=\"$(VERSION)\" -Wall -Wno-strict-al
 RELEASE_FLAGS = -O3 -DNDEBUG
 DEBUG_FLAGS = -g -O0 -DDEBUG
 CFLAGS = $(BASE_CFLAGS) $(RELEASE_FLAGS)
+LFLAGS = $(CFLAGS)
 
 ifeq (,$(findstring Darwin,$(shell uname)))
-    LFLAGS = $(CFLAGS) -static
+    DISTFLAGS = -static
 else
-    LFLAGS = $(CFLAGS)
+    DISTFLAGS =
 endif
 
 SRCS = $(shell echo $(SRCDIR)/*.cpp)
@@ -104,4 +105,5 @@ $(DISTDIR)/$(PKG) : $(TARGETS)
 	cp $(TARGETS) $(DISTDIR)/$(PKGDIR)
 	cd $(DISTDIR)  &&  tar czf $(PKG) $(PKGDIR)
 
+dist: LFLAGS += $(DISTFLAGS)
 dist: clear $(DISTDIR)/$(PKG)
