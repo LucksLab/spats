@@ -16,7 +16,12 @@ BASE_CFLAGS = -I$(DEPSDIR) -DPACKAGE_VERSION=\"$(VERSION)\" -Wall -Wno-strict-al
 RELEASE_FLAGS = -O3 -DNDEBUG
 DEBUG_FLAGS = -g -O0 -DDEBUG
 CFLAGS = $(BASE_CFLAGS) $(RELEASE_FLAGS)
-LFLAGS = $(CFLAGS) -static
+
+ifeq (,$(findstring Darwin,$(shell uname)))
+    LFLAGS = $(CFLAGS) -static
+else
+    LFLAGS = $(CFLAGS)
+endif
 
 SRCS = $(shell echo $(SRCDIR)/*.cpp)
 OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCS))
