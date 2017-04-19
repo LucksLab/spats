@@ -16,6 +16,7 @@ BASE_CFLAGS = -I$(DEPSDIR) -DPACKAGE_VERSION=\"$(VERSION)\" -Wall -Wno-strict-al
 RELEASE_FLAGS = -O3 -DNDEBUG
 DEBUG_FLAGS = -g -O0 -DDEBUG
 CFLAGS = $(BASE_CFLAGS) $(RELEASE_FLAGS)
+LFLAGS = $(CFLAGS) -static
 
 SRCS = $(shell echo $(SRCDIR)/*.cpp)
 OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCS))
@@ -70,7 +71,7 @@ $(BINDIR)/%.py : $(SCRIPTDIR)/%.py
 
 $(BINDIR)/% : $(OBJDIR)/%.o $(LIB)
 	@echo LINK: $(shell basename $@)
-	$(CC) $(CFLAGS) -o $@ $?
+	$(CC) $(LFLAGS) -o $@ $?
 
 .PHONY: clean
 clean :
