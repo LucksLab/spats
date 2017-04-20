@@ -2,9 +2,14 @@
 import math
 import os
 import string
+import sys
 
 
 rev_comp_complementor = string.maketrans("ATCGatcg", "TAGCtagc")
+
+def reverse_complement(seq):
+    return seq.translate(rev_comp_complementor)[::-1]
+
 
 nuc_A = (1)
 nuc_C = (1<<1)
@@ -72,7 +77,7 @@ class FastqRecord(object):
             outfile.write('\n')
 
     def reverse_complement(self):
-        self.sequence = self.sequence.translate(rev_comp_complementor)[::-1]
+        self.sequence = reverse_complement(self.sequence)
         self.quality = self.quality[::-1]
 
     def relabel_reads(self):
@@ -169,17 +174,18 @@ class SamRecord(object):
         self.right = self.left + self.length
 
 def fasta_parse(target_path):
-    names = []
-    seqs = []
+    pairs = []
     with open(target_path, 'rb') as infile:
         while True:
             line = infile.readline()
             if 0 == len(line):
                 break
-            names.append(line.strip('>\n'))
+            name = line.strip('>\n')
             line = infile.readline()
-            seqs.append(line.strip())
-    return names, seqs
+            seq = line.strip()
+            if name and seq:
+                pairs.append((name, seq))
+    return pairs
 
 def get_counts(sam_path, target_length):
     num_sites = target_length + 1
@@ -244,12 +250,12 @@ def compute_from_counts(num_sites, treated_counts, untreated_counts):
     return betas, thetas, c
 
 def compute_profiles(target_path, treated_path, untreated_path, output_dir):
-    names, seqs = fasta_parse(target_path)
+    pairs = fasta_parse(target_path)
 
     # TODO: handle multiple sequences?
 
-    name = names[0]
-    seq = seqs[0]
+    name = pairs[0][0]
+    seq = pairs[0][1]
     n = len(seq)
     treated_counts, treated_total, treated_kept = get_counts(treated_path, n)
     untreated_counts, untreated_total, untreated_kept = get_counts(untreated_path, n)
@@ -262,8 +268,10 @@ def compute_profiles(target_path, treated_path, untreated_path, output_dir):
                                                                                                                   (100.0 * float(untreated_kept)) / float(untreated_total))
 
     betas, thetas, c = compute_from_counts(n, treated_counts, untreated_counts)
+    write_reactivities(os.path.join(output_dir, "reactivities.out"), name, seq, treated_counts, untreated_counts, betas, thetas, c)
 
-    out_path = os.path.join(output_dir, "reactivities.out")
+def write_reactivities(out_path, name, seq, treated_counts, untreated_counts, betas, thetas, c):
+    n = len(seq)
     with open(out_path, 'wb') as outfile:
         outfile.write('sequence\trt_start\tfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n')
         format_str = "{name}\t{rt}\t".format(name = name, rt = n - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = c)
@@ -276,3 +284,317 @@ def compute_profiles(target_path, treated_path, untreated_path, output_dir):
                                             um = untreated_counts[i],
                                             b = betas[i] if i > 0 else '-',
                                             th = thetas[i] if i > 0 else '-'))
+
+
+
+###############################################################
+
+
+# returns (left, right), where 'left' is the max number of chars extending to the left,
+# and 'right' is the max number of chars extending to the right, s.t. s1 matches s2
+# when the passed-in ranges (pos, len) are extended to the left and right the
+# indicated amounts.
+def longest_match(s1, range1, s2, range2):
+    left1 = range1[0]
+    left2 = range2[0]
+    right1 = left1 + range1[1]
+    right2 = left2 + range2[1]
+    if s1[left1:right1] != s2[left2:right2]:
+        raise Exception("longest_match must already start with a match")
+    while left1 >= 0 and left2 >= 0 and s1[left1] == s2[left2]:
+        left1 -= 1
+        left2 -= 1
+    while right1 <= len(s1) and right2 <= len(s2) and s1[right1 - 1] == s2[right2 - 1]:
+        right1 += 1
+        right2 += 1
+    return range1[0] - left1 - 1, right1 - range1[1] - range1[0] - 1
+
+
+class Target(object):
+
+    def __init__(self, name, seq, index_word_length = 8):
+        self.name = name
+        self.seq = seq
+        self._index = None
+        self.index_word_length = index_word_length
+
+    def index(self):
+        seq = self.seq
+        index = {}
+        word_len = self.index_word_length
+        for i in range(len(seq) - word_len):
+            key = seq[i:(i + word_len)]
+            sites = index.get(key)
+            if not sites:
+                sites = []
+                index[key] = sites
+            sites.append(i)
+        self._index = index
+
+    def find_exact(self, query):
+        assert(self._index)
+        word_len = self.index_word_length
+        query_len = len(query)
+        if query_len < word_len:
+            raise Exception("Query too short: len({}) < {}".format(query, word_len))
+        query_key = query[0:word_len]
+        for index in self._index.get(query_key, []):
+            if self.seq[index:index+query_len] == query:
+                return index
+        return None
+
+    # returns (query_start_index, match_len, sequence_index), where:
+    #  query_start_index: the index into the query where the match starts
+    #  match_len: the length of the match
+    #  sequence_index: the index into the target sequence where the match starts
+    def find_partial(self, query, minimum_length = None):
+        assert(self._index)
+        min_len = minimum_length or (self.index_word_length << 1)
+        word_len = self.index_word_length
+        if min_len < word_len:
+            raise Exception("minimum_length too short: {} < {}".format(min_len, word_len))
+        check_every = min_len - word_len # norah has proved that this guarantees finding a match if it exists
+        if check_every < 4:
+            print "Warning: minimum_length {} is not much longer than index length {}".format(min_len, word_len)
+        query_len = len(query)
+        check_sites = range(0, query_len - check_every, max(check_every, 1))
+        check_sites.append(query_len - check_every)
+        for site in check_sites:
+            site_key = query[site:site+word_len]
+            #print "CS: {}, {}".format(site, site_key)
+            for index in self._index.get(site_key, []):
+                #print "GOT: " + str(index)
+                left, right = longest_match(query, (site, word_len), self.seq, (index, word_len))
+                #print "extends: <--{}, -->{}".format(left, right)
+                total_len = left + right + word_len
+                if total_len >= min_len:
+                    return site - left, total_len, index - left
+        return None, None, None
+
+
+class Spats(object):
+
+    def __init__(self, target_path, data_r1_path, data_r2_path, output_folder):
+        self.target_path = target_path
+        self.data_r1_path = data_r1_path
+        self.data_r2_path = data_r2_path
+        self.output_folder = output_folder
+
+        # user-configurable parameters
+        self.masks = [ 'RRRY', 'YYYR' ]
+        self.show_progress = True
+        self.write_mask_outputs = False
+        self.quiet = False
+        self.debug = False
+
+        # private vars
+        self._targets = None
+        self._masks = None
+
+
+    def setup(self):
+        self._indexTargets()
+        self._setupMasks()
+
+    def _indexTargets(self):
+        if self._targets:
+            return
+        targets = []
+        for name, seq in fasta_parse(self.target_path):
+            target = Target(name, seq)
+            target.index()
+            targets.append(target)
+        self._targets = targets
+
+        # TODO: handle multiple targets. for now just use the one
+        self._target = targets[0]
+        self._n = len(self._target.seq)
+
+    def _setupMasks(self):
+        if self._masks:
+            return
+        masks = map(Mask, self.masks)
+        for mask in masks:
+            mask.counts = [ 0 for x in range(self._n + 1) ] # TODO: numpy.empty(num_sites, dtype=int) is better
+            mask.total = 0
+            mask.kept = 0
+            if self.write_mask_outputs:
+                mask.handle_out = open(os.path.join(self.output_folder, "{}_1.fq".format(mask.chars)), 'wb')
+                mask.nonhandle_out = open(os.path.join(self.output_folder, "{}_2.fq".format(mask.chars)), 'wb')
+        self._masks = masks
+        self._maskSize = max([ len(m.chars) for m in masks ])
+
+    def _cleanupMasks(self):
+        if not self.write_mask_outputs:
+            return
+        for mask in self._masks:
+            mask.handle_out.close()
+            mask.nonhandle_out.close()
+
+    def _match_mask(self, seq):
+        if len(seq) > self._maskSize + 1:
+            for mask in self._masks:
+                if matches_mask(seq, mask.values):
+                    return mask
+        return None
+
+    def _DBG(self, stuff):
+        if self.debug:
+            print stuff
+
+    def _process_pair(self, r1_record, r2_record):
+        mask = self._match_mask(r1_record.sequence)
+        if not mask:
+            return False
+
+        mask.total += 1
+        self.debug = (r1_record.sequence == "TCCATCCTTGGTGCCCGAGTGCACTTCATAATCAA")
+        rev1 = reverse_complement(r1_record.sequence)
+        self._DBG(rev1)
+        start1, len1, index1 = self._target.find_partial(rev1)
+        start2, len2, index2 = self._target.find_partial(r2_record.sequence)
+        self._DBG([start1, len1, index1, "--", start2, len2, index2])
+        if not len1 or not len2:
+            self._DBG("len failure")
+            return True
+
+        left = min(index1, index2)
+        right = max(index1 + len1, index2 + len2)
+        n = self._n
+        self._DBG([left, right, n])
+
+        # JBL - only register this fragment if the left read is within the sequence
+        # and the right read aligns with the end of the RNA (or RNA subsequence)
+        if left < 0 or left > n or right != n:
+            self._DBG("LR failure")
+            return True
+
+        mask.kept += 1
+        mask.counts[left] += 1
+        if not self.write_mask_outputs:
+            return True
+
+        r1len = len(r1_record.sequence)
+        self._DBG(r1_record.identifier)
+        if len1 < r1len:
+            self._DBG(rev1[start1 : start1 + len1])
+            self._DBG(reverse_complement(rev1[start1 : start1 + len1]))
+            r1_record.sequence = reverse_complement(rev1[start1 : start1 + len1])
+            r1_record.quality = r1_record.quality[r1len - start1 - len1 : r1len - start1]
+        if len2 < len(r2_record.sequence):
+            r2_record.sequence = r2_record.sequence[start2 : start2 + len2]
+            r2_record.quality = r2_record.quality[start2 : start2 + len2]
+        r1_record.identifier = r2_record.identifier = "@{}".format(total)
+        if self.debug: exit(1)
+        if self.write_mask_outputs:
+            r1_record.write(mask.handle_out)
+            r2_record.write(mask.nonhandle_out)
+
+    def get_counts(self):
+        total_pairs = 0
+        chucked_pairs = 0
+
+        with open(self.data_r1_path, 'rb') as r1_in:
+            with open(self.data_r2_path, 'rb') as r2_in:
+                r1_record = FastqRecord()
+                r2_record = FastqRecord()
+                while True:
+                    r1_record.read(r1_in)
+                    r2_record.read(r2_in)
+                    if not r1_record.identifier or not r2_record.identifier:
+                        break
+
+                    total_pairs += 1
+                    if self.show_progress and 0 == total_pairs % 20000:
+                        sys.stdout.write('.')
+                        sys.stdout.flush()
+
+                    if not self._process_pair(r1_record, r2_record):
+                        chucked_pairs += 1
+
+        self.total_pairs = total_pairs
+        self.chucked_pairs = chucked_pairs
+        self._cleanupMasks()
+        if not self.quiet:
+            self.report_counts()
+
+    def report_counts(self):
+        m0 = self._masks[0]
+        m1 = self._masks[1]
+        format_str = "Processed {tot} properly paired fragments, " + \
+                     "kept {kept0}/{tot0} ({pct0:.1f}%) treated, " + \
+                     "{kept1}/{tot1} ({pct1:1f}%) untreated"
+        print format_str.format(tot = m0.total + m1.total,
+                                kept0 = m0.kept,
+                                tot0 = m0.total,
+                                pct0 = (100.0 * float(m0.kept)) / float(m0.total),
+                                kept1 = m1.kept,
+                                tot1 = m1.total,
+                                pct1 = (100.0 * float(m1.kept)) / float(m1.total))
+
+    def compute_profiles(self):
+        # TODO: use numpy here ?
+        n = self._n
+        treated_counts = self._masks[0].counts
+        untreated_counts = self._masks[1].counts
+        betas = [ 0 for x in range(n+1) ]
+        thetas = [ 0 for x in range(n+1) ]
+        treated_sum = 0.0    # keep a running sum
+        untreated_sum = 0.0  # for both channels
+        running_c_sum = 0.0  # can also do it for c
+
+        for k in range(n):
+            X_k = float(treated_counts[k])
+            Y_k = float(untreated_counts[k])
+            treated_sum += X_k    #treated_sum = float(sum(treated_counts[:(k + 1)]))
+            untreated_sum += Y_k  #untreated_sum = float(sum(untreated_counts[:(k + 1)]))
+            if 0 == treated_sum  or  0 == untreated_sum:
+                betas[k] = 0
+                thetas[k] = 0
+            else:
+                Xbit = (X_k / treated_sum)
+                Ybit = (Y_k / untreated_sum)
+                if Ybit >= 1:
+                    betas[k] = 0
+                    thetas[k] = 0
+                else:
+                    betas[k] = max(0, (Xbit - Ybit) / (1 - Ybit))
+                    thetas[k] = math.log(1.0 - Ybit) - math.log(1.0 - Xbit)
+                    running_c_sum -= math.log(1.0 - betas[k])
+
+        c = running_c_sum
+        c_factor = 1.0 / c
+        for k in range(n+1):
+            thetas[k] = c_factor * thetas[k]
+        self.betas = betas
+        self.thetas = thetas
+        self.c = c
+
+    def write_reactivities(self):
+        out_path = os.path.join(self.output_folder, "rx.out")
+        n = self._n
+        treated_counts = self._masks[0].counts
+        untreated_counts = self._masks[1].counts
+        with open(out_path, 'wb') as outfile:
+            outfile.write('sequence\trt_start\tfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n')
+            format_str = "{name}\t{rt}\t".format(name = self._target.name, rt = n - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = self.c)
+            # TODO: xref https://trello.com/c/OtbxyiYt/23-3-nt-missing-from-reactivities-out
+            # looks like we may want this to be range(n), chopping off was unintentional bug of previous version
+            for i in range(n - 1):
+                outfile.write(format_str.format(i = i,
+                                                nuc = self._target.seq[i - 1] if i > 0 else '*',
+                                                tm = treated_counts[i],
+                                                um = untreated_counts[i],
+                                                b = self.betas[i] if i > 0 else '-',
+                                                th = self.thetas[i] if i > 0 else '-'))
+
+    def run(self):
+        self.setup()
+        self.get_counts()
+        self.compute_profiles()
+        self.write_reactivities()
+
+
+def spats(target_path, r1_path, r2_path, output_folder):
+    s = Spats(target_path, r1_path, r2_path, output_folder)
+    s.run()
