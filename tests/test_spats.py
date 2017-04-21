@@ -99,3 +99,16 @@ class TestMisc(SRPTargetTest):
                   bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq", 
                   bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq", 
                   bp + "t2")
+
+    def test_refactor(self):
+        from spats_clean import Spats
+        bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
+        out = bp + "t3/"
+        s = Spats(bp + "5S.fa",
+                  bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq", 
+                  bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq", 
+                  out)
+        s.run()
+        import subprocess
+        subprocess.check_call(["diff", bp + "t2/rx.out", out + "/rx.out"])
+        print "Diff OK"
