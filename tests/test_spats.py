@@ -57,14 +57,45 @@ class TestTarget(SRPTargetTest):
         self.assertEqual(self.target.find_partial("GTCCTTGGTGCCCGAGTCAGGCCCAGATCGGAAGA"), (0, 20, 117)) #R2 117
 
 class TestMisc(SRPTargetTest):
+    def test_id_to_site(self):
+        from spats_common import id_to_site
+        bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/t7/"
+        id_to_site(bp + "NOMASK_1.fq", bp + "RRRY.sam", bp + "YYYR.sam", 143)
+
+    def test_make_subset(self):
+        from spats_common import make_subset
+        bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+        if False:
+            make_subset(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
+                        bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
+                        bp + "t7/5s_dev_diff_ids.out",
+                        bp + "5s_errors")
+        else:
+            make_subset(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
+                        bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
+                        bp + "t7/5s_dev_diff_sample.ids",
+                        bp + "5s_sample")
+
     def test_misc(self):
         from spats_common import spats
-        if True:
+        if False:
             bp = "/Users/jbrink/mos/tasks/1RwIBa/refactor/spats/test/Read_Mapping/"
             spats(bp + "SRP_All_Stops.fa", bp + "SRP_All_Stops_R1.fq", bp + "SRP_All_Stops_R2.fq", bp + "t5")
-        else:
+        elif False:
             bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
             spats(bp + "5s/5S.fa",
                   bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
                   bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
-                  bp + "t6")
+                  bp + "t7")
+        elif True:
+            bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+            spats(bp + "5s/5S.fa",
+                  bp + "5s_sample/filtered_R1.fq",
+                  bp + "5s_sample/filtered_R2.fq",
+                  bp + "t9")
+        else:
+            bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
+            spats(bp + "5S.fa",
+                  bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq", 
+                  bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq", 
+                  bp + "t2")

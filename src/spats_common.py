@@ -289,7 +289,6 @@ def write_reactivities(out_path, name, seq, treated_counts, untreated_counts, be
 
 ###############################################################
 
-
 # returns (left, right), where 'left' is the max number of chars extending to the left,
 # and 'right' is the max number of chars extending to the right, s.t. s1 matches s2
 # when the passed-in ranges (pos, len) are extended to the left and right the
@@ -301,10 +300,10 @@ def longest_match(s1, range1, s2, range2):
     right2 = left2 + range2[1]
     if s1[left1:right1] != s2[left2:right2]:
         raise Exception("longest_match must already start with a match")
-    while left1 >= 0 and left2 >= 0 and s1[left1] == s2[left2]:
+    while left1 >= 0 and left2 >= 0 and 0 != (char_to_mask[s1[left1]] & char_to_mask[s2[left2]]):
         left1 -= 1
         left2 -= 1
-    while right1 <= len(s1) and right2 <= len(s2) and s1[right1 - 1] == s2[right2 - 1]:
+    while right1 <= len(s1) and right2 <= len(s2) and 0 != (char_to_mask[s1[right1 - 1]] & char_to_mask[s2[right2 - 1]]):
         right1 += 1
         right2 += 1
     return range1[0] - left1 - 1, right1 - range1[1] - range1[0] - 1
@@ -317,6 +316,7 @@ class Target(object):
         self.seq = seq
         self._index = None
         self.index_word_length = index_word_length
+        self._warned = False
 
     def index(self):
         seq = self.seq
@@ -354,8 +354,9 @@ class Target(object):
         if min_len < word_len:
             raise Exception("minimum_length too short: {} < {}".format(min_len, word_len))
         check_every = min_len - word_len # norah has proved that this guarantees finding a match if it exists
-        if check_every < 4:
+        if check_every < 4 and not self._warned:
             print "Warning: minimum_length {} is not much longer than index length {}".format(min_len, word_len)
+            self._warned = True
         query_len = len(query)
         check_sites = range(0, query_len - check_every, max(check_every, 1))
         check_sites.append(query_len - check_every)
@@ -383,18 +384,27 @@ class Spats(object):
         # user-configurable parameters
         self.masks = [ 'RRRY', 'YYYR' ]
         self.show_progress = True
-        self.write_mask_outputs = False
+        self.write_intermediate_outputs = False
+        self.show_id_to_site = False
         self.quiet = False
         self.debug = False
+        self.adapter_t = "AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"  # JJB: shows revcomped on the end of R2, from the back
+        self.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"                          # JJB: shows as-is on the end of R1, from the front
 
         # private vars
         self._targets = None
         self._masks = None
+        self._adapter_t_index = None
 
+        self._comb_ids = open("/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/tmp/comb_R1.ids", 'rb').read().split('\n')
 
     def setup(self):
         self._indexTargets()
+        self._indexAdapters()
         self._setupMasks()
+        if self.write_intermediate_outputs:
+            self.combined_r1_out = open(os.path.join(self.output_folder, "comb_R1.fq"), 'wb')
+            self.combined_r2_out = open(os.path.join(self.output_folder, "comb_R2.fq"), 'wb')
 
     def _indexTargets(self):
         if self._targets:
@@ -410,6 +420,14 @@ class Spats(object):
         self._target = targets[0]
         self._n = len(self._target.seq)
 
+    def _indexAdapters(self):
+        if self._adapter_t_index:
+            return
+        self._adapter_t_index = Target("adapter_t", self.adapter_t, index_word_length = 4)
+        self._adapter_t_index.index()
+        self._adapter_b_index = Target("adapter_b", self.adapter_b, index_word_length = 4)
+        self._adapter_b_index.index()
+
     def _setupMasks(self):
         if self._masks:
             return
@@ -418,18 +436,20 @@ class Spats(object):
             mask.counts = [ 0 for x in range(self._n + 1) ] # TODO: numpy.empty(num_sites, dtype=int) is better
             mask.total = 0
             mask.kept = 0
-            if self.write_mask_outputs:
+            if self.write_intermediate_outputs:
                 mask.handle_out = open(os.path.join(self.output_folder, "{}_1.fq".format(mask.chars)), 'wb')
                 mask.nonhandle_out = open(os.path.join(self.output_folder, "{}_2.fq".format(mask.chars)), 'wb')
         self._masks = masks
         self._maskSize = max([ len(m.chars) for m in masks ])
 
-    def _cleanupMasks(self):
-        if not self.write_mask_outputs:
+    def _cleanup(self):
+        if not self.write_intermediate_outputs:
             return
         for mask in self._masks:
             mask.handle_out.close()
             mask.nonhandle_out.close()
+        self.combined_r1_out.close()
+        self.combined_r2_out.close()
 
     def _match_mask(self, seq):
         if len(seq) > self._maskSize + 1:
@@ -442,25 +462,81 @@ class Spats(object):
         if self.debug:
             print stuff
 
-    def _process_pair(self, r1_record, r2_record):
+    def _process_pair(self, r1_record, r2_record, numeric_pair_id = 0):
         mask = self._match_mask(r1_record.sequence)
         if not mask:
             return False
 
+        n = self._n
         mask.total += 1
-        self.debug = (r1_record.sequence == "TCCATCCTTGGTGCCCGAGTGCACTTCATAATCAA")
+        self.debug = True#("10157" in r1_record.identifier)# or "14617" in r1_record.identifier)# or "19869" in r1_record.identifier or "22589" in r1_record.identifier)
+        self._DBG("> processing " + r1_record.identifier + "\n  --> " + r1_record.sequence + " , " + r2_record.sequence)
         rev1 = reverse_complement(r1_record.sequence)
         self._DBG(rev1)
-        start1, len1, index1 = self._target.find_partial(rev1)
-        start2, len2, index2 = self._target.find_partial(r2_record.sequence)
-        self._DBG([start1, len1, index1, "--", start2, len2, index2])
+        r1len, r2len = map(len, [r1_record.sequence, r2_record.sequence])
+        start1, len1, index1 = self._target.find_partial(rev1, 8)
+        start2, len2, index2 = self._target.find_partial(r2_record.sequence, 8)
+        self._DBG([start1, len1, index1, "--", start2, len2, index2, r2len])
+        #print ["**  " if r1_record.identifier in self._comb_ids else "  ", start1, len1, index1, "--", start2, len2, index2, "-" if index2 is None else index2 + len2, r1_record.identifier]
         if not len1 or not len2:
             self._DBG("len failure")
             return True
 
+        if start1 > 4:
+            # don't try trimming with less than 4, assume it's just a handle
+            tail_start = (start1 - 4) if (start1 > 8) else start1
+            rest = r1_record.sequence[-tail_start:]
+            self._DBG("R1 trim {}: {}".format(r1_record.identifier, rest))
+            rstart, rlen, aindex = self._adapter_b_index.find_partial(rest, 4)
+            self._DBG((rstart, rlen, aindex))
+            if not rlen:
+                return True
+            shifted = r1_record.sequence[-(tail_start+aindex):]
+            if self.adapter_b.startswith(shifted):
+                # ok, this is a good trim
+                self._DBG("Found adapter_b trim L{} on: {}".format(tail_start + aindex, r1_record.identifier))
+                new_start = tail_start + aindex + 4 # add 4 for the handle
+                delta = new_start - start1
+                start1 = new_start
+                len1 -= delta
+                index1 += delta
+                self._DBG("new start1={}, len1={}, index1={}".format(start1, len1, index1))
+            else:
+                self._DBG("Can't trim R1 on: {}".format(r1_record.identifier))
+                return True
+
+        if start2 + len2 != r2len:
+            rest = r2_record.sequence[start2 + len2:]
+            self._DBG("R2 off: " + rest)
+            # if the the leftover is <= 4, just assume it's the handle and move on; so only need to check for adapter if len > 4
+            if len(rest) > 4:
+                possible_adapter = reverse_complement(rest[4:])
+                self._DBG(possible_adapter)
+                if not self.adapter_t.endswith(possible_adapter):
+                    self._DBG("untrimmable R2 failure")
+                    return True
+                else:
+                    self._DBG("accepting trimmed R2")
+
+        if not set(r1_record.sequence + r2_record.sequence) <= set('ACGT'):
+            # TODO: we should keep these -- but current adapter_trimmer does not
+            self._DBG("indeterminate sequence failure")
+            return True
+
+        if start2 > 0 and index2 > 0:
+            self._DBG("inside 5S failure on R2 for: {}".format(r1_record.identifier))
+            return True
+
+        if start2 > 0:
+            self._DBG("start too soon failure on R2 for: {}".format(r1_record.identifier))
+            return True
+
+        if self.write_intermediate_outputs:
+            r1_record.write(self.combined_r1_out)
+            r2_record.write(self.combined_r2_out)
+
         left = min(index1, index2)
         right = max(index1 + len1, index2 + len2)
-        n = self._n
         self._DBG([left, right, n])
 
         # JBL - only register this fragment if the left read is within the sequence
@@ -469,12 +545,16 @@ class Spats(object):
             self._DBG("LR failure")
             return True
 
+        self._DBG("  ===> KEPT {}-{}".format(left, right))
         mask.kept += 1
         mask.counts[left] += 1
-        if not self.write_mask_outputs:
+
+        if self.show_id_to_site:
+            print "{} --> {} ({})".format(r1_record.identifier, left, mask.chars)
+
+        if not self.write_intermediate_outputs:
             return True
 
-        r1len = len(r1_record.sequence)
         self._DBG(r1_record.identifier)
         if len1 < r1len:
             self._DBG(rev1[start1 : start1 + len1])
@@ -484,9 +564,9 @@ class Spats(object):
         if len2 < len(r2_record.sequence):
             r2_record.sequence = r2_record.sequence[start2 : start2 + len2]
             r2_record.quality = r2_record.quality[start2 : start2 + len2]
-        r1_record.identifier = r2_record.identifier = "@{}".format(total)
-        if self.debug: exit(1)
-        if self.write_mask_outputs:
+        r1_record.identifier = r2_record.identifier = "@{}".format(numeric_pair_id)
+        #if self.debug: exit(1)
+        if self.write_intermediate_outputs:
             r1_record.write(mask.handle_out)
             r2_record.write(mask.nonhandle_out)
 
@@ -509,12 +589,12 @@ class Spats(object):
                         sys.stdout.write('.')
                         sys.stdout.flush()
 
-                    if not self._process_pair(r1_record, r2_record):
+                    if not self._process_pair(r1_record, r2_record, total_pairs):
                         chucked_pairs += 1
 
         self.total_pairs = total_pairs
         self.chucked_pairs = chucked_pairs
-        self._cleanupMasks()
+        self._cleanup()
         if not self.quiet:
             self.report_counts()
 
@@ -565,7 +645,7 @@ class Spats(object):
         c = running_c_sum
         c_factor = 1.0 / c
         for k in range(n+1):
-            thetas[k] = c_factor * thetas[k]
+            thetas[k] = max(c_factor * thetas[k], 0)
         self.betas = betas
         self.thetas = thetas
         self.c = c
@@ -597,4 +677,85 @@ class Spats(object):
 
 def spats(target_path, r1_path, r2_path, output_folder):
     s = Spats(target_path, r1_path, r2_path, output_folder)
+    s.write_intermediate_outputs = True
+    s.show_id_to_site = True
     s.run()
+
+def make_subset(r1_path, r2_path, id_list_path, output_folder):
+    print open(id_list_path, 'rb').read().split('\n')
+    ids = set(open(id_list_path, 'rb').read().split('\n'))
+    n = 0
+    with open(os.path.join(output_folder, "filtered_R1.fq"), 'wb') as r1_out:
+        with open(os.path.join(output_folder, "filtered_R2.fq"), 'wb') as r2_out:
+            with open(r1_path, 'rb') as r1_in:
+                with open(r2_path, 'rb') as r2_in:
+                    r1_record = FastqRecord()
+                    r2_record = FastqRecord()
+                    while True:
+                        r1_record.read(r1_in)
+                        r2_record.read(r2_in)
+                        if not r1_record.identifier or not r2_record.identifier:
+                            break
+                        rid = r1_record.identifier.split(' ')[0][1:]
+                        if rid in ids:
+                            n += 1
+                            r1_record.write(r1_out)
+                            r2_record.write(r2_out)
+    print "Filtered {} records.".format(n)
+
+def id_to_site(nomask_path, treated_sam, untreated_sam, target_length):
+    nid_to_id = {}
+    with open(nomask_path, 'rb') as infile:
+        r = FastqRecord()
+        while True:
+            r.read(infile)
+            if not r.identifier:
+                break
+            nid = int(r.identifier.lstrip('@'))
+            if nid < 525 and nid > 420:
+                print "{} -> {}".format(nid, r.identifier2.lstrip("+"))
+            nid_to_id[nid] = r.identifier2.lstrip('+')
+    num_sites = target_length + 1
+    r1 = SamRecord()
+    r2 = SamRecord()
+    for sam_path in [ treated_sam, untreated_sam ]:
+        print sam_path
+        with open(sam_path, 'rb') as infile:
+            while True:
+                line = infile.readline()
+                if 0 == len(line):
+                    break
+                if line.startswith('@'):
+                    continue
+                r1.parse(line)
+                r2.parse(infile.readline())
+                if not r1.identifier or r1.identifier != r2.identifier:
+                    raise Exception("Parse error?") # might just want continue?
+                left = min(r1.left, r2.left)
+                right = max(r1.right, r2.right)
+                if left >= 0 and left < num_sites and right == target_length:
+                    print nid_to_id[int(r1.identifier)] + " --> " + str(left)
+
+    
+        
+def old_id_to_site(sam_path, target_length):
+    num_sites = target_length + 1
+    r1 = SamRecord()
+    r2 = SamRecord()
+    with open(sam_path, 'rb') as infile:
+        while True:
+            line = infile.readline()
+            if 0 == len(line):
+                break
+            if line.startswith('@'):
+                continue
+            r1.parse(line)
+            r2.parse(infile.readline())
+            if not r1.identifier or r1.identifier != r2.identifier:
+                print r1.identifier
+                print r2.identifier
+                raise Exception("Parse error?") # might just want continue?
+            left = min(r1.left, r2.left)
+            right = max(r1.right, r2.right)
+            if left >= 0 and left < num_sites and right == target_length:
+                print r1.identifier + " --> " + str(left)
