@@ -163,7 +163,7 @@ class Pair(object):
     def set_from_data(self, identifier, r1_seq, r2_seq):
         self.identifier = identifier
         self.r1.set_seq(r1_seq)
-        self.r2.set_seq(r2__seq)
+        self.r2.set_seq(r2_seq)
 
     def set_from_records(self, r1_record, r2_record):
         if not r1_record.identifier or r1_record.identifier != r2_record.identifier:
@@ -282,10 +282,8 @@ class Target(object):
 
 class Spats(object):
 
-    def __init__(self, target_path, data_r1_path, data_r2_path, output_folder):
+    def __init__(self, target_path, output_folder):
         self.target_path = target_path
-        self.data_r1_path = data_r1_path
-        self.data_r2_path = data_r2_path
         self.output_folder = output_folder
 
         # user-configurable parameters
@@ -300,6 +298,8 @@ class Spats(object):
         self._adapter_t_index = None
 
         self._comb_ids = open("/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/tmp/comb_R1.ids", 'rb').read().split('\n')
+
+        self.total_pairs = self.processed_pairs = self.chucked_pairs = 0
 
     def setup(self):
         self._indexTargets()
@@ -337,9 +337,6 @@ class Spats(object):
             mask.kept = 0
         self._masks = masks
         self._maskSize = max([ len(m.chars) for m in masks ])
-
-    def _cleanup(self):
-        pass
 
     def _match_mask(self, pair):
         if len(pair.r1.seq) <= self._maskSize:
@@ -445,14 +442,13 @@ class Spats(object):
         if spats_config.show_id_to_site:
             print "{} --> {} ({})".format(pair.identifier, pair.site, pair.mask.chars)
 
-
-    def get_counts(self):
+    def process_pair_data(self, data_r1_path, data_r2_path):
         total_pairs = 0
         chucked_pairs = 0
-        process_pairs = 0
+        processed_pairs = 0
 
-        with open(self.data_r1_path, 'rb') as r1_in:
-            with open(self.data_r2_path, 'rb') as r2_in:
+        with open(data_r1_path, 'rb') as r1_in:
+            with open(data_r2_path, 'rb') as r2_in:
                 r1_record = FastqRecord()
                 r2_record = FastqRecord()
                 pair = Pair()
@@ -468,17 +464,17 @@ class Spats(object):
                     self.process_pair(pair)
                     if not pair.mask:
                         chucked_pairs += 1
-                    elif if pair.site != None:
+                    elif pair.site != None:
                         processed_pairs +=1
 
                     if spats_config.show_progress and 0 == total_pairs % 20000:
                         sys.stdout.write('.')
                         sys.stdout.flush()
 
-        self.total_pairs = total_pairs
-        self.chucked_pairs = chucked_pairs
-        self.processed_pairs = processed_pairs
-        self._cleanup()
+        self.total_pairs += total_pairs
+        self.chucked_pairs += chucked_pairs
+        self.processed_pairs += processed_pairs
+
         if not self.quiet:
             self.report_counts()
 
@@ -551,9 +547,3 @@ class Spats(object):
                                                 um = untreated_counts[i],
                                                 b = self.betas[i] if i > 0 else '-',
                                                 th = self.thetas[i] if i > 0 else '-'))
-
-    def run(self):
-        self.setup()
-        self.get_counts()
-        self.compute_profiles()
-        self.write_reactivities()

@@ -56,7 +56,32 @@ class TestTarget(SRPTargetTest):
         self.assertEqual(self.target.find_partial("GCCCCCACCCGTCCTTGGTGCCCGAGTCAGGCCCA"), (0, 30, 107)) #R2 107
         self.assertEqual(self.target.find_partial("GTCCTTGGTGCCCGAGTCAGGCCCAGATCGGAAGA"), (0, 20, 117)) #R2 117
 
-class TestMisc(SRPTargetTest):
+
+class Target5STest(unittest.TestCase):
+    def setUp(self):
+        from spats_clean import Spats
+        self.spats = Spats("test/5s/5s.fa", "test/5s")
+        self.spats.setup()
+    def tearDown(self):
+        self.spats = None
+
+class TestPairs(Target5STest):
+    def test_pairs(self):
+        from spats_clean import Pair
+        pair_cases = [
+            [ "1101:11562:1050", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", 29 ],
+            [ "1101:20069:1063", "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA", 27 ],
+            [ "21189", "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", 123 ],
+            [ "18333", "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG", None ],
+        ]
+        pair = Pair()
+        for case in pair_cases:
+            pair.set_from_data(case[0], case[1], case[2])
+            self.spats.process_pair(pair)
+            self.assertEqual(pair.site, case[3])
+        print "Ran {} pair->site cases.".format(len(pair_cases))
+
+class TestMisc(unittest.TestCase):
     def test_id_to_site(self):
         from spats_common import id_to_site
         bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/t7/"
@@ -104,11 +129,12 @@ class TestMisc(SRPTargetTest):
         from spats_clean import Spats
         bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
         out = bp + "t3/"
-        s = Spats(bp + "5S.fa",
-                  bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq", 
-                  bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq", 
-                  out)
-        s.run()
+        s = Spats(bp + "5S.fa", out)
+        s.setup()
+        s.process_pair_data(bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq", 
+                            bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
+        s.compute_profiles()
+        s.write_reactivities()
         import subprocess
         subprocess.check_call(["diff", bp + "t2/rx.out", out + "/rx.out"])
         print "Diff OK"
