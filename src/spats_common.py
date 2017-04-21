@@ -569,6 +569,7 @@ class Spats(object):
         if self.write_intermediate_outputs:
             r1_record.write(mask.handle_out)
             r2_record.write(mask.nonhandle_out)
+        return True
 
     def get_counts(self):
         total_pairs = 0
