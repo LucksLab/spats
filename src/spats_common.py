@@ -760,3 +760,10 @@ def old_id_to_site(sam_path, target_length):
             right = max(r1.right, r2.right)
             if left >= 0 and left < num_sites and right == target_length:
                 print r1.identifier + " --> " + str(left)
+
+if __name__ == "__main__":
+    import sys
+    if sys.argv[1] == "rc":
+        print reverse_complement(sys.argv[2])
+    else:
+        print "Unknown cmd: {}".format(sys.argv[1])

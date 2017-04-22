@@ -12,6 +12,7 @@ class SpatsConfig(object):
         self.allow_indeterminate = False
         self.show_progress = True
         self.show_id_to_site = False
+        self.adapter_trim_prefix_length = 6 # TODO: better name & explain, if we keep this
 
 spats_config = SpatsConfig()
 
@@ -129,8 +130,7 @@ class Sequence(object):
         self.match_start = None
         self.match_len = None
         self.match_index = None
-        self.left = None
-        self.right = None
+        self.trimmed = None
 
     def set_seq(self, seq):
         self._reset(seq)
@@ -145,12 +145,28 @@ class Sequence(object):
     def matched(self):
         return bool(self.match_len)
 
+    @property
+    def left(self):
+        return self.match_index if self.match_len else None
+
+    @property
+    def right(self):
+        return self.match_index + self.match_len if self.match_len else None
+
     def find_in_target(self, target, reverse_complement = False):
         seq = self.reverse_complement if reverse_complement else self.seq
         self.match_start, self.match_len, self.match_index = target.find_partial(seq, spats_config.minimum_target_match_length)
-        if self.match_len:
-            self.left = self.match_index
-            self.right = self.match_index + self.match_len
+
+    def trim(self, length, rc = True):
+        self.trimmed = self.seq[length:]
+        if rc and self.length - length > self.match_start:
+            delta = (self.length - length - self.match_start)
+            self.match_len -= delta
+            self.match_start += delta
+            self.match_index += delta
+        elif not rc and length < self.match_len:
+            _warn("trim reduced non-RC match_len? isn't this unexpected? {} / {} / {}".format(self.match_len, self.match_start, length))
+            self.match_len = length - self.match_start
 
 
 class Pair(object):
@@ -164,6 +180,7 @@ class Pair(object):
         self.r2 = Sequence()
         self.site = None
         self.mask = None
+        self.failure = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq):
         self.reset()
@@ -223,6 +240,16 @@ def longest_match(s1, range1, s2, range2):
         right1 += 1
         right2 += 1
     return range1[0] - left1 - 1, right1 - range1[1] - range1[0] - 1
+
+
+def find_on_end(seq, adapter, min_len = 4):
+    prefix = adapter[:4]
+    start = seq.rfind(prefix)
+    if -1 != start:
+        tail = seq[start:]
+        if adapter.startswith(tail):
+            return len(tail)
+    return -1
 
 
 class Target(object):
@@ -305,7 +332,6 @@ class Spats(object):
         # private vars
         self._targets = None
         self._masks = None
-        self._adapter_t_index = None
 
         self._comb_ids = open("/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/tmp/comb_R1.ids", 'rb').read().split('\n')
 
@@ -313,8 +339,8 @@ class Spats(object):
 
     def setup(self):
         self._indexTargets()
-        self._indexAdapters()
         self._setupMasks()
+        self.adapter_t_rc = reverse_complement(self.adapter_t)
 
     def _indexTargets(self):
         if self._targets:
@@ -328,14 +354,6 @@ class Spats(object):
 
         # TODO: handle multiple targets. for now just use the one
         self._target = targets[0]
-
-    def _indexAdapters(self):
-        if self._adapter_t_index:
-            return
-        self._adapter_t_index = Target("adapter_t", self.adapter_t, index_word_length = 4)
-        self._adapter_t_index.index()
-        self._adapter_b_index = Target("adapter_b", self.adapter_b, index_word_length = 4)
-        self._adapter_b_index.index()
 
     def _setupMasks(self):
         if self._masks:
@@ -366,76 +384,98 @@ class Spats(object):
         _debug([pair.r1.match_start, pair.r1.match_len, pair.r1.match_index, "--", pair.r2.match_start, pair.r2.match_len, pair.r2.match_index])
 
     def _trim_adapters(self, pair):
-        # TODO: needs a lot of work
-        start1 = pair.r1.match_start
-        if start1 > 4:
-            # don't try trimming with less than 4, assume it's just a handle
-            tail_start = (start1 - 4) if (start1 > 8) else start1
-            rest = pair.r1.seq[-tail_start:]
-            _debug("R1 trim {}: {}".format(pair.identifier, rest))
-            rstart, rlen, aindex = self._adapter_b_index.find_partial(rest, 4)
-            _debug((rstart, rlen, aindex))
-            if not rlen:
-                _debug("No adapter found to trim")
-                return False
-            shifted = pair.r1.seq[-(tail_start+aindex):]
-            if self.adapter_b.startswith(shifted):
-                # ok, this is a good trim
-                _debug("Found adapter_b trim L{} on: {}".format(tail_start + aindex, pair.identifier))
-                pair.r1.match_start = tail_start + aindex + 4 # add 4 for the handle
-                delta = pair.r1.match_start - start1
-                pair.r1.match_len -= delta
-                pair.r1.match_index += delta
-                _debug("new start1={}, len1={}, index1={}".format(pair.r1.match_start, pair.r1.match_len, pair.r1.match_index))
-            else:
-                _debug("Can't trim R1 on: {}".format(pair.identifier))
-                return False
 
-        if pair.r2.match_start + pair.r2.match_len != pair.r2.length:
-            rest = pair.r2.seq[pair.r2.match_start + pair.r2.match_len:]
-            _debug("R2 off: " + rest)
-            # if the the leftover is <= 4, just assume it's the handle and move on; so only need to check for adapter if len > 4
-            if len(rest) > 4:
-                possible_adapter = reverse_complement(rest[4:])
-                _debug(possible_adapter)
-                if not self.adapter_t.endswith(possible_adapter):
-                    _debug("untrimmable R2 failure")
-                    return False
-                else:
-                    _debug("accepting trimmed R2")
+        if pair.r2.match_len == pair.r2.length  and  pair.r1.match_len == pair.r1.length - 4:
+            # full match, nothing to trim
+            return True
+
+        # ok, we've got a short match on one or both. need to try trimming.
+        r1_seq = pair.r1.seq
+        r1_rc = pair.r1.reverse_complement
+        r2_seq = pair.r2.seq
+
+        # at the end of a successful trim, r1 and r2 will be RC's
+        # trims happen off the end of both R2 and R1 (beginning of R1_rc)
+        # so, we can start by finding the longest common substring of R2 and R1_rc
+        prefix_len = spats_config.adapter_trim_prefix_length
+        r2_prefix = r2_seq[:prefix_len]
+        r1_rc_start = r1_rc.find(r2_prefix)
+        if -1 == r1_rc_start:
+            _debug("could not find suitable RC match to trim against")
+            return False
+        _debug("r1_rc_start: {}".format(r1_rc_start))
+
+        left, right = longest_match(r2_seq, (0, prefix_len), r1_rc, (r1_rc_start, prefix_len))
+        assert(0 == left)
+        prefix_len += right
+        # OK, the longest common substring is r2_seq[:prefix_len]
+        _debug("prefix_len: {}".format(prefix_len))
+
+        # NOTE: possible issue with this, is that if the common substr "happens" to
+        # extend into adapter by (say) one char, then we'll be off-by-one.
+        # however, this is maybe not possible, since we're comparing RCs?
+        # TAI and prove it one way or the other.
+
+        if not self.adapter_t_rc.startswith(r2_seq[prefix_len:]):
+            _debug("R2 trim {} is not the beginning of adapter_t_rc".format(r2_seq[right:]))
+            return False
+        if not self.adapter_b.startswith(r1_seq[prefix_len:]):
+            _debug("R1 trim {} is not the beginning of adapter_b".format(r1_seq[right:]))
+            return False
+
+        # ok! ready to trim
+        pair.r1.trim(prefix_len, True)
+        pair.r2.trim(prefix_len, False)
+
+        # the +4 is for the expected handle...
+        if pair.r2.length != (pair.r2.match_start + pair.r2.match_len + 4 + len(pair.r2.trimmed)):
+            _debug("R2 trim doesn't match expected handle size")
+            return False
 
         return True
 
     def process_pair(self, pair):
-
         #spats_config.debug = ("10157" in r1_record.identifier)# or "14617" in r1_record.identifier)# or "19869" in r1_record.identifier or "22589" in r1_record.identifier)
-
         _debug("> processing " + pair.identifier + "\n  --> " + pair.r1.seq + " , " + pair.r2.seq)
+        self._process_pair(pair)
+        if pair.failure:
+            _debug(pair.failure)
+        else:
+            assert(pair.site)
+            _debug("  ===> KEPT {}-{}".format(pair.left, pair.right))
+
+        if spats_config.show_id_to_site:
+            print "{} --> {} ({})".format(pair.identifier, pair.site, pair.mask.chars)
+
+
+    def _process_pair(self, pair):
 
         self._match_mask(pair)
         if not pair.mask:
-            _debug("mask failure")
+            pair.failure = "mask failure"
             return
 
         self._find_matches(pair)
         if not pair.matched:
-            _debug("no match")
+            pair.failure = "no match"
             return
 
         if not self._trim_adapters(pair):
-            _debug("adapter trim failure")
+            pair.failure = "adapter trim failure"
             return
 
+        _debug([pair.r2.left, pair.r2.right, "<->", pair.r1.left, pair.r1.right])
+
         if not spats_config.allow_indeterminate  and  not pair.is_determinate():
-            _debug("indeterminate sequence failure")
+            pair.failure = "indeterminate sequence failure"
             return
 
         if pair.r2.match_start > 0 and pair.r2.match_index > 0:
-            _debug("inside 5S failure on R2 for: {}".format(pair.identifier))
+            pair.failure = "inside 5S failure (start = {}, match_index = {}) on R2 for: {}".format(pair.r2.match_start, pair.r2.match_index, pair.identifier)
             return
 
         if pair.r2.match_start > 0:
-            _debug("start too soon failure on R2 for: {}".format(pair.identifier))
+            pair.failure = "R2 to left of site 0 failure on R2 for: {}".format(pair.identifier)
             return
 
         # JBL - only register this fragment if the left read is within the sequence
@@ -443,14 +483,11 @@ class Spats(object):
         n = self._target.n
         _debug([pair.left, pair.right, n])
         if pair.left < 0 or pair.left > n or pair.right != n:
-            _debug("LR failure")
+            pair.failure = "LR failure: {} - {}, n={}".format(pair.left, pair.right, n)
             return
 
-        _debug("  ===> KEPT {}-{}".format(pair.left, pair.right))
         pair.register_count()
 
-        if spats_config.show_id_to_site:
-            print "{} --> {} ({})".format(pair.identifier, pair.site, pair.mask.chars)
 
     def process_pair_data(self, data_r1_path, data_r2_path):
         total_pairs = 0

@@ -78,7 +78,7 @@ class Diagram(object):
         l = "l={}".format(part.match_index)
         r = "r={}".format(part.match_index + part.match_len)
         leftover = part.match_len - len(l) - len(r) - 4
-        if leftover < 2:
+        if leftover < 0:
             raise Exception("not enough room: {}".format(part.match_len))
         halfish = (leftover >> 1)
         bit = "^{}{}, {}{}^".format("-"*halfish,l,r,"-"*(leftover - halfish))
@@ -89,7 +89,7 @@ class Diagram(object):
     def _add_line(self, line):
         for bar_list in self.bars:
             for bar in bar_list:
-                if line[bar] == ' ':
+                if len(line) > bar and line[bar] == ' ':
                     line = line[:bar] + '|' + line[(bar+1):]
         if line.startswith("@") or line.startswith("\\"):
             pass
