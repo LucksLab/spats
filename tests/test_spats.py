@@ -7,11 +7,11 @@ from spats_common import longest_match, reverse_complement, Target
 
 class TestLongestMatch(unittest.TestCase):
     def test_longest_match(self):
-        self.assertEqual(longest_match("abc", (0, 1), "frabda", (2, 1)), (0, 1))
-        self.assertEqual(longest_match("abc", (0, 1), "fradda", (2, 1)), (0, 0))
-        self.assertEqual(longest_match("abc", (0, 1), "frabca", (2, 1)), (0, 2))
-        self.assertEqual(longest_match("xabc", (1, 1), "frabca", (2, 1)), (0, 2))
-        self.assertEqual(longest_match("xabc", (1, 1), "fxabca", (2, 1)), (1, 2))
+        self.assertEqual(longest_match("ATC", (0, 1), "TTATGA", (2, 1)), (0, 1))
+        self.assertEqual(longest_match("ATC", (0, 1), "TTAGGA", (2, 1)), (0, 0))
+        self.assertEqual(longest_match("ATC", (0, 1), "TTATCA", (2, 1)), (0, 2))
+        self.assertEqual(longest_match("GATC", (1, 1), "TTATCA", (2, 1)), (0, 2))
+        self.assertEqual(longest_match("GATC", (1, 1), "TGATCA", (2, 1)), (1, 2))
 
 
 class SRPTargetTest(unittest.TestCase):
@@ -65,23 +65,45 @@ class Target5STest(unittest.TestCase):
     def tearDown(self):
         self.spats = None
 
+pair_cases = [
+    [ "1101:11562:1050", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", 'RRRY', 29 ],
+    [ "1101:20069:1063", "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA", 'YYYR', 27 ],
+    [ "21189", "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", 'YYYR', 123 ],
+    [ "18333", "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG", 'RRRY', None ],
+]
+
+diagram_cases = [
+    pair_cases[0],
+    [ "1101:11562:1050 mask tweaked", "CAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", ],
+    [ "1101:11562:1050 R2 tweaked", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "CCATCTTACCCTTTTCCGTACTCTTAAGTGTAATG" ],
+]
+    
 class TestPairs(Target5STest):
+
     def test_pairs(self):
         from spats_clean import Pair
-        pair_cases = [
-            [ "1101:11562:1050", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", 29 ],
-            [ "1101:20069:1063", "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA", 27 ],
-            [ "21189", "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", 123 ],
-            [ "18333", "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG", None ],
-        ]
         pair = Pair()
         for case in pair_cases:
             pair.set_from_data(case[0], case[1], case[2])
             self.spats.process_pair(pair)
-            self.assertEqual(pair.site, case[3])
+            self.assertEqual(pair.mask.chars, case[3])
+            self.assertEqual(pair.site, case[4])
         print "Ran {} pair->site cases.".format(len(pair_cases))
 
-class TestMisc(unittest.TestCase):
+    def test_diagram(self):
+        from spats_clean import Pair
+        from diagram import diagram
+        pair = Pair()
+        for case in diagram_cases:
+            pair.set_from_data(case[0], case[1], case[2])
+            self.spats.process_pair(pair)
+            print diagram(self.spats._target, pair)
+            print "\n\n"
+
+
+#TODO: DELME
+# just keeping for some usage examples of file-grepping of prev.gen. tools
+class TestMisc(): # inherit unittest.TestCase to use
     def test_id_to_site(self):
         from spats_common import id_to_site
         bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/t7/"

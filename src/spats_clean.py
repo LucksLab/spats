@@ -141,6 +141,10 @@ class Sequence(object):
             self._rc = reverse_complement(self.seq)
         return self._rc
 
+    @property
+    def matched(self):
+        return bool(self.match_len)
+
     def find_in_target(self, target, reverse_complement = False):
         seq = self.reverse_complement if reverse_complement else self.seq
         self.match_start, self.match_len, self.match_index = target.find_partial(seq, spats_config.minimum_target_match_length)
@@ -159,8 +163,10 @@ class Pair(object):
         self.r1 = Sequence()
         self.r2 = Sequence()
         self.site = None
+        self.mask = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq):
+        self.reset()
         self.identifier = identifier
         self.r1.set_seq(r1_seq)
         self.r2.set_seq(r2_seq)
@@ -179,6 +185,10 @@ class Pair(object):
     @property
     def matched(self):
         return (self.r1.match_len and self.r2.match_len)
+
+    @property
+    def has_site(self):
+        return bool(self.site is not None)
 
     @property
     def left(self):
@@ -464,7 +474,7 @@ class Spats(object):
                     self.process_pair(pair)
                     if not pair.mask:
                         chucked_pairs += 1
-                    elif pair.site != None:
+                    elif pair.has_site:
                         processed_pairs +=1
 
                     if spats_config.show_progress and 0 == total_pairs % 20000:

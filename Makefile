@@ -37,7 +37,15 @@ TEST_PATH=$(shell pwd)/$(BINDIR):$(PATH)
 test : $(TARGETS)
 	@export PATH="$(TEST_PATH)"  &&  cd test/Read_Mapping  &&  bash test_read_mapping.sh
 
+# unit tests
+
 .PHONY: unit
 unit :
 	PYTHONPATH=.:src python -m unittest tests.test_spats
+
+# for some subset of tests:
+# make u.[class]
+# make u.[class].[function]
+u.%:
+	@PYTHONPATH=.:src python -m unittest $(patsubst u.%, tests.test_spats.%, $@)
 
