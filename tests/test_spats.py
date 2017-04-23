@@ -2,7 +2,7 @@
 import unittest
 
 
-from spats_clean import longest_match, hamming_distance, reverse_complement
+from spats_clean import longest_match, reverse_complement, string_match_errors
 class TestUtils(unittest.TestCase):
     def test_longest_match(self):
         self.assertEqual(longest_match("ATC", (0, 1), "TTATGA", (2, 1)), (0, 1))
@@ -10,12 +10,12 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(longest_match("ATC", (0, 1), "TTATCA", (2, 1)), (0, 2))
         self.assertEqual(longest_match("GATC", (1, 1), "TTATCA", (2, 1)), (0, 2))
         self.assertEqual(longest_match("GATC", (1, 1), "TGATCA", (2, 1)), (1, 2))
-    def test_hamming_distance(self):
-        self.assertEqual(hamming_distance("GATC", "GATC"), 0)
-        self.assertEqual(hamming_distance("GATC", "GACC"), 1)
-        self.assertEqual(hamming_distance("GATC", "AATC"), 1)
-        self.assertEqual(hamming_distance("GATC", "CATG"), 2)
-        self.assertEqual(hamming_distance("GATC", "CTAG"), 4)
+    def test_string_match(self):
+        self.assertEqual(string_match_errors("GATC", "GATC"), [])
+        self.assertEqual(string_match_errors("GATC", "GACC"), [2])
+        self.assertEqual(string_match_errors("GATC", "AATC"), [0])
+        self.assertEqual(string_match_errors("GATC", "CATG"), [0,3])
+        self.assertEqual(string_match_errors("GATC", "CTAG"), [0,1,2,3])
     def test_reverse_complement(self):
         self.assertEqual(reverse_complement("GATC"), "GATC")
         self.assertEqual(reverse_complement("TTGGACG"), "CGTCCAA")
@@ -149,28 +149,18 @@ class TestPairs(Target5STest):
         for case in no_error_cases + spats_v102_match_cases:
             if case[0].startswith("*"):
                 self.run_case(case, show_diagram = True)
-        
-    def test_adapter_trim(self):
-        self.run_case(pair_cases[3])
-        #print diagram(self.spats._target, pair)
+        spats_config.debug = False
 
     def test_pairs(self):
         for case in no_error_cases:
             self.run_case(case)
         print "Ran {} pair->site cases.".format(len(no_error_cases))
 
-    def test_diagram(self):
-        pair = Pair()
-        for case in diagram_cases:
-            pair.set_from_data(case[0], case[1], case[2])
-            self.spats.process_pair(pair)
-            print diagram(self.spats._target, pair)
-            print "\n\n"
 
 
 #TODO: DELME
 # just keeping for some usage examples of file-grepping of prev.gen. tools
-class TestMisc(unittest.TestCase): # inherit unittest.TestCase to use
+class TestMisc(): # inherit unittest.TestCase to use
     def test_id_to_site(self):
         from spats_common import id_to_site
         bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/t7/"

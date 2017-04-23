@@ -12,27 +12,15 @@ class SpatsConfig(object):
         self.adapter_t = "AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"  # JJB: shows revcomped on the end of R2, from the back
         self.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"                          # JJB: shows as-is on the end of R1, from the front
 
-        self.minimum_target_match_length = 10 # want to make this as big as possible for speed.
         self.debug = False
+        self.minimum_target_match_length = 10 # want to make this as big as possible for speed.
         self.allow_indeterminate = False
         self.show_progress = True
         self.show_id_to_site = False
-        self.adapter_trim_prefix_length = 6 # TODO: better name & explain, if we keep this
 
         # TODO: would it be better to base these off of some kind of acceptable %/freq, to control for error:length ratios?
         self.allowed_adapter_errors = 0
         self.allowed_target_errors = 0
-
-        # options that tweak behavior to match spats v1.0.2 -- probably want to nuke these long term
-        if False:
-            self.allow_errors_in_last_four_of_R2 = True
-            self.allow_errors_in_last_four_of_trim = True
-            self.minimum_adapter_length = 10
-            self.max_errors_in_last_four_of_trim = 2
-        else:
-            self.allow_errors_in_last_four_of_R2 = False
-            self.allow_errors_in_last_four_of_trim = False
-            self.minimum_adapter_length = 0
 
 
 spats_config = SpatsConfig()
@@ -84,9 +72,7 @@ def matches_mask(seq, maskvals):
             return False
     return True
 
-def hamming_distance(str1, str2):
-    return sum(c1 != c2 for c1, c2 in izip(str1, str2))
-
+# hamming distance with tracking and shortcut-out
 def string_match_errors(substr, target_str, max_errors = None):
     errors = []
     for i in range(len(substr)):
@@ -95,6 +81,7 @@ def string_match_errors(substr, target_str, max_errors = None):
             if max_errors and len(errors) >= max_errors:
                 return errors
     return errors
+
 
 class Mask(object):
 
@@ -197,10 +184,6 @@ class Sequence(object):
         return bool(self.match_len)
 
     @property
-    def num_errors(self):
-        return len(self.match_errors)
-
-    @property
     def left(self):
         return self.match_index if self.match_len else None
 
@@ -230,17 +213,6 @@ class Sequence(object):
         self.match_index -= self.match_start
         self.match_start = 0
         self.match_len = self.seq_len
-
-    def OLD_trim(self, length, rc = True):
-        self.trimmed = self.seq[length:]
-        if rc and self.length - length > self.match_start:
-            delta = (self.length - length - self.match_start)
-            self.match_len -= delta
-            self.match_start += delta
-            self.match_index += delta
-        elif not rc and length < self.match_len:
-            _warn("trim reduced non-RC match_len? isn't this unexpected? {} / {} / {}".format(self.match_len, self.match_start, length))
-            self.match_len = length - self.match_start
 
 
 class Pair(object):
@@ -320,15 +292,6 @@ def longest_match(s1, range1, s2, range2):
         right2 += 1
     return range1[0] - left1 - 1, right1 - range1[1] - range1[0] - 1
 
-
-def find_on_end(seq, adapter, min_len = 4):
-    prefix = adapter[:4]
-    start = seq.rfind(prefix)
-    if -1 != start:
-        tail = seq[start:]
-        if adapter.startswith(tail):
-            return len(tail)
-    return -1
 
 
 class Target(object):
@@ -419,8 +382,6 @@ class Spats(object):
         self._targets = None
         self._masks = None
 
-        self._comb_ids = open("/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/tmp/comb_R1.ids", 'rb').read().split('\n')
-
         self.total_pairs = self.processed_pairs = self.chucked_pairs = 0
 
     def setup(self):
@@ -469,6 +430,8 @@ class Spats(object):
 
     def _trim_adapters(self, pair):
 
+        # if we're here, we know that R2 hangs over the right edge. first, figure out by how much
+
         r2_seq = pair.r2.subsequence
         r2_start_in_target = pair.r2.match_index - pair.r2.match_start
         r2_len_should_be = self._target.n - r2_start_in_target
@@ -487,18 +450,9 @@ class Spats(object):
         pair.r2.adapter_errors = string_match_errors(r2_adapter_match, self.adapter_t_rc)
         _debug("  check = {}, errors = {}".format(r2_adapter_match, pair.r2.adapter_errors))
         if len(pair.r2.adapter_errors) > spats_config.allowed_adapter_errors:
-            if spats_config.allow_errors_in_last_four_of_trim  and  \
-               0 == len([e for e in pair.r2.adapter_errors if e < len(r2_adapter_match) - 4]):
-                if spats_config.max_errors_in_last_four_of_trim < len([e for e in pair.r2.adapter_errors if e >= len(r2_adapter_match) - 4]):
-                    return False
-                else:
-                    _debug("!! allowing R2 adapter trim that mismatches only in the last 4")
-            else:
-                return False
-        if len(r2_adapter_match) < spats_config.minimum_adapter_length:
-            _debug("!! failing trim due to short adapter to match v1.0.2")
             return False
 
+        # now, same thing on r1 (smaller trim b/c of no handle, hence -4)
         r1_seq = pair.r1.subsequence
         r1_length_to_trim = r2_length_to_trim - 4
         r1_adapter_match = r1_seq[-r1_length_to_trim:]
@@ -506,87 +460,13 @@ class Spats(object):
         pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self.adapter_t_rc)
         _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
         if len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
-            if spats_config.allow_errors_in_last_four_of_trim  and  \
-               self.adapter_t_rc.startswith(r1_adapter_match[:-2]):
-                #0 == len([e for e in pair.r1.adapter_errors if e < len(r1_adapter_match) - 4]):
-                # above is a guess at what adapter_trimmer v1.0.2 is doing...
-                _debug("!! allowing R1 adapter trim that mismatches only in the last 2")
-            else:
-                return False
+            return False
 
         _debug("successful adapter trim of {}/{} bp from R1/R2".format(pair.r1._rtrim, pair.r2._rtrim))
 
         return True
 
-    def _trim_adapters_OLD(self, pair):
-
-        # ok, we've got a short match on one or both. need to try trimming.
-        r1_seq = pair.r1.seq
-        r1_rc = pair.r1.reverse_complement
-        r2_seq = pair.r2.seq
-
-        # at the end of a successful trim, r1 and r2 will be RC's
-        # trims happen off the end of both R2 and R1 (beginning of R1_rc)
-        # so, we can start by finding the longest common substring of R2 and R1_rc
-        prefix_len = spats_config.adapter_trim_prefix_length
-        r2_prefix = r2_seq[:prefix_len]
-        r1_rc_start = r1_rc.find(r2_prefix)
-        if -1 == r1_rc_start:
-            _debug("could not find suitable RC match to trim against")
-            return False
-        _debug("r1_rc_start: {}".format(r1_rc_start))
-
-        left, right = longest_match(r2_seq, (0, prefix_len), r1_rc, (r1_rc_start, prefix_len))
-        assert(0 == left)
-        prefix_len += right
-        # OK, the longest common substring is r2_seq[:prefix_len]
-        _debug("prefix_len: {}".format(prefix_len))
-        if r1_rc_start + prefix_len != len(r1_seq):
-            _debug("RC match needs to include R1 handle (end of r1_rc), but only goes up to {}/{}".format(r1_rc_start + prefix_len, len(r1_seq)))
-            return False
-
-        # NOTE: possible issue with this, is that if the common substr "happens" to
-        # extend into adapter by (say) one char, then we'll be off-by-one.
-        # however, this is maybe not possible, since we're comparing RCs?
-        # TAI and prove it one way or the other.
-
-        if not self.adapter_t_rc.startswith(r2_seq[prefix_len:]):
-            r2_trim = r2_seq[prefix_len:]
-            if spats_config.allow_errors_in_last_four_of_trim  and  \
-               len(r2_trim) >= 10                              and  \
-               self.adapter_t_rc.startswith(r2_trim[:-4])      and  \
-               hamming_distance(r2_trim, self.adapter_t_rc[:len(r2_trim)]) <= 1:
-                # the 10 (above) = 6 + 4, guessing that 6 is the min length allowed in adapter_trimmer.py
-                _debug("!! allowing R2 adapter trim that mismatches only in the last 4")
-            else:
-                _debug("R2 trim {} is not the beginning of adapter_t_rc".format(r2_seq[prefix_len:]))
-                return False
-
-        if not self.adapter_b.startswith(r1_seq[prefix_len:]):
-            r1_trim = r1_seq[prefix_len:]
-            if spats_config.allow_errors_in_last_four_of_trim  and  \
-               len(r1_trim) >= 10                              and  \
-               self.adapter_t_rc.startswith(r1_trim[:-2])      and  \
-               True: #hamming_distance(r1_trim, self.adapter_b[:len(r1_trim)]) <= 2:
-                # the conditions above are a guess on what adapter_trimmer.py is doing, similar to R2 above
-                _debug("!! allowing R1 adapter trim that mismatches only in the last 4")
-            else:
-                _debug("R1 trim {} is not the beginning of adapter_b".format(r1_seq[prefix_len:]))
-                return False
-
-        # ok! ready to trim
-        pair.r1.trim(prefix_len, True)
-        pair.r2.trim(prefix_len, False)
-
-        # the +4 is for the expected handle...
-        if pair.r2.length != (pair.r2.match_start + pair.r2.match_len + 4 + len(pair.r2.trimmed)):
-            _debug("R2 trim doesn't match expected handle size")
-            return False
-
-        return True
-
     def process_pair(self, pair):
-        #spats_config.debug = ("10157" in r1_record.identifier)# or "14617" in r1_record.identifier)# or "19869" in r1_record.identifier or "22589" in r1_record.identifier)
         _debug("> processing " + pair.identifier + "\n  --> " + pair.r1.original_seq + " , " + pair.r2.original_seq)
         _debug("  rc(R1): {}".format(pair.r1.reverse_complement))
         self._process_pair(pair)
@@ -631,7 +511,7 @@ class Spats(object):
             # everything that wasn't adapter trimmed was matched -- nothing to do
             pass
         else:
-            # just set the match to be the rest of the (possibly trimmed) sequence, and count errors
+            # set the match to be the rest of the (possibly trimmed) sequence, and count errors
             pair.r1.match_to_seq()
             pair.r2.match_to_seq()
             target = self._target.seq
@@ -642,13 +522,8 @@ class Spats(object):
                     _debug("R1 errors: {}".format(pair.r1.match_errors))
                 if pair.r2.match_errors:
                     _debug("R2 errors: {}".format(pair.r2.match_errors))
-                if spats_config.allow_errors_in_last_four_of_R2  and  \
-                   not pair.r1.match_errors                      and  \
-                   0 == len([e for e in pair.r2.match_errors if e < pair.r2.match_len - 4]):
-                    _debug("!! allowing last-4 error in R2 according to config")
-                else:
-                    pair.failure = "match errors failure"
-                    return
+                pair.failure = "match errors failure"
+                return
 
         n = self._target.n
         assert(pair.matched and pair.left >= 0 and pair.left <= n)
@@ -656,64 +531,6 @@ class Spats(object):
         # NOTE: this might change later due to "starts"
         if pair.right != n:
             pair.failure = "R1 right edge failure: {} - {}, n={}".format(pair.left, pair.right, n)
-            return
-
-        pair.register_count()
-
-
-    def _process_pair2(self, pair):
-
-        self._match_mask(pair)
-        if not pair.mask:
-            pair.failure = "mask failure"
-            return
-
-        self._find_matches(pair)
-        if not pair.matched:
-            pair.failure = "no match"
-            return
-
-        if pair.r2.match_len == pair.r2.length  and  pair.r1.match_len == pair.r1.length - 4:
-            # full match, nothing to trim
-            pass
-        elif self._trim_adapters(pair):
-            # ok, trim success, continue
-            pass
-        elif spats_config.allow_errors_in_last_four_of_R2  and  \
-             pair.r1.match_len == pair.r1.length - 4       and  \
-             pair.r2.match_start == 0                      and  \
-             pair.r2.match_len >= pair.r2.length - 4:
-            # spats v1.0.2 ignored errors in the last 4 bp's of R2
-            # this option allows us to match that behavior, even
-            # though technically we should drop this
-            _debug("!! allowing last-4 error in R2 according to config")
-            pass
-        else:
-            pair.failure = "adapter trim failure"
-            return
-
-        _debug([pair.r2.left, pair.r2.right, "<->", pair.r1.left, pair.r1.right])
-
-        if not spats_config.allow_indeterminate  and  not pair.is_determinate():
-            pair.failure = "indeterminate sequence failure"
-            return
-
-        if pair.r2.match_start > 0 and pair.r2.match_index > 0:
-            # TODO: here's where we'd check hamming distance and only fail if num_matches is high enough
-            pair.failure = "inside 5S failure (start = {}, match_index = {}) on R2 for: {}".format(pair.r2.match_start, pair.r2.match_index, pair.identifier)
-            return
-
-        if pair.r2.match_start > 0:
-            pair.failure = "R2 to left of site 0 failure on R2 for: {}".format(pair.identifier)
-            return
-
-
-        # JBL - only register this fragment if the left read is within the sequence
-        # and the right read aligns with the end of the RNA (or RNA subsequence)
-        n = self._target.n
-        _debug([pair.left, pair.right, n])
-        if pair.left < 0 or pair.left > n or pair.right != n:
-            pair.failure = "LR failure: {} - {}, n={}".format(pair.left, pair.right, n)
             return
 
         pair.register_count()
