@@ -5,21 +5,22 @@ import unittest
 from spats_clean import longest_match, reverse_complement, string_match_errors
 class TestUtils(unittest.TestCase):
     def test_longest_match(self):
-        self.assertEqual(longest_match("ATC", (0, 1), "TTATGA", (2, 1)), (0, 1))
-        self.assertEqual(longest_match("ATC", (0, 1), "TTAGGA", (2, 1)), (0, 0))
-        self.assertEqual(longest_match("ATC", (0, 1), "TTATCA", (2, 1)), (0, 2))
-        self.assertEqual(longest_match("GATC", (1, 1), "TTATCA", (2, 1)), (0, 2))
-        self.assertEqual(longest_match("GATC", (1, 1), "TGATCA", (2, 1)), (1, 2))
+        self.assertEqual((0, 1), longest_match("ATC", (0, 1), "TTATGA", (2, 1)))
+        self.assertEqual((0, 0), longest_match("ATC", (0, 1), "TTAGGA", (2, 1)))
+        self.assertEqual((0, 2), longest_match("ATC", (0, 1), "TTATCA", (2, 1)))
+        self.assertEqual((0, 2), longest_match("GATC", (1, 1), "TTATCA", (2, 1)))
+        self.assertEqual((1, 2), longest_match("GATC", (1, 1), "TGATCA", (2, 1)))
     def test_string_match(self):
-        self.assertEqual(string_match_errors("GATC", "GATC"), [])
-        self.assertEqual(string_match_errors("GATC", "GACC"), [2])
-        self.assertEqual(string_match_errors("GATC", "AATC"), [0])
-        self.assertEqual(string_match_errors("GATC", "CATG"), [0,3])
-        self.assertEqual(string_match_errors("GATC", "CTAG"), [0,1,2,3])
+        self.assertEqual([], string_match_errors("GATC", "GATC"))
+        self.assertEqual([2], string_match_errors("GATC", "GACC"))
+        self.assertEqual([0], string_match_errors("GATC", "AATC"))
+        self.assertEqual([0, 3], string_match_errors("GATC", "CATG"))
+        self.assertEqual(range(4), string_match_errors("GATC", "CTAG"))
     def test_reverse_complement(self):
-        self.assertEqual(reverse_complement("GATC"), "GATC")
-        self.assertEqual(reverse_complement("TTGGACG"), "CGTCCAA")
-        self.assertEqual(reverse_complement("ATCGGGGGCTCTGTTG"), "CAACAGAGCCCCCGAT")
+        self.assertEqual("GATC", reverse_complement("GATC"))
+        self.assertEqual("CGTCCAA", reverse_complement("TTGGACG"))
+        self.assertEqual("CAACAGAGCCCCCGAT", reverse_complement("ATCGGGGGCTCTGTTG"))
+        self.assertEqual("GATNC", reverse_complement("GNATC"))
 
 
 from spats_clean import Target
@@ -87,9 +88,9 @@ no_error_cases = [
     [ "1101:13433:5831", "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", 'YYYR', None ],
     [ "1102:6599:2593", "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC", 'RRRY', None ],
     [ "1101:12888:8140", "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG", "GGCATCTGACTCGGGCACCAAGGACATACAGATCG", 'RRRY', 118 ],
-    # next 2 are good tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial
-    [ "1101:10652:13566", "GAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "CCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATG", 'RRRY', 64 ],
-    [ "1101:13864:21135", "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "GCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCAT", 'RRRY', 63 ],
+    [ "1101:10652:13566", "GAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "CCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATG", 'RRRY', 64 ], # tests for matching the wrong substring if your min_len
+    [ "1101:13864:21135", "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "GCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCAT", 'RRRY', 63 ], # is too small and you don't keep looking in find_partial
+    [ "1101:11920:1274", "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", 'YYYR', None ], # similarly if you don't keep checking all sites
 ]
 
 spats_v102_match_cases = [
@@ -140,8 +141,8 @@ class TestPairs(Target5STest):
         self.spats.process_pair(pair)
         if show_diagram:
             print diagram(self.spats._target, pair)
-        self.assertEqual(pair.mask.chars, case[3], msg = case[0])
-        self.assertEqual(pair.site, case[4], msg = case[0])
+        self.assertEqual(case[3], pair.mask.chars, msg = case[0])
+        self.assertEqual(case[4], pair.site, msg = case[0])
         return pair
         
     def test_case(self):
@@ -156,74 +157,9 @@ class TestPairs(Target5STest):
             self.run_case(case)
         print "Ran {} pair->site cases.".format(len(no_error_cases))
 
-
-
-#TODO: DELME
-# just keeping for some usage examples of file-grepping of prev.gen. tools
-class TestMisc(): # inherit unittest.TestCase to use
-    def test_id_to_site(self):
-        from spats_common import id_to_site
-        bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/t7/"
-        id_to_site(bp + "NOMASK_1.fq", bp + "RRRY.sam", bp + "YYYR.sam", 143)
-
-    def test_make_subset(self):
-        from spats_common import make_subset
-        bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
-        if False:
-            make_subset(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
-                        bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
-                        bp + "t7/5s_dev_diff_ids.out",
-                        bp + "5s_errors")
-        else:
-            make_subset(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
-                        bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
-                        bp + "t7/5s_dev_diff_sample.ids",
-                        bp + "5s_sample")
-
-    def test_misc(self):
-        if False:
-            bp = "/Users/jbrink/mos/tasks/1RwIBa/refactor/spats/test/Read_Mapping/"
-            self.spats(bp + "SRP_All_Stops.fa", bp + "SRP_All_Stops_R1.fq", bp + "SRP_All_Stops_R2.fq", bp + "t5")
-        elif True:
-            bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
-            self.spats(bp + "5s/5S.fa",
-                       bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
-                       bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
-                       bp + "t11")
-        elif False:
-            bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
-            self.spats(bp + "5s/5S.fa",
-                       bp + "5s_sample/filtered_R1.fq",
-                       bp + "5s_sample/filtered_R2.fq",
-                       bp + "t11")
-        else:
-            bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
-            self.spats(bp + "5S.fa",
-                       bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq", 
-                       bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq", 
-                       bp + "t4")
-
-    def spats(self, target, r1, r2, out, show_sites = True):
-        from spats_clean import Spats, spats_config
-        s = Spats(target, out)
-        s.setup()
-        if show_sites:
-            spats_config.show_id_to_site = True
-        s.process_pair_data(r1, r2)
-        if not show_sites:
-            s.compute_profiles()
-            s.write_reactivities()
-              
-    def test_refactor(self):
-        from spats_clean import Spats
-        bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
-        out = bp + "t3/"
-        s = Spats(bp + "5S.fa", out)
-        s.setup()
-        s.process_pair_data(bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq", 
-                            bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
-        s.compute_profiles()
-        s.write_reactivities()
-        import subprocess
-        subprocess.check_call(["diff", bp + "t2/rx.out", out + "/rx.out"])
-        print "Diff OK"
+    def test_check_all_sites(self):
+        pair = Pair()
+        pair.set_from_data("x", "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT")
+        self.spats.process_pair(pair)
+        self.assertEqual(143, pair.r1.right)
+        self.assertEqual(6, len(pair.r1.match_errors))

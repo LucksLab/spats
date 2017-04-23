@@ -75,7 +75,8 @@ def matches_mask(seq, maskvals):
 # hamming distance with tracking and shortcut-out
 def string_match_errors(substr, target_str, max_errors = None):
     errors = []
-    for i in range(len(substr)):
+    # TODO: do we need this "min" here?
+    for i in range(min(len(substr), len(target_str))):
         if substr[i] != target_str[i]:
             errors.append(i)
             if max_errors and len(errors) >= max_errors:
@@ -347,6 +348,7 @@ class Target(object):
         check_sites = range(0, query_len - check_every, max(check_every, 1))
         check_sites.append(query_len - check_every)
         candidate = (None, None, None)
+        # NOTE: it's important to check all sites, and all hits -- to find the longest match.
         for site in check_sites:
             site_key = query[site:site+word_len]
             #print "CS: {}, {}".format(site, site_key)
@@ -357,13 +359,12 @@ class Target(object):
                 total_len = left + right + word_len
                 if total_len >= min_len:
                     if total_len == len(query):
+                        # we can return immediately if we've got a full match...
                         return site - left, total_len, index - left
                     elif not candidate[1] or total_len > candidate[1]:
+                        # ...otherwise, keep it if it's the best match so far
                         candidate = (site - left, total_len, index - left)
-            # TODO: should we continue along check_sites to see if we can find a longer match? it'd take a lot longer...
-            if candidate[1]:
-                return candidate
-        return None, None, None
+        return candidate
 
 
 class Spats(object):

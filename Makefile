@@ -30,22 +30,49 @@ clean :
 
 .PHONY: clear
 clear : clean
-	rm -rf $(BINDIR)
+	rm -rf $(BINDIR) *.lprof tmp
 
 TEST_PATH=$(shell pwd)/$(BINDIR):$(PATH)
 .PHONY: test
 test : $(TARGETS)
 	@export PATH="$(TEST_PATH)"  &&  cd test/Read_Mapping  &&  bash test_read_mapping.sh
 
+PYENV = PYTHONPATH=.:${SCRIPTDIR}
+
 # unit tests
 
 .PHONY: unit
 unit :
-	PYTHONPATH=.:src python -m unittest tests.test_spats
+	@${PYENV} python -m unittest tests.test_spats
 
 # for some subset of tests:
 # make u.[class]
 # make u.[class].[function]
 u.%:
-	@PYTHONPATH=.:src python -m unittest $(patsubst u.%, tests.test_spats.%, $@)
+	@${PYENV} python -m unittest $(patsubst u.%, tests.test_spats.%, $@)
+
+# runs a method in tests/misc.py
+t.%:
+	@${PYENV} python $(patsubst t.%, tests/misc.py %, $@)
+
+
+# profiling
+
+# profiles a method in tests/misc.py
+p.%:
+	@mkdir -p tmp
+	@PYTHONPATH=.:src python -m cProfile -o tmp/runprof.out $(patsubst p.%, tests/misc.py %, $@)
+
+prof:
+	@${PYENV} python tests/prof.py|head -35
+
+pstats:
+	@${PYENV} python -m pstats tmp/runprof.out
+
+# use @profile on the function that you want line profiled
+lp.%:
+	@${PYENV} kernprof -l $(patsubst lp.%, tests/misc.py %, $@)
+
+lprof:
+	@${PYENV} python -m line_profiler misc.py.lprof
 
