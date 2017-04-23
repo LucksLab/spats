@@ -1,6 +1,8 @@
 
-def sp(n):
-    return " " * n
+from spats_clean import reverse_complement, spats_config
+
+def sp(n, bit = " "):
+    return bit * n
 
 class Diagram(object):
 
@@ -9,6 +11,7 @@ class Diagram(object):
         self.pair = pair
         self.prefix_len = 8
         self.bars = []
+        self.max_len = 0
 
     def _make_prefix(self, label):
         bit = label[:min(5, len(label))]
@@ -36,7 +39,7 @@ class Diagram(object):
 
     def _make_part(self, part):
         is_R1 = (part == self.pair.r1)
-        match_index = part.match_index if part.matched else (((self.target.n - part.length) >> 1) + (40 if is_R1 else -40))
+        match_index = part.match_index if part.matched else (((self.target.n - part.original_len) >> 1) + (40 if is_R1 else -40))
         hdr = sp(match_index - (5 if is_R1 else 0))
         if is_R1:
             if self.pair.mask:
@@ -44,33 +47,71 @@ class Diagram(object):
             else:
                 hdr += "????"
             hdr += " "
-        spacer = (part.length >> 1) - 1 - (2 if is_R1 else 0)
+        spacer = (part.original_len >> 1) - 1 - (2 if is_R1 else 0)
         hdr += sp(spacer)
         hdr += "R1" if is_R1 else "R2"
-        hdr += sp(self.target.n - len(hdr))
         self._add_line(self._make_prefix("") + hdr)
 
-        spaces = match_index
-        if not part.matched:
-            spaces -= (5 if is_R1 else 0)
-        elif is_R1:
-            spaces -= (part.length - part.match_len + 1) # subtract len b/c match is in terms of revcomp, +1 for .
-        else:
-            spaces -= part.match_start
+        spaces = match_index - (5 if is_R1 else 0)
         d = sp(spaces)
-        d += (part.seq[:4] + ("." if is_R1 else "") + part.seq[4:])
-        d += sp(self.target.n - len(d))
+        if is_R1:
+            d += (part.original_seq[:4] + ".")
+        d += part.subsequence
+        if part._rtrim:
+            trimmed = part.original_seq[-part._rtrim:]
+            if is_R1 or len(trimmed) < 4:
+                d += ("." + trimmed)
+            else:
+                d += ("." + trimmed[:4] + "." + trimmed[4:])
         d = self._make_prefix("R1" if is_R1 else "R2") + d
         self._add_line(d)
-        return [ self.prefix_len + part.match_index, self.prefix_len + part.match_index + part.match_len - 1 ] if part.matched else []
+
+        if part.matched:
+            return [ self.prefix_len + part.match_index, self.prefix_len + part.match_index + part.match_len - 1 ]
+        else:
+            d = sp(spaces)
+            if is_R1:
+                d += sp(5)
+            d += sp(part.seq_len, "?")
+            self._add_line(self._make_prefix("") + d)
+            return []
+
+    def _make_adapter_line(self, part, adapter, label):
+        d = label
+        d += sp(self.prefix_len + part.match_index + part.match_len + 1 - len(d))
+        if (part == self.pair.r2):
+            d += sp(5)
+        d += (adapter[:part._rtrim - (4 if part == self.pair.r2 else 0)] + "..")
+        self._add_line(d)
+
+    def _make_part_errors(self, part):
+        d = sp(part.match_index)
+        errors = sp(part.seq_len)
+        for e in part.match_errors:
+            errors = errors[:e] + "!" + errors[e+1:]
+        d += errors
+        d += sp(self.target.n - len(d))
+        if part.adapter_errors:
+            d += " "
+            if (part == self.pair.r2):
+                d += sp(5)
+                errors = sp(part._rtrim - 4)
+            else:
+                errors = sp(part._rtrim)
+            for e in part.adapter_errors:
+                errors = errors[:e] + "!" + errors[e+1:]
+            if errors[0] == " ":
+                errors = "|" + errors[1:]
+            if errors[-1] == " ":
+                errors = errors[:-1] + "|"
+            d += errors
+        self._add_line(self._make_prefix("-err!") + d)
 
     def _make_r1_rev(self):
         r1 = self.pair.r1
-        rev = r1.reverse_complement 
         d = "(revcomp)"
         d += sp(r1.match_index + self.prefix_len - len(d))
-        d += rev[r1.match_start:r1.match_start+r1.match_len]
-        d += sp(self.target.n - len(d))
+        d += r1.reverse_complement
         self._add_line(d)
 
     def _make_result(self, part):
@@ -79,14 +120,20 @@ class Diagram(object):
         r = "r={}".format(part.match_index + part.match_len)
         leftover = part.match_len - len(l) - len(r) - 4
         if leftover < 0:
-            raise Exception("not enough room: {}".format(part.match_len))
+            l = l[2:]
+            r = r[2:]
+            leftover = part.match_len - len(l) - len(r) - 4
+            if leftover < 0:
+                raise Exception("not enough room: {}".format(part.match_len))
         halfish = (leftover >> 1)
         bit = "^{}{}, {}{}^".format("-"*halfish,l,r,"-"*(leftover - halfish))
         d += bit
-        d += sp(self.target.n - len(d))
         self._add_line(sp(self.prefix_len) + d)
 
     def _add_line(self, line):
+        if len(line) < self.max_len:
+            line += sp(self.max_len - len(line))
+        self.max_len = max(self.max_len, len(line))
         for bar_list in self.bars:
             for bar in bar_list:
                 if len(line) > bar and line[bar] == ' ':
@@ -115,22 +162,29 @@ class Diagram(object):
 
     def make(self):
         self.lines = [ ]
-        base_len = self.target.n + self.prefix_len
 
         self._add_line("@" + self.pair.identifier)
-
+        
         r2_bars = self._make_part(self.pair.r2)
         self.bars.append(r2_bars)
+        if self.pair.r2.match_errors or self.pair.r2.adapter_errors:
+            self._make_part_errors(self.pair.r2)
+        if self.pair.r2.trimmed:
+            self._make_adapter_line(self.pair.r2, reverse_complement(spats_config.adapter_t), "RC(adapter_t)")
 
         r1_bars = self._make_part(self.pair.r1)
         self.bars.append(r1_bars)
+        if self.pair.r1.match_errors or self.pair.r1.adapter_errors:
+            self._make_part_errors(self.pair.r1)
+        if self.pair.r1.trimmed:
+            self._make_adapter_line(self.pair.r1, spats_config.adapter_b, "adapter_b")
 
-        if self.pair.mask:
-            self._add_line(sp(base_len))
+        if self.pair.mask and self.pair.r1.matched:
+            self._add_line("")
             self._make_r1_rev()
 
-        self._add_line(sp(base_len))
-        self._add_line(sp(base_len))
+        self._add_line("")
+        self._add_line("")
 
         self._make_target_lines()
 
