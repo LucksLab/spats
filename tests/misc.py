@@ -8,16 +8,10 @@ def id_to_site():
 def make_subset():
     from spats_common import make_subset
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
-    if False:
-        make_subset(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
-                    bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
-                    bp + "t7/5s_dev_diff_ids.out",
-                    bp + "5s_errors")
-    else:
-        make_subset(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
-                    bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
-                    bp + "t7/5s_dev_diff_sample.ids",
-                    bp + "5s_sample")
+    make_subset(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
+                bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
+                bp + "t11/5s_missing.ids",
+                bp + "t11/x")
 
 def clean_sites():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
@@ -76,6 +70,51 @@ def test_refactor():
     subprocess.check_call(["diff", bp + "t2/rx.out", out + "/rx.out"])
     print "Diff OK"
 
+def make_id_case(arg = None, show = True, skip_site = False):
+    import subprocess
+    ident = arg or sys.argv[2]
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    R1 = subprocess.check_output([ "awk", "/" + ident + "/{getline; print; exit}", bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq" ]).strip('\n')
+    R2 = subprocess.check_output([ "awk", "/" + ident + "/{getline; print; exit}", bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq" ]).strip('\n')
+    if skip_site:
+        site = None
+    else:
+        site = subprocess.check_output([ "awk", "/" + ident + "/{print $3; exit}", bp + "t11/5s-counts_sorted.out"]).strip('\n')
+    case = "    [ '*{}', '{}', '{}', {} ],".format(ident, R1, R2, site or None)
+    if show:
+        print case
+    return [ ident, R1, R2, site or None ]
+
+def show_failure_types():
+    from spats_clean import Spats, Pair, FastqRecord
+    spats = Spats("test/5s/5s.fa", "test/5s")
+    spats.setup()
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+
+    with open(bp + "t11/x/filtered_R1.fq", 'rb') as r1_in:
+        with open(bp + "t11/x/filtered_R2.fq", 'rb') as r2_in:
+            r1_record = FastqRecord()
+            r2_record = FastqRecord()
+            pair = Pair()
+            while True:
+                r1_record.read(r1_in)
+                if not r1_record.identifier:
+                    break
+                r2_record.read(r2_in)
+                pair.set_from_records(r1_record, r2_record)
+
+                spats.process_pair(pair)
+
+                summary = "{} :: {}".format(pair.identifier, pair.site if pair.has_site else pair.failure)
+                if pair.r1.match_errors:
+                    summary += " R1!: {}".format(pair.r1.match_errors)
+                if pair.r1.adapter_errors:
+                    summary += " R1A!: {}, adapter_len={}".format(pair.r1.adapter_errors, pair.r1._rtrim)
+                if pair.r2.match_errors:
+                    summary += " R2!: {}".format(pair.r2.match_errors)
+                if pair.r2.adapter_errors:
+                    summary += " R2A!: {}, adapter_len={}".format(pair.r2.adapter_errors, pair.r2._rtrim - 4)
+                print summary
 
 if __name__ == "__main__":
     import sys

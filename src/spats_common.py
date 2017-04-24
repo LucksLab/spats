@@ -683,7 +683,6 @@ def spats(target_path, r1_path, r2_path, output_folder):
     s.run()
 
 def make_subset(r1_path, r2_path, id_list_path, output_folder):
-    print open(id_list_path, 'rb').read().split('\n')
     ids = set(open(id_list_path, 'rb').read().split('\n'))
     n = 0
     with open(os.path.join(output_folder, "filtered_R1.fq"), 'wb') as r1_out:

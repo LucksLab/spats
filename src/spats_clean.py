@@ -13,7 +13,8 @@ class SpatsConfig(object):
         self.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"                          # JJB: shows as-is on the end of R1, from the front
 
         self.debug = False
-        self.minimum_target_match_length = 10 # want to make this as big as possible for speed.
+        self.minimum_target_match_length = 8 # want to make this as big as possible for speed.
+        self.minimum_adapter_len = 0
         self.allow_indeterminate = False
         self.show_progress = True
         self.show_id_to_site = False
@@ -21,6 +22,13 @@ class SpatsConfig(object):
         # TODO: would it be better to base these off of some kind of acceptable %/freq, to control for error:length ratios?
         self.allowed_adapter_errors = 0
         self.allowed_target_errors = 0
+
+        # DELME: options to attempt v102 compliance:
+        #self.allowed_adapter_errors = 1
+        #self.minimum_adapter_len = 10
+        self.minimum_adapter_matches = 8
+        self.allow_errors_in_last_4_of_R2 = True
+        self.ignore_minimal_adapter = True
 
 
 spats_config = SpatsConfig()
@@ -207,14 +215,18 @@ class Sequence(object):
             if delta > 0:
                 _debug("trim reducing original match_len {} -> {}".format(self.match_len, self.seq_len))
                 self.match_len = self.seq_len
-                self.match_start -= delta
+                self.match_start += delta
                 self.match_index += delta
 
-    def match_to_seq(self):
-        self.match_index -= self.match_start
-        self.match_start = 0
-        self.match_len = self.seq_len
-
+    def match_to_seq(self, reverse_complement = False):
+        if reverse_complement:
+            self.match_index -= (self._rtrim - self.match_start)
+            self.match_start = self._rtrim
+            self.match_len = self.seq_len
+        else:
+            self.match_index -= self.match_start
+            self.match_start = 0
+            self.match_len = self.seq_len
 
 class Pair(object):
 
@@ -278,17 +290,75 @@ class Pair(object):
 # and 'right' is the max number of chars extending to the right, s.t. s1 matches s2
 # when the passed-in ranges (pos, len) are extended to the left and right the
 # indicated amounts.
+#@profile
+def faster_longest_match(s1, range1, s2, range2):
+    left1 = range1[0]
+    left2 = range2[0]
+    lmax = max(left1, left2)
+    right1 = left1 + range1[1]
+    right2 = left2 + range2[1]
+    s1len = len(s1)
+    s2len = len(s2)
+    rmax = min(s1len - right1, s2len - right2) - 1
+    if s1[left1:right1] != s2[left2:right2]:
+        raise Exception("longest_match must already start with a match")
+    left = 1
+    right = 0
+    c1 = 0
+    c2 = 0
+    m1 = 0
+    m2 = 0
+    #while left1 >= 0 and left2 >= 0 and 0 != (char_to_mask[s1[left1]] & char_to_mask[s2[left2]]):
+    #    left1 -= 1
+    #    left2 -= 1
+    while True:
+        if left > lmax:
+            break
+        c1 = s1[left1 - left]
+        c2 = s2[left2 - left]
+        if c1 != c2:
+            m1 = char_to_mask[c1]
+            m2 = char_to_mask[c2]
+            if 0 == (m1 & m2):
+                break
+        left += 1
+
+    #while right1 <= s1len and right2 <= s2len and 0 != (char_to_mask[s1[right1 - 1]] & char_to_mask[s2[right2 - 1]]):
+    #    right1 += 1
+    #    right2 += 1
+    while True:
+        if right >= rmax:
+            break
+        c1 = s1[right1 + right]
+        c2 = s2[right2 + right]
+        if c1 != c2:
+            m1 = char_to_mask[c1]
+            m2 = char_to_mask[c2]
+            if 0 == (m1 & m2):
+                break
+        right += 1
+
+    #return range1[0] - left1 - 1, right1 - range1[1] - range1[0] - 1
+    return left - 1, right
+
+# returns (left, right), where 'left' is the max number of chars extending to the left,
+# and 'right' is the max number of chars extending to the right, s.t. s1 matches s2
+# when the passed-in ranges (pos, len) are extended to the left and right the
+# indicated amounts.
+#@profile
 def longest_match(s1, range1, s2, range2):
     left1 = range1[0]
     left2 = range2[0]
     right1 = left1 + range1[1]
     right2 = left2 + range2[1]
+    s1len = len(s1)
+    s2len = len(s2)
     if s1[left1:right1] != s2[left2:right2]:
         raise Exception("longest_match must already start with a match")
     while left1 >= 0 and left2 >= 0 and 0 != (char_to_mask[s1[left1]] & char_to_mask[s2[left2]]):
         left1 -= 1
         left2 -= 1
-    while right1 <= len(s1) and right2 <= len(s2) and 0 != (char_to_mask[s1[right1 - 1]] & char_to_mask[s2[right2 - 1]]):
+    while right1 <= s1len and right2 <= s2len and 0 != (char_to_mask[s1[right1 - 1]] & char_to_mask[s2[right2 - 1]]):
         right1 += 1
         right2 += 1
     return range1[0] - left1 - 1, right1 - range1[1] - range1[0] - 1
@@ -309,7 +379,7 @@ class Target(object):
         seq = self.seq
         index = {}
         word_len = self.index_word_length
-        for i in range(len(seq) - word_len):
+        for i in range(len(seq) - word_len + 1):
             key = seq[i:(i + word_len)]
             sites = index.get(key)
             if not sites:
@@ -355,8 +425,8 @@ class Target(object):
             for index in self._index.get(site_key, []):
                 #print "GOT: " + str(index)
                 left, right = longest_match(query, (site, word_len), self.seq, (index, word_len))
-                #print "extends: <--{}, -->{}".format(left, right)
                 total_len = left + right + word_len
+                #print "extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
                 if total_len >= min_len:
                     if total_len == len(query):
                         # we can return immediately if we've got a full match...
@@ -364,6 +434,7 @@ class Target(object):
                     elif not candidate[1] or total_len > candidate[1]:
                         # ...otherwise, keep it if it's the best match so far
                         candidate = (site - left, total_len, index - left)
+                        #print "C: {}".format(candidate)
         return candidate
 
 
@@ -440,17 +511,32 @@ class Spats(object):
         pair.r2.trim(r2_length_to_trim)
         _debug("R2 trim: {}, {}, {}".format(r2_start_in_target, r2_len_should_be, r2_length_to_trim))
 
+        if spats_config.minimum_adapter_len and r2_length_to_trim - 4 < spats_config.minimum_adapter_len:
+            _debug("  !! v102 minimum adapter len {}".format(r2_length_to_trim - 4))
+            return False
+
         if r2_length_to_trim < 4:
             # TODO: should we verify that this matches RC of R1 handle, and register errors for bp that don't?
             # for now, just ignore this part
             # also, this means that there's nothing to trim from R1, so we're done
             return True
 
+        if spats_config.ignore_minimal_adapter and r2_length_to_trim <= 8:
+            _debug("  !! v102 auto-trimming short adapter")
+            pair.r1.trim(r2_length_to_trim - 4, reverse_complement = True)
+            return True
+
         # find out how good of a match the end of R2 is for adapter_t_rc
         r2_adapter_match = r2_seq[4-r2_length_to_trim:]
         pair.r2.adapter_errors = string_match_errors(r2_adapter_match, self.adapter_t_rc)
         _debug("  check = {}, errors = {}".format(r2_adapter_match, pair.r2.adapter_errors))
-        if len(pair.r2.adapter_errors) > spats_config.allowed_adapter_errors:
+        if spats_config.minimum_adapter_matches and len(pair.r2.adapter_errors) > spats_config.allowed_adapter_errors:
+            if r2_length_to_trim - 4 - len(pair.r2.adapter_errors) >= spats_config.minimum_adapter_matches:
+                _debug(" !! v102 accepting slightly mismatched R2 adapter with minimum len")
+            else:
+                _debug(" !! v102 rejecting short/mismatched R2 adapter")
+                return False
+        elif len(pair.r2.adapter_errors) > spats_config.allowed_adapter_errors:
             return False
 
         # now, same thing on r1 (smaller trim b/c of no handle, hence -4)
@@ -458,9 +544,15 @@ class Spats(object):
         r1_length_to_trim = r2_length_to_trim - 4
         r1_adapter_match = r1_seq[-r1_length_to_trim:]
         pair.r1.trim(r1_length_to_trim, reverse_complement = True)
-        pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self.adapter_t_rc)
+        pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self.adapter_b)
         _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
-        if len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
+        if spats_config.minimum_adapter_matches and len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
+            if r1_length_to_trim - len(pair.r1.adapter_errors) >= spats_config.minimum_adapter_matches:
+                _debug(" !! v102 accepting slightly mismatched R1 adapter with minimum len")
+            else:
+                _debug(" !! v102 rejecting short/mismatched R1 adapter")
+                return False
+        elif len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
             return False
 
         _debug("successful adapter trim of {}/{} bp from R1/R2".format(pair.r1._rtrim, pair.r2._rtrim))
@@ -482,6 +574,10 @@ class Spats(object):
 
     def _process_pair(self, pair):
 
+        if not spats_config.allow_indeterminate  and  not pair.is_determinate():
+            pair.failure = "indeterminate sequence failure"
+            return
+
         self._match_mask(pair)
         if not pair.mask:
             pair.failure = "mask failure"
@@ -502,7 +598,7 @@ class Spats(object):
             pass
         elif not self._trim_adapters(pair):
             # we're over the right edge, and adapter trimming failed
-            pair.failure = "adapter trim failure"
+            pair.failure = pair.failure or "adapter trim failure"
             return
         else:
             # we're at the right and trimming went ok, cool
@@ -513,11 +609,19 @@ class Spats(object):
             pass
         else:
             # set the match to be the rest of the (possibly trimmed) sequence, and count errors
-            pair.r1.match_to_seq()
+            pair.r1.match_to_seq(reverse_complement = True)
             pair.r2.match_to_seq()
             target = self._target.seq
             pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement, target[pair.r1.match_index:])
             pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target[pair.r2.match_index:])
+
+            if spats_config.allow_errors_in_last_4_of_R2:
+                errors = [ e for e in pair.r2.match_errors if e < pair.r2.seq_len - 4]
+                _debug([pair.r2.seq_len, pair.r2.match_errors, errors ])
+                if len(errors) < len(pair.r2.match_errors):
+                    _debug("   !! v102 allowing errors in last 4 of R2")
+                pair.r2.match_errors = errors
+
             if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > spats_config.allowed_target_errors:
                 if pair.r1.match_errors:
                     _debug("R1 errors: {}".format(pair.r1.match_errors))

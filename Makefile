@@ -64,7 +64,7 @@ p.%:
 	@PYTHONPATH=.:src python -m cProfile -o tmp/runprof.out $(patsubst p.%, tests/misc.py %, $@)
 
 prof:
-	@${PYENV} python tests/prof.py|head -35
+	@${PYENV} python tests/prof.py|head -50
 
 pstats:
 	@${PYENV} python -m pstats tmp/runprof.out

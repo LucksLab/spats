@@ -122,9 +122,7 @@ class Diagram(object):
         if leftover < 0:
             l = l[2:]
             r = r[2:]
-            leftover = part.match_len - len(l) - len(r) - 4
-            if leftover < 0:
-                raise Exception("not enough room: {}".format(part.match_len))
+            leftover = max(0, part.match_len - len(l) - len(r) - 4)
         halfish = (leftover >> 1)
         bit = "^{}{}, {}{}^".format("-"*halfish,l,r,"-"*(leftover - halfish))
         d += bit
@@ -160,6 +158,13 @@ class Diagram(object):
             result += "FAIL"
         self.lines.append(result)
 
+    def _snip_lines(self, start, end):
+        for i in range(len(self.lines)):
+            line = self.lines[i]
+            snip = line[start:end]
+            replace = "  " if snip == sp(end-start) else ".."
+            self.lines[i] = line[:start] + replace + line[end:]
+
     def make(self):
         self.lines = [ ]
 
@@ -194,7 +199,10 @@ class Diagram(object):
         if self.pair.r1.matched:
             self._make_result(self.pair.r1)
         else:
-            self._add_line(sp(base_len))
+            self._add_line("")
+
+        if self.pair.matched and self.pair.left > 100:
+            self._snip_lines(self.prefix_len + 15, self.prefix_len + 85)
 
         self._make_summary()
 
