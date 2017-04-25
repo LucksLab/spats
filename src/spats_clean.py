@@ -380,7 +380,10 @@ class Sequence(object):
 
     def find_in_target(self, target, reverse_complement = False):
         seq = self.reverse_complement if reverse_complement else self.subsequence
-        self.match_start, self.match_len, self.match_index = target.find_partial(seq, spats_config.minimum_target_match_length)
+        self.match_start, self.match_len, self.match_index = target.find_partial(seq, 2 * spats_config.minimum_target_match_length)
+        if not self.match_len:
+            # it's much faster to search for longer partial matches, then fall back on the minimum
+            self.match_start, self.match_len, self.match_index = target.find_partial(seq, spats_config.minimum_target_match_length)
 
     def trim(self, length, reverse_complement = False):
         self._rtrim = length
@@ -465,26 +468,24 @@ class Pair(object):
 # when the passed-in ranges (pos, len) are extended to the left and right the
 # indicated amounts.
 #@profile
-def faster_longest_match(s1, range1, s2, range2):
+def longest_match_opt(s1, range1, s2, range2):
     left1 = range1[0]
     left2 = range2[0]
-    lmax = max(left1, left2)
+    lmax = min(left1, left2)
     right1 = left1 + range1[1]
     right2 = left2 + range2[1]
     s1len = len(s1)
     s2len = len(s2)
-    rmax = min(s1len - right1, s2len - right2) - 1
+    rmax = min(s1len - right1, s2len - right2)
     if s1[left1:right1] != s2[left2:right2]:
         raise Exception("longest_match must already start with a match")
+
     left = 1
     right = 0
     c1 = 0
     c2 = 0
     m1 = 0
     m2 = 0
-    #while left1 >= 0 and left2 >= 0 and 0 != (char_to_mask[s1[left1]] & char_to_mask[s2[left2]]):
-    #    left1 -= 1
-    #    left2 -= 1
     while True:
         if left > lmax:
             break
@@ -497,9 +498,6 @@ def faster_longest_match(s1, range1, s2, range2):
                 break
         left += 1
 
-    #while right1 <= s1len and right2 <= s2len and 0 != (char_to_mask[s1[right1 - 1]] & char_to_mask[s2[right2 - 1]]):
-    #    right1 += 1
-    #    right2 += 1
     while True:
         if right >= rmax:
             break
@@ -512,7 +510,6 @@ def faster_longest_match(s1, range1, s2, range2):
                 break
         right += 1
 
-    #return range1[0] - left1 - 1, right1 - range1[1] - range1[0] - 1
     return left - 1, right
 
 # returns (left, right), where 'left' is the max number of chars extending to the left,
@@ -520,7 +517,7 @@ def faster_longest_match(s1, range1, s2, range2):
 # when the passed-in ranges (pos, len) are extended to the left and right the
 # indicated amounts.
 #@profile
-def longest_match(s1, range1, s2, range2):
+def longest_match_orig(s1, range1, s2, range2):
     left1 = range1[0]
     left2 = range2[0]
     right1 = left1 + range1[1]
@@ -537,6 +534,7 @@ def longest_match(s1, range1, s2, range2):
         right2 += 1
     return range1[0] - left1 - 1, right1 - range1[1] - range1[0] - 1
 
+longest_match = longest_match_opt
 
 
 class Target(object):
@@ -602,8 +600,8 @@ class Target(object):
                 total_len = left + right + word_len
                 #print "extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
                 if total_len >= min_len:
-                    if total_len == len(query):
-                        # we can return immediately if we've got a full match...
+                    if total_len >= (len(query) >> 1):
+                        # we can return immediately if we've got a match of at least half (not possible to do better)
                         return site - left, total_len, index - left
                     elif not candidate[1] or total_len > candidate[1]:
                         # ...otherwise, keep it if it's the best match so far
@@ -815,7 +813,7 @@ class Spats(object):
         pair.register_count()
 
 
-    def process_pair_data(self, data_r1_path, data_r2_path):
+    def process_pair_data(self, data_r1_path, data_r2_path, max_pairs = 0):
         total_pairs = 0
         chucked_pairs = 0
         processed_pairs = 0
@@ -826,6 +824,8 @@ class Spats(object):
                 r2_record = FastqRecord()
                 pair = Pair()
                 while True:
+                    if max_pairs and total_pairs >= max_pairs:
+                        break
                     r1_record.read(r1_in)
                     if not r1_record.identifier:
                         break
