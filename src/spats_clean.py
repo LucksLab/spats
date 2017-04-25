@@ -173,9 +173,12 @@
 
 
 import math
+import multiprocessing
 import os
+import Queue
 import string
 import sys
+import time
 from itertools import izip
 
 
@@ -192,6 +195,7 @@ class SpatsConfig(object):
         self.allow_indeterminate = False
         self.show_progress = True
         self.show_id_to_site = False
+        self.num_workers = multiprocessing.cpu_count()
 
         # TODO: would it be better to base these off of some kind of acceptable %/freq, to control for error:length ratios?
         self.allowed_adapter_errors = 0
@@ -287,13 +291,19 @@ class FastqRecord(object):
 
     def read(self, infile):
         first = infile.readline()
-        if not first or len(first) == 0:
+        if not first:
             self.reset()
             return
         self.identifier = first.lstrip('@').rstrip('\r\n').split(' ')[0]
         self.sequence = infile.readline().rstrip('\r\n')
         self.identifier2 = infile.readline().rstrip('\r\n')
         self.quality = infile.readline().rstrip('\r\n')
+
+    def parse(self, lines):
+        self.identifier = lines[0].lstrip('@').split(' ')[0]
+        self.sequence = lines[1].rstrip('\r\n')
+        #self.identifier2 = lines[2].rstrip('\r\n')
+        #self.quality = lines[3].rstrip('\r\n')
 
     def write(self, outfile):
         for line in [ self.identifier, self.sequence, self.identifier2, self.quality ]:
@@ -469,6 +479,7 @@ class Pair(object):
 # indicated amounts.
 #@profile
 def longest_match_opt(s1, range1, s2, range2):
+
     left1 = range1[0]
     left2 = range2[0]
     lmax = min(left1, left2)
@@ -545,7 +556,7 @@ class Target(object):
         self.n = len(seq)
         self._index = None
         self.index_word_length = index_word_length
-        self._warned = False
+        self._warned = True # disable this warning for now
 
     def index(self):
         seq = self.seq
@@ -576,6 +587,7 @@ class Target(object):
     #  query_start_index: the index into the query where the match starts
     #  match_len: the length of the match
     #  sequence_index: the index into the target sequence where the match starts
+    #@profile
     def find_partial(self, query, minimum_length = None):
         assert(self._index)
         min_len = minimum_length or (self.index_word_length << 1)
@@ -743,7 +755,7 @@ class Spats(object):
             if spats_config.show_id_to_site:
                 print "{} --> {}".format(pair.identifier, pair.site) #, pair.mask.chars)
 
-
+    #@profile
     def _process_pair(self, pair):
 
         if not spats_config.allow_indeterminate  and  not pair.is_determinate():
@@ -812,51 +824,107 @@ class Spats(object):
 
         pair.register_count()
 
-
+    #@profile
     def process_pair_data(self, data_r1_path, data_r2_path, max_pairs = 0):
+
+        pairs_to_do = multiprocessing.Queue()
+
+        #@profile
+        def worker(x):
+            chucked = 0
+            processed = 0
+            pair = Pair()
+            while True:
+                pairs = pairs_to_do.get()
+                if not pairs:
+                    break
+                for lines in pairs:
+                    pair.set_from_data(lines[0].split(' ')[0], lines[1].rstrip('\n'), lines[2].rstrip('\n'))
+                    self.process_pair(pair)
+                    if not pair.mask:
+                        chucked += 1
+                    elif pair.has_site:
+                        processed +=1
+            pairs_to_do.put((chucked, processed, [(m.total, m.kept, m.counts) for m in self._masks]))
+
+        threads = []
+        num_workers = max(1, spats_config.num_workers)
+        for i in range(num_workers):
+            thd = multiprocessing.Process(target = worker, args = (i,))
+            threads.append(thd)
+            thd.start()
+        _debug("created {} workers".format(num_workers))
+
         total_pairs = 0
-        chucked_pairs = 0
-        processed_pairs = 0
+        start = time.time()
 
         with open(data_r1_path, 'rb') as r1_in:
             with open(data_r2_path, 'rb') as r2_in:
-                r1_record = FastqRecord()
-                r2_record = FastqRecord()
-                pair = Pair()
+                r1_iter = iter(r1_in)
+                r2_iter = iter(r2_in)
+
                 while True:
-                    if max_pairs and total_pairs >= max_pairs:
+                    pairs = []
+                    for i in range(16384):
+                        if max_pairs and total_pairs >= max_pairs:
+                            break
+                        try:
+                            R1_id = r1_iter.next()
+                            R1_seq = r1_iter.next()
+                            r1_iter.next()
+                            r1_iter.next()
+                            r2_iter.next()
+                            R2_seq = r2_iter.next()
+                            r2_iter.next()
+                            r2_iter.next()
+                            pairs.append((R1_id, R1_seq, R2_seq))
+                            total_pairs += 1
+                        except StopIteration:
+                            break
+                    if 0 == len(pairs):
                         break
-                    r1_record.read(r1_in)
-                    if not r1_record.identifier:
-                        break
-                    r2_record.read(r2_in)
-                    pair.set_from_records(r1_record, r2_record)
-                    total_pairs += 1
-                    pair.numeric_id = total_pairs
+                    pairs_to_do.put(pairs)
 
-                    self.process_pair(pair)
-                    if not pair.mask:
-                        chucked_pairs += 1
-                    elif pair.has_site:
-                        processed_pairs +=1
 
-                    if spats_config.show_progress and 0 == total_pairs % 20000:
-                        sys.stderr.write('.')
-                        sys.stderr.flush()
+        if self.quiet:
+            _debug("Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start))
+        else:
+            print "Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start)
+            
 
+        for thd in threads:
+            pairs_to_do.put(None) # just a dummy object to signal we're done
+        for thd in threads:
+            thd.join()
+
+        try:
+            while True:
+                data = pairs_to_do.get_nowait()
+                self.chucked_pairs += data[0]
+                self.processed_pairs += data[1]
+                for i in range(len(self._masks)):
+                    m = self._masks[i]
+                    d = data[2][i]
+                    m.total += d[0]
+                    m.kept += d[1]
+                    counts = d[2]
+                    for j in range(len(counts)):
+                        m.counts[j] += counts[j]
+        except Queue.Empty:
+            pass
         self.total_pairs += total_pairs
-        self.chucked_pairs += chucked_pairs
-        self.processed_pairs += processed_pairs
 
         if not self.quiet:
-            self.report_counts()
+            self.report_counts(time.time() - start)
 
-    def report_counts(self):
+    def report_counts(self, delta = None):
         m0 = self._masks[0]
         m1 = self._masks[1]
         format_str = "Processed {tot} properly paired fragments, " + \
                      "kept {kept0}/{tot0} ({pct0:.1f}%) treated, " + \
                      "{kept1}/{tot1} ({pct1:1f}%) untreated"
+        if delta:
+            format_str += " ({:.1f}s)".format(delta)
         print format_str.format(tot = m0.total + m1.total,
                                 kept0 = m0.kept,
                                 tot0 = m0.total,

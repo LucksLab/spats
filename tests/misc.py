@@ -27,7 +27,8 @@ def profile_run():
           bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
           bp + "t11",
           show_sites = False,
-          max_pairs = 65536)
+          max_pairs = 0)
+    #Processed 64052 properly paired fragments, kept 4936/32073 (15.4%) treated, 8900/31979 (27.830764%) untreated
 
 def run_5sq():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
