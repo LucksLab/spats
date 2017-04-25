@@ -75,10 +75,10 @@
 #        E_2 = |TR_2 - R2|, where |x-y| is hamming distance (number of mismatched bp)
 #        E_1 = |TR_1 - R1|
 
-#   (g) if the E_i are within configured range, then determine the
-#       handle from R1[:4], and increment the count for a_2 (left end
-#       of R2), with "start" position b_1 (right end of R1 -- for now,
-#       always len(T), but easy to extend to multiple start sites).
+#   (g) if the E_i are within configured range, increment the count
+#       for handle H for a_2 (left end of R2), with "start" position
+#       b_1 (right end of R1 -- for now, always len(T), but easy to
+#       extend to multiple start sites).
 
 
 # algorithm diagrammatic examples:
@@ -144,6 +144,7 @@
 #                                                              TTCA.GTTCTTGGTGCCCGAGTGATCGGAAGAGCAC             
 #                                                                   GTGCTCTTCCGATCACTCGGGCACCAAGAAC
 # which gives E_2 = 2 (1 error in the target, 1 in the adapter).
+# the match site is at L = a_2 = 127, R = b_1 = 143
 
 
 
