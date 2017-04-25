@@ -1,3 +1,176 @@
+
+# spats
+
+# primary sequencing problem:
+#
+#  given R1-R2 read pair, determine the fragment location in the target sequence
+
+
+# algorithm overview:
+#
+#  excepting pairs that correspond to very short fragments (which
+#  could be handled as a special case, TBD), we can determine the
+#  location of the, e.g., R2 subfragment by finding the longest
+#  substring of R2 that matches some subsequence of the target. unless
+#  there are many evenly-spaced transcription errors (in which case we
+#  probably want to discard the pair anyway), we're guaranteed to find
+#  some suitably-long (~8+ bp) matching subsequence. (this can be done
+#  efficiently.)
+#
+#  once we have the matching R1/R2 subsequences, everything else about
+#  the pair is determined (details/examples below). then we can
+#  compare how many errors the input data have with the expectation,
+#  and choose to keep/discard the fragment accordingly.
+#
+#  note that this will work regardless of how much adapter is included
+#  in the fragment. (i.e., will work fine on case 2-I and 2-II of
+#  previous adapter trimming algorithm.)
+
+
+# conceptual algorithm:
+#   (xref diagram examples below)
+
+#  (a) find the longest subsequence of R2 that matches target T -- let
+#      the results be s_2, l_2, i_2:
+#         - s_2: the index in R2 where the match starts
+#         - l_2: the length of the matched subsequence
+#         - i_2: the index in T where the match starts
+#      in other words, R2[s_2:s_2+l_2] == T[i_2:i_2+l_2]
+
+#  (b) let a_2 be the index in T where the left end of R2 would end up
+#      when the matching subsequences are aligned. in code,
+#        a_2 = i_2 - s_2
+#      note that if s_2 = 0 (the start of R2 is part of the matching 
+#      subsequence), then a_2 = i_2. similarly, let b_2 correspond to 
+#      the right end of R2, 
+#        b_2 = a_2 + len(R2)
+#      note that if all of R2 matches, then b_2 = i_2 + l_2
+      
+#  (c) let H = R1[:4], the first four bp of R1 (used for determining
+#      the handle).  let R1' be the reverse complement of the rest of
+#      R1, i.e., 
+#        R1' = reverse_complement(R1[4:]). 
+#      find the longest subsequence of R1' that matches T, and denote
+#      s_1, l_1, i_1, a_1, and b_1 accordingly.
+
+#  (d) if a_i > 0 and b_i <= len(T) for i=1,2: then both R1 and R2 lie
+#      within T. let TR_i be the corresponding subsequences of T:
+#        TR_2 = T[a_2:b_2]
+#        TR_1 = reverse_complement(T[a_1:b_1])
+#      then go to step [f]
+
+#   (e) otherwise, some parts of R1 and R2 lie outside of T. if a_i <
+#       0, then it's outside of T (off the left end), so should be
+#       discarded. otherwise, at least one of the b_i > len(T), and
+#       this corresponds to the adapter trimming case. set:
+#          T_2 = T + reverse_complement(H) + reverse_complement(adapter_t)
+#       (recall H = R1[:4]). let 
+#         TR_2 = T_2[a_2:b_2]
+#       for the R1 part, we take as much of T as we can, and reverse complement:
+#          tmp = reverse_complement(T[a_1:min(b_1, len(T))])
+#       and then append however much of adapter_b is necessary to get TR_1
+#         TR_1 = tmp + adapter_b[0:len(R1')-len(tmp)]
+
+#   (f) the number of errors can now be observed by comparing with the inputs, i.e.:
+#        E_2 = |TR_2 - R2|, where |x-y| is hamming distance (number of mismatched bp)
+#        E_1 = |TR_1 - R1|
+
+#   (g) if the E_i are within configured range, then determine the
+#       handle from R1[:4], and increment the count for a_2 (left end
+#       of R2), with "start" position b_1 (right end of R1 -- for now,
+#       always len(T), but easy to extend to multiple start sites).
+
+
+# algorithm diagrammatic examples:
+
+
+#  (Ex1) R2 = CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG, R1 = AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG
+#    easy case: all of R1 and R2 match, and lie within T:
+#
+#                                                                                                                RRRY               R1
+#                                                                                                                AAAC.GTCCTTGGTGCCCGAGTCAGATGCCTGGCAG
+#                                                   R2                                                                |          (revcomp)          |
+#                                  CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG                                                CTGCCAGGCATCTGACTCGGGCACCAAGGAC 
+# T   ggatgcctggcggccgtagcgcggtggtcCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGccgtagcgccgatggtagtgtggggtctccccatgcgagagtagggaaCTGCCAGGCATCTGACTCGGGCACCAAGGAC       
+#                                  ^--   L = 29                                                                                           R = 143 --^
+#
+#  so we count site L = a_2 = 29 for handle RRRY.
+#
+
+#  (Ex2) R2 = CCAGCTGTCCCCATGCCGAAGTCAGAAATGAAACG, R1 = AAACCTGTCAGGCATCTGACACGGGCACAAAGGAC
+#    similar to (1) but now some bp's are toggled, so we only match parts of R2 and R1':
+#  
+#
+#                                          s        R2                                                                    s      R1'
+#                                  --------CCCCATGCCGAA---------------                                                ----CAGGCATCTGAC--------------- 
+# T   ggatgcctggcggccgtagcgcggtggtcccacctgaCCCCATGCCGAActcagaagtgaaacgccgtagcgccgatggtagtgtggggtctccccatgcgagagtagggaactgcCAGGCATCTGACtcgggcaccaaggac       
+#                                  a       i                         b                                                a   i                         b
+#
+# we've found s_i, l_i, i_i, a_i, b_i, and this is case (d) above, so we can create TR2, TR1 based on T:
+#                           TR_2:  CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG                                         TR_1:  CTGCCAGGCATCTGACTCGGGCACCAAGGAC
+# and compare:                        !   !            !      !                                                          !            !       !   
+#                           R2:    CCAGCTGTCCCCATGCCGAAGTCAGAAATGAAACG                                          R1':  CTGTCAGGCATCTGACACGGGCACAAAGGAC
+#
+# E_1 = 3, E_2 = 4, and we can count this match (still at L = a_2 = 29, R = b_1 = 143) based on configuration. 
+#
+
+
+#  (Ex3) R2 = CTCGAGCACCAAGGACTGAAAGCTCGGAAGAGCGA, R1 = TTCAGTTCTTGGTGCCCGAGTGATCGGAAGAGCAC       
+#    on adapter trimming, need to build up TR_1, TR_2 with adapter (and handle complement). first, the matching substrings:
+#            
+#                                                   R2  :              -----GCACCAAGGAC-------------------
+#    T      ggatgcctggcggc..tggggtctccccatgcgagagtagggaactgccaggcatctgaCTCGGGCACCAAGGAC
+#                                                   R1' :              CTCGGGCACCAAG-----------------
+#
+# now, to build T_2, we append RC(H) and RC(adapter_t):
+#   H = TTCA, RC(H) = TGAA, adapter_t = AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT
+#   RC(adapter_t) = AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+#  T_2 = GGATGCCTGGCGGC..TGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC + TGAA + AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+#   so, to get TR_2:
+#                                                        R2  :      -----GCACCAAGGAC-------------------
+#   T_2: ggatgcctggcggc..tggggtctccccatgcgagagtagggaactgccaggcatctgactcggGCACCAAGGACtgaaagatcggaagagcgtcgtgtagggaaagagtgtagatctcggtggtcgccgtatcatt
+#                                                      TR_2  :      CTCGGGCACCAAGGACTGAAAGATCGGAAGAGCGT
+# and compare to R2:                                                    !                 !           !
+#                                                                   CTCGAGCACCAAGGACTGAAAGCTCGGAAGAGCGA
+# that gives E_2 = 3 (1 error in the target, 2 in the adapter).
+# now, for TR_1, first we need to compare R1' to T_1 = T + adapter_b = T + AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
+#                                                        R1' :      CTCGGGCACCAAG------------------
+#   T_1: ggatgcctggcggc..tggggtctccccatgcgagagtagggaactgccaggcatctgaCTCGGGCACCAAGgac 
+#                                                                   CTCGGGCACCAAGGAC
+# and then take the reverse complement                              GTCCTTGGTGCCCGAG
+# and then append adapter_b:                                        GTCCTTGGTGCCCGAGagatcggaagagcacacgtctgaactccagtcac
+# and trim to get                                       TR_1 :      GTCCTTGGTGCCCGAGAGATCGGAAGAGCAC
+# and compare to R1:                                                  !             !              
+#                                                              TTCA.GTTCTTGGTGCCCGAGTGATCGGAAGAGCAC             
+#                                                                   GTGCTCTTCCGATCACTCGGGCACCAAGAAC
+# which gives E_2 = 2 (1 error in the target, 1 in the adapter).
+
+
+
+# notes:
+#
+# the implementation below does not follow the algorithm literally,
+# but effectively comes to the same thing. it allows for separate
+# configuration of allowable errors within the target and within the
+# adapter. also, right now errors on the part of T_2 that corresponds
+# to reverse_complement(H) in the trimming case are ignored (easily
+# configurable).
+#
+# the algorithm is implemented in the _process_pair method of the
+# Spats class.
+#
+# the key to the algorithm is step (a), which is implemented by the
+# Target class, in particular Target.find_partial
+#
+# s_i, l_i, i_i are referred to as match_start, match_len, and
+# match_index in the code (in Sequence class). a_i and b_i are
+# referred to as left and right.
+#
+# right now, the code is a bit more cluttered than it should be, in an
+# attempt to conform as much as possible to v1.0.2 behavior.
+#
+
+
 import math
 import os
 import string
