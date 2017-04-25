@@ -600,7 +600,7 @@ class Target(object):
                 total_len = left + right + word_len
                 #print "extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
                 if total_len >= min_len:
-                    if total_len >= (len(query) >> 1):
+                    if total_len >= (query_len >> 1):
                         # we can return immediately if we've got a match of at least half (not possible to do better)
                         return site - left, total_len, index - left
                     elif not candidate[1] or total_len > candidate[1]:
