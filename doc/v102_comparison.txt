@@ -10,6 +10,8 @@ comparison to v1.0.2:
     - minimum_adapter_matches = 8: meaning that the adapter has to be at least of length 8, or longer (N) allowing for N-8 mismatches
 
 - with these options:
+  - ~2mm total R1/R2 pairs, 442497 accepted by v102
+  - dev and v102 agree on 442065 cases (99.90%)
   * 521 cases accepted by dev, missing from v102
      - all adapter-trim related (all sites are at the end of the sequence)
      - hard to determine a general rule for *why* adapter_trimmer is rejecting them
