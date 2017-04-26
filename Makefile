@@ -3,11 +3,6 @@ none :
 	@echo Target required
 	@exit 1
 
-TEST_PATH=$(shell pwd)/$(BINDIR):$(PATH)
-.PHONY: test
-test : $(TARGETS)
-	@export PATH="$(TEST_PATH)"  &&  cd test/Read_Mapping  &&  bash test_read_mapping.sh
-
 
 PYENV = PYTHONPATH=.
 TOOLS_DIR = tools
@@ -17,7 +12,10 @@ TEST_PKG = spats.tests.test_spats
 
 .PHONY: unit
 unit :
-	${PYENV} python -m unittest spats.tests.test_spats
+	nosetests
+
+.PHONY: test
+test : unit
 
 # for some subset of tests:
 # make u.[class]
