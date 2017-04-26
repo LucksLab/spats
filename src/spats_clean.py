@@ -612,8 +612,10 @@ class Target(object):
                 total_len = left + right + word_len
                 #print "extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
                 if total_len >= min_len:
-                    if total_len >= (query_len >> 1):
-                        # we can return immediately if we've got a match of at least half (not possible to do better)
+                    if total_len >= query_len:
+                        # we can return immediately if we've got a full match
+                        # BUT: xref notes -- need to make sure there can't be multiple in target
+                        # some target-analysis preprocessing will be useful here
                         return site - left, total_len, index - left
                     elif not candidate[1] or total_len > candidate[1]:
                         # ...otherwise, keep it if it's the best match so far
