@@ -265,22 +265,11 @@ class Spats(object):
             # also, this means that there's nothing to trim from R1, so we're done
             return True
 
-        if spats_config.ignore_minimal_adapter and r2_length_to_trim <= 8:
-            _debug("  !! v102 auto-trimming short adapter")
-            pair.r1.trim(r2_length_to_trim - 4, reverse_complement = True)
-            return True
-
         # find out how good of a match the end of R2 is for adapter_t_rc
         r2_adapter_match = r2_seq[4-r2_length_to_trim:]
         pair.r2.adapter_errors = string_match_errors(r2_adapter_match, self.adapter_t_rc)
         _debug("  check = {}, errors = {}".format(r2_adapter_match, pair.r2.adapter_errors))
-        if spats_config.minimum_adapter_matches and len(pair.r2.adapter_errors) > spats_config.allowed_adapter_errors:
-            if r2_length_to_trim - 4 - len(pair.r2.adapter_errors) >= spats_config.minimum_adapter_matches:
-                _debug(" !! v102 accepting slightly mismatched R2 adapter with minimum len")
-            else:
-                _debug(" !! v102 rejecting short/mismatched R2 adapter")
-                return False
-        elif len(pair.r2.adapter_errors) > spats_config.allowed_adapter_errors:
+        if len(pair.r2.adapter_errors) > spats_config.allowed_adapter_errors:
             return False
 
         # now, same thing on r1 (smaller trim b/c of no handle, hence -4)
@@ -290,13 +279,7 @@ class Spats(object):
         pair.r1.trim(r1_length_to_trim, reverse_complement = True)
         pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self.adapter_b)
         _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
-        if spats_config.minimum_adapter_matches and len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
-            if r1_length_to_trim - len(pair.r1.adapter_errors) >= spats_config.minimum_adapter_matches:
-                _debug(" !! v102 accepting slightly mismatched R1 adapter with minimum len")
-            else:
-                _debug(" !! v102 rejecting short/mismatched R1 adapter")
-                return False
-        elif len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
+        if len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
             return False
 
         _debug("successful adapter trim of {}/{} bp from R1/R2".format(pair.r1._rtrim, pair.r2._rtrim))
@@ -358,13 +341,6 @@ class Spats(object):
             target = self._target.seq
             pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement, target[pair.r1.match_index:])
             pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target[pair.r2.match_index:])
-
-            if spats_config.allow_errors_in_last_4_of_R2:
-                errors = [ e for e in pair.r2.match_errors if e < pair.r2.seq_len - 4]
-                _debug([pair.r2.seq_len, pair.r2.match_errors, errors ])
-                if len(errors) < len(pair.r2.match_errors):
-                    _debug("   !! v102 allowing errors in last 4 of R2")
-                pair.r2.match_errors = errors
 
             if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > spats_config.allowed_target_errors:
                 if pair.r1.match_errors:

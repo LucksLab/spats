@@ -126,9 +126,29 @@ def show_failure_types():
                     summary += " R2A!: {}, adapter_len={}".format(pair.r2.adapter_errors, pair.r2._rtrim - 4)
                 print summary
 
-def hello():
-    import spats.tests.test_spats
-    print "hello"
+def diag_case():
+    from spats import Spats, spats_config
+    from spats.pair import Pair
+    from spats.tests.test_pairs import cases
+    from diagram import diagram
+    spats = Spats("test/5s/5s.fa", "test/5s")
+    spats.setup()
+    spats_config.debug = True
+    spats._case_errors = False
+    def run_case(case):
+        pair = Pair()
+        pair.set_from_data(case[0], case[1], case[2])
+        spats.process_pair(pair)
+        print diagram(spats._target, pair)
+        if case[3] != pair.site:
+            spats._case_errors = True
+            print "******* mismatch: {} != {}".format(case[3], pair.site)
+    for case in cases:
+        if case[0].startswith("*"):
+            run_case(case)
+    spats_config.debug = False
+    if spats._case_errors:
+        raise Exception("Case failed")
 
 if __name__ == "__main__":
     import sys

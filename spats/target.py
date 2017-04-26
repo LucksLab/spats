@@ -52,8 +52,9 @@ class Target(object):
             print "Warning: minimum_length {} is not much longer than index length {}".format(min_len, word_len)
             self._warned = True
         query_len = len(query)
-        check_sites = range(0, query_len - check_every, max(check_every, 1))
-        check_sites.append(query_len - check_every)
+        last = query_len - max(check_every, word_len)
+        check_sites = range(0, last, max(check_every, 1))
+        check_sites.append(last)
         candidate = (None, None, None)
         # NOTE: it's important to check all sites, and all hits -- to find the longest match.
         for site in check_sites:

@@ -20,11 +20,5 @@ class SpatsConfig(object):
         self.allowed_adapter_errors = 0
         self.allowed_target_errors = 0
 
-        # DELME: options to attempt v102 compliance:
-        #self.allowed_adapter_errors = 1
-        #self.minimum_adapter_len = 10
-        self.minimum_adapter_matches = 8
-        self.allow_errors_in_last_4_of_R2 = True
-        self.ignore_minimal_adapter = True
 
 spats_config = SpatsConfig()

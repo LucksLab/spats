@@ -9,3 +9,4 @@ SRP_All_Stops*
 tmp
 *.lprof
 .DS_Store
+*.egg-info
