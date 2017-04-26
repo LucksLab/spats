@@ -1,5 +1,5 @@
 
-from spats_clean import reverse_complement, spats_config
+from spats import reverse_complement, spats_config
 
 def sp(n, bit = " "):
     return bit * n

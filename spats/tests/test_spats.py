@@ -2,7 +2,9 @@
 import unittest
 
 
-from spats_clean import longest_match, reverse_complement, string_match_errors
+from spats.util import reverse_complement, string_match_errors
+from spats.mask import longest_match
+
 class TestUtils(unittest.TestCase):
     def test_longest_match(self):
         self.assertEqual((0, 1), longest_match("ATC", (0, 1), "TTATGA", (2, 1)))
@@ -23,7 +25,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual("GATNC", reverse_complement("GNATC"))
 
 
-from spats_clean import Target
+from spats.target import Target
 class SRPTargetTest(unittest.TestCase):
     def setUp(self):
         self.target = Target("SRP",
@@ -41,7 +43,7 @@ class SRPTargetTest(unittest.TestCase):
         self.target = None
 
 
-from spats_clean import reverse_complement
+from spats.util import reverse_complement
 class TestTarget(SRPTargetTest):
     def test_exact(self):
         self.assertEqual(self.target.find_exact('ATCGGGGGCT'), 0)
@@ -76,7 +78,7 @@ class TestTarget(SRPTargetTest):
 
 class Target5STest(unittest.TestCase):
     def setUp(self):
-        from spats_clean import Spats
+        from spats import Spats
         self.spats = Spats("test/5s/5s.fa", "test/5s")
         self.spats.setup()
     def tearDown(self):
@@ -194,6 +196,7 @@ spats_v102_match_cases = [
     [ '2118:26021:18628', 'TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAA', 'TGCCAGGCATCTGACTCGGGCACCAAGGCCTAAAA', None ],
     [ '1114:21343:8367', 'TTCAGTCCTTGGTGCCCGAGTGATCGGAAGAGCAC', 'CTCGGGCACCAAGGACTGAAAGCTCGGAAGAGCGA', None ],    
 
+    [ '*x', "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", None ],
 ]
 
 
@@ -203,7 +206,8 @@ diagram_cases = [
     [ "1101:11562:1050 R2 tweaked", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "CCATCTTACCCTTTTCCGTACTCTTAAGTGTAATG" ],
 ]
 
-from spats_clean import Pair, spats_config
+from spats import spats_config
+from spats.pair import Pair
 from diagram import diagram
 
 class TestPairs(Target5STest):

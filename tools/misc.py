@@ -126,6 +126,10 @@ def show_failure_types():
                     summary += " R2A!: {}, adapter_len={}".format(pair.r2.adapter_errors, pair.r2._rtrim - 4)
                 print summary
 
+def hello():
+    import spats.tests.test_spats
+    print "hello"
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()
