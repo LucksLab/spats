@@ -56,15 +56,16 @@ def misc():
               bp + "t4")
 
 def spats(target, r1, r2, out, show_sites = True, max_pairs = 0):
-    from spats_clean import Spats, spats_config
-    s = Spats(target, out)
-    s.setup()
+    from spats import Spats, spats_config
+    s = Spats()
+    s.addTargets(target)
+    s.addMasks("RRRY", "YYYR")
     if show_sites:
         spats_config.show_id_to_site = True
     s.process_pair_data(r1, r2, max_pairs)
     if not show_sites:
         s.compute_profiles()
-        s.write_reactivities()
+        s.write_reactivities(out + "/rx.out")
               
 def test_refactor():
     from spats_clean import Spats

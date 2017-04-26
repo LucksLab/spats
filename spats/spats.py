@@ -172,62 +172,59 @@
 #
 
 
-import math
 import multiprocessing
-import os
 import Queue
-import sys
 import time
 
 from config import spats_config
 from mask import Mask, longest_match
 from pair import Pair
-from parse import fasta_parse
+from parse import FastFastqParser, fasta_parse
+from profiles import Profiles
 from target import Target
 from util import _warn, _debug, reverse_complement, string_match_errors
 
 
 class Spats(object):
 
-    def __init__(self, target_path, output_folder):
-        self.target_path = target_path
-        self.output_folder = output_folder
+    def __init__(self):
+        self._targets = []
+        self._masks = []
+        self._maskSize = 0
+        self._adapter_t_rc = 0
+        self._profiles = None
+        self.total_pairs = 0
+        self.processed_pairs = 0
+        self.chucked_pairs = 0
 
-        # user-configurable parameters
-        self.masks = [ 'RRRY', 'YYYR' ]
-        self.quiet = False
-        self.adapter_t = spats_config.adapter_t
-        self.adapter_b = spats_config.adapter_b
-
-        # private vars
-        self._targets = None
-        self._masks = None
-
-        self.total_pairs = self.processed_pairs = self.chucked_pairs = 0
-
-    def setup(self):
-        self._indexTargets()
-        self._setupMasks()
-        self.adapter_t_rc = reverse_complement(self.adapter_t)
-
-    def _indexTargets(self):
-        if self._targets:
-            return
-        targets = []
-        for name, seq in fasta_parse(self.target_path):
-            target = Target(name, seq)
-            target.index()
-            targets.append(target)
-        self._targets = targets
-
-        # TODO: handle multiple targets. for now just use the one
-        self._target = targets[0]
-
-    def _setupMasks(self):
+        # temporary...
+        self._target = None
+            
+    def addTargets(self, *target_paths):
         if self._masks:
-            return
-        self._masks = [ Mask(m, self._target.n) for m in self.masks ]
-        self._maskSize = max([ len(m.chars) for m in self._masks ])
+            raise Exception("Targets must be added before adding masks")
+        for path in target_paths:
+            for name, seq in fasta_parse(path):
+                target = Target(name, seq)
+                target.index()
+                self._targets.append(target)
+                # temporary...
+                if not self._target:
+                    self._target = target
+
+    def addMasks(self, *args):
+        if not self._targets:
+            raise Exception("Targets must be added before adding masks")
+        for arg in args:
+            mask = Mask(arg, self._target.n)
+            self._masks.append(mask)
+            self._maskSize = max(self._maskSize, len(arg))
+
+    @property
+    def adapter_t_rc(self):
+        if not self._adapter_t_rc:
+            self._adapter_t_rc = reverse_complement(spats_config.adapter_t)
+        return self._adapter_t_rc
 
     def _match_mask(self, pair):
         seq = pair.r1.original_seq
@@ -277,7 +274,7 @@ class Spats(object):
         r1_length_to_trim = r2_length_to_trim - 4
         r1_adapter_match = r1_seq[-r1_length_to_trim:]
         pair.r1.trim(r1_length_to_trim, reverse_complement = True)
-        pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self.adapter_b)
+        pair.r1.adapter_errors = string_match_errors(r1_adapter_match, spats_config.adapter_b)
         _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
         if len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
             return False
@@ -394,39 +391,21 @@ class Spats(object):
         total_pairs = 0
         start = time.time()
 
-        with open(data_r1_path, 'rb') as r1_in:
-            with open(data_r2_path, 'rb') as r2_in:
-                r1_iter = iter(r1_in)
-                r2_iter = iter(r2_in)
+        with FastFastqParser(data_r1_path, data_r2_path) as parser:
+            chunk_size = 16384
+            while True:
+                pairs, count = parser.read(chunk_size if not max_pairs else min(chunk_size, max_pairs - total_pairs))
+                if not pairs:
+                    break
+                total_pairs += count
+                pairs_to_do.put(pairs)
+                if max_pairs and total_pairs >= max_pairs:
+                    break
 
-                while True:
-                    pairs = []
-                    for i in range(16384):
-                        if max_pairs and total_pairs >= max_pairs:
-                            break
-                        try:
-                            R1_id = r1_iter.next()
-                            R1_seq = r1_iter.next()
-                            r1_iter.next()
-                            r1_iter.next()
-                            r2_iter.next()
-                            R2_seq = r2_iter.next()
-                            r2_iter.next()
-                            r2_iter.next()
-                            pairs.append((R1_id, R1_seq, R2_seq))
-                            total_pairs += 1
-                        except StopIteration:
-                            break
-                    if 0 == len(pairs):
-                        break
-                    pairs_to_do.put(pairs)
-
-
-        if self.quiet:
+        if spats_config.quiet:
             _debug("Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start))
         else:
             print "Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start)
-            
 
         for thd in threads:
             pairs_to_do.put(None) # just a dummy object to signal we're done
@@ -450,8 +429,9 @@ class Spats(object):
             pass
         self.total_pairs += total_pairs
 
-        if not self.quiet:
+        if not spats_config.quiet:
             self.report_counts(time.time() - start)
+
 
     def report_counts(self, delta = None):
         m0 = self._masks[0]
@@ -470,57 +450,8 @@ class Spats(object):
                                 pct1 = (100.0 * float(m1.kept)) / float(m1.total))
 
     def compute_profiles(self):
-        # TODO: use numpy here ?
-        n = self._target.n
-        treated_counts = self._masks[0].counts
-        untreated_counts = self._masks[1].counts
-        betas = [ 0 for x in range(n+1) ]
-        thetas = [ 0 for x in range(n+1) ]
-        treated_sum = 0.0    # keep a running sum
-        untreated_sum = 0.0  # for both channels
-        running_c_sum = 0.0  # can also do it for c
+        self._profiles = Profiles(self._targets, self._masks)
+        self._profiles.compute()
 
-        for k in range(n):
-            X_k = float(treated_counts[k])
-            Y_k = float(untreated_counts[k])
-            treated_sum += X_k    #treated_sum = float(sum(treated_counts[:(k + 1)]))
-            untreated_sum += Y_k  #untreated_sum = float(sum(untreated_counts[:(k + 1)]))
-            if 0 == treated_sum  or  0 == untreated_sum:
-                betas[k] = 0
-                thetas[k] = 0
-            else:
-                Xbit = (X_k / treated_sum)
-                Ybit = (Y_k / untreated_sum)
-                if Ybit >= 1:
-                    betas[k] = 0
-                    thetas[k] = 0
-                else:
-                    betas[k] = max(0, (Xbit - Ybit) / (1 - Ybit))
-                    thetas[k] = math.log(1.0 - Ybit) - math.log(1.0 - Xbit)
-                    running_c_sum -= math.log(1.0 - betas[k])
-
-        c = running_c_sum
-        c_factor = 1.0 / c
-        for k in range(n+1):
-            thetas[k] = max(c_factor * thetas[k], 0)
-        self.betas = betas
-        self.thetas = thetas
-        self.c = c
-
-    def write_reactivities(self):
-        out_path = os.path.join(self.output_folder, "rx.out")
-        n = self._target.n
-        treated_counts = self._masks[0].counts
-        untreated_counts = self._masks[1].counts
-        with open(out_path, 'wb') as outfile:
-            outfile.write('sequence\trt_start\tfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n')
-            format_str = "{name}\t{rt}\t".format(name = self._target.name, rt = n - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = self.c)
-            # TODO: xref https://trello.com/c/OtbxyiYt/23-3-nt-missing-from-reactivities-out
-            # looks like we may want this to be range(n), chopping off was unintentional bug of previous version
-            for i in range(n - 1):
-                outfile.write(format_str.format(i = i,
-                                                nuc = self._target.seq[i - 1] if i > 0 else '*',
-                                                tm = treated_counts[i],
-                                                um = untreated_counts[i],
-                                                b = self.betas[i] if i > 0 else '-',
-                                                th = self.thetas[i] if i > 0 else '-'))
+    def write_reactivities(self, target_path):
+        self._profiles.write(target_path)

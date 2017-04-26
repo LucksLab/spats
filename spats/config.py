@@ -9,6 +9,7 @@ class SpatsConfig(object):
         self.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"                          # JJB: shows as-is on the end of R1, from the front
 
         self.debug = False
+        self.quiet = False
         self.minimum_target_match_length = 8 # want to make this as big as possible for speed.
         self.minimum_adapter_len = 0
         self.allow_indeterminate = False

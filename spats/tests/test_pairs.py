@@ -62,8 +62,9 @@ cases = [
 class Target5STest(unittest.TestCase):
     def setUp(self):
         from spats import Spats
-        self.spats = Spats("test/5s/5s.fa", "test/5s")
-        self.spats.setup()
+        self.spats = Spats()
+        self.spats.addTargets("test/5s/5s.fa")
+        self.spats.addMasks('RRRY', 'YYYR')
     def tearDown(self):
         self.spats = None
 
