@@ -37,7 +37,7 @@ TEST_PATH=$(shell pwd)/$(BINDIR):$(PATH)
 test : $(TARGETS)
 	@export PATH="$(TEST_PATH)"  &&  cd test/Read_Mapping  &&  bash test_read_mapping.sh
 
-PYENV = PYTHONPATH=.:${SCRIPTDIR}
+PYENV = PYTHONPATH=.:${SCRIPTDIR}:cpp/build/lib.macosx-10.11-intel-2.7
 
 # unit tests
 

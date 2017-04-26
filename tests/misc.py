@@ -126,6 +126,13 @@ def show_failure_types():
                     summary += " R2A!: {}, adapter_len={}".format(pair.r2.adapter_errors, pair.r2._rtrim - 4)
                 print summary
 
+def tx():
+    import txspats
+    txspats.tindex("GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC")
+    print txspats.find("AGCGCGGT")
+    print txspats.find("ACCAAGGA")
+    print txspats.find_partial("AGCGCGGT", 8)
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()

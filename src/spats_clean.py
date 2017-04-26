@@ -548,7 +548,7 @@ def longest_match_orig(s1, range1, s2, range2):
 longest_match = longest_match_opt
 
 
-class Target(object):
+class TargetOrig(object):
 
     def __init__(self, name, seq, index_word_length = 8):
         self.name = name
@@ -622,6 +622,28 @@ class Target(object):
                         candidate = (site - left, total_len, index - left)
                         #print "C: {}".format(candidate)
         return candidate
+
+class Target(object):
+
+    def __init__(self, name, seq, index_word_length = 8):
+        import txspats
+        self.name = name
+        self.seq = seq
+        self.n = len(seq)
+        self.index_word_length = index_word_length
+        self._warned = True # disable this warning for now
+        self._tindex = txspats.tindex
+        self._find_partial = txspats.find_partial
+
+    def index(self):
+        self._tindex(self.seq)
+
+    # returns (query_start_index, match_len, sequence_index), where:
+    #  query_start_index: the index into the query where the match starts
+    #  match_len: the length of the match
+    #  sequence_index: the index into the target sequence where the match starts
+    def find_partial(self, query, minimum_length = None):
+        return self._find_partial(query, minimum_length)
 
 
 class Spats(object):
