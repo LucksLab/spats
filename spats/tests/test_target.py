@@ -28,7 +28,11 @@ class TestMultiple(unittest.TestCase):
         self.assertEqual(14, len(target.targets))
         target.index()
         self.assertEqual(169, target.longest_self_match())
-
+        t, s, l , i = target.find_partial("GGTCGGATGAAGATATGAGGAGAGATTTCATTTT")
+        print [x.name for x in t]
+        self.assertEqual(5, len(t))
+        t, s, l , i = target.find_partial("CGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCA")
+        self.assertEqual("5S", t.name)
 
 class TestTargetIndexing(unittest.TestCase):
     def test_index_srp(self):

@@ -197,6 +197,7 @@ class Spats(object):
         self.total_pairs = 0
         self.processed_pairs = 0
         self.chucked_pairs = 0
+        self.multiple_R1_match_pairs = 0
 
     def addMasks(self, *args):
         for arg in args:
@@ -235,7 +236,11 @@ class Spats(object):
     def _find_matches(self, pair):
         # use R1 to determine which target
         target = pair.r1.find_in_targets(self._targets, reverse_complement = True)
-        if not target:
+        if isinstance(target, list):
+            _debug("dropping pair due to multiple R1 match")
+            self.multiple_R1_match_pairs += 1
+            return
+        elif not target:
             return
         pair.target = pair.r2.find_in_targets(self._targets, force_target = target)
         _debug([pair.r1.match_start, pair.r1.match_len, pair.r1.match_index, "--", pair.r2.match_start, pair.r2.match_len, pair.r2.match_index])
@@ -443,6 +448,8 @@ class Spats(object):
                                 kept1 = m1.kept,
                                 tot1 = m1.total,
                                 pct1 = (100.0 * float(m1.kept)) / float(m1.total))
+        if self.multiple_R1_match_pairs > 0:
+            print " *** Warning: dropped {} pairs due to multiple R1 matches.".format(self.multiple_R1_match_pairs)
 
     def compute_profiles(self):
         self._profiles = Profiles(self._targets, self._masks)

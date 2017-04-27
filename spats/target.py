@@ -103,7 +103,7 @@ class Targets(object):
         last = query_len - max(check_every, word_len)
         check_sites = range(0, last, check_every)
         check_sites.append(last)
-        candidate = (None, None, None, None)
+        candidate = [None, None, None, None]
         # NOTE: it's important to check all sites, and all hits -- to find the longest match.
         for site in check_sites:
             site_key = query[site:site+word_len]
@@ -111,18 +111,16 @@ class Targets(object):
             for target, index in self._index.get(site_key, []):
                 if force_target and target != force_target:
                     continue
-                #print "GOT: " + str(index)
+                #print "GOT: " + str(index) + " -- " + target.name
                 left, right = longest_match(query, (site, word_len), target.seq, (index, word_len))
                 total_len = left + right + word_len
                 #print "extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
                 if total_len >= min_len:
-                    if total_len >= query_len:
-                        # we can return immediately if we've got a full match
-                        # BUT: xref notes -- need to make sure there can't be multiple in target
-                        # some target-analysis preprocessing will be useful here
-                        return target, site - left, total_len, index - left
-                    elif not candidate[2] or total_len > candidate[2]:
-                        # ...otherwise, keep it if it's the best match so far
-                        candidate = (target, site - left, total_len, index - left)
+                    if not candidate[2] or total_len > candidate[2]:
+                        # keep it if it's the best match so far
+                        candidate = [target, site - left, total_len, index - left]
                         #print "C: {}".format(candidate)
+                    elif total_len == candidate[2] and target != candidate[0]:
+                        # need to keep track if multiple candidates have this same max length
+                        candidate[0] = set([target] + (list(candidate[0]) if isinstance(candidate[0], set) else [candidate[0]]))
         return candidate

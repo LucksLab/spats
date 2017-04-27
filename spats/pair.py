@@ -36,7 +36,7 @@ class Pair(object):
 
     def set_mask(self, mask):
         self.mask = mask
-        mask.total += 1
+        mask.total += self.multiplicity
         self.r1._ltrim = 4
 
     @property
