@@ -206,8 +206,12 @@ class Spats(object):
         for path in target_paths:
             for name, seq in fasta_parse(path):
                 target = Target(name, seq)
-                target.minimum_match_length = spats_config.minimum_target_match_length
-                target.index()
+                if spats_config.minimum_target_match_length:
+                    target.minimum_match_length = spats_config.minimum_target_match_length
+                    target.index()
+                else:
+                    target.index()
+                    target.minimum_match_length = 1 + target.longest_self_match()
                 self._targets.append(target)
                 # temporary...
                 if not self._target:

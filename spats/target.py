@@ -57,7 +57,6 @@ class Target(object):
                 break
         # note that we can't say there's no self-match below min_len,
         # so if we didn't find one, just return that
-        print "LM: {}".format(candidate)
         return candidate[1] or min_len
 
     def find_exact(self, query, exclude = None):
