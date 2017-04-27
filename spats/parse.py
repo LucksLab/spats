@@ -37,9 +37,10 @@ class FastqRecord(object):
 
 class FastFastqParser(object):
 
-    def __init__(self, r1_path, r2_path):
+    def __init__(self, r1_path, r2_path, parse_quality = False):
         self.r1_path = r1_path
         self.r2_path = r2_path
+        self.parse_quality = parse_quality
 
     def __enter__(self):
         self.r1_in = open(self.r1_path, 'rb')
@@ -64,14 +65,16 @@ class FastFastqParser(object):
         r2_iter = self.r2_iter
         try:
             while count < max_num_pairs:
-                R1_id = r1_iter.next()
-                R1_seq = r1_iter.next()
+                R1_id = r1_iter.next().split(' ')[0]
+                R1_seq = r1_iter.next().rstrip('\n\r')
                 r1_iter.next()
                 r1_iter.next()
+                R2_id = r2_iter.next().split(' ')[0]
+                R2_seq = r2_iter.next().rstrip('\n\r')
                 r2_iter.next()
-                R2_seq = r2_iter.next()
                 r2_iter.next()
-                r2_iter.next()
+                if R1_id != R2_id:
+                    raise Exception("Malformed input files, id mismatch: {} != {}".format(R1_id, R2_id))
                 pairs.append((R1_id, R1_seq, R2_seq))
                 count += 1
         except StopIteration:

@@ -151,6 +151,27 @@ def diag_case():
     if spats._case_errors:
         raise Exception("Case failed")
 
+def parse_to_db():
+    from spats.db import PairDB
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    db = PairDB(bp + "test.db")
+    db.wipe()
+    db.setup()
+    count = db.parse(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
+                     bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
+    print "Parsed {} records".format(count)
+    db.index()
+
+def test_db():
+    from spats.db import PairDB
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    db = PairDB(bp + "test.db")
+    print db.count()
+    print db.unique_r1()
+    print db.unique_r2()
+    print db.max_r1()
+    print db.max_r2()
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()

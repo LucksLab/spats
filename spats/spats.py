@@ -372,7 +372,7 @@ class Spats(object):
                 if not pairs:
                     break
                 for lines in pairs:
-                    pair.set_from_data(lines[0].split(' ')[0], lines[1].rstrip('\n'), lines[2].rstrip('\n'))
+                    pair.set_from_data(lines[0], lines[1], lines[2])
                     self.process_pair(pair)
                     if not pair.mask:
                         chucked += 1
