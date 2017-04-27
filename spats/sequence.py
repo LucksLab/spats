@@ -1,5 +1,4 @@
 
-from config import spats_config
 from util import _debug, reverse_complement
 
 class Sequence(object):
@@ -62,10 +61,7 @@ class Sequence(object):
 
     def find_in_target(self, target, reverse_complement = False):
         seq = self.reverse_complement if reverse_complement else self.subsequence
-        self.match_start, self.match_len, self.match_index = target.find_partial(seq, 2 * spats_config.minimum_target_match_length)
-        if not self.match_len:
-            # it's much faster to search for longer partial matches, then fall back on the minimum
-            self.match_start, self.match_len, self.match_index = target.find_partial(seq, spats_config.minimum_target_match_length)
+        self.match_start, self.match_len, self.match_index = target.find_partial(seq)
 
     def trim(self, length, reverse_complement = False):
         self._rtrim = length

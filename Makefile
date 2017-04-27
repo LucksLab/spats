@@ -6,7 +6,7 @@ none :
 
 PYENV = PYTHONPATH=.
 TOOLS_DIR = tools
-TEST_PKG = spats.tests.test_spats
+TEST_PKG = spats.tests
 
 # unit tests
 
@@ -18,10 +18,11 @@ unit :
 test : unit
 
 # for some subset of tests:
-# make u.[class]
-# make u.[class].[function]
+# make u.[module]
+# make u.[module]:[class]
+# make u.[module]:[class].[function]
 u.%:
-	${PYENV} python -m unittest $(patsubst u.%, ${TEST_PKG}.%, $@)
+	nosetests $(patsubst u.%, ${TEST_PKG}.%, $@)
 
 
 # runs a method in tests/misc.py
