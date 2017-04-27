@@ -6,8 +6,8 @@ def sp(n, bit = " "):
 
 class Diagram(object):
 
-    def __init__(self, target, pair):
-        self.target = target
+    def __init__(self, pair):
+        self.target = pair.target
         self.pair = pair
         self.prefix_len = 8
         self.bars = []
@@ -208,5 +208,5 @@ class Diagram(object):
 
         return "\n".join(self.lines)
 
-def diagram(target, pair):
-    return Diagram(target, pair).make()
+def diagram(pair):
+    return Diagram(pair).make()

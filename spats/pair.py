@@ -10,8 +10,9 @@ class Pair(object):
         self.identifier = None
         self.r1 = Sequence()
         self.r2 = Sequence()
-        self.site = None
         self.mask = None
+        self.target = None
+        self.site = None
         self.failure = None
         self.multiplicity = 1
 
@@ -40,11 +41,11 @@ class Pair(object):
 
     @property
     def matched(self):
-        return (self.r1.match_len and self.r2.match_len)
+        return (self.target and self.r1.match_len and self.r2.match_len)
 
     @property
     def has_site(self):
-        return bool(self.site is not None)
+        return (self.target and self.site is not None)
 
     @property
     def left(self):
@@ -55,6 +56,5 @@ class Pair(object):
         return self.r1.right
 
     def register_count(self):
-        self.mask.kept += self.multiplicity
         self.site = self.left
-        self.mask.counts[self.site] += self.multiplicity
+        self.mask.register_count(self.target, self.site, self.multiplicity)

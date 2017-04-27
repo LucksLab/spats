@@ -161,7 +161,7 @@
 # Spats class.
 #
 # the key to the algorithm is step (a), which is implemented by the
-# Target class, in particular Target.find_partial
+# Targets class, in particular Targets.find_partial
 #
 # s_i, l_i, i_i are referred to as match_start, match_len, and
 # match_index in the code (in Sequence class). a_i and b_i are
@@ -182,14 +182,14 @@ from mask import Mask, longest_match
 from pair import Pair
 from parse import FastFastqParser, fasta_parse
 from profiles import Profiles
-from target import Target
+from target import Targets
 from util import _warn, _debug, reverse_complement, string_match_errors
 
 
 class Spats(object):
 
     def __init__(self):
-        self._targets = []
+        self._targets = Targets()
         self._masks = []
         self._maskSize = 0
         self._adapter_t_rc = 0
@@ -198,33 +198,23 @@ class Spats(object):
         self.processed_pairs = 0
         self.chucked_pairs = 0
 
-        # temporary...
-        self._target = None
-            
-    def addTargets(self, *target_paths):
-        if self._masks:
-            raise Exception("Targets must be added before adding masks")
-        for path in target_paths:
-            for name, seq in fasta_parse(path):
-                target = Target(name, seq)
-                if spats_config.minimum_target_match_length:
-                    target.minimum_match_length = spats_config.minimum_target_match_length
-                    target.index()
-                else:
-                    target.index()
-                    target.minimum_match_length = 1 + target.longest_self_match()
-                self._targets.append(target)
-                # temporary...
-                if not self._target:
-                    self._target = target
-
     def addMasks(self, *args):
-        if not self._targets:
-            raise Exception("Targets must be added before adding masks")
         for arg in args:
-            mask = Mask(arg, self._target.n)
+            mask = Mask(arg)
             self._masks.append(mask)
             self._maskSize = max(self._maskSize, len(arg))
+
+    def addTargets(self, *target_paths):
+        target = self._targets
+        for path in target_paths:
+            for name, seq in fasta_parse(path):
+                target.addTarget(name, seq)
+        if spats_config.minimum_target_match_length:
+            target.minimum_match_length = spats_config.minimum_target_match_length
+            target.index()
+        else:
+            target.index()
+            target.minimum_match_length = 1 + target.longest_self_match()
 
     @property
     def adapter_t_rc(self):
@@ -243,8 +233,11 @@ class Spats(object):
                 return
 
     def _find_matches(self, pair):
-        pair.r1.find_in_target(self._target, reverse_complement = True)
-        pair.r2.find_in_target(self._target)
+        # use R1 to determine which target
+        target = pair.r1.find_in_targets(self._targets, reverse_complement = True)
+        if not target:
+            return
+        pair.target = pair.r2.find_in_targets(self._targets, force_target = target)
         _debug([pair.r1.match_start, pair.r1.match_len, pair.r1.match_index, "--", pair.r2.match_start, pair.r2.match_len, pair.r2.match_index])
 
     def _trim_adapters(self, pair):
@@ -253,7 +246,7 @@ class Spats(object):
 
         r2_seq = pair.r2.subsequence
         r2_start_in_target = pair.r2.match_index - pair.r2.match_start
-        r2_len_should_be = self._target.n - r2_start_in_target
+        r2_len_should_be = pair.target.n - r2_start_in_target
         r2_length_to_trim = pair.r2.seq_len - r2_len_should_be
         pair.r2.trim(r2_length_to_trim)
         _debug("R2 trim: {}, {}, {}".format(r2_start_in_target, r2_len_should_be, r2_length_to_trim))
@@ -323,7 +316,7 @@ class Spats(object):
         if r2_start_in_target < 0:
             pair.failure = "R2 to left of site 0 failure on R2 for: {}".format(pair.identifier)
             return
-        elif r2_start_in_target + pair.r2.original_len <= self._target.n:
+        elif r2_start_in_target + pair.r2.original_len <= pair.target.n:
             # we're in the middle -- no problem
             pass
         elif not self._trim_adapters(pair):
@@ -341,9 +334,9 @@ class Spats(object):
             # set the match to be the rest of the (possibly trimmed) sequence, and count errors
             pair.r1.match_to_seq(reverse_complement = True)
             pair.r2.match_to_seq()
-            target = self._target.seq
-            pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement, target[pair.r1.match_index:])
-            pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target[pair.r2.match_index:])
+            target_seq = pair.target.seq
+            pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement, target_seq[pair.r1.match_index:])
+            pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
 
             if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > spats_config.allowed_target_errors:
                 if pair.r1.match_errors:
@@ -353,7 +346,7 @@ class Spats(object):
                 pair.failure = "match errors failure"
                 return
 
-        n = self._target.n
+        n = pair.target.n
         assert(pair.matched and pair.left >= 0 and pair.left <= n)
 
         # NOTE: this might change later due to "starts"
@@ -384,7 +377,7 @@ class Spats(object):
                         chucked += 1
                     elif pair.has_site:
                         processed +=1
-            pairs_to_do.put((chucked, processed, [(m.total, m.kept, m.counts) for m in self._masks]))
+            pairs_to_do.put((chucked, processed, [(m.total, m.kept, m.count_data()) for m in self._masks]))
 
         threads = []
         num_workers = max(1, spats_config.num_workers)
@@ -416,6 +409,7 @@ class Spats(object):
             thd.join()
 
         try:
+            targets = { t.name : t for t in self._targets.targets }
             while True:
                 data = pairs_to_do.get_nowait()
                 self.chucked_pairs += data[0]
@@ -425,9 +419,7 @@ class Spats(object):
                     d = data[2][i]
                     m.total += d[0]
                     m.kept += d[1]
-                    counts = d[2]
-                    for j in range(len(counts)):
-                        m.counts[j] += counts[j]
+                    m.update_with_count_data(d[2], targets)
         except Queue.Empty:
             pass
         self.total_pairs += total_pairs

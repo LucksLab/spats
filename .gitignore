@@ -10,3 +10,4 @@ tmp
 *.lprof
 .DS_Store
 *.egg-info
+.idea

@@ -85,13 +85,19 @@ class FastFastqParser(object):
 def fasta_parse(target_path):
     pairs = []
     with open(target_path, 'rb') as infile:
+        def nextline():
+            while True:
+                l = infile.readline()
+                if len(l) == 0:
+                    return l
+                l = l.strip('>\n')
+                if 0 < len(l):
+                    return l
         while True:
-            line = infile.readline()
-            if 0 == len(line):
+            name = nextline()
+            if not name:
                 break
-            name = line.strip('>\n')
-            line = infile.readline()
-            seq = line.strip()
+            seq = nextline()
             if name and seq:
                 pairs.append((name, seq))
     return pairs

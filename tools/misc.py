@@ -28,7 +28,7 @@ def profile_run():
           bp + "t11",
           show_sites = False)
     #Parsed 2057352 records in 6.4s
-    #Processed 2011754 properly paired fragments, kept 156919/1019531 (15.4%) treated, 279684/992223 (28.2%) untreated (16.0s)
+    #Processed 403032 properly paired fragments, kept 156919/1019531 (15.4%) treated, 279684/992223 (28.2%) untreated (16.0s)
 
 def run_5sq():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
@@ -132,15 +132,17 @@ def diag_case():
     from spats.pair import Pair
     from spats.tests.test_pairs import cases
     from diagram import diagram
-    spats = Spats("test/5s/5s.fa", "test/5s")
-    spats.setup()
+    spats_config.minimum_target_match_length = 8
+    spats = Spats()
+    spats.addMasks('RRRY', 'YYYR')
+    spats.addTargets("test/5s/5s.fa")
     spats_config.debug = True
     spats._case_errors = False
     def run_case(case):
         pair = Pair()
         pair.set_from_data(case[0], case[1], case[2])
         spats.process_pair(pair)
-        print diagram(spats._target, pair)
+        print diagram(pair)
         if case[3] != pair.site:
             spats._case_errors = True
             print "******* mismatch: {} != {}".format(case[3], pair.site)

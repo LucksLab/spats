@@ -42,7 +42,6 @@ cases = [
     [ '2116:14830:22969', 'CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG', 'TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG', None ],
     [ '1101:10344:11542', 'TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT', 'CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT', 116 ],
     [ '1115:24186:4558', 'TTTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA', 'ACTCGGGCACCAAAGACCAAAAGATCGGAAGAGCG', None ],
-    [ '1109:22737:14675', 'TCCAGTCCTTGGAGATCGGAAGAGCACACGTCTGA', 'CCAAGGACTGGAAGATCGGAAGAGCGTCGTGTAGG', 135 ],
     [ '1108:11212:15952', 'TTTGGTCCTTGGTGCCCGAGTCAGAGACGGAAGAG', 'CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA', None ],
     [ '1107:6287:7763', 'TCTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA', 'CTGACTCGGGCACCAAGGACCAGAAGATCGAAGAG', None ],
     [ '1102:16621:23746', 'TCCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG', 'TGACTCGGGCACCAAGGCCTGGAAGAACGGAAGAA', None ],
@@ -92,3 +91,18 @@ class TestPairs(Target5STest):
         pair.set_from_data("x", 'CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG', 'TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG')
         self.spats.process_pair(pair)
         print "{} / {}".format(pair.site, pair.failure)
+
+    def test_minimum_length(self):
+        # minimum_target_match_length auto on 5s should be 10
+        self.assertEqual(11, self.spats._targets.minimum_match_length)
+        case = [ '1109:22737:14675', 'TCCAGTCCTTGGAGATCGGAAGAGCACACGTCTGA', 'CCAAGGACTGGAAGATCGGAAGAGCGTCGTGTAGG', None ]
+        self.run_case(case)
+        # this case only matches in the minimum length is set to 8
+        spats_config.minimum_target_match_length = 8
+        from spats import Spats
+        self.spats = Spats()
+        self.spats.addTargets("test/5s/5s.fa")
+        self.spats.addMasks('RRRY', 'YYYR')
+        case[3] = 135
+        self.run_case(case)
+        

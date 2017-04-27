@@ -7,13 +7,14 @@ class Profiles(object):
     def __init__(self, targets, masks):
         self._targets = targets
         self._masks = masks
-        self._target = targets[0]
+        # TODO: handle multiple targets
+        self._target = self._targets.targets[0]
 
     def compute(self):
         # TODO: use numpy here ?
         n = self._target.n
-        treated_counts = self._masks[0].counts
-        untreated_counts = self._masks[1].counts
+        treated_counts = self._masks[0].counts(self._target)
+        untreated_counts = self._masks[1].counts(self._target)
         betas = [ 0 for x in range(n+1) ]
         thetas = [ 0 for x in range(n+1) ]
         treated_sum = 0.0    # keep a running sum

@@ -59,9 +59,10 @@ class Sequence(object):
     def trimmed(self):
         return (0 != self._rtrim)
 
-    def find_in_target(self, target, reverse_complement = False):
+    def find_in_targets(self, targets, reverse_complement = False, force_target = None):
         seq = self.reverse_complement if reverse_complement else self.subsequence
-        self.match_start, self.match_len, self.match_index = target.find_partial(seq)
+        target, self.match_start, self.match_len, self.match_index = targets.find_partial(seq, force_target = force_target)
+        return target
 
     def trim(self, length, reverse_complement = False):
         self._rtrim = length
