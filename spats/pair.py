@@ -13,12 +13,14 @@ class Pair(object):
         self.site = None
         self.mask = None
         self.failure = None
+        self.multiplicity = 1
 
-    def set_from_data(self, identifier, r1_seq, r2_seq):
+    def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()
         self.identifier = identifier
         self.r1.set_seq(r1_seq)
         self.r2.set_seq(r2_seq)
+        self.multiplicity = multiplicity
 
     def set_from_records(self, r1_record, r2_record):
         if not r1_record.identifier or r1_record.identifier != r2_record.identifier:
@@ -53,6 +55,6 @@ class Pair(object):
         return self.r1.right
 
     def register_count(self):
-        self.mask.kept += 1
+        self.mask.kept += self.multiplicity
         self.site = self.left
-        self.mask.counts[self.site] += 1
+        self.mask.counts[self.site] += self.multiplicity

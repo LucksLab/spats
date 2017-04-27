@@ -177,6 +177,7 @@ import Queue
 import time
 
 from config import spats_config
+from db import PairDB
 from mask import Mask, longest_match
 from pair import Pair
 from parse import FastFastqParser, fasta_parse
@@ -363,7 +364,7 @@ class Spats(object):
         pair.register_count()
 
     #@profile
-    def process_pair_data(self, data_r1_path, data_r2_path, max_pairs = 0):
+    def process_pair_data(self, data_r1_path, data_r2_path):
 
         pairs_to_do = multiprocessing.Queue()
 
@@ -377,7 +378,7 @@ class Spats(object):
                 if not pairs:
                     break
                 for lines in pairs:
-                    pair.set_from_data(lines[0], lines[1], lines[2])
+                    pair.set_from_data('x', lines[1], lines[2], lines[0])
                     self.process_pair(pair)
                     if not pair.mask:
                         chucked += 1
@@ -396,21 +397,18 @@ class Spats(object):
         total_pairs = 0
         start = time.time()
 
-        with FastFastqParser(data_r1_path, data_r2_path) as parser:
-            chunk_size = 16384
-            while True:
-                pairs, count = parser.read(chunk_size if not max_pairs else min(chunk_size, max_pairs - total_pairs))
-                if not pairs:
-                    break
-                total_pairs += count
-                pairs_to_do.put(pairs)
-                if max_pairs and total_pairs >= max_pairs:
-                    break
+        db = PairDB()
+        db.setup()
+        total_pairs = db.parse(data_r1_path, data_r2_path)
 
+        report = "Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start)
         if spats_config.quiet:
-            _debug("Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start))
+            _debug(report)
         else:
-            print "Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start)
+            print report
+
+        for pair_info in db.unique_pairs_with_counts(batch_size = 16384):
+            pairs_to_do.put(pair_info)
 
         for thd in threads:
             pairs_to_do.put(None) # just a dummy object to signal we're done

@@ -26,9 +26,9 @@ def profile_run():
           bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
           bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
           bp + "t11",
-          show_sites = False,
-          max_pairs = 0)
-    #Processed 64052 properly paired fragments, kept 4936/32073 (15.4%) treated, 8900/31979 (27.830764%) untreated
+          show_sites = False)
+    #Parsed 2057352 records in 6.4s
+    #Processed 2011754 properly paired fragments, kept 156919/1019531 (15.4%) treated, 279684/992223 (28.2%) untreated (16.0s)
 
 def run_5sq():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
@@ -55,14 +55,14 @@ def misc():
               bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq", 
               bp + "t4")
 
-def spats(target, r1, r2, out, show_sites = True, max_pairs = 0):
+def spats(target, r1, r2, out, show_sites = True):
     from spats import Spats, spats_config
     s = Spats()
     s.addTargets(target)
     s.addMasks("RRRY", "YYYR")
     if show_sites:
         spats_config.show_id_to_site = True
-    s.process_pair_data(r1, r2, max_pairs)
+    s.process_pair_data(r1, r2)
     if not show_sites:
         s.compute_profiles()
         s.write_reactivities(out + "/rx.out")
@@ -167,10 +167,17 @@ def test_db():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
     db = PairDB(bp + "test.db")
     print db.count()
-    print db.unique_r1()
-    print db.unique_r2()
-    print db.max_r1()
-    print db.max_r2()
+    print db.unique_pairs()
+    #print db.unique_2()
+    #print db.max_r1()
+    #print db.max_r2()
+    distinct = 0
+    s = 0
+    for batch in db.unique_pairs_with_counts(batch_size = 16384):
+        for pair_info in batch:
+            distinct += 1
+            s += pair_info[0]
+    print "D: {}, S: {}".format(distinct, s)
 
 if __name__ == "__main__":
     import sys

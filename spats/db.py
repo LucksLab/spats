@@ -5,8 +5,8 @@ from parse import FastFastqParser
 
 class PairDB(object):
 
-    def __init__(self, database_path):
-        self._dbpath = database_path
+    def __init__(self, database_path = None):
+        self._dbpath = database_path or ":memory:"
         self.conn = sqlite3.connect(self._dbpath)
 
     def wipe(self):
@@ -51,8 +51,24 @@ class PairDB(object):
     def unique_r2(self):
         return self._fetch_one("SELECT COUNT(distinct r2) from pair")
 
+    def unique_pairs(self):
+        return self._fetch_one("SELECT COUNT(distinct r1||r2) from pair")
+
     def max_r1(self):
         return self._fetch_one("SELECT COUNT(rowid) as cnt from pair group by r1 order by cnt desc limit 1")
 
     def max_r2(self):
         return self._fetch_one("SELECT COUNT(rowid) as cnt from pair group by r2 order by cnt desc limit 1")
+
+    def unique_pairs_with_counts(self, batch_size = 0):
+        batch = []
+        count = 0
+        for result in self.conn.execute("SELECT count(rowid), r1, r2 as cnt from pair group by (r1||r2)"):
+            batch.append((int(result[0]), str(result[1]), str(result[2])))
+            count += 1
+            if batch_size and count >= batch_size:
+                cur = batch
+                batch = []
+                count = 0
+                yield cur
+        yield batch
