@@ -438,7 +438,7 @@ class Spats(object):
         m1 = self._masks[1]
         format_str = "Processed {tot} properly paired fragments, " + \
                      "kept {kept0}/{tot0} ({pct0:.1f}%) treated, " + \
-                     "{kept1}/{tot1} ({pct1:1f}%) untreated"
+                     "{kept1}/{tot1} ({pct1:.1f}%) untreated"
         if delta:
             format_str += " ({:.1f}s)".format(delta)
         print format_str.format(tot = m0.total + m1.total,
