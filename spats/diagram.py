@@ -1,8 +1,10 @@
 
 import string
 
-from spats import reverse_complement, spats_config
-from spats.target import _Target
+from config import spats_config
+from target import _Target
+from util import reverse_complement
+
 
 indeterminate_translator = string.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ"," ! !!! !!!!!!!!!!!! !!!!!!")
 

@@ -257,7 +257,7 @@ class Spats(object):
             _debug("  !! v102 minimum adapter len {}".format(r2_length_to_trim - 4))
             return False
 
-        if r2_length_to_trim < 4:
+        if r2_length_to_trim <= 4:
             # TODO: should we verify that this matches RC of R1 handle, and register errors for bp that don't?
             # for now, just ignore this part
             # also, this means that there's nothing to trim from R1, so we're done
@@ -491,6 +491,7 @@ class Spats(object):
     def compute_profiles(self):
         self._profiles = Profiles(self._targets, self._masks)
         self._profiles.compute()
+        return self._profiles
 
     def write_reactivities(self, target_path):
         self._profiles.write(target_path)
