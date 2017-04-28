@@ -171,7 +171,6 @@ def parse_to_db():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
     db = PairDB(bp + "test.db")
     db.wipe()
-    db.setup()
     count = db.parse(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
                      bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
     print "Parsed {} records".format(count)
@@ -193,6 +192,12 @@ def test_db():
             distinct += 1
             s += pair_info[0]
     print "D: {}, S: {}".format(distinct, s)
+
+def test_v102_db():
+    from spats.db import PairDB
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    db = PairDB(bp + "test.db")
+    db.add_v102_comparison(bp + "5s/5S.fa", bp + "5S-2p1-18x/spats_out")
 
 if __name__ == "__main__":
     import sys

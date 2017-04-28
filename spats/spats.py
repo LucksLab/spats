@@ -394,10 +394,14 @@ class Spats(object):
         start = time.time()
 
         db = PairDB()
-        db.setup()
         total_pairs = db.parse(data_r1_path, data_r2_path)
-
         report = "Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start)
+
+        # unclear if this helps, but potentially useful for further analysis later, and doesn't cost *too* much
+        # but if it's holding this up, nuke it
+        db.index()
+        report += ", indexed in {:.1f}s".format(time.time() - start)
+
         if spats_config.quiet:
             _debug(report)
         else:
