@@ -183,7 +183,7 @@ from pair import Pair
 from parse import FastFastqParser, fasta_parse
 from profiles import Profiles
 from target import Targets
-from util import _warn, _debug, reverse_complement, string_match_errors
+from util import _warn, _debug, Counters, reverse_complement, string_match_errors
 
 
 class Spats(object):
@@ -194,10 +194,7 @@ class Spats(object):
         self._maskSize = 0
         self._adapter_t_rc = 0
         self._profiles = None
-        self.total_pairs = 0
-        self.processed_pairs = 0
-        self.chucked_pairs = 0
-        self.multiple_R1_match_pairs = 0
+        self.counters = Counters()
 
     def addMasks(self, *args):
         for arg in args:
@@ -238,11 +235,10 @@ class Spats(object):
         target = pair.r1.find_in_targets(self._targets, reverse_complement = True)
         if isinstance(target, list):
             _debug("dropping pair due to multiple R1 match")
-            self.multiple_R1_match_pairs += 1
+            self.counters.multiple_R1_match += pair.multiplicity
             return
-        elif not target:
-            return
-        pair.target = pair.r2.find_in_targets(self._targets, force_target = target)
+        if target:
+            pair.target = pair.r2.find_in_targets(self._targets, force_target = target)
         _debug([pair.r1.match_start, pair.r1.match_len, pair.r1.match_index, "--", pair.r2.match_start, pair.r2.match_len, pair.r2.match_index])
 
     def _trim_adapters(self, pair):
@@ -304,15 +300,18 @@ class Spats(object):
 
         if not spats_config.allow_indeterminate  and  not pair.is_determinate():
             pair.failure = "indeterminate sequence failure"
+            self.counters.indeterminate += pair.multiplicity
             return
 
         self._match_mask(pair)
         if not pair.mask:
+            self.counters.mask_failure += pair.multiplicity
             pair.failure = "mask failure"
             return
 
         self._find_matches(pair)
         if not pair.matched:
+            self.counters.unmatched += pair.multiplicity
             pair.failure = "no match"
             return
 
@@ -320,6 +319,7 @@ class Spats(object):
         r2_start_in_target = pair.r2.match_index - pair.r2.match_start
         if r2_start_in_target < 0:
             pair.failure = "R2 to left of site 0 failure on R2 for: {}".format(pair.identifier)
+            self.counters.left_of_target += pair.multiplicity
             return
         elif r2_start_in_target + pair.r2.original_len <= pair.target.n:
             # we're in the middle -- no problem
@@ -327,10 +327,11 @@ class Spats(object):
         elif not self._trim_adapters(pair):
             # we're over the right edge, and adapter trimming failed
             pair.failure = pair.failure or "adapter trim failure"
+            self.counters.adapter_trim_failure += pair.multiplicity
             return
         else:
             # we're at the right and trimming went ok, cool
-            pass
+            self.counters.adapter_trimmed += pair.multiplicity
 
         if pair.r2.match_len == pair.r2.seq_len  and  pair.r1.match_len == pair.r1.seq_len:
             # everything that wasn't adapter trimmed was matched -- nothing to do
@@ -349,6 +350,7 @@ class Spats(object):
                 if pair.r2.match_errors:
                     _debug("R2 errors: {}".format(pair.r2.match_errors))
                 pair.failure = "match errors failure"
+                self.counters.match_errors += pair.multiplicity
                 return
 
         n = pair.target.n
@@ -357,9 +359,11 @@ class Spats(object):
         # NOTE: this might change later due to "starts"
         if pair.right != n:
             pair.failure = "R1 right edge failure: {} - {}, n={}".format(pair.left, pair.right, n)
+            self.counters.r1_not_on_right_edge += pair.multiplicity
             return
 
         pair.register_count()
+        self.counters.processed_pairs += pair.multiplicity
 
     #@profile
     def process_pair_data(self, data_r1_path, data_r2_path):
@@ -368,21 +372,15 @@ class Spats(object):
 
         #@profile
         def worker(x):
-            chucked = 0
-            processed = 0
             pair = Pair()
             while True:
                 pairs = pairs_to_do.get()
                 if not pairs:
                     break
                 for lines in pairs:
-                    pair.set_from_data('x', lines[1], lines[2], lines[0])
+                    pair.set_from_data('', lines[1], lines[2], lines[0])
                     self.process_pair(pair)
-                    if not pair.mask:
-                        chucked += 1
-                    elif pair.has_site:
-                        processed +=1
-            pairs_to_do.put((chucked, processed, [(m.total, m.kept, m.count_data()) for m in self._masks]))
+            pairs_to_do.put((self.counters._counts, [(m.total, m.kept, m.count_data()) for m in self._masks]))
 
         threads = []
         num_workers = max(1, spats_config.num_workers)
@@ -417,39 +415,46 @@ class Spats(object):
             targets = { t.name : t for t in self._targets.targets }
             while True:
                 data = pairs_to_do.get_nowait()
-                self.chucked_pairs += data[0]
-                self.processed_pairs += data[1]
+                their_counters = data[0]
+                our_counters = self.counters._counts
+                for key, value in their_counters.iteritems():
+                    if key != "_counts":
+                        our_counters[key] = our_counters.get(key, 0) + value
                 for i in range(len(self._masks)):
                     m = self._masks[i]
-                    d = data[2][i]
+                    d = data[1][i]
                     m.total += d[0]
                     m.kept += d[1]
                     m.update_with_count_data(d[2], targets)
         except Queue.Empty:
             pass
-        self.total_pairs += total_pairs
+        self.counters.total_pairs += total_pairs
 
         if not spats_config.quiet:
             self.report_counts(time.time() - start)
 
 
     def report_counts(self, delta = None):
-        m0 = self._masks[0]
-        m1 = self._masks[1]
-        format_str = "Processed {tot} properly paired fragments, " + \
-                     "kept {kept0}/{tot0} ({pct0:.1f}%) treated, " + \
-                     "{kept1}/{tot1} ({pct1:.1f}%) untreated"
+        total = self.counters.total_pairs
+        print "Successfully processed {} properly paired fragments:".format(self.counters.processed_pairs)
+        warn_keys = [ "multiple_R1_match", ]
+        countinfo = self.counters.counts_dict()
+        for key in sorted(countinfo.keys(), key = lambda k : countinfo[k], reverse = True):
+            print "  {}{} : {} ({:.1f}%)".format("*** " if key in warn_keys else "", key, countinfo[key], 100.0 * (float(countinfo[key])/float(total)) if total else 0)
+        print "Masks:"
+        tmap = { t.name : 0 for t in self._targets.targets }
+        for m in self._masks:
+            print "  {}: kept {}/{} ({:.1f}%)".format(m.chars, m.kept, m.total, (100.0 * float(m.kept)) / float(m.total) if m.total else 0)
+        for t in self._targets.targets:
+            tmap[t.name] += sum(m.counts(t))
+        if 1 < len(self._targets.targets):
+            print "Targets:"
+            total = self.counters.processed_pairs
+            for tgt in sorted(self._targets.targets, key = lambda t : tmap[t.name], reverse = True):
+                if tmap[tgt.name] > 0:
+                    print "  {}: {} ({:.1f}%)".format(tgt.name, tmap[tgt.name], (100.0 * float(tmap[tgt.name])) / float(total) if total else 0)
         if delta:
-            format_str += " ({:.1f}s)".format(delta)
-        print format_str.format(tot = m0.total + m1.total,
-                                kept0 = m0.kept,
-                                tot0 = m0.total,
-                                pct0 = (100.0 * float(m0.kept)) / float(m0.total),
-                                kept1 = m1.kept,
-                                tot1 = m1.total,
-                                pct1 = (100.0 * float(m1.kept)) / float(m1.total))
-        if self.multiple_R1_match_pairs > 0:
-            print " *** Warning: dropped {} pairs due to multiple R1 matches.".format(self.multiple_R1_match_pairs)
+            print "Total time: ({:.1f}s)".format(delta)
 
     def compute_profiles(self):
         self._profiles = Profiles(self._targets, self._masks)

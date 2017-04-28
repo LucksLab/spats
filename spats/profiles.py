@@ -41,7 +41,7 @@ class Profiles(object):
                     running_c_sum -= math.log(1.0 - betas[k])
 
         c = running_c_sum
-        c_factor = 1.0 / c
+        c_factor = 1.0 / c if c else 1.0
         for k in range(n+1):
             thetas[k] = max(c_factor * thetas[k], 0)
         self.treated_counts = treated_counts

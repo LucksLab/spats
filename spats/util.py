@@ -26,3 +26,24 @@ def string_match_errors(substr, target_str, max_errors = None):
             if max_errors and len(errors) >= max_errors:
                 return errors
     return errors
+
+class Counters(object):
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self._counts = {}
+
+    def __getattr__(self, key):
+        if key == "_counts":
+            return super.__getattr__(self, key)
+        return self._counts.get(key, 0)
+
+    def __setattr__(self, key, value):
+        if key == "_counts":
+            super.__setattr__(self, key, value)
+        self._counts[key] = value
+
+    def counts_dict(self):
+        return { key : value for key, value in self._counts.iteritems() if key != "_counts" }

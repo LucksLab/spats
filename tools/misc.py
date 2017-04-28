@@ -30,6 +30,19 @@ def profile_run():
     #Parsed 2057352 records in 6.4s
     #Processed 403032 properly paired fragments, kept 156919/1019531 (15.4%) treated, 279684/992223 (28.2%) untreated (16.0s)
 
+def ligation_run():
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/"
+    from spats import spats_config
+    #spats_config.debug = True
+    spats_config.minimum_target_match_length = 10
+    spats(bp + "panel_RNAs_complete.fa",
+          bp + "data/KEW1_S1_L001_R1_001.fastq",
+          bp + "data/KEW1_S1_L001_R2_001.fastq",
+          bp + "dev_out",
+          show_sites = False)
+    #Parsed 2057352 records in 6.4s
+    #Processed 403032 properly paired fragments, kept 156919/1019531 (15.4%) treated, 279684/992223 (28.2%) untreated (16.0s)
+
 def run_5sq():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
     spats(bp + "5S.fa",
