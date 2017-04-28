@@ -5,11 +5,12 @@ from config import spats_config
 
 
 def _warn(stuff):
-    print stuff
+    spats_config.log.write(str(stuff) + "\n")
 
 def _debug(stuff):
     if spats_config.debug:
-        print stuff
+        spats_config.log.write(str(stuff) + "\n")
+
 
 rev_comp_complementor = string.maketrans("ATCGatcg", "TAGCtagc")
 

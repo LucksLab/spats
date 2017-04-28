@@ -195,6 +195,7 @@ class Spats(object):
         self._adapter_t_rc = 0
         self._profiles = None
         self.counters = Counters()
+        self.writeback_results = False
 
     def addMasks(self, *args):
         for arg in args:
@@ -365,34 +366,8 @@ class Spats(object):
         pair.register_count()
         self.counters.processed_pairs += pair.multiplicity
 
-    #@profile
-    def process_pair_data(self, data_r1_path, data_r2_path):
-
-        pairs_to_do = multiprocessing.Queue()
-
-        #@profile
-        def worker(x):
-            pair = Pair()
-            while True:
-                pairs = pairs_to_do.get()
-                if not pairs:
-                    break
-                for lines in pairs:
-                    pair.set_from_data('', lines[1], lines[2], lines[0])
-                    self.process_pair(pair)
-            pairs_to_do.put((self.counters._counts, [(m.total, m.kept, m.count_data()) for m in self._masks]))
-
-        threads = []
-        num_workers = max(1, spats_config.num_workers)
-        for i in range(num_workers):
-            thd = multiprocessing.Process(target = worker, args = (i,))
-            threads.append(thd)
-            thd.start()
-        _debug("created {} workers".format(num_workers))
-
-        total_pairs = 0
+    def memory_db_from_pairs(self, data_r1_path, data_r2_path):
         start = time.time()
-
         db = PairDB()
         total_pairs = db.parse(data_r1_path, data_r2_path)
         report = "Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start)
@@ -406,8 +381,58 @@ class Spats(object):
             _debug(report)
         else:
             print report
+        return db
 
-        for pair_info in db.unique_pairs_with_counts(batch_size = 16384):
+    def process_pair_data(self, data_r1_path, data_r2_path):
+        self.process_pair_db(self.memory_db_from_pairs(data_r1_path, data_r2_path))
+    
+    #@profile
+    def process_pair_db(self, pair_db):
+
+        start = time.time()
+        writeback = self.writeback_results
+        if writeback:
+            pair_db.prepare_results()
+
+        pairs_to_do = multiprocessing.Queue()
+
+        #@profile
+        def worker(x):
+            pair = Pair()
+            writeback = self.writeback_results
+            while True:
+                pairs = pairs_to_do.get()
+                if not pairs:
+                    break
+                results = []
+                for lines in pairs:
+                    pair.set_from_data('', lines[1], lines[2], lines[0])
+                    self.process_pair(pair)
+                    if writeback:
+                        results.append((lines[3],
+                                        pair.target.name if pair.target else None,
+                                        pair.site if pair.has_site else -1,
+                                        pair.mask.chars if pair.mask else None,
+                                        pair.multiplicity,
+                                        pair.failure))
+                                        
+                if writeback:
+                    pair_db.add_results(results)
+
+            pairs_to_do.put((self.counters._counts, [(m.total, m.kept, m.count_data()) for m in self._masks]))
+
+        threads = []
+        num_workers = max(1, spats_config.num_workers)
+        for i in range(num_workers):
+            thd = multiprocessing.Process(target = worker, args = (i,))
+            threads.append(thd)
+            thd.start()
+        _debug("created {} workers".format(num_workers))
+
+        db_fn = pair_db.all_pairs if writeback else pair_db.unique_pairs_with_counts
+        for pair_info in db_fn(batch_size = 16384):
+            if not writeback:
+                self.counters.unique_pairs += len(pair_info)
             pairs_to_do.put(pair_info)
 
         for thd in threads:
@@ -432,7 +457,10 @@ class Spats(object):
                     m.update_with_count_data(d[2], targets)
         except Queue.Empty:
             pass
-        self.counters.total_pairs += total_pairs
+
+        self.counters.total_pairs += pair_db.count()
+        if writeback:
+            self.counters.unique_pairs = pair_db.unique_pairs()
 
         if not spats_config.quiet:
             self.report_counts(time.time() - start)

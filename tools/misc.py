@@ -199,6 +199,71 @@ def test_v102_db():
     db = PairDB(bp + "test.db")
     db.add_v102_comparison(bp + "5s/5S.fa", bp + "5S-2p1-18x/spats_out")
 
+def prepare_v102_comparison_db(db_path, targets_path, data_r1_path, data_r2_path, spats_out_path):
+    from spats import Spats
+    from spats.db import PairDB
+    db = PairDB(db_path)
+    db.wipe()
+    count = db.parse(data_r1_path, data_r2_path)
+    db.index()
+    print "Parsed and indexed {} data records.".format(count)
+    db.add_v102_comparison(targets_path, spats_out_path)
+    spats = Spats()
+    spats.addMasks('RRRY', 'YYYR')
+    spats.addTargets(targets_path)
+    print "Current build processing pair data..."
+    spats.writeback_results = True
+    spats.process_pair_db(db)
+    print "current missing from v102: {}".format(len(db.our_pairs_missing_from_v102()))
+    print "v102 missing from current: {}".format(len(db.v102_pairs_missing_from_ours()))
+    print "Ours differing from v102: {}".format(len(db.our_pairs_differing_from_v102()))
+
+def test_prep_v102_db():
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    prepare_v102_comparison_db(bp + "v102_cmp.db",
+                               bp + "5s/5S.fa",
+                               bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
+                               bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
+                               bp + "5S-2p1-18x/spats_out")
+
+def spats_check_results():
+    from spats.db import PairDB
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    db = PairDB(bp + "v102_cmp.db")
+    print "current missing from v102: {}".format(len(db.our_pairs_missing_from_v102()))
+    print "v102 missing from current: {}".format(len(db.v102_pairs_missing_from_ours()))
+    print "Ours differing from v102: {}".format(len(db.our_pairs_differing_from_v102()))
+    print "Ours missing or differing from v102: {}".format(len(db.our_pairs_nonmatching_v102()))
+    print "Reasons for v102 missing from current:"
+    for reason, count in db.v102_pairs_missing_from_ours_reasons():
+        print "  {}: {}".format(count, reason)
+
+def spats_show_deltas():
+    from spats import spats_config, Spats
+    from spats.db import PairDB
+    from spats.pair import Pair
+    from diagram import diagram
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    db = PairDB(bp + "v102_cmp.db")
+    spats_config.debug = True
+    spats_config.minimum_target_match_length = 8
+    spats = Spats()
+    spats.addMasks('RRRY', 'YYYR')
+    spats.addTargets(bp + '5s/5S.fa')
+    pair = Pair()
+    
+    for reason, count in db.v102_pairs_missing_from_ours_reasons():
+        print "  {}: {}".format(count, reason)
+        with open(bp + "s1/v102_delta_" + reason + ".out", 'wb') as outfile:
+            spats_config.log = outfile
+            for p in db.our_pairs_nonmatching_v102_for_reason(reason):
+                outfile.write("="*100 + "\n")
+                outfile.write("pair rowid: {}, v102 numeric id: {}, site: {}, NOMASK_R1: {}, NOMASK_R2: {}\n".format(p[0], p[4], p[5], p[6], p[7]))
+                pair.set_from_data(str(p[1]), str(p[2]), str(p[3]))
+                spats.process_pair(pair)
+                outfile.write("-"*100 + "\n")
+                outfile.write(diagram(pair) + "\n")
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()

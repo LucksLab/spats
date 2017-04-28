@@ -70,12 +70,11 @@ class PairDB(object):
         self.index()
         return self._fetch_one("SELECT COUNT(rowid) as cnt from pair group by r2 order by cnt desc limit 1")
 
-    def unique_pairs_with_counts(self, batch_size = 0):
+    def _batch_results(self, query, batch_size):
         batch = []
         count = 0
-        self.index()
-        for result in self.conn.execute("SELECT count(rowid), r1, r2 as cnt from pair group by (r1||r2)"):
-            batch.append((int(result[0]), str(result[1]), str(result[2])))
+        for result in self.conn.execute(query):
+            batch.append((int(result[0]), str(result[1]), str(result[2]), int(result[3])))
             count += 1
             if batch_size and count >= batch_size:
                 cur = batch
@@ -83,6 +82,13 @@ class PairDB(object):
                 count = 0
                 yield cur
         yield batch
+
+    def unique_pairs_with_counts(self, batch_size = 0):
+        return self._batch_results("SELECT count(rowid), r1, r2, rowid from pair group by (r1||r2)", batch_size)
+
+    def all_pairs(self, batch_size = 0):
+        print "Using all_pairs..."
+        return self._batch_results("SELECT 1, r1, r2, rowid from pair", batch_size)
 
     def add_targets_table(self, targets_path):
         from parse import fasta_parse
@@ -94,9 +100,26 @@ class PairDB(object):
         self.conn.executemany('INSERT INTO target (name, seq) VALUES (? , ?)', target_list)
         return { name : seq for name, seq in target_list }
 
+    # results storing
+    def prepare_results(self):
+        self.conn.execute("DROP TABLE IF EXISTS result")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result (pair_id INT, target INT, site INT, mask TEXT, multiplicity INT, failure TEXT)")
+        self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS pair_result_idx ON result (pair_id)")
+
+    # results a list of (rowid, target_name, site, mask, multiplicity)
+    def add_results(self, results):
+        # grab a new connection since this might be in a new process (due to multiprocessing)
+        conn = sqlite3.connect(self._dbpath)
+        cursor = conn.executemany('''INSERT INTO result (pair_id, target, site, mask, multiplicity, failure)
+                                     VALUES (?, (SELECT rowid FROM target WHERE name=?), ?, ?, ?, ?)''', results)
+        if cursor.rowcount != len(results):
+            print results
+            raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
+        conn.commit()
+
     #v102 delta analysis
     def _create_v102(self):
-        self.conn.execute("CREATE TABLE IF NOT EXISTS v102 (pair_id INT, numeric_id INT, target INT, site INT, nomask_r1 TEXT, nomask_r2 TEXT, mask TEST)")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS v102 (pair_id INT, numeric_id INT, target INT, site INT, nomask_r1 TEXT, nomask_r2 TEXT, mask TEXT)")
         self.conn.execute("CREATE INDEX IF NOT EXISTS pair_id_idx ON pair (identifier)")
 
     def _wipe_v102(self):
@@ -184,3 +207,53 @@ class PairDB(object):
                                                            WHERE v.site != -1 AND t.name=? AND mask=?
                                                            GROUP BY site
                                                            ORDER BY site''', (target_name, mask,)) }
+
+    def our_pairs_missing_from_v102(self):
+        return [ ( r[0], r[1], r[2],
+                   r[3], r[4], r[5] ) for r in self.conn.execute('''SELECT tr.name, r.site, r.mask, tv.name, v.site, v.mask
+                                                                    FROM result r
+                                                                    LEFT JOIN target tr ON r.target=tr.rowid
+                                                                    LEFT JOIN v102 v ON r.pair_id = v.pair_id
+                                                                    LEFT JOIN target tv ON v.target=tv.rowid
+                                                                    WHERE r.site != -1 AND (v.site = -1 or v.rowid IS NULL)''') ]
+
+    def v102_pairs_missing_from_ours(self):
+        return [ ( r[0], r[1], r[2],
+                   r[3], r[4], r[5] ) for r in self.conn.execute('''SELECT tr.name, r.site, r.mask, tv.name, v.site, v.mask
+                                                                    FROM v102 v
+                                                                    LEFT JOIN target tv ON v.target=tv.rowid
+                                                                    LEFT JOIN result r ON r.pair_id = v.pair_id
+                                                                    LEFT JOIN target tr ON r.target=tr.rowid
+                                                                    WHERE v.site != -1 AND (r.site=-1 OR r.rowid IS NULL)''') ]
+
+    def our_pairs_differing_from_v102(self):
+        return [ ( r[0], r[1], r[2],
+                   r[3], r[4], r[5] ) for r in self.conn.execute('''SELECT tr.name, r.site, r.mask, tv.name, v.site, v.mask
+                                                                    FROM result r
+                                                                    LEFT JOIN target tr ON r.target=tr.rowid
+                                                                    JOIN v102 v ON r.pair_id = v.pair_id
+                                                                    LEFT JOIN target tv ON v.target=tv.rowid
+                                                                    WHERE r.site != -1 AND v.site != -1 AND v.site != r.site''') ]
+
+    def our_pairs_nonmatching_v102(self):
+        return [ ( r[0], r[1], r[2],
+                   r[3], r[4], r[5] ) for r in self.conn.execute('''SELECT tr.name, r.site, r.mask, tv.name, v.site, v.mask
+                                                                    FROM result r
+                                                                    LEFT JOIN target tr ON r.target=tr.rowid
+                                                                    JOIN v102 v ON r.pair_id = v.pair_id
+                                                                    LEFT JOIN target tv ON v.target=tv.rowid
+                                                                    WHERE r.site != v.site''') ]
+
+    def v102_pairs_missing_from_ours_reasons(self):
+        return [ ( r[0], r[1] ) for r in self.conn.execute('''SELECT r.failure, COUNT(v.pair_id)
+                                                                    FROM v102 v
+                                                                    LEFT JOIN result r ON r.pair_id = v.pair_id
+                                                                    WHERE v.site != -1 AND (r.site=-1 OR r.rowid IS NULL)
+                                                                    GROUP BY r.failure''') ]
+
+    def our_pairs_nonmatching_v102_for_reason(self, reason):
+        return self.conn.execute('''SELECT p.rowid, p.identifier, p.r1, p.r2, v.numeric_id, v.site, v.nomask_r1, v.nomask_r2
+                                    FROM result r
+                                    JOIN pair p ON p.rowid = r.pair_id
+                                    JOIN v102 v ON r.pair_id = v.pair_id
+                                    WHERE r.site != v.site AND r.failure=?''', (reason,))

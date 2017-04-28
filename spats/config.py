@@ -1,5 +1,6 @@
 
 import multiprocessing
+import sys
 
 class SpatsConfig(object):
 
@@ -10,6 +11,7 @@ class SpatsConfig(object):
 
         self.debug = False
         self.quiet = False
+        self.log = sys.stdout
 
         # want to make this as large as possible for speed.
         # set to None to auto-set to (k+1) where k=longest self-match in the Target

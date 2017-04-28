@@ -1,5 +1,10 @@
 
+import string
+
 from spats import reverse_complement, spats_config
+from spats.target import _Target
+
+indeterminate_translator = string.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ"," ! !!! !!!!!!!!!!!! !!!!!!")
 
 def sp(n, bit = " "):
     return bit * n
@@ -7,7 +12,7 @@ def sp(n, bit = " "):
 class Diagram(object):
 
     def __init__(self, pair):
-        self.target = pair.target
+        self.target = pair.target or _Target('???', '?' * 100)
         self.pair = pair
         self.prefix_len = 8
         self.bars = []
@@ -68,6 +73,14 @@ class Diagram(object):
 
         if part.matched:
             return [ self.prefix_len + part.match_index, self.prefix_len + part.match_index + part.match_len - 1 ]
+        elif self.pair.failure == "indeterminate sequence failure":
+            d = sp(spaces)
+            if is_R1:
+                d += part.original_seq[:4].translate(indeterminate_translator) + "." + part.original_seq[4:].translate(indeterminate_translator)
+            else:
+                d += part.original_seq.translate(indeterminate_translator)
+            self._add_line(self._make_prefix("") + d)
+            return []
         else:
             d = sp(spaces)
             if is_R1:
