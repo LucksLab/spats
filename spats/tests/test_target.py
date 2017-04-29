@@ -29,10 +29,13 @@ class TestMultiple(unittest.TestCase):
         target.index()
         self.assertEqual(169, target.longest_self_match())
         t, s, l , i = target.find_partial("GGTCGGATGAAGATATGAGGAGAGATTTCATTTT")
-        print [x.name for x in t]
         self.assertEqual(5, len(t))
         t, s, l , i = target.find_partial("CGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCA")
         self.assertEqual("5S", t.name)
+        t, s, l , i = target.find_partial("CACTCGGGCACCAAGGACGG")
+        self.assertEqual(8, len(t))
+        t, s, l , i = target.find_partial("TCTTCCGATCTCACTCGGGCACCAAGGACGG")
+        self.assertEqual("Glycine_Riboswitch_GG_barcode_T", t.name)
 
 class TestTargetIndexing(unittest.TestCase):
     def test_index_srp(self):

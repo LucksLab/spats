@@ -17,6 +17,7 @@ def compare_v102(compare_results_path, targets_path, treated_mask, untreated_mas
     print "Parsed and indexed {} data records.".format(count)
     db.add_v102_comparison(targets_path, spats_out_path)
     spats = Spats()
+    spats_config.minimum_target_match_length = 10
     spats.addMasks(treated_mask, untreated_mask)
     spats.addTargets(targets_path)
     print "Current build processing pair data..."
@@ -65,3 +66,18 @@ def compare_v102(compare_results_path, targets_path, treated_mask, untreated_mas
         print "Wrote {} sites with beta/theta diff > {} to {}".format(sites_diff, beta_theta_compare_threshold, compare_results_path)
     else:
         print "All reactivities within {} threshold".format(beta_theta_compare_threshold)
+
+def diagram_case(db_path, rowid, targets_path, treated_mask, untreated_mask):
+    db = PairDB(db_path)
+    pair = Pair()
+    p = db.diagram_info(rowid)
+    print "pair rowid: {}, v102 numeric id: {}, site: {}, NOMASK_R1: {}, NOMASK_R2: {}".format(p[0], p[4], p[5], p[6], p[7])
+    pair.set_from_data(str(p[1]), str(p[2]), str(p[3]))
+
+    spats = Spats()
+    spats_config.minimum_target_match_length = 10
+    spats.addMasks(treated_mask, untreated_mask)
+    spats.addTargets(targets_path)
+    spats.process_pair(pair)
+    print diagram(pair)
+    

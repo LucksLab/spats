@@ -176,6 +176,24 @@ def test_compare_v102():
                  bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
                  bp + "5S-2p1-18x/spats_out")
 
+def test_compare_v102():
+    from spats.v102 import compare_v102
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    compare_v102(bp + "s4",
+                 bp + "datasets/Shape_Seq_ligation/panel_RNAs_complete.fa",
+                 'RRRY', 'YYYR',
+                 bp + "datasets/Shape_Seq_ligation/data/KEW1_S1_L001_R1_001.fastq",
+                 bp + "datasets/Shape_Seq_ligation/data/KEW1_S1_L001_R2_001.fastq",
+                 bp + "datasets/Shape_Seq_ligation/spats_out")
+
+def diagram_v102():
+    from spats.v102 import diagram_case
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    diagram_case(bp + "s4/pairs.db",
+                 14,
+                 bp + "datasets/Shape_Seq_ligation/panel_RNAs_complete.fa",
+                 'RRRY', 'YYYR')
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()

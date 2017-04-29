@@ -28,6 +28,8 @@ class Targets(object):
     def minimum_match_length(self, min_length):
         if min_length < self._index_word_length:
             raise Exception("minimum_length too short: {} < {}".format(min_length, self._index_word_length))
+        if min_length > 35:
+            raise Exception("minimum length {} is too long, do you need to manually set?".format(min_length))
         self._minimum_length = min_length
         # disable this warning for now
         if False and min_length - self._index_word_length < 4:
@@ -85,18 +87,19 @@ class Targets(object):
                 return target, index
         return None, -1
 
-    # returns (query_start_index, match_len, sequence_index), where:
+    # returns ([target or targets], query_start_index, match_len, sequence_index), where:
+    #  target or targets: if a single target match, then the target; otherwise a list of all matched targets, rest of params corresponding to first one
     #  query_start_index: the index into the query where the match starts
     #  match_len: the length of the match
     #  sequence_index: the index into the target sequence where the match starts
-    def find_partial(self, query, force_target = None):
+    def find_partial(self, query, force_target = None, min_length_override = 0):
         # it's much faster to search for longer partial matches, then fall back on the minimum
-        candidate = self._find_partial(query, force_target, multiple = 2)
-        return candidate if candidate[1] else self._find_partial(query, force_target, multiple = 1)
+        candidate = self._find_partial(query, force_target, min_length_override, multiple = 2)
+        return candidate if candidate[0] else self._find_partial(query, force_target, min_length_override, multiple = 1)
 
     #@profile
-    def _find_partial(self, query, force_target, multiple):
-        min_len = self._minimum_length * multiple
+    def _find_partial(self, query, force_target, min_length_override, multiple):
+        min_len = min_length_override or self._minimum_length * multiple
         word_len = self._index_word_length
         check_every = max(min_len - word_len, 1) # norah has proved that this guarantees finding a match if it exists
         query_len = len(query)
@@ -122,5 +125,8 @@ class Targets(object):
                         #print "C: {}".format(candidate)
                     elif total_len == candidate[2] and target != candidate[0]:
                         # need to keep track if multiple candidates have this same max length
-                        candidate[0] = set([target] + (list(candidate[0]) if isinstance(candidate[0], set) else [candidate[0]]))
+                        if isinstance(candidate[0], list):
+                            candidate[0] = candidate[0] if target in candidate[0] else [ target ] + candidate[0]
+                        else:
+                            candidate[0] = [ target, candidate[0] ]
         return candidate

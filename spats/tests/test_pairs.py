@@ -58,17 +58,16 @@ cases = [
 ]
 
 
-class Target5STest(unittest.TestCase):
+class TestPairs(unittest.TestCase):
+
     def setUp(self):
         from spats import Spats
         self.spats = Spats()
         self.spats.addTargets("test/5s/5s.fa")
         self.spats.addMasks('RRRY', 'YYYR')
+
     def tearDown(self):
         self.spats = None
-
-
-class TestPairs(Target5STest):
 
     def pair_for_case(self, case):
         pair = Pair()
@@ -105,4 +104,24 @@ class TestPairs(Target5STest):
         self.spats.addMasks('RRRY', 'YYYR')
         case[3] = 135
         self.run_case(case)
-        
+
+
+class TestPanelPairs(unittest.TestCase):
+
+    def setUp(self):
+        from spats import Spats
+        spats_config.minimum_target_match_length = 10
+        self.spats = Spats()
+        self.spats.addTargets("test/panel_RNAs/panel_RNAs_complete.fa")
+        self.spats.addMasks('RRRY', 'YYYR')
+
+    def tearDown(self):
+        self.spats = None
+
+    def test_single_R1_match_with_adapter_multiple_without(self):
+        pair = Pair()
+        pair.set_from_data('M02465:8:000000000-A5D', 'CCCGCCGTCCTTGGTGCCCGAGTGAGATCGGAAGA','CACTCGGGCACCAAGGACGGCGGGAGATCGGAAGA')
+        spats_config.debug = True
+        self.spats.process_pair(pair)
+        self.assertEqual(None, pair.target)
+        self.assertEqual(1, self.spats.counters.multiple_R1_match)

@@ -198,6 +198,8 @@ class PairDB(object):
             if all_counts.get(key, 0) != int(entry[5]):
                 raise Exception("Untreated db does not match reactivities: key={}, db={}, r={}".format(key, all_counts.get(key, 0), int(entry[5])))
             count += 1
+        if not count:
+            raise Exception("no sites found in reactivities.out?")
         print "reactivities.out check pass ({} sites).".format(count)
 
     def v102_counts(self, target_name, mask):
@@ -257,3 +259,10 @@ class PairDB(object):
                                     JOIN pair p ON p.rowid = r.pair_id
                                     JOIN v102 v ON r.pair_id = v.pair_id
                                     WHERE r.site != v.site AND r.failure=?''', (reason,))
+
+    def diagram_info(self, rowid):
+        return self.conn.execute('''SELECT p.rowid, p.identifier, p.r1, p.r2, v.numeric_id, v.site, v.nomask_r1, v.nomask_r2
+                                    FROM result r
+                                    JOIN pair p ON p.rowid = r.pair_id
+                                    JOIN v102 v ON r.pair_id = v.pair_id
+                                    WHERE r.pair_id=?''', (rowid,)).fetchone()

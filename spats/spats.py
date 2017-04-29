@@ -208,6 +208,8 @@ class Spats(object):
         for path in target_paths:
             for name, seq in fasta_parse(path):
                 target.addTarget(name, seq)
+        if not target.targets:
+            raise Exception("didn't get any targets!")
         if spats_config.minimum_target_match_length:
             target.minimum_match_length = spats_config.minimum_target_match_length
             target.index()
@@ -236,6 +238,7 @@ class Spats(object):
         target = pair.r1.find_in_targets(self._targets, reverse_complement = True)
         if isinstance(target, list):
             _debug("dropping pair due to multiple R1 match")
+            pair.failure = "multiple R1 match"
             self.counters.multiple_R1_match += pair.multiplicity
             return
         if target:
@@ -274,11 +277,22 @@ class Spats(object):
         r1_seq = pair.r1.subsequence
         r1_length_to_trim = r2_length_to_trim - 4
         r1_adapter_match = r1_seq[-r1_length_to_trim:]
-        pair.r1.trim(r1_length_to_trim, reverse_complement = True)
+        r1_match_trimmed = pair.r1.trim(r1_length_to_trim, reverse_complement = True)
         pair.r1.adapter_errors = string_match_errors(r1_adapter_match, spats_config.adapter_b)
         _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
         if len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
             return False
+
+        if r1_match_trimmed:
+            # ok, we trimmed down our R1 due to adapters. need to see if that means the leftover matches
+            # multiple targets; if so, need to reject this pair.
+            target = pair.r1.find_in_targets(self._targets, reverse_complement = True, min_length_override = pair.r1.seq_len)
+            if isinstance(target, list):
+                _debug("dropping pair due to multiple R1 match after adapter trim")
+                pair.target = None
+                pair.failure = "multiple R1 match"
+                self.counters.multiple_R1_match += pair.multiplicity
+                return False
 
         _debug("successful adapter trim of {}/{} bp from R1/R2".format(pair.r1._rtrim, pair.r2._rtrim))
 

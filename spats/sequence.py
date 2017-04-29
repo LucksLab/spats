@@ -59,9 +59,9 @@ class Sequence(object):
     def trimmed(self):
         return (0 != self._rtrim)
 
-    def find_in_targets(self, targets, reverse_complement = False, force_target = None):
+    def find_in_targets(self, targets, reverse_complement = False, force_target = None, min_length_override = 0):
         seq = self.reverse_complement if reverse_complement else self.subsequence
-        target, self.match_start, self.match_len, self.match_index = targets.find_partial(seq, force_target = force_target)
+        target, self.match_start, self.match_len, self.match_index = targets.find_partial(seq, force_target = force_target, min_length_override = min_length_override)
         return target
 
     def trim(self, length, reverse_complement = False):
@@ -73,6 +73,8 @@ class Sequence(object):
                 self.match_len = self.seq_len
                 self.match_start += delta
                 self.match_index += delta
+                return True
+        return False
 
     def match_to_seq(self, reverse_complement = False):
         if reverse_complement:
