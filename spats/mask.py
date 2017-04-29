@@ -46,7 +46,7 @@ class Mask(object):
     def counts(self, target):
         counts = self._counts.get(target.name)
         if not counts:
-            counts = [ 0 for x in range(target.n + 1) ] # TODO: numpy.empty(n, dtype=int) ??
+            counts = [ 0 for x in range(target.n + 1) ]
             self._counts[target.name] = counts
         return counts
 

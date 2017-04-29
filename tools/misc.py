@@ -179,7 +179,7 @@ def test_compare_v102():
 def test_compare_v102():
     from spats.v102 import compare_v102
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
-    compare_v102(bp + "s4",
+    compare_v102(bp + "s5",
                  bp + "datasets/Shape_Seq_ligation/panel_RNAs_complete.fa",
                  'RRRY', 'YYYR',
                  bp + "datasets/Shape_Seq_ligation/data/KEW1_S1_L001_R1_001.fastq",

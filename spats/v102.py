@@ -9,13 +9,16 @@ from spats import Spats
 
 
 def compare_v102(compare_results_path, targets_path, treated_mask, untreated_mask, data_r1_path, data_r2_path, spats_out_path, beta_theta_compare_threshold = 0.001):
+
     db_path = os.path.join(compare_results_path, "pairs.db")
     db = PairDB(db_path)
     db.wipe()
     count = db.parse(data_r1_path, data_r2_path)
     db.index()
     print "Parsed and indexed {} data records.".format(count)
+
     db.add_v102_comparison(targets_path, spats_out_path)
+
     spats = Spats()
     spats_config.minimum_target_match_length = 10
     spats.addMasks(treated_mask, untreated_mask)
@@ -23,11 +26,14 @@ def compare_v102(compare_results_path, targets_path, treated_mask, untreated_mas
     print "Current build processing pair data..."
     spats.writeback_results = True
     spats.process_pair_db(db)
-    profiles = spats.compute_profiles()
+
+    all_profiles = spats.compute_profiles()
     spats.write_reactivities(os.path.join(compare_results_path, 'rx.out'))
+
     print "current missing from v102: {}".format(len(db.our_pairs_missing_from_v102()))
     print "v102 missing from current: {}".format(len(db.v102_pairs_missing_from_ours()))
     print "Ours differing from v102: {}".format(len(db.our_pairs_differing_from_v102()))
+
     print "Reasons for v102 missing from current:"
     spats_config.debug = True
     pair = Pair()
@@ -47,21 +53,38 @@ def compare_v102(compare_results_path, targets_path, treated_mask, untreated_mas
                 outfile.write(diagram(pair) + "\n")
                 diagrams += 1
     print "Wrote {} differing diagrams (for {} reasons) to {}".format(diagrams, reasons, compare_results_path)
+
     sites_diff = 0
     with open(os.path.join(compare_results_path, 'reactivities_diff.out'), 'wb') as outfile:
         outfile.write("Differences > {} in beta/theta (current first / v102 second)\n".format(beta_theta_compare_threshold))
+        outfile.write("         beta     theta     treated   untreated\n")
+        only_01_diffs = ""
         for entry in reactivities_parse(os.path.join(spats_out_path, 'reactivities.out')):
             # return list of (target, rt_start, site, nuc, treated_count, untreated_count, beta, theta, c)
             site = int(entry[2])
             if 0 == site:
                 continue
+            target_name = str(entry[0])
+            profiles = all_profiles.profilesForTargetNamed(target_name)
             beta = float(entry[6])
             theta = float(entry[7])
+            tc = int(entry[4])
+            uc = int(entry[5])
             our_beta = profiles.betas[site]
             our_theta = profiles.thetas[site]
+            our_tc = profiles.treated_counts[site]
+            our_uc = profiles.untreated_counts[site]
             if abs(beta - our_beta) > beta_theta_compare_threshold or abs(theta - our_theta) > beta_theta_compare_threshold:
-                outfile.write("Site {}: beta = {:.6f} / {:.6f}, theta = {:.6f} / {:.6f}\n".format(site, our_beta, beta, our_theta, theta))
+                report =  "\ncur    {:.6f}  {:.6f}    {}         {}    \t  {} :: {}".format(our_beta, our_theta, our_tc, our_uc, target_name, site)
+                report += "\nv102   {:.6f}  {:.6f}    {}         {}\n".format(beta, theta, tc, uc)
+                if set([tc, uc, our_tc, our_uc]) <= set([0, 1]):
+                    only_01_diffs += report
+                else:
+                    outfile.write(report)
                 sites_diff += 1
+        if only_01_diffs:
+            outfile.write("\n" + ("-" * 50) + "\n")
+            outfile.write(only_01_diffs)
     if sites_diff > 0:
         print "Wrote {} sites with beta/theta diff > {} to {}".format(sites_diff, beta_theta_compare_threshold, compare_results_path)
     else:
