@@ -6,7 +6,7 @@ def readme():
         return f.read()
 
 
-setup(name='spats',
+setup(name='spats_shape_seq',
       version='1.9',
       description='The Spats package implements a read mapping and reactivity analysis pipeline for calculating SHAPE-Seq reactivities from an input set of next-generation reads.',
       long_description=readme(),

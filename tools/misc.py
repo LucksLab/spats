@@ -32,7 +32,7 @@ def profile_run():
 
 def ligation_run():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/"
-    from spats import spats_config
+    from spats_shape_seq import spats_config
     #spats_config.debug = True
     spats_config.minimum_target_match_length = 10
     spats(bp + "panel_RNAs_complete.fa",
@@ -69,7 +69,7 @@ def misc():
               bp + "t4")
 
 def spats(target, r1, r2, out, show_sites = True):
-    from spats import Spats, spats_config
+    from spats_shape_seq import Spats, spats_config
     s = Spats()
     s.addTargets(target)
     s.addMasks("RRRY", "YYYR")
@@ -141,9 +141,9 @@ def show_failure_types():
                 print summary
 
 def diag_case():
-    from spats import Spats, spats_config
-    from spats.pair import Pair
-    from spats.tests.test_pairs import cases
+    from spats_shape_seq import Spats, spats_config
+    from spats_shape_seq.pair import Pair
+    from spats_shape_seq.tests.test_pairs import cases
     from diagram import diagram
     spats_config.minimum_target_match_length = 8
     spats = Spats()
@@ -167,7 +167,7 @@ def diag_case():
         raise Exception("Case failed")
 
 def test_compare_v102():
-    from spats.v102 import compare_v102
+    from spats_shape_seq.v102 import compare_v102
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
     compare_v102(bp + "s3",
                  bp + "5s/5S.fa",
@@ -177,7 +177,7 @@ def test_compare_v102():
                  bp + "5S-2p1-18x/spats_out")
 
 def test_compare_v102():
-    from spats.v102 import compare_v102
+    from spats_shape_seq.v102 import compare_v102
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
     compare_v102(bp + "s5",
                  bp + "datasets/Shape_Seq_ligation/panel_RNAs_complete.fa",
@@ -187,7 +187,7 @@ def test_compare_v102():
                  bp + "datasets/Shape_Seq_ligation/spats_out")
 
 def diagram_v102():
-    from spats.v102 import diagram_case
+    from spats_shape_seq.v102 import diagram_case
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
     diagram_case(bp + "s4/pairs.db",
                  14,

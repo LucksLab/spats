@@ -35,7 +35,7 @@ t.%:
 # profiles a method in tests/misc.py
 p.%:
 	@mkdir -p tmp
-	@PYTHONPATH=.:src python -m cProfile -o tmp/runprof.out $(patsubst p.%, ${TOOLS_DIR}/misc.py %, $@)
+	@${PYENV} python -m cProfile -o tmp/runprof.out $(patsubst p.%, ${TOOLS_DIR}/misc.py %, $@)
 
 prof:
 	@${PYENV} python ${TOOLS_DIR}/prof.py|head -50
