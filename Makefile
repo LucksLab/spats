@@ -17,6 +17,13 @@ unit :
 .PHONY: test
 test : unit
 
+VERSION = $(shell grep version= setup.py | sed -e 's/.*="\(.*\)",.*/\1/g')
+pip_dist: unit
+	@read -p "Submit new release, version ${VERSION}? " ANS; if [ "$$ANS" == "y" ]; then echo "Submitting..."; else echo "Aborted."; exit 1; fi
+	@rm -rf build dist
+	python setup.py sdist
+	twine upload dist/spats_shape_seq-${VERSION}.tar.gz
+
 # for some subset of tests:
 # make u.[module]
 # make u.[module]:[class]
@@ -49,4 +56,3 @@ lp.%:
 
 lprof:
 	@${PYENV} python -m line_profiler misc.py.lprof
-
