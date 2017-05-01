@@ -1,7 +1,7 @@
 import unittest
 
-from spats import spats_config
-from spats.pair import Pair
+from spats_shape_seq import spats_config
+from spats_shape_seq.pair import Pair
 
 
 cases = [
@@ -61,7 +61,7 @@ cases = [
 class TestPairs(unittest.TestCase):
 
     def setUp(self):
-        from spats import Spats
+        from spats_shape_seq import Spats
         self.spats = Spats()
         self.spats.addTargets("test/5s/5s.fa")
         self.spats.addMasks('RRRY', 'YYYR')
@@ -98,7 +98,7 @@ class TestPairs(unittest.TestCase):
         self.run_case(case)
         # this case only matches in the minimum length is set to 8
         spats_config.minimum_target_match_length = 8
-        from spats import Spats
+        from spats_shape_seq import Spats
         self.spats = Spats()
         self.spats.addTargets("test/5s/5s.fa")
         self.spats.addMasks('RRRY', 'YYYR')
@@ -109,7 +109,7 @@ class TestPairs(unittest.TestCase):
 class TestPanelPairs(unittest.TestCase):
 
     def setUp(self):
-        from spats import Spats
+        from spats_shape_seq import Spats
         spats_config.minimum_target_match_length = 10
         self.spats = Spats()
         self.spats.addTargets("test/panel_RNAs/panel_RNAs_complete.fa")

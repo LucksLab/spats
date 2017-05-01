@@ -2,8 +2,8 @@
 import unittest
 
 
-from spats.util import reverse_complement, string_match_errors
-from spats.mask import longest_match
+from spats_shape_seq.util import reverse_complement, string_match_errors
+from spats_shape_seq.mask import longest_match
 
 class TestUtils(unittest.TestCase):
     def test_longest_match(self):
