@@ -187,23 +187,44 @@ from util import _warn, _debug, Counters, reverse_complement, string_match_error
 
 
 class Spats(object):
+    """The main SPATS driver.
+    """
 
     def __init__(self):
+
+        #: reference to the :class:`.config.SpatsConfig` instance
+        self.config = spats_config
+
         self._targets = Targets()
         self._masks = []
         self._maskSize = 0
-        self._adapter_t_rc = 0
+        self._adapter_t_rc_cached = 0
         self._profiles = None
         self.counters = Counters()
         self.writeback_results = False
 
     def addMasks(self, *args):
+        """Pass the masks used for R1 handles to classify treated/untreated samples.
+           Two masks are expected, first the treated, then the untreated.
+           Must be called before processing pair data.
+        
+           :param args: list of mask strings
+        """
+        
         for arg in args:
             mask = Mask(arg)
             self._masks.append(mask)
             self._maskSize = max(self._maskSize, len(arg))
 
+
     def addTargets(self, *target_paths):
+        """Used to add one or more target files for processing. Can be called multiple 
+           times to add more targets. Inputs are expected to be in FASTA format with
+           one or more targets per path. Must be called before processing.
+
+           :param args: one or more filesystem paths to target files.
+        """
+
         target = self._targets
         for path in target_paths:
             for name, seq in fasta_parse(path):
@@ -218,10 +239,10 @@ class Spats(object):
             target.minimum_match_length = 1 + target.longest_self_match()
 
     @property
-    def adapter_t_rc(self):
-        if not self._adapter_t_rc:
-            self._adapter_t_rc = reverse_complement(spats_config.adapter_t)
-        return self._adapter_t_rc
+    def _adapter_t_rc(self):
+        if not self._adapter_t_rc_cached:
+            self._adapter_t_rc_cached = reverse_complement(spats_config.adapter_t)
+        return self._adapter_t_rc_cached
 
     def _match_mask(self, pair):
         seq = pair.r1.original_seq
@@ -268,7 +289,7 @@ class Spats(object):
 
         # find out how good of a match the end of R2 is for adapter_t_rc
         r2_adapter_match = r2_seq[4-r2_length_to_trim:]
-        pair.r2.adapter_errors = string_match_errors(r2_adapter_match, self.adapter_t_rc)
+        pair.r2.adapter_errors = string_match_errors(r2_adapter_match, self._adapter_t_rc)
         _debug("  check = {}, errors = {}".format(r2_adapter_match, pair.r2.adapter_errors))
         if len(pair.r2.adapter_errors) > spats_config.allowed_adapter_errors:
             return False
@@ -299,6 +320,11 @@ class Spats(object):
         return True
 
     def process_pair(self, pair):
+        """Used process a single :class:`.pair.Pair`. Typically only used for debugging or analysis of specific cases.
+
+           :param pair: a :class:`.pair.Pair` to process.
+        """
+
         _debug("> processing " + pair.identifier + "\n  --> " + pair.r1.original_seq + " , " + pair.r2.original_seq)
         _debug("  rc(R1): {}".format(pair.r1.reverse_complement))
         self._process_pair(pair)
@@ -380,7 +406,7 @@ class Spats(object):
         pair.register_count()
         self.counters.processed_pairs += pair.multiplicity
 
-    def memory_db_from_pairs(self, data_r1_path, data_r2_path):
+    def _memory_db_from_pairs(self, data_r1_path, data_r2_path):
         start = time.time()
         db = PairDB()
         total_pairs = db.parse(data_r1_path, data_r2_path)
@@ -398,10 +424,32 @@ class Spats(object):
         return db
 
     def process_pair_data(self, data_r1_path, data_r2_path):
-        self.process_pair_db(self.memory_db_from_pairs(data_r1_path, data_r2_path))
+        """Used to read and process a pair of FASTQ data files.
+
+        Note that this parses the pair data into an in-memory SQLite
+        database, which on most modern systems will be fine for very
+        large databases. If you hit memory issues, create a disk-based
+        SQLite DB via :class:`.db.PairDB` and then use
+        :meth:`.process_pair_db`.
+
+        Note that this may be called multiple times to process more
+        than one set of data files before computing profiles.
+
+        :param data_r1_path: path to R1 fragments
+        :param data_r2_path: path to matching R2 fragments.
+        """
+
+        self.process_pair_db(self._memory_db_from_pairs(data_r1_path, data_r2_path))
     
     #@profile
     def process_pair_db(self, pair_db):
+        """Processes pair data provided by a :class:`.db.PairDB`.
+
+           Note that this may be called multiple times to process more
+           than one set of inputs before computing profiles.
+
+           :param pair_db: a :class:`.db.PairDB` of pairs to process.
+        """
 
         start = time.time()
         writeback = self.writeback_results
@@ -436,7 +484,7 @@ class Spats(object):
             pairs_to_do.put((self.counters._counts, [(m.total, m.kept, m.count_data()) for m in self._masks]))
 
         threads = []
-        num_workers = max(1, spats_config.num_workers)
+        num_workers = max(1, spats_config.num_workers or multiprocessing.cpu_count())
         for i in range(num_workers):
             thd = multiprocessing.Process(target = worker, args = (i,))
             threads.append(thd)
@@ -477,10 +525,10 @@ class Spats(object):
             self.counters.unique_pairs = pair_db.unique_pairs()
 
         if not spats_config.quiet:
-            self.report_counts(time.time() - start)
+            self._report_counts(time.time() - start)
 
 
-    def report_counts(self, delta = None):
+    def _report_counts(self, delta = None):
         total = self.counters.total_pairs
         print "Successfully processed {} properly paired fragments:".format(self.counters.processed_pairs)
         warn_keys = [ "multiple_R1_match", ]
@@ -503,9 +551,20 @@ class Spats(object):
             print "Total time: ({:.1f}s)".format(delta)
 
     def compute_profiles(self):
+        """Computes beta/theta/c reactivity values after pair data have been processed.
+
+           :return: a :class:`.profiles.Profiles` object, which contains the reactivities for all targets.
+        """
+
         self._profiles = Profiles(self._targets, self._masks)
         self._profiles.compute()
         return self._profiles
 
-    def write_reactivities(self, target_path):
-        self._profiles.write(target_path)
+    def write_reactivities(self, output_path):
+        """Convenience function used to write the reactivities to an output
+        file. Must be called after :meth:`.compute_profiles`.
+
+           :param output_path: the path for writing the output.
+        """
+
+        self._profiles.write(output_path)

@@ -24,6 +24,10 @@ pip_dist: unit
 	python setup.py sdist
 	twine upload dist/spats_shape_seq-${VERSION}.tar.gz
 
+.PHONY: docs
+docs:
+	@cd doc  &&  make html
+
 # for some subset of tests:
 # make u.[module]
 # make u.[module]:[class]
