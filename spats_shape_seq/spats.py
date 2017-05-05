@@ -203,6 +203,7 @@ class Spats(object):
         self._profiles = None
         self.counters = Counters()
         self.writeback_results = False
+        self.result_set_name = None
 
     def addMasks(self, *args):
         """Pass the masks used for R1 handles to classify treated/untreated samples.
@@ -238,6 +239,7 @@ class Spats(object):
         else:
             target.index()
             target.minimum_match_length = 1 + target.longest_self_match()
+
 
     @property
     def _adapter_t_rc(self):
@@ -458,7 +460,8 @@ class Spats(object):
         start = time.time()
         writeback = self.writeback_results
         if writeback:
-            pair_db.prepare_results()
+            self.result_set_id = pair_db.add_result_set(self.result_set_name or "default")
+            print self.result_set_id
 
         pairs_to_do = multiprocessing.Queue()
         pairs_done = multiprocessing.Queue()
@@ -485,7 +488,7 @@ class Spats(object):
                                         pair.failure))
                                         
                 if writeback:
-                    pair_db.add_results(results)
+                    pair_db.add_results(self.result_set_id, results)
 
                 batches += 1
                 if not spats_config.quiet:# and 0 == (batches % 20):

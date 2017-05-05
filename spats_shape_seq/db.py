@@ -110,17 +110,27 @@ class PairDB(object):
         return { name : seq for name, seq in target_list }
 
     # results storing
-    def prepare_results(self):
-        self.conn.execute("DROP TABLE IF EXISTS result")
-        self.conn.execute("CREATE TABLE IF NOT EXISTS result (pair_id INT, target INT, site INT, mask TEXT, multiplicity INT, failure TEXT)")
-        self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS pair_result_idx ON result (pair_id)")
+    def _prepare_results(self):
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, site INT, mask TEXT, multiplicity INT, failure TEXT)")
+        self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS pair_result_idx ON result (set_id, pair_id)")
+
+    def add_result_set(self, set_name):
+        self._prepare_results()
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result_set (set_id TEXT)")
+        self.conn.execute("INSERT INTO result_set (set_id) VALUES (?)", (set_name,))
+        self.conn.commit()
+        return self.result_set_id_for_name(set_name)
+
+    def result_set_id_for_name(self, set_name):
+        return self._fetch_one("SELECT rowid FROM result_set WHERE set_id=?", (set_name,))
 
     # results a list of (rowid, target_name, site, mask, multiplicity)
-    def add_results(self, results):
+    def add_results(self, result_set_id, results):
         # grab a new connection since this might be in a new process (due to multiprocessing)
         conn = sqlite3.connect(self._dbpath)
-        cursor = conn.executemany('''INSERT INTO result (pair_id, target, site, mask, multiplicity, failure)
-                                     VALUES (?, (SELECT rowid FROM target WHERE name=?), ?, ?, ?, ?)''', results)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
+                  VALUES ({}, ?, (SELECT rowid FROM target WHERE name=?), ?, ?, ?, ?)'''.format(result_set_id)
+        cursor = conn.executemany(stmt, results)
         if cursor.rowcount != len(results):
             print results
             raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
