@@ -68,4 +68,8 @@ class SpatsConfig(object):
         self.allowed_target_errors = 0
 
 
+        # private config
+        self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
+
+
 spats_config = SpatsConfig()

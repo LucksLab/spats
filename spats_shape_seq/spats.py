@@ -175,6 +175,7 @@
 import multiprocessing
 import Queue
 import time
+import sys
 
 from config import spats_config
 from db import PairDB
@@ -307,8 +308,9 @@ class Spats(object):
         if r1_match_trimmed:
             # ok, we trimmed down our R1 due to adapters. need to see if that means the leftover matches
             # multiple targets; if so, need to reject this pair.
-            target = pair.r1.find_in_targets(self._targets, reverse_complement = True, min_length_override = pair.r1.seq_len)
-            if isinstance(target, list):
+            target = pair.r1.find_in_targets(self._targets, reverse_complement = True, min_length_override = pair.r1.match_len)
+            if not target or isinstance(target, list):
+                # note that target may be None if pair.r1.match_len is less than the index word length
                 _debug("dropping pair due to multiple R1 match after adapter trim")
                 pair.target = None
                 pair.failure = "multiple R1 match"
@@ -327,14 +329,16 @@ class Spats(object):
 
         _debug("> processing " + pair.identifier + "\n  --> " + pair.r1.original_seq + " , " + pair.r2.original_seq)
         _debug("  rc(R1): {}".format(pair.r1.reverse_complement))
-        self._process_pair(pair)
-        if pair.failure:
-            _debug(pair.failure)
-        else:
-            assert(pair.has_site)
-            _debug("  ===> KEPT {}-{}".format(pair.left, pair.right))
-            if spats_config.show_id_to_site:
-                print "{} --> {}".format(pair.identifier, pair.site) #, pair.mask.chars)
+        try:
+            self._process_pair(pair)
+            if pair.failure:
+                _debug(pair.failure)
+            else:
+                assert(pair.has_site)
+                _debug("  ===> KEPT {}-{}".format(pair.left, pair.right))
+        except:
+            print "**** Error processing pair: {} / {}".format(pair.r1.original_seq, pair.r2.original_seq)
+            raise
 
     #@profile
     def _process_pair(self, pair):
@@ -457,11 +461,13 @@ class Spats(object):
             pair_db.prepare_results()
 
         pairs_to_do = multiprocessing.Queue()
+        pairs_done = multiprocessing.Queue()
 
         #@profile
         def worker(x):
             pair = Pair()
             writeback = self.writeback_results
+            batches = 0
             while True:
                 pairs = pairs_to_do.get()
                 if not pairs:
@@ -481,7 +487,12 @@ class Spats(object):
                 if writeback:
                     pair_db.add_results(results)
 
-            pairs_to_do.put((self.counters._counts, [(m.total, m.kept, m.count_data()) for m in self._masks]))
+                batches += 1
+                if not spats_config.quiet:# and 0 == (batches % 20):
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
+
+            pairs_done.put((self.counters._counts, [(m.total, m.kept, m.count_data()) for m in self._masks]))
 
         threads = []
         num_workers = max(1, spats_config.num_workers or multiprocessing.cpu_count())
@@ -491,6 +502,11 @@ class Spats(object):
             thd.start()
         _debug("created {} workers".format(num_workers))
 
+        if not spats_config.quiet:
+            if not writeback and not spats_config._process_all_pairs:
+                print "Retrieving unique pairs..."
+            else:
+                print "Using all_pairs..."
         db_fn = pair_db.all_pairs if writeback else pair_db.unique_pairs_with_counts
         for pair_info in db_fn(batch_size = 16384):
             if not writeback:
@@ -502,10 +518,13 @@ class Spats(object):
         for thd in threads:
             thd.join()
 
+        if not spats_config.quiet:
+            print "\nAggregating data..."
+
         try:
             targets = { t.name : t for t in self._targets.targets }
             while True:
-                data = pairs_to_do.get_nowait()
+                data = pairs_done.get_nowait()
                 their_counters = data[0]
                 our_counters = self.counters._counts
                 for key, value in their_counters.iteritems():

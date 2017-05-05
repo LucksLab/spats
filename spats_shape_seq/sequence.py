@@ -67,10 +67,10 @@ class Sequence(object):
     def trim(self, length, reverse_complement = False):
         self._rtrim = length
         if reverse_complement:
-            delta = self.match_len - self.seq_len
+            delta = self._rtrim - self.match_start
             if delta > 0:
                 _debug("trim reducing original match_len {} -> {}".format(self.match_len, self.seq_len))
-                self.match_len = self.seq_len
+                self.match_len -= delta
                 self.match_start += delta
                 self.match_index += delta
                 return True
