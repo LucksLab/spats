@@ -6,7 +6,7 @@ none :
 
 PYENV = PYTHONPATH=.
 TOOLS_DIR = tools
-TEST_PKG = spats.tests
+TEST_PKG = spats_shape_seq.tests
 
 # unit tests
 

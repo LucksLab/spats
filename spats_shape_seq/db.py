@@ -1,6 +1,7 @@
 
 import os
 import sqlite3
+import sys
 
 from parse import FastFastqParser
 
@@ -9,6 +10,7 @@ class PairDB(object):
     def __init__(self, database_path = None):
         self._dbpath = database_path or ":memory:"
         self.conn = sqlite3.connect(self._dbpath)
+        self.show_progress_every = False
 
     def wipe(self):
         self.conn.execute("DROP TABLE IF EXISTS pair")
@@ -30,6 +32,8 @@ class PairDB(object):
         conn.execute("DROP INDEX IF EXISTS r2_idx")
         self._create()
         total = 0
+        show_progress_every = self.show_progress_every
+        next_report_count = show_progress_every
         with FastFastqParser(r1_path, r2_path) as parser:
             while True:
                 pairs, count = parser.read(16384)
@@ -37,6 +41,12 @@ class PairDB(object):
                 if not pairs:
                     break
                 conn.executemany("INSERT INTO pair (identifier, r1, r2) VALUES (?, ?, ?)", pairs)
+                if show_progress_every:
+                    next_report_count -= count
+                    if next_report_count < 0:
+                        next_report_count = show_progress_every
+                        sys.stdout.write('.')
+                        sys.stdout.flush()
         conn.commit()
         return total
 
@@ -87,7 +97,6 @@ class PairDB(object):
         return self._batch_results("SELECT count(rowid), r1, r2, rowid from pair group by (r1||r2)", batch_size)
 
     def all_pairs(self, batch_size = 0):
-        print "Using all_pairs..."
         return self._batch_results("SELECT 1, r1, r2, rowid from pair", batch_size)
 
     def add_targets_table(self, targets_path):
