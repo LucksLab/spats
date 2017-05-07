@@ -22,6 +22,12 @@ class PairDB(object):
     def _create(self):
         self.conn.execute("CREATE TABLE IF NOT EXISTS pair (r1 TEXT, r2 TEXT, identifier TEXT)")
 
+    def load_and_index(self, target_path, r1_path, r2_path):
+        self.add_targets_table(target_path)
+        self.parse(r1_path, r2_path)
+        self._cache_unique_pairs()
+
+
     # we might be able to speed this up by:
     #  - some sqlite tricks like: conn.execute("PRAGMA synchronous=OFF"), conn.execute("PRAGMA cache_size=16000"), etc.
     #  - parsing in one thread and inserting in another
@@ -55,7 +61,8 @@ class PairDB(object):
         self.conn.execute("CREATE INDEX IF NOT EXISTS r2_idx ON pair (r2)")
 
     def _fetch_one(self, query, args = []):
-        return self.conn.execute(query, args).fetchone()[0]
+        res = self.conn.execute(query, args).fetchone()
+        return res[0] if res else None
 
     def count(self):
         return self._fetch_one("SELECT COUNT(*) from pair")
@@ -68,9 +75,18 @@ class PairDB(object):
         self.index()
         return self._fetch_one("SELECT COUNT(distinct r2) from pair")
 
-    def unique_pairs(self):
+    def _cache_unique_pairs(self):
         self.index()
-        return self._fetch_one("SELECT COUNT(distinct r1||r2) from pair")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS unique_pair (pair_id INT, multiplicity INT)")
+        self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_pair_idx ON unique_pair (pair_id)")
+        num_already = self._fetch_one("SELECT COUNT(*) FROM unique_pair")
+        if 0 == num_already:
+            self.conn.execute("INSERT INTO unique_pair (pair_id, multiplicity) SELECT rowid, COUNT(rowid) FROM pair GROUP BY r1||r2")
+            self.conn.commit()
+
+    def unique_pairs(self):
+        self._cache_unique_pairs()
+        return self._fetch_one("SELECT COUNT(*) from unique_pair")
 
     def max_r1(self):
         self.index()
@@ -80,10 +96,10 @@ class PairDB(object):
         self.index()
         return self._fetch_one("SELECT COUNT(rowid) as cnt from pair group by r2 order by cnt desc limit 1")
 
-    def _batch_results(self, query, batch_size):
+    def _batch_results(self, query, batch_size, args = []):
         batch = []
         count = 0
-        for result in self.conn.execute(query):
+        for result in self.conn.execute(query, args):
             batch.append((int(result[0]), str(result[1]), str(result[2]), int(result[3])))
             count += 1
             if batch_size and count >= batch_size:
@@ -94,7 +110,16 @@ class PairDB(object):
         yield batch
 
     def unique_pairs_with_counts(self, batch_size = 0):
-        return self._batch_results("SELECT count(rowid), r1, r2, rowid from pair group by (r1||r2)", batch_size)
+        self._cache_unique_pairs()
+        return self._batch_results("SELECT u.multiplicity, p.r1, p.r2, p.rowid FROM unique_pair u JOIN pair p ON p.rowid=u.pair_id", batch_size)
+
+    def unique_pairs_with_counts_and_no_results(self, result_set_id, batch_size = 0):
+        self._cache_unique_pairs()
+        return self._batch_results('''SELECT u.multiplicity, p.r1, p.r2, p.rowid
+                                      FROM unique_pair u
+                                      JOIN pair p ON p.rowid=u.pair_id
+                                      LEFT JOIN result r ON r.set_id=? AND r.pair_id=u.pair_id
+                                      WHERE r.rowid IS NULL''', batch_size, (result_set_id,))
 
     def all_pairs(self, batch_size = 0):
         return self._batch_results("SELECT 1, r1, r2, rowid from pair", batch_size)
@@ -109,6 +134,9 @@ class PairDB(object):
         self.conn.executemany('INSERT INTO target (name, seq) VALUES (? , ?)', target_list)
         return { name : seq for name, seq in target_list }
 
+    def targets(self):
+        return [ (r[0], r[1]) for r in self.conn.execute("SELECT name, seq FROM target") ]
+
     # results storing
     def _prepare_results(self):
         self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, site INT, mask TEXT, multiplicity INT, failure TEXT)")
@@ -117,6 +145,10 @@ class PairDB(object):
     def add_result_set(self, set_name):
         self._prepare_results()
         self.conn.execute("CREATE TABLE IF NOT EXISTS result_set (set_id TEXT)")
+        rid = self.result_set_id_for_name(set_name)
+        if rid is not None:
+            self.conn.execute("DELETE FROM result WHERE set_id=?", (rid,))
+            self.conn.execute("DELETE FROM result_set WHERE rowid=?", (rid,))
         self.conn.execute("INSERT INTO result_set (set_id) VALUES (?)", (set_name,))
         self.conn.commit()
         return self.result_set_id_for_name(set_name)
@@ -135,6 +167,17 @@ class PairDB(object):
             print results
             raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
         conn.commit()
+
+    def num_results(self, result_set_name):
+        return self._fetch_one("SELECT count(*) FROM result r JOIN result_set n ON r.set_id = n.rowid WHERE n.set_id = ?", (result_set_name,))
+
+    def differing_results(self, result_set_name_1, result_set_name_2):
+        id1 = self.result_set_id_for_name(result_set_name_1)
+        id2 = self.result_set_id_for_name(result_set_name_2)
+        return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.site, s1.failure, s2.target, s2.site, s2.failure
+                                    FROM result s1 JOIN result s2 ON s2.set_id=? AND s2.pair_id=s1.pair_id
+                                    JOIN pair p ON p.rowid=s1.pair_id
+                                    WHERE s1.set_id=? AND (s1.site != s2.site OR s1.target != s2.target)''', (id2, id1))
 
     #v102 delta analysis
     def _create_v102(self):
@@ -220,6 +263,13 @@ class PairDB(object):
         if not count:
             raise Exception("no sites found in reactivities.out?")
         print "reactivities.out check pass ({} sites).".format(count)
+        self.add_v102_to_results()
+
+    def add_v102_to_results(self):
+        v102_id = self.add_result_set("v102")
+        self.conn.execute('''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
+                             SELECT ?, pair_id, target, site, mask, 1, NULL FROM v102''', (v102_id,))
+        self.conn.commit()
 
     def v102_counts(self, target_name, mask):
         return { r[0] : r[1] for r in self.conn.execute('''SELECT v.site, count(v.rowid)

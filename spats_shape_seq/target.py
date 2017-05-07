@@ -5,7 +5,7 @@ class _Target(object):
 
     def __init__(self, name, seq):
         self.name = name
-        self.seq = seq
+        self.seq = seq.upper()
         self.n = len(seq)
 
 

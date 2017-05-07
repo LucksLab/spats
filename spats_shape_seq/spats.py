@@ -204,6 +204,7 @@ class Spats(object):
         self.counters = Counters()
         self.writeback_results = False
         self.result_set_name = None
+        self.only_new_results = False
 
     def addMasks(self, *args):
         """Pass the masks used for R1 handles to classify treated/untreated samples.
@@ -226,11 +227,17 @@ class Spats(object):
 
            :param args: one or more filesystem paths to target files.
         """
-
-        target = self._targets
+        targets = []
         for path in target_paths:
             for name, seq in fasta_parse(path):
-                target.addTarget(name, seq)
+                targets.append((name, seq))
+        self._addTargets(targets)
+
+
+    def _addTargets(self, target_list):
+        target = self._targets
+        for name, seq in target_list:
+            target.addTarget(name, seq)
         if not target.targets:
             raise Exception("didn't get any targets!")
         if spats_config.minimum_target_match_length:
@@ -457,11 +464,16 @@ class Spats(object):
            :param pair_db: a :class:`.db.PairDB` of pairs to process.
         """
 
+        if 0 == len(self._targets.targets):
+            targets = pair_db.targets()
+            if 0 == len(targets):
+                raise Exception("No targets available")
+            self._addTargets(targets)
+
         start = time.time()
         writeback = self.writeback_results
         if writeback:
             self.result_set_id = pair_db.add_result_set(self.result_set_name or "default")
-            print self.result_set_id
 
         pairs_to_do = multiprocessing.Queue()
         pairs_done = multiprocessing.Queue()
@@ -505,14 +517,20 @@ class Spats(object):
             thd.start()
         _debug("created {} workers".format(num_workers))
 
+        msg = "Retrieving unique pairs..."
+        if self.only_new_results:
+            db_iter = pair_db.unique_pairs_with_counts_and_no_results(self.result_set_id, batch_size = 32768)
+        elif spats_config._process_all_pairs:
+            msg = "Using all_pairs..."
+            db_iter = pair_db.all_pairs(batch_size = 32768)
+        else:
+            db_iter = pair_db.unique_pairs_with_counts(batch_size = 32768)
+
         if not spats_config.quiet:
-            if not writeback and not spats_config._process_all_pairs:
-                print "Retrieving unique pairs..."
-            else:
-                print "Using all_pairs..."
-        db_fn = pair_db.all_pairs if writeback else pair_db.unique_pairs_with_counts
-        for pair_info in db_fn(batch_size = 16384):
-            if not writeback:
+            print msg
+
+        for pair_info in db_iter:
+            if not spats_config._process_all_pairs:
                 self.counters.unique_pairs += len(pair_info)
             pairs_to_do.put(pair_info)
 

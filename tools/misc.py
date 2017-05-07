@@ -199,6 +199,85 @@ def diagram_v102():
                  bp + "datasets/Shape_Seq_ligation/panel_RNAs_complete.fa",
                  'RRRY', 'YYYR')
 
+def rc():
+    from spats_shape_seq.util import reverse_complement
+    print reverse_complement(sys.argv[2])
+
+def makedb():
+    db_path = sys.argv[2]
+    targets_path = sys.argv[3]
+    r1_path = sys.argv[4]
+    r2_path = sys.argv[5]
+    from spats_shape_seq.db import PairDB
+    db = PairDB(db_path)
+    db.show_progress_every = 200000
+    db.load_and_index(targets_path, r1_path, r2_path)
+
+def dbrun():
+    db_path = sys.argv[2]
+    run_name = sys.argv[3]
+    from spats_shape_seq import Spats
+    from spats_shape_seq.db import PairDB
+    db = PairDB(db_path)
+    s = Spats()
+    s.addMasks('RRRY', 'YYYR')
+    s.writeback_results = True
+    s.result_set_name = run_name
+    s.only_new_results = True
+    s.process_pair_db(db)
+
+def addv102():
+    db_path = sys.argv[2]
+    targets_path = sys.argv[3]
+    out_path = sys.argv[4]
+    from spats_shape_seq.db import PairDB
+    db = PairDB(db_path)
+    db.add_v102_comparison(targets_path, out_path)
+
+def rdiff():
+    db_path = sys.argv[2]
+    rs1_name = sys.argv[3]
+    rs2_name = sys.argv[4]
+    from spats_shape_seq.db import PairDB
+    db = PairDB(db_path)
+    n1 = db.num_results(rs1_name)
+    n2 = db.num_results(rs2_name)
+    print "{}: {} results  /  {}: {} results".format(rs1_name, n1, rs2_name, n2)
+    if not n1 or not n2:
+        print "** Abort."
+        exit(1)
+    print "Diffs:"
+    ours_only = []
+    theirs_only = []
+    differences = []
+    for r in db.differing_results(rs1_name, rs2_name):
+        if r[4] == -1:
+            assert(r[7] != -1)
+            theirs_only.append(r)
+        elif r[7] == -1:
+            ours_only.append(r)
+        else:
+            differences.append(r)
+    all_lists = [ ours_only, theirs_only, differences ]
+    for l in all_lists:
+        reasons = {}
+        for r in l:
+            key = r[5] or r[8]
+            assert(key)
+            rlist = reasons.get(key)
+            if not rlist:
+                rlist = []
+                reasons[key] = rlist
+            rlist.append(r)
+        for reason, rlist in reasons.iteritems():
+            for r in rlist[:min(len(rlist), 10)]:
+                print "  {}:{} ({}) -- {}:{} ({})   ({}: {} / {})".format(r[3] or 'x', r[4], r[5] or "OK",
+                                                                          r[6] or 'x', r[7], r[8] or "OK",
+                                                                          r[0], r[1], r[2])
+            if len(rlist) > 0:
+                print "... {} total.".format(len(rlist))
+    print "{} total diffs.".format(sum(map(len, all_lists)))
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()
