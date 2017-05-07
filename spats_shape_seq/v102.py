@@ -1,6 +1,5 @@
 import os
 
-from config import spats_config
 from db import PairDB
 from diagram import diagram
 from pair import Pair
@@ -20,8 +19,8 @@ def compare_v102(compare_results_path, targets_path, treated_mask, untreated_mas
     db.add_v102_comparison(targets_path, spats_out_path)
 
     spats = Spats()
-    spats_config.minimum_target_match_length = 10
-    spats.addMasks(treated_mask, untreated_mask)
+    spats.run.minimum_target_match_length = 10
+    spats.run.masks = [ treated_mask, untreated_mask ]
     spats.addTargets(targets_path)
     print "Current build processing pair data..."
     spats.writeback_results = True
@@ -35,7 +34,7 @@ def compare_v102(compare_results_path, targets_path, treated_mask, untreated_mas
     print "Ours differing from v102: {}".format(len(db.our_pairs_differing_from_v102()))
 
     print "Reasons for v102 missing from current:"
-    spats_config.debug = True
+    spats.run.debug = True
     pair = Pair()
     diagrams = 0
     reasons = 0
@@ -43,7 +42,7 @@ def compare_v102(compare_results_path, targets_path, treated_mask, untreated_mas
         reasons += 1
         print "  {}: {}".format(count, reason)
         with open(os.path.join(compare_results_path, 'v102_delta_{}.out'.format(reason)), 'wb') as outfile:
-            spats_config.log = outfile
+            spats.run.log = outfile
             for p in db.our_pairs_nonmatching_v102_for_reason(reason):
                 outfile.write("="*100 + "\n")
                 outfile.write("pair rowid: {}, v102 numeric id: {}, site: {}, NOMASK_R1: {}, NOMASK_R2: {}\n".format(p[0], p[4], p[5], p[6], p[7]))
@@ -98,8 +97,8 @@ def diagram_case(db_path, rowid, targets_path, treated_mask, untreated_mask):
     pair.set_from_data(str(p[1]), str(p[2]), str(p[3]))
 
     spats = Spats()
-    spats_config.minimum_target_match_length = 10
-    spats.addMasks(treated_mask, untreated_mask)
+    spats.run.minimum_target_match_length = 10
+    spats.run.masks = [ treated_mask, untreated_mask ]
     spats.addTargets(targets_path)
     spats.process_pair(pair)
     print diagram(pair)

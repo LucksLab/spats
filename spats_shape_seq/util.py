@@ -1,14 +1,17 @@
 
 import string
 
-from config import spats_config
+_g_debug = False
 
+def _set_debug(dbg):
+    global _g_debug
+    _g_debug = dbg
 
 def _warn(stuff):
     spats_config.log.write(str(stuff) + "\n")
 
 def _debug(stuff):
-    if spats_config.debug:
+    if _g_debug:
         spats_config.log.write(str(stuff) + "\n")
 
 

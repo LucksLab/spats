@@ -172,20 +172,18 @@
 #
 
 
-import multiprocessing
-import Queue
 import time
-import sys
 
-from config import spats_config
 from db import PairDB
-from mask import Mask, longest_match
+from mask import Mask
 from pair import Pair
-from parse import FastFastqParser, fasta_parse
+from parse import fasta_parse
 from processor import PairProcessor
 from profiles import Profiles
+from run import Run
 from target import Targets
-from util import _warn, _debug, Counters, reverse_complement, string_match_errors
+from util import _debug, _set_debug, _warn
+from worker import SpatsWorker
 
 
 class Spats(object):
@@ -193,41 +191,24 @@ class Spats(object):
     """
 
     def __init__(self):
-
-        #: reference to the :class:`.config.SpatsConfig` instance
-        self.config = spats_config
-
+        self.run = Run()
         self.__processor = None
-        self._targets = Targets()
-        self._masks = []
-        self._maskSize = 0
-        self._adapter_t_rc_cached = 0
+        self._targets = None
+        self._masks = None
         self._profiles = None
-        self.counters = Counters()
-        self.writeback_results = False
-        self.result_set_name = None
-        self.only_new_results = False
 
 
     @property
     def _processor(self):
         if not self.__processor:
-            self.__processor = PairProcessor(self._targets, self._masks)
+            self._addMasks()
+            self.__processor = PairProcessor(self.run, self._targets, self._masks)
         return self.__processor
 
 
-    def addMasks(self, *args):
-        """Pass the masks used for R1 handles to classify treated/untreated samples.
-           Two masks are expected, first the treated, then the untreated.
-           Must be called before processing pair data.
-        
-           :param args: list of mask strings
-        """
-        
-        for arg in args:
-            mask = Mask(arg)
-            self._masks.append(mask)
-            self._maskSize = max(self._maskSize, len(arg))
+    def _addMasks(self):
+        if not self._masks:
+            self._masks = [ Mask(m) for m in self.run.masks ]
 
 
     def addTargets(self, *target_paths):
@@ -245,17 +226,19 @@ class Spats(object):
 
 
     def _addTargets(self, target_list):
-        target = self._targets
+        targets = self._targets or Targets()
         for name, seq in target_list:
-            target.addTarget(name, seq)
-        if not target.targets:
+            targets.addTarget(name, seq)
+        if not targets.targets:
             raise Exception("didn't get any targets!")
-        if spats_config.minimum_target_match_length:
-            target.minimum_match_length = spats_config.minimum_target_match_length
-            target.index()
+        if self.run.minimum_target_match_length:
+            targets.minimum_match_length = self.run.minimum_target_match_length
+            targets.index()
         else:
-            target.index()
-            target.minimum_match_length = 1 + target.longest_self_match()
+            targets.index()
+            targets.minimum_match_length = 1 + targets.longest_self_match()
+        self._targets = targets
+
 
     def process_pair(self, pair):
         """Used process a single :class:`.pair.Pair`. Typically only used for debugging or analysis of specific cases.
@@ -263,6 +246,7 @@ class Spats(object):
            :param pair: a :class:`.pair.Pair` to process.
         """
 
+        _set_debug(self.run.debug)
         _debug("> processing " + pair.identifier + "\n  --> " + pair.r1.original_seq + " , " + pair.r2.original_seq)
         _debug("  rc(R1): {}".format(pair.r1.reverse_complement))
         try:
@@ -278,28 +262,31 @@ class Spats(object):
 
 
     def _memory_db_from_pairs(self, data_r1_path, data_r2_path):
+        if not self.run.quiet:
+            print "Parsing pair data..."
         start = time.time()
         db = PairDB()
         total_pairs = db.parse(data_r1_path, data_r2_path)
         report = "Parsed {} records in {:.1f}s".format(total_pairs, time.time() - start)
 
         # unclear if this helps, but potentially useful for further analysis later, and doesn't cost *too* much
-        # but if it's holding this up, nuke it
+        # but if it's holding things up, nuke it
         db.index()
         report += ", indexed in {:.1f}s".format(time.time() - start)
 
-        if spats_config.quiet:
+        if self.run.quiet:
             _debug(report)
         else:
             print report
         return db
 
+
     def process_pair_data(self, data_r1_path, data_r2_path):
         """Used to read and process a pair of FASTQ data files.
 
         Note that this parses the pair data into an in-memory SQLite
-        database, which on most modern systems will be fine for very
-        large databases. If you hit memory issues, create a disk-based
+        database, which on most modern systems will be fine except for the
+        largest input sets. If you hit memory issues, create a disk-based
         SQLite DB via :class:`.db.PairDB` and then use
         :meth:`.process_pair_db`.
 
@@ -311,6 +298,7 @@ class Spats(object):
         """
 
         self.process_pair_db(self._memory_db_from_pairs(data_r1_path, data_r2_path))
+
     
     #@profile
     def process_pair_db(self, pair_db):
@@ -322,115 +310,41 @@ class Spats(object):
            :param pair_db: a :class:`.db.PairDB` of pairs to process.
         """
 
-        if 0 == len(self._targets.targets):
-            targets = pair_db.targets()
-            if 0 == len(targets):
-                raise Exception("No targets available")
-            self._addTargets(targets)
+        _set_debug(self.run.debug)
+
+        if not self._targets:
+            self._addTargets(pair_db.targets())
+
+        result_set_id = pair_db.add_result_set(self.result_set_name or "default") if self.run.writeback_results else None
 
         start = time.time()
-        writeback = self.writeback_results
-        if writeback:
-            self.result_set_id = pair_db.add_result_set(self.result_set_name or "default")
+        worker = SpatsWorker(self.run, self._processor, pair_db, result_set_id)
 
-        pairs_to_do = multiprocessing.Queue()
-        pairs_done = multiprocessing.Queue()
-
-        #@profile
-        def worker(x):
-            pair = Pair()
-            writeback = self.writeback_results
-            batches = 0
-            while True:
-                pairs = pairs_to_do.get()
-                if not pairs:
-                    break
-                results = []
-                for lines in pairs:
-                    pair.set_from_data('', lines[1], lines[2], lines[0])
-                    self.process_pair(pair)
-                    if writeback:
-                        results.append((lines[3],
-                                        pair.target.name if pair.target else None,
-                                        pair.site if pair.has_site else -1,
-                                        pair.mask.chars if pair.mask else None,
-                                        pair.multiplicity,
-                                        pair.failure))
-                                        
-                if writeback:
-                    pair_db.add_results(self.result_set_id, results)
-
-                batches += 1
-                if not spats_config.quiet:# and 0 == (batches % 20):
-                    sys.stdout.write('.')
-                    sys.stdout.flush()
-
-            pairs_done.put((self.counters._counts, [(m.total, m.kept, m.count_data()) for m in self._masks]))
-
-        threads = []
-        num_workers = max(1, spats_config.num_workers or multiprocessing.cpu_count())
-        for i in range(num_workers):
-            thd = multiprocessing.Process(target = worker, args = (i,))
-            threads.append(thd)
-            thd.start()
-        _debug("created {} workers".format(num_workers))
-
-        if self.only_new_results:
-            db_iter = pair_db.unique_pairs_with_counts_and_no_results(self.result_set_id, batch_size = 32768)
-        elif spats_config._process_all_pairs:
-            if not spats_config.quiet:
+        batch_size = 32768
+        if self.run.resume_processing:
+            db_iter = pair_db.unique_pairs_with_counts_and_no_results(result_set_id, batch_size = batch_size)
+        elif self.run._process_all_pairs:
+            if not self.run.quiet:
                 print "Using all_pairs..."
-            db_iter = pair_db.all_pairs(batch_size = 32768)
+            db_iter = pair_db.all_pairs(batch_size = batch_size)
         else:
-            db_iter = pair_db.unique_pairs_with_counts(batch_size = 32768)
+            db_iter = pair_db.unique_pairs_with_counts(batch_size = batch_size)
 
-        if not spats_config.quiet:
+        if not self.run.quiet:
             print "Processing pairs..."
 
-        for pair_info in db_iter:
-            if not spats_config._process_all_pairs:
-                self.counters.unique_pairs += len(pair_info)
-            pairs_to_do.put(pair_info)
+        worker.run(db_iter)
 
-        for thd in threads:
-            pairs_to_do.put(None) # just a dummy object to signal we're done
-        for thd in threads:
-            thd.join()
-
-        if not spats_config.quiet:
-            print "\nAggregating data..."
-
-        try:
-            targets = { t.name : t for t in self._targets.targets }
-            while True:
-                data = pairs_done.get_nowait()
-                their_counters = data[0]
-                our_counters = self.counters._counts
-                for key, value in their_counters.iteritems():
-                    if key != "_counts":
-                        our_counters[key] = our_counters.get(key, 0) + value
-                for i in range(len(self._masks)):
-                    m = self._masks[i]
-                    d = data[1][i]
-                    m.total += d[0]
-                    m.kept += d[1]
-                    m.update_with_count_data(d[2], targets)
-        except Queue.Empty:
-            pass
-
-        self.counters.total_pairs += pair_db.count()
-        if writeback:
-            self.counters.unique_pairs = pair_db.unique_pairs()
-
-        if not spats_config.quiet:
+        if not self.run.quiet:
             self._report_counts(time.time() - start)
 
 
     def _report_counts(self, delta = None):
-        total = self.counters.total_pairs
-        print "Successfully processed {} properly paired fragments:".format(self.counters.processed_pairs)
+        counters = self._processor.counters
+        total = counters.total_pairs
+        print "Successfully processed {} properly paired fragments:".format(counters.processed_pairs)
         warn_keys = [ "multiple_R1_match", ]
-        countinfo = self.counters.counts_dict()
+        countinfo = counters.counts_dict()
         for key in sorted(countinfo.keys(), key = lambda k : countinfo[k], reverse = True):
             print "  {}{} : {} ({:.1f}%)".format("*** " if key in warn_keys else "", key, countinfo[key], 100.0 * (float(countinfo[key])/float(total)) if total else 0)
         print "Masks:"
@@ -441,12 +355,13 @@ class Spats(object):
             tmap[t.name] += sum(m.counts(t))
         if 1 < len(self._targets.targets):
             print "Targets:"
-            total = self.counters.processed_pairs
+            total = counters.processed_pairs
             for tgt in sorted(self._targets.targets, key = lambda t : tmap[t.name], reverse = True):
                 if tmap[tgt.name] > 0:
                     print "  {}: {} ({:.1f}%)".format(tgt.name, tmap[tgt.name], (100.0 * float(tmap[tgt.name])) / float(total) if total else 0)
         if delta:
             print "Total time: ({:.1f}s)".format(delta)
+
 
     def compute_profiles(self):
         """Computes beta/theta/c reactivity values after pair data have been processed.
@@ -457,6 +372,7 @@ class Spats(object):
         self._profiles = Profiles(self._targets, self._masks)
         self._profiles.compute()
         return self._profiles
+
 
     def write_reactivities(self, output_path):
         """Convenience function used to write the reactivities to an output

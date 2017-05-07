@@ -1,21 +1,20 @@
 
-from config import spats_config
 from util import _warn, _debug, Counters, reverse_complement, string_match_errors
 
 
 class PairProcessor(object):
 
-    def __init__(self, targets, masks):
+    def __init__(self, run, targets, masks):
+        self._run = run
         self._targets = targets
         self._masks = masks
         self.__adapter_t_rc = 0
         self.counters = Counters()
-        self.config = spats_config
 
     @property
     def _adapter_t_rc(self):
         if not self.__adapter_t_rc:
-            self.__adapter_t_rc = reverse_complement(spats_config.adapter_t)
+            self.__adapter_t_rc = reverse_complement(self._run.adapter_t)
         return self.__adapter_t_rc
 
     def _match_mask(self, pair):
@@ -48,7 +47,7 @@ class PairProcessor(object):
         pair.r2.trim(r2_length_to_trim)
         _debug("R2 trim: {}, {}, {}".format(r2_start_in_target, r2_len_should_be, r2_length_to_trim))
 
-        if spats_config.minimum_adapter_len and r2_length_to_trim - 4 < spats_config.minimum_adapter_len:
+        if self._run.minimum_adapter_len and r2_length_to_trim - 4 < self._run.minimum_adapter_len:
             _debug("  !! v102 minimum adapter len {}".format(r2_length_to_trim - 4))
             return False
 
@@ -62,7 +61,7 @@ class PairProcessor(object):
         r2_adapter_match = r2_seq[4-r2_length_to_trim:]
         pair.r2.adapter_errors = string_match_errors(r2_adapter_match, self._adapter_t_rc)
         _debug("  check = {}, errors = {}".format(r2_adapter_match, pair.r2.adapter_errors))
-        if len(pair.r2.adapter_errors) > spats_config.allowed_adapter_errors:
+        if len(pair.r2.adapter_errors) > self._run.allowed_adapter_errors:
             return False
 
         # now, same thing on r1 (smaller trim b/c of no handle, hence -4)
@@ -70,9 +69,9 @@ class PairProcessor(object):
         r1_length_to_trim = r2_length_to_trim - 4
         r1_adapter_match = r1_seq[-r1_length_to_trim:]
         r1_match_trimmed = pair.r1.trim(r1_length_to_trim, reverse_complement = True)
-        pair.r1.adapter_errors = string_match_errors(r1_adapter_match, spats_config.adapter_b)
+        pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self._run.adapter_b)
         _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
-        if len(pair.r1.adapter_errors) > spats_config.allowed_adapter_errors:
+        if len(pair.r1.adapter_errors) > self._run.allowed_adapter_errors:
             return False
 
         if r1_match_trimmed:
@@ -139,7 +138,7 @@ class PairProcessor(object):
             pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement, target_seq[pair.r1.match_index:])
             pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
 
-            if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > spats_config.allowed_target_errors:
+            if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > self._run.allowed_target_errors:
                 if pair.r1.match_errors:
                     _debug("R1 errors: {}".format(pair.r1.match_errors))
                 if pair.r2.match_errors:
@@ -157,7 +156,7 @@ class PairProcessor(object):
             self.counters.r1_not_on_right_edge += pair.multiplicity
             return
 
-        if not spats_config.allow_indeterminate  and  not pair.is_determinate():
+        if not self._run.allow_indeterminate  and  not pair.is_determinate():
             pair.failure = "indeterminate sequence failure"
             self.counters.indeterminate += pair.multiplicity
             return

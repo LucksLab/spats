@@ -27,26 +27,31 @@ def d5s_writeback_run():
     pair_db = PairDB(bp + "dev_out/pairs.db")
     pair_db.add_targets_table(bp + "5s/5S.fa")
 
-    from spats_shape_seq import Spats, spats_config
+    from spats_shape_seq import Spats
     s = Spats()
     s.addTargets(bp + "5s/5S.fa")
-    s.addMasks("RRRY", "YYYR")
     s.writeback_results = True
     s.result_set_name = "pure_python"
     s.process_pair_db(pair_db)
 
+def d5s_run():
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+    from spats_shape_seq import Spats
+    s = Spats()
+    s.addTargets(bp + "5s/5S.fa")
+    s.process_pair_data(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
+                        bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
+
 def ligation_run():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/"
-    from spats_shape_seq import spats_config
-    #spats_config.debug = True
-    spats_config.minimum_target_match_length = 10
-    spats(bp + "panel_RNAs_complete.fa",
-          bp + "data/KEW1_S1_L001_R1_001.fastq",
-          bp + "data/KEW1_S1_L001_R2_001.fastq",
-          bp + "dev_out",
-          show_sites = False)
-    #Parsed 2057352 records in 6.4s
-    #Processed 403032 properly paired fragments, kept 156919/1019531 (15.4%) treated, 279684/992223 (28.2%) untreated (16.0s)
+    from spats_shape_seq import Spats
+    s = Spats()
+    #s.config.debug = True
+    #s.run.minimum_target_match_length = 10
+    #s.run.num_workers = 1
+    s.addTargets(bp + "panel_RNAs_complete.fa")
+    s.process_pair_data(bp + "data/KEW1_S1_L001_R1_001.fastq",
+                        bp + "data/KEW1_S1_L001_R2_001.fastq")
 
 def run_5sq():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
