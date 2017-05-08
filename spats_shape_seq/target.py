@@ -1,13 +1,14 @@
 
 from mask import longest_match
+from util import reverse_complement
 
 class _Target(object):
 
     def __init__(self, name, seq, rowid):
         self.rowid = rowid
         self.name = name
-        self.seq = seq.upper()
-        self.n = len(seq)
+        self.seq = str(seq).upper()
+        self.n = len(self.seq)
 
 
 class Targets(object):
@@ -75,6 +76,32 @@ class Targets(object):
         # so if we didn't find one, just return that
         return candidate[1] or min_len
 
+    def longest_target_self_matches(self, minimum_length = None):
+        min_len = self._minimum_length
+        matches = {}
+        for target in self.targets:
+            seq = target.seq
+            seq_len = target.n
+            index = 0
+            candidate = (None, None, None)
+            while True:
+                query = seq[index:index+min_len]
+                match_target, match_index = self.find_exact(query, exclude = (target, index))
+                if match_target == target:
+                    assert(match_index != index)
+                    left, right = longest_match(seq, (index, min_len), match_target.seq, (match_index, min_len))
+                    total_len = min_len + left + right
+                    if not candidate[1] or total_len > candidate[1]:
+                        candidate = (index, total_len, match_index)
+                        #print "C {} {} matches {}".format(target.name, candidate, match_target.name)
+                index += 1
+                if index >= seq_len - max(min_len, candidate[1]):
+                    break
+            # note that we can't say there's no self-match below min_len,
+            # so if we didn't find one, just return that
+            matches[target.name] = candidate[1] or min_len
+        return matches
+
     def find_exact(self, query, exclude = (None, -1)):
         word_len = self._index_word_length
         query_len = len(query)
@@ -131,3 +158,54 @@ class Targets(object):
                         else:
                             candidate[0] = [ target, candidate[0] ]
         return candidate
+
+    def build_lookups(self, adapter_b, length = 35, end_only = True):
+        self._build_R1_lookup(adapter_b, length - 4, end_only)
+        self._build_R2_lookup(length)
+
+    def _build_R1_lookup(self, adapter_b, length = 31, end_only = True):
+        # we can pre-build the set of all possible (error-free) R1, b/c:
+        #  - R1 has to include the right-most nt
+        #  - R1 can include some adapter-b off the end
+        #  - this is done for each target
+        #  - note that in cases where R1 includes some (enough) adapter, then position and content of R2 is determined
+        # note that this does *not* include the handle.
+        r1_table = {}
+        for target in self.targets:
+            tlen = target.n
+            rc_tgt = reverse_complement(target.seq)
+            for i in range(length + 1):
+                r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
+                res = r1_table.get(r1_candidate)
+                if res:
+                    if target != res[0]:
+                        print "Fail for {} / {}".format(i, target.name)
+                        r1_table[r1_candidate] = (None, None)
+                    else:
+                        # in case of multiple match on same target, set to None to indicate it's up to R2
+                        r1_table[r1_candidate] = (target, None)
+                else:
+                    r1_table[r1_candidate] = (target, None if i == length else tlen - i)
+        self.r1_lookup = r1_table
+
+    def _build_R2_lookup(self, length = 35):
+        # for the R2 table, we only care about R2's that are in the sequence
+        # when R2 needs adapter trimming, R1 will determine that
+        self_matches = self.longest_target_self_matches()
+        for tname in self_matches.keys():
+            print "{} : {}".format(tname, self_matches[tname])
+        r2_full_table = {}
+        for target in self.targets:
+            mlen = self_matches[target.name] + 1
+            if length < mlen:
+                raise Exception("R2 length not long enough for target self-match")
+            r2_table = {}
+            r2_full_table[target.name] = r2_table
+            tlen = target.n
+            tgt_seq = target.seq
+            for i in range(tlen - mlen):
+                r2_candidate = tgt_seq[i:i+mlen]
+                if r2_table.get(r2_candidate):
+                    raise Exception("indeterminate R2 candidate {} in target?".format(r2_candidate))
+                r2_table[r2_candidate] = i
+        self.r2_lookup = r2_full_table

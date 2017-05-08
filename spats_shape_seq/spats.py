@@ -237,6 +237,7 @@ class Spats(object):
         else:
             targets.index()
             targets.minimum_match_length = 1 + targets.longest_self_match()
+        targets.build_lookups(self.run.adapter_b)
         self._targets = targets
 
 

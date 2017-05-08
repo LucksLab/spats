@@ -69,7 +69,7 @@ class Sequence(object):
         if reverse_complement:
             delta = self._rtrim - self.match_start
             if delta > 0:
-                _debug("trim reducing original match_len {} -> {}".format(self.match_len, self.seq_len))
+                _debug("trim reducing original match_len {} -> {}".format(self.match_len, self.match_len - delta))
                 self.match_len -= delta
                 self.match_start += delta
                 self.match_index += delta
