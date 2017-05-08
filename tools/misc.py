@@ -225,10 +225,9 @@ def dbrun():
     from spats_shape_seq.db import PairDB
     db = PairDB(db_path)
     s = Spats()
-    s.addMasks('RRRY', 'YYYR')
-    s.writeback_results = True
-    s.result_set_name = run_name
-    s.only_new_results = True
+    #s.run.writeback_results = True
+    #s.run.result_set_name = run_name
+    #s.run.resume_processing = True
     s.process_pair_db(db)
 
 def addv102():

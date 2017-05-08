@@ -74,7 +74,7 @@ class Run(object):
         #: Defaults to ``"default"``, set to a string to choose the name for
         #: this result set. Also used for resuming processing, xref
         #: :attr:`.resume_processing`. Result sets can be compared using
-        #: :method:`.db.PairDB.differing_results`
+        #: :meth:`.db.PairDB.differing_results`
         self.result_set_name = None
 
         #: Default ``False``, set to ``True`` to resume processing (if

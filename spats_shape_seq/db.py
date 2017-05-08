@@ -1,5 +1,6 @@
 
 import os
+import random
 import sqlite3
 import sys
 
@@ -79,7 +80,7 @@ class PairDB(object):
         self.index()
         self.conn.execute("CREATE TABLE IF NOT EXISTS unique_pair (pair_id INT, multiplicity INT)")
         self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_pair_idx ON unique_pair (pair_id)")
-        num_already = self._fetch_one("SELECT COUNT(*) FROM unique_pair")
+        num_already = self._fetch_one("SELECT 1 FROM unique_pair limit 1")
         if 0 == num_already:
             self.conn.execute("INSERT INTO unique_pair (pair_id, multiplicity) SELECT rowid, COUNT(rowid) FROM pair GROUP BY r1||r2")
             self.conn.commit()
@@ -99,6 +100,7 @@ class PairDB(object):
     def _batch_results(self, query, batch_size, args = []):
         batch = []
         count = 0
+        cur_batch_size = (batch_size >> 1) + random.randrange(batch_size >> 1)
         for result in self.conn.execute(query, args):
             batch.append((int(result[0]), str(result[1]), str(result[2]), int(result[3])))
             count += 1
@@ -106,6 +108,7 @@ class PairDB(object):
                 cur = batch
                 batch = []
                 count = 0
+                cur_batch_size = (batch_size >> 1) + random.randrange(batch_size >> 1)
                 yield cur
         yield batch
 
@@ -135,7 +138,7 @@ class PairDB(object):
         return { name : seq for name, seq in target_list }
 
     def targets(self):
-        return [ (r[0], r[1]) for r in self.conn.execute("SELECT name, seq FROM target") ]
+        return [ (r[0], r[1], r[2]) for r in self.conn.execute("SELECT name, seq, rowid FROM target") ]
 
     # results storing
     def _prepare_results(self):
@@ -158,15 +161,27 @@ class PairDB(object):
 
     # results a list of (rowid, target_name, site, mask, multiplicity)
     def add_results(self, result_set_id, results):
-        # grab a new connection since this might be in a new process (due to multiprocessing)
-        conn = sqlite3.connect(self._dbpath)
-        stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
-                  VALUES ({}, ?, (SELECT rowid FROM target WHERE name=?), ?, ?, ?, ?)'''.format(result_set_id)
-        cursor = conn.executemany(stmt, results)
-        if cursor.rowcount != len(results):
-            print results
-            raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
-        conn.commit()
+        tries = 0
+        while tries < 3:
+            tries += 1
+            try:
+                # grab a new connection since this might be in a new process (due to multiprocessing)
+                #print " --> Thd in AR {}".format(self.worker_id)
+                conn = sqlite3.connect(self._dbpath)
+                stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
+                          VALUES ({}, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
+                cursor = conn.executemany(stmt, results)
+                if cursor.rowcount != len(results):
+                    print results
+                    raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
+                conn.commit()
+                #print "<-- Thd out AR {}".format(self.worker_id)
+                return
+            except sqlite3.OperationalError:
+                sys.stdout.write('!')
+                sys.stdout.flush()
+                pass
+
 
     def num_results(self, result_set_name):
         return self._fetch_one("SELECT count(*) FROM result r JOIN result_set n ON r.set_id = n.rowid WHERE n.set_id = ?", (result_set_name,))

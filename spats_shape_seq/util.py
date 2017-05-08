@@ -1,17 +1,17 @@
 
 import string
 
-_g_debug = False
+_is_debug = False
 
 def _set_debug(dbg):
-    global _g_debug
-    _g_debug = dbg
+    global _is_debug
+    _is_debug = dbg
 
 def _warn(stuff):
     spats_config.log.write(str(stuff) + "\n")
 
 def _debug(stuff):
-    if _g_debug:
+    if _is_debug:
         spats_config.log.write(str(stuff) + "\n")
 
 

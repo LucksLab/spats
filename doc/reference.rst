@@ -10,7 +10,7 @@ Reference
    :members:
    :undoc-members:
 
-.. autoclass:: spats_shape_seq.config.SpatsConfig
+.. autoclass:: spats_shape_seq.run.Run
    :members:
    :undoc-members:
 

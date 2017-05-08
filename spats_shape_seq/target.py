@@ -3,7 +3,8 @@ from mask import longest_match
 
 class _Target(object):
 
-    def __init__(self, name, seq):
+    def __init__(self, name, seq, rowid):
+        self.rowid = rowid
         self.name = name
         self.seq = seq.upper()
         self.n = len(seq)
@@ -17,8 +18,8 @@ class Targets(object):
         self._minimum_length = index_word_length
         self.targets = []
 
-    def addTarget(self, name, seq):
-        self.targets.append(_Target(name, seq))
+    def addTarget(self, name, seq, rowid = -1):
+        self.targets.append(_Target(name, seq, rowid))
 
     @property
     def minimum_match_length(self):

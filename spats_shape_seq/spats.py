@@ -221,14 +221,14 @@ class Spats(object):
         targets = []
         for path in target_paths:
             for name, seq in fasta_parse(path):
-                targets.append((name, seq))
+                targets.append((name, seq, -1))
         self._addTargets(targets)
 
 
     def _addTargets(self, target_list):
         targets = self._targets or Targets()
-        for name, seq in target_list:
-            targets.addTarget(name, seq)
+        for name, seq, rowid in target_list:
+            targets.addTarget(name, seq, rowid)
         if not targets.targets:
             raise Exception("didn't get any targets!")
         if self.run.minimum_target_match_length:
@@ -315,7 +315,7 @@ class Spats(object):
         if not self._targets:
             self._addTargets(pair_db.targets())
 
-        result_set_id = pair_db.add_result_set(self.result_set_name or "default") if self.run.writeback_results else None
+        result_set_id = pair_db.add_result_set(self.run.result_set_name or "default") if self.run.writeback_results else None
 
         start = time.time()
         worker = SpatsWorker(self.run, self._processor, pair_db, result_set_id)

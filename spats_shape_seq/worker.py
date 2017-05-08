@@ -16,14 +16,13 @@ class SpatsWorker(object):
         self._processor = processor
         self._pair_db = pair_db
         self._result_set_id = result_set_id
-        self._pairs_to_do = multiprocessing.Queue()
-        self._pairs_done = multiprocessing.Queue()
         self._workers = []
 
     def _worker(self, worker_id):
         try:
             processor = self._processor
             pair_db = self._pair_db
+            pair_db.worker_id = worker_id
             writeback = bool(self._result_set_id)
             pair = Pair()
             batches = 0
@@ -37,7 +36,7 @@ class SpatsWorker(object):
                     processor.process_pair(pair)
                     if writeback:
                         results.append((lines[3],
-                                        pair.target.name if pair.target else None,
+                                        pair.target.rowid if pair.target else None,
                                         pair.site if pair.has_site else -1,
                                         pair.mask.chars if pair.mask else None,
                                         pair.multiplicity,
@@ -79,11 +78,18 @@ class SpatsWorker(object):
     def run(self, db_iterator):
 
         num_workers = max(1, self._run.num_workers or multiprocessing.cpu_count())
+        self._pairs_to_do = multiprocessing.Queue(maxsize = 2 * num_workers)
+        self._pairs_done = multiprocessing.Queue()
 
         self._createWorkers(num_workers)
 
         for pair_info in db_iterator:
             self._pairs_to_do.put(pair_info)
+            sys.stdout.write('^')
+            sys.stdout.flush()
+
+        if not self._run.quiet:
+            print "\nWaiting on workers..."
 
         self._joinWorkers()
 
