@@ -202,7 +202,7 @@ class Spats(object):
     def _processor(self):
         if not self.__processor:
             self._addMasks()
-            self.__processor = PairProcessor(self.run, self._targets, self._masks)
+            self.__processor = self.run._processor_class(self.run, self._targets, self._masks)
         return self.__processor
 
 
@@ -231,13 +231,7 @@ class Spats(object):
             targets.addTarget(name, seq, rowid)
         if not targets.targets:
             raise Exception("didn't get any targets!")
-        if self.run.minimum_target_match_length:
-            targets.minimum_match_length = self.run.minimum_target_match_length
-            targets.index()
-        else:
-            targets.index()
-            targets.minimum_match_length = 1 + targets.longest_self_match()
-        targets.build_lookups(self.run.adapter_b)
+        targets.minimum_match_length = self.run.minimum_target_match_length
         self._targets = targets
 
 
@@ -313,15 +307,18 @@ class Spats(object):
 
         _set_debug(self.run.debug)
 
+        start = time.time()
+
         if not self._targets:
             self._addTargets(pair_db.targets())
+        # force the processor to load and do whatever indexing/etc is required
+        self._processor
 
         result_set_id = pair_db.add_result_set(self.run.result_set_name or "default") if self.run.writeback_results else None
 
-        start = time.time()
         worker = SpatsWorker(self.run, self._processor, pair_db, result_set_id)
 
-        batch_size = 32768
+        batch_size = 65536
         if self.run.resume_processing:
             db_iter = pair_db.unique_pairs_with_counts_and_no_results(result_set_id, batch_size = batch_size)
         elif self.run._process_all_pairs:

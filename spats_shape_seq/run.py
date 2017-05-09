@@ -1,6 +1,8 @@
 
 import sys
 
+from lookup import LookupProcessor
+
 class Run(object):
     """Encapsulates the inputs/config required for a Spats run.
     """
@@ -25,16 +27,17 @@ class Run(object):
         #: defaults to ``sys.stdout``, set to file-like object to gather debugging info
         self.log = sys.stdout
 
-        #: Defaults to `10`.
-        #: Set to ``None`` (default) to auto-set to ``k+1`` where
-        #: ``k`` is the longest self-match in the target. Runs will
+        #: Defaults to `10`. Runs will
         #: potentially be faster if you set it higher, but may miss
         #: some pairs that have only shorter matching
-        #: subsequences. You can set it to lower than ``k``, but then
+        #: subsequences. You can set it lower, but then
         #: there's some chance pairs will match the wrong place -- in
-        #: this case, they will have too many errors and be discarded
+        #: which case, they will have too many errors and be discarded
         #: -- and it will allow shorter sequences at the end (which
-        #: end up being adapter-trimmed) to be accepted.
+        #: end up being adapter-trimmed) to be accepted. Might want to
+        #: analyze your targets (xref
+        #: :meth:`.target.Target.longest_target_self_matches`) to
+        #: determine an appropriate value.
         self.minimum_target_match_length = 10
 
         #: Defaults to ``0``, set higher to require a minimal amount of
@@ -84,3 +87,5 @@ class Run(object):
 
         # private config
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
+
+        self._processor_class = LookupProcessor

@@ -36,11 +36,22 @@ def d5s_writeback_run():
 
 def d5s_run():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/"
+
+    from spats_shape_seq.db import PairDB
+    pair_db = PairDB(bp + "dev_out/pairs.db")
+    if False:
+        pair_db.add_targets_table(bp + "5s/5S.fa")
+        pair_db.parse(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
+                      bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
+
     from spats_shape_seq import Spats
+    from spats_shape_seq.partial import PartialFindProcessor
     s = Spats()
+    #s.run._processor_class = PartialFindProcessor
+    s.run.writeback_results = True
+    s.run.result_set_name = "lookup"
     s.addTargets(bp + "5s/5S.fa")
-    s.process_pair_data(bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
-                        bp + "5s/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
+    s.process_pair_db(pair_db)
 
 def ligation_run():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/"

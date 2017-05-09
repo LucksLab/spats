@@ -21,8 +21,7 @@ class SpatsWorker(object):
     def _worker(self, worker_id):
         try:
             processor = self._processor
-            pair_db = self._pair_db
-            pair_db.worker_id = worker_id
+            self._pair_db.worker_id = worker_id
             writeback = bool(self._result_set_id)
             pair = Pair()
             batches = 0
@@ -43,7 +42,7 @@ class SpatsWorker(object):
                                         pair.failure))
                                         
                 if writeback:
-                    pair_db.add_results(self._result_set_id, results)
+                    self._results.put(results)
 
                 batches += 1
                 if not self._run.quiet:
@@ -62,7 +61,8 @@ class SpatsWorker(object):
             worker = multiprocessing.Process(target = self._worker, args = (i,))
             self._workers.append(worker)
             worker.start()
-        _debug("created {} workers".format(num_workers))
+        if not self._run.quiet:
+            print "Created {} workers".format(num_workers)
 
     def _joinWorkers(self):
 
@@ -80,16 +80,56 @@ class SpatsWorker(object):
         num_workers = max(1, self._run.num_workers or multiprocessing.cpu_count())
         self._pairs_to_do = multiprocessing.Queue(maxsize = 2 * num_workers)
         self._pairs_done = multiprocessing.Queue()
+        self._results = multiprocessing.Queue()
 
         self._createWorkers(num_workers)
 
-        for pair_info in db_iterator:
-            self._pairs_to_do.put(pair_info)
-            sys.stdout.write('^')
-            sys.stdout.flush()
+        quiet = self._run.quiet
+        more_pairs = True
+        pair_db = self._pair_db
+        writeback = bool(self._result_set_id)
+        num_batches = 0
+        if writeback:
+            result_set_id = self._result_set_id
 
-        if not self._run.quiet:
-            print "\nWaiting on workers..."
+        def put_batch():
+            pair_info = next(db_iterator)
+            self._pairs_to_do.put(pair_info)
+            if not quiet:
+                sys.stdout.write('^')
+                sys.stdout.flush()
+
+        def get_results():
+            results = self._results.get_nowait()
+            pair_db.add_results(self._result_set_id, results)
+            if not quiet:
+                sys.stdout.write('v')
+                sys.stdout.flush()
+
+        while more_pairs:
+            try:
+                cur_count = 0
+                while cur_count < num_workers or num_batches < 2 * num_workers:
+                    put_batch()
+                    num_batches += 1
+                    cur_count += 1
+                if writeback:
+                    while True:
+                        get_results()
+                        num_batches -= 1
+            except StopIteration:
+                more_pairs = False
+            except Queue.Empty:
+                pass
+
+        if writeback:
+            while num_batches > 0:
+                results = self._results.get()
+                pair_db.add_results(self._result_set_id, results)
+                num_batches -= 1
+                if not quiet:
+                    sys.stdout.write('v')
+                    sys.stdout.flush()
 
         self._joinWorkers()
 

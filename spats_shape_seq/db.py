@@ -58,6 +58,7 @@ class PairDB(object):
         return total
 
     def index(self):
+        self.conn.commit()
         self.conn.execute("CREATE INDEX IF NOT EXISTS r1_idx ON pair (r1)")
         self.conn.execute("CREATE INDEX IF NOT EXISTS r2_idx ON pair (r2)")
 
@@ -81,7 +82,7 @@ class PairDB(object):
         self.conn.execute("CREATE TABLE IF NOT EXISTS unique_pair (pair_id INT, multiplicity INT)")
         self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_pair_idx ON unique_pair (pair_id)")
         num_already = self._fetch_one("SELECT 1 FROM unique_pair limit 1")
-        if 0 == num_already:
+        if not num_already:
             self.conn.execute("INSERT INTO unique_pair (pair_id, multiplicity) SELECT rowid, COUNT(rowid) FROM pair GROUP BY r1||r2")
             self.conn.commit()
 
@@ -98,19 +99,19 @@ class PairDB(object):
         return self._fetch_one("SELECT COUNT(rowid) as cnt from pair group by r2 order by cnt desc limit 1")
 
     def _batch_results(self, query, batch_size, args = []):
-        batch = []
-        count = 0
-        cur_batch_size = (batch_size >> 1) + random.randrange(batch_size >> 1)
-        for result in self.conn.execute(query, args):
-            batch.append((int(result[0]), str(result[1]), str(result[2]), int(result[3])))
-            count += 1
-            if batch_size and count >= batch_size:
-                cur = batch
-                batch = []
-                count = 0
-                cur_batch_size = (batch_size >> 1) + random.randrange(batch_size >> 1)
-                yield cur
-        yield batch
+        offset = 0
+        while True:
+            use_query = query + (" LIMIT {} OFFSET {}".format(batch_size, offset) if batch_size > 0 else "")
+            batch = []
+            count = 0
+            for result in self.conn.execute(use_query, args):
+                batch.append((int(result[0]), str(result[1]), str(result[2]), int(result[3])))
+                count += 1
+            if count > 0:
+                offset += count
+                yield batch
+            if count < batch_size:
+                return
 
     def unique_pairs_with_counts(self, batch_size = 0):
         self._cache_unique_pairs()
