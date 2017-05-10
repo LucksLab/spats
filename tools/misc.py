@@ -49,6 +49,7 @@ def d5s_run():
     s = Spats()
     #s.run._processor_class = PartialFindProcessor
     s.run.writeback_results = True
+    #s.run.resume_processing = True
     s.run.result_set_name = "lookup"
     s.addTargets(bp + "5s/5S.fa")
     s.process_pair_db(pair_db)
@@ -60,9 +61,22 @@ def ligation_run():
     #s.config.debug = True
     #s.run.minimum_target_match_length = 10
     #s.run.num_workers = 1
+    s.run._skip_database = True
     s.addTargets(bp + "panel_RNAs_complete.fa")
     s.process_pair_data(bp + "data/KEW1_S1_L001_R1_001.fastq",
                         bp + "data/KEW1_S1_L001_R2_001.fastq")
+
+def cotrans_run():
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
+    from spats_shape_seq import Spats
+    s = Spats()
+    s.run._skip_database = True
+    #s.run.writeback_results = True
+    #s.run.resume_processing = True
+    #s.run.result_set_name = "lookup"
+    s.addTargets(bp + "F_wt.fa")
+    s.process_pair_data(bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
+                        bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq")
 
 def run_5sq():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
@@ -236,8 +250,8 @@ def dbrun():
     from spats_shape_seq.db import PairDB
     db = PairDB(db_path)
     s = Spats()
-    #s.run.writeback_results = True
-    #s.run.result_set_name = run_name
+    s.run.writeback_results = True
+    s.run.result_set_name = run_name
     #s.run.resume_processing = True
     s.process_pair_db(db)
 

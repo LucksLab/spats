@@ -21,10 +21,10 @@ class SpatsWorker(object):
     def _worker(self, worker_id):
         try:
             processor = self._processor
-            self._pair_db.worker_id = worker_id
+            if self._pair_db:
+                self._pair_db.worker_id = worker_id
             writeback = bool(self._result_set_id)
             pair = Pair()
-            batches = 0
             while True:
                 pairs = self._pairs_to_do.get()
                 if not pairs:
@@ -40,13 +40,12 @@ class SpatsWorker(object):
                                         pair.mask.chars if pair.mask else None,
                                         pair.multiplicity,
                                         pair.failure))
-                                        
+
                 if writeback:
                     self._results.put(results)
 
-                batches += 1
                 if not self._run.quiet:
-                    sys.stdout.write('.')
+                    sys.stdout.write('.')#str(worker_id))
                     sys.stdout.flush()
 
             self._pairs_done.put((processor.counters._counts, [(m.total, m.kept, m.count_data()) for m in processor._masks]))
@@ -75,7 +74,7 @@ class SpatsWorker(object):
         for w in self._workers:
             w.join()
 
-    def run(self, db_iterator):
+    def run(self, pair_iterator):
 
         num_workers = max(1, self._run.num_workers or multiprocessing.cpu_count())
         self._pairs_to_do = multiprocessing.Queue(maxsize = 2 * num_workers)
@@ -89,34 +88,43 @@ class SpatsWorker(object):
         pair_db = self._pair_db
         writeback = bool(self._result_set_id)
         num_batches = 0
+        total = 0
         if writeback:
             result_set_id = self._result_set_id
 
         def put_batch():
-            pair_info = next(db_iterator)
+            pair_info = next(pair_iterator)
             self._pairs_to_do.put(pair_info)
             if not quiet:
                 sys.stdout.write('^')
                 sys.stdout.flush()
+            return len(pair_info)
 
-        def get_results():
-            results = self._results.get_nowait()
-            pair_db.add_results(self._result_set_id, results)
-            if not quiet:
-                sys.stdout.write('v')
-                sys.stdout.flush()
+        def write_results():
+            all_results = []
+            num_batches = 0
+            try:
+                while True:
+                    all_results.extend(self._results.get(True, 0.01))
+                    num_batches += 1
+                    if not quiet:
+                        sys.stdout.write('v')
+                        sys.stdout.flush()
+            except Queue.Empty:
+                pass
+            if all_results:
+                pair_db.add_results(self._result_set_id, all_results)
+            return num_batches
 
         while more_pairs:
             try:
                 cur_count = 0
                 while cur_count < num_workers or num_batches < 2 * num_workers:
-                    put_batch()
+                    total += put_batch()
                     num_batches += 1
                     cur_count += 1
                 if writeback:
-                    while True:
-                        get_results()
-                        num_batches -= 1
+                    num_batches -= write_results()
             except StopIteration:
                 more_pairs = False
             except Queue.Empty:
@@ -124,12 +132,7 @@ class SpatsWorker(object):
 
         if writeback:
             while num_batches > 0:
-                results = self._results.get()
-                pair_db.add_results(self._result_set_id, results)
-                num_batches -= 1
-                if not quiet:
-                    sys.stdout.write('v')
-                    sys.stdout.flush()
+                num_batches -= write_results()
 
         self._joinWorkers()
 
@@ -155,5 +158,6 @@ class SpatsWorker(object):
         except Queue.Empty:
             pass
 
-        processor.counters.total_pairs = self._pair_db.count()
-        processor.counters.unique_pairs = self._pair_db.unique_pairs()
+        processor.counters.total_pairs = total
+        if self._pair_db:
+            processor.counters.unique_pairs = self._pair_db.unique_pairs()

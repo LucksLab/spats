@@ -56,6 +56,42 @@ class FastFastqParser(object):
         self.r1_iter = None
         self.r2_iter = None
 
+    def iterator(self, batch_size):
+        while True:
+            batch = self.iterator_read(batch_size)
+            if batch:
+                yield batch
+            else:
+                return
+
+    # kept separate from other read fns for speed
+    def iterator_read(self, batch_size):
+        pairs = []
+        r1_iter = self.r1_iter
+        r2_iter = self.r2_iter
+        count = 0
+        try:
+            while count < batch_size:
+                R1_id = r1_iter.next() #.split(' ')[0]
+                R1_seq = r1_iter.next().rstrip('\n\r')
+                r1_iter.next()
+                r1_iter.next()
+                R2_id = r2_iter.next() #.split(' ')[0]
+                R2_seq = r2_iter.next().rstrip('\n\r')
+                r2_iter.next()
+                r2_iter.next()
+                if 0 == count:
+                    # good enough to just spot-check this, and improve parsing speed by skipping most of the time
+                    R1_id = R1_id.split(' ')[0]
+                    R2_id = R2_id.split(' ')[0]
+                    if R1_id != R2_id:
+                        raise Exception("Malformed input files, id mismatch: {} != {}".format(R1_id, R2_id))
+                pairs.append((1, R1_seq, R2_seq, 0))
+                count += 1
+        except StopIteration:
+            pass
+        return pairs
+
     # returns a list of (id, r1, r2), of length <= max_num_pairs, len<max_num_pairs iff eof
     def read(self, max_num_pairs):
         pairs = []

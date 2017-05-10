@@ -101,32 +101,32 @@ class PairDB(object):
     def _batch_results(self, query, batch_size, args = []):
         offset = 0
         while True:
-            use_query = query + (" LIMIT {} OFFSET {}".format(batch_size, offset) if batch_size > 0 else "")
-            batch = []
-            count = 0
-            for result in self.conn.execute(use_query, args):
-                batch.append((int(result[0]), str(result[1]), str(result[2]), int(result[3])))
-                count += 1
-            if count > 0:
-                offset += count
+            use_query = query.format(offset, batch_size)
+            batch = sqlite3.connect(self._dbpath).execute(use_query, args).fetchall()
+            if batch:
+                offset = (int(batch[-1][4]) + 1)
                 yield batch
-            if count < batch_size:
+            else:
                 return
 
     def unique_pairs_with_counts(self, batch_size = 0):
         self._cache_unique_pairs()
-        return self._batch_results("SELECT u.multiplicity, p.r1, p.r2, p.rowid FROM unique_pair u JOIN pair p ON p.rowid=u.pair_id", batch_size)
+        return self._batch_results('''SELECT u.multiplicity, p.r1, p.r2, p.rowid, u.rowid
+                                      FROM unique_pair u JOIN pair p ON p.rowid=u.pair_id
+                                      WHERE u.rowid >= {} ORDER BY u.rowid LIMIT {}''', batch_size)
 
     def unique_pairs_with_counts_and_no_results(self, result_set_id, batch_size = 0):
         self._cache_unique_pairs()
-        return self._batch_results('''SELECT u.multiplicity, p.r1, p.r2, p.rowid
+        self.index_results()
+        return self._batch_results('''SELECT u.multiplicity, p.r1, p.r2, p.rowid, u.rowid
                                       FROM unique_pair u
                                       JOIN pair p ON p.rowid=u.pair_id
                                       LEFT JOIN result r ON r.set_id=? AND r.pair_id=u.pair_id
-                                      WHERE r.rowid IS NULL''', batch_size, (result_set_id,))
+                                      WHERE r.rowid IS NULL AND u.rowid >= {}
+                                      ORDER BY u.rowid LIMIT {}''', batch_size, (result_set_id,))
 
     def all_pairs(self, batch_size = 0):
-        return self._batch_results("SELECT 1, r1, r2, rowid from pair", batch_size)
+        return self._batch_results("SELECT 1, r1, r2, rowid FROM pair WHERE rowid >= {} ORDER BY rowid LIMIT {}", batch_size)
 
     def add_targets_table(self, targets_path):
         from parse import fasta_parse
@@ -144,16 +144,18 @@ class PairDB(object):
     # results storing
     def _prepare_results(self):
         self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, site INT, mask TEXT, multiplicity INT, failure TEXT)")
-        self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS pair_result_idx ON result (set_id, pair_id)")
+        self.conn.execute("DROP INDEX IF EXISTS pair_result_idx")
 
-    def add_result_set(self, set_name):
+    def add_result_set(self, set_name, resume_processing = False):
         self._prepare_results()
         self.conn.execute("CREATE TABLE IF NOT EXISTS result_set (set_id TEXT)")
         rid = self.result_set_id_for_name(set_name)
-        if rid is not None:
+        if rid is not None and not resume_processing:
             self.conn.execute("DELETE FROM result WHERE set_id=?", (rid,))
             self.conn.execute("DELETE FROM result_set WHERE rowid=?", (rid,))
-        self.conn.execute("INSERT INTO result_set (set_id) VALUES (?)", (set_name,))
+            rid = None
+        if rid is None:
+            self.conn.execute("INSERT INTO result_set (set_id) VALUES (?)", (set_name,))
         self.conn.commit()
         return self.result_set_id_for_name(set_name)
 
@@ -162,32 +164,24 @@ class PairDB(object):
 
     # results a list of (rowid, target_name, site, mask, multiplicity)
     def add_results(self, result_set_id, results):
-        tries = 0
-        while tries < 3:
-            tries += 1
-            try:
-                # grab a new connection since this might be in a new process (due to multiprocessing)
-                #print " --> Thd in AR {}".format(self.worker_id)
-                conn = sqlite3.connect(self._dbpath)
-                stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
-                          VALUES ({}, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
-                cursor = conn.executemany(stmt, results)
-                if cursor.rowcount != len(results):
-                    print results
-                    raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
-                conn.commit()
-                #print "<-- Thd out AR {}".format(self.worker_id)
-                return
-            except sqlite3.OperationalError:
-                sys.stdout.write('!')
-                sys.stdout.flush()
-                pass
+        # grab a new connection since this might be in a new process (due to multiprocessing)
+        #print " --> Thd in AR {}".format(self.worker_id)
+        conn = sqlite3.connect(self._dbpath)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
+                  VALUES ({}, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
+        cursor = conn.executemany(stmt, results)
+        if cursor.rowcount != len(results):
+            raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
+        conn.commit()
 
+    def index_results(self):
+        self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS pair_result_idx ON result (set_id, pair_id)")
 
     def num_results(self, result_set_name):
         return self._fetch_one("SELECT count(*) FROM result r JOIN result_set n ON r.set_id = n.rowid WHERE n.set_id = ?", (result_set_name,))
 
     def differing_results(self, result_set_name_1, result_set_name_2):
+        self.index_results()
         id1 = self.result_set_id_for_name(result_set_name_1)
         id2 = self.result_set_id_for_name(result_set_name_2)
         return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.site, s1.failure, s2.target, s2.site, s2.failure

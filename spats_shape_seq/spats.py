@@ -177,7 +177,7 @@ import time
 from db import PairDB
 from mask import Mask
 from pair import Pair
-from parse import fasta_parse
+from parse import fasta_parse, FastFastqParser
 from processor import PairProcessor
 from profiles import Profiles
 from run import Run
@@ -291,11 +291,12 @@ class Spats(object):
         :param data_r1_path: path to R1 fragments
         :param data_r2_path: path to matching R2 fragments.
         """
+        if not self.run._skip_database:
+            self.process_pair_db(self._memory_db_from_pairs(data_r1_path, data_r2_path))
+        else:
+            with FastFastqParser(data_r1_path, data_r2_path) as parser:
+                self._process_pair_iter(parser.iterator(batch_size = 131072))
 
-        self.process_pair_db(self._memory_db_from_pairs(data_r1_path, data_r2_path))
-
-    
-    #@profile
     def process_pair_db(self, pair_db):
         """Processes pair data provided by a :class:`.db.PairDB`.
 
@@ -305,18 +306,10 @@ class Spats(object):
            :param pair_db: a :class:`.db.PairDB` of pairs to process.
         """
 
-        _set_debug(self.run.debug)
-
-        start = time.time()
-
         if not self._targets:
             self._addTargets(pair_db.targets())
-        # force the processor to load and do whatever indexing/etc is required
-        self._processor
 
-        result_set_id = pair_db.add_result_set(self.run.result_set_name or "default") if self.run.writeback_results else None
-
-        worker = SpatsWorker(self.run, self._processor, pair_db, result_set_id)
+        result_set_id = pair_db.add_result_set(self.run.result_set_name or "default", self.run.resume_processing) if self.run.writeback_results else None
 
         batch_size = 65536
         if self.run.resume_processing:
@@ -328,10 +321,24 @@ class Spats(object):
         else:
             db_iter = pair_db.unique_pairs_with_counts(batch_size = batch_size)
 
+        self._process_pair_iter(db_iter, pair_db, result_set_id)
+
+    #@profile
+    def _process_pair_iter(self, pair_iter, pair_db = None, result_set_id = None):
+
+        _set_debug(self.run.debug)
+
+        start = time.time()
+
+        # force the processor to load and do whatever indexing/etc is required
+        self._processor
+
+        worker = SpatsWorker(self.run, self._processor, pair_db, result_set_id)
+
         if not self.run.quiet:
             print "Processing pairs..."
 
-        worker.run(db_iter)
+        worker.run(pair_iter)
 
         if not self.run.quiet:
             self._report_counts(time.time() - start)

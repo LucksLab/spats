@@ -179,7 +179,7 @@ class Targets(object):
                 res = r1_table.get(r1_candidate)
                 if res:
                     if target != res[0]:
-                        print "Fail for {} / {}".format(i, target.name)
+                        #print "Fail for {} / {}".format(i, target.name)
                         r1_table[r1_candidate] = (None, None)
                     else:
                         # in case of multiple match on same target, set to None to indicate it's up to R2
@@ -192,8 +192,8 @@ class Targets(object):
         # for the R2 table, we only care about R2's that are in the sequence
         # when R2 needs adapter trimming, R1 will determine that
         self_matches = self.longest_target_self_matches()
-        for tname in self_matches.keys():
-            print "{} : {}".format(tname, self_matches[tname])
+        #for tname in self_matches.keys():
+        #    print "{} : {}".format(tname, self_matches[tname])
         r2_full_table = {}
         for target in self.targets:
             mlen = self_matches[target.name] + 1

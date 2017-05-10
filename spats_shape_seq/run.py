@@ -87,5 +87,5 @@ class Run(object):
 
         # private config
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
-
         self._processor_class = LookupProcessor
+        self._skip_database = True

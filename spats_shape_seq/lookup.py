@@ -6,6 +6,8 @@ from util import _warn, _debug, reverse_complement
 class LookupProcessor(PairProcessor):
 
     def prepare(self):
+        if not self._run.quiet:
+            print "Preparing lookups..."
         self._targets.index()
         self._targets.build_lookups(self._run.adapter_b)
 
