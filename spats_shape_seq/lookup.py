@@ -8,8 +8,13 @@ class LookupProcessor(PairProcessor):
     def prepare(self):
         if not self._run.quiet:
             print "Preparing lookups..."
-        self._targets.index()
-        self._targets.build_lookups(self._run.adapter_b)
+        targets = self._targets
+        targets.index()
+        targets.build_lookups(self._run.adapter_b, length = self._run.pair_length)
+        if not self._run.quiet:
+            print "Lookup table: {} R1 entries, {} R2 entries for {} targets.".format(len(targets.r1_lookup),
+                                                                                      sum(map(len, targets.r2_lookup.values())),
+                                                                                      len(targets.r2_lookup))
 
     #@profile
     def process_pair(self, pair):

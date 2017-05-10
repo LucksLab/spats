@@ -85,7 +85,16 @@ class Run(object):
         #: and the same :attr:`.result_set_name`).
         self.resume_processing = False
 
+        #: Default ``False``, set to ``True`` to parse directly from
+        #: input files. For some very large datasets (~>=50mm pairs?),
+        #: this can be faster than using the database to determine
+        #: and only process unique counts.
+        self.skip_database = False
+
+        #: Default ``None``, in which case the pair length is detected
+        #: from input data. Otherwise, can be set explicitly.
+        self.pair_length = None
+
         # private config
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
         self._processor_class = LookupProcessor
-        self._skip_database = True

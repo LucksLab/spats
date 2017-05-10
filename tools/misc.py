@@ -61,7 +61,9 @@ def ligation_run():
     #s.config.debug = True
     #s.run.minimum_target_match_length = 10
     #s.run.num_workers = 1
-    s.run._skip_database = True
+    #from spats_shape_seq.partial import PartialFindProcessor
+    #s.run._processor_class = PartialFindProcessor
+    s.run.skip_database = True
     s.addTargets(bp + "panel_RNAs_complete.fa")
     s.process_pair_data(bp + "data/KEW1_S1_L001_R1_001.fastq",
                         bp + "data/KEW1_S1_L001_R2_001.fastq")
@@ -70,13 +72,30 @@ def cotrans_run():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
     from spats_shape_seq import Spats
     s = Spats()
-    s.run._skip_database = True
+    #from spats_shape_seq.partial import PartialFindProcessor
+    #s.run._processor_class = PartialFindProcessor
+    s.run.skip_database = True
     #s.run.writeback_results = True
     #s.run.resume_processing = True
     #s.run.result_set_name = "lookup"
     s.addTargets(bp + "F_wt.fa")
     s.process_pair_data(bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
                         bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq")
+    s.compute_profiles()
+    s.write_reactivities(bp + "dev_out/rx.out")
+
+def cotrans_test():
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
+    from spats_shape_seq import Spats
+    s = Spats()
+    from spats_shape_seq.partial import PartialFindProcessor
+    #s.run._processor_class = PartialFindProcessor
+    s.addTargets(bp + "F_wt.fa")
+    from spats_shape_seq.pair import Pair
+    pair = Pair()
+    pair.set_from_data('x', 'GAGCGTCCTTGGTGCCCGAGTCAGAAATAGACTCCT', 'TATCACTACTGGTAGGAGTCTATTTCTGACTCGGGC')
+    s.process_pair(pair)
+    print "{}: {}".format(pair.target.name, pair.site)
 
 def run_5sq():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"

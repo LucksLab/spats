@@ -64,13 +64,9 @@ class SpatsWorker(object):
             print "Created {} workers".format(num_workers)
 
     def _joinWorkers(self):
-
         if not self._workers:
             self._worker(0)
             return
-
-        for w in self._workers:
-            self._pairs_to_do.put(None) # just a dummy object to signal we're done
         for w in self._workers:
             w.join()
 
@@ -134,29 +130,45 @@ class SpatsWorker(object):
             while num_batches > 0:
                 num_batches -= write_results()
 
-        self._joinWorkers()
+        # put signal objects to indicate we're done
+        for i in range(num_workers):
+            self._pairs_to_do.put(None)
+
+        processor = self._processor
+        targets = { t.name : t for t in processor._targets.targets }
+        accumulated = 0
+
+        def accumulate_counts():
+            num_accumulated = 0
+            try:
+                while 1 < num_workers:
+                    data = self._pairs_done.get_nowait()
+                    their_counters = data[0]
+                    our_counters = processor.counters._counts
+                    for key, value in their_counters.iteritems():
+                        if key != "_counts":
+                            our_counters[key] = our_counters.get(key, 0) + value
+                    for i in range(len(processor._masks)):
+                        m = processor._masks[i]
+                        d = data[1][i]
+                        m.total += d[0]
+                        m.kept += d[1]
+                        m.update_with_count_data(d[2], targets)
+                    num_accumulated += 1
+                    if not quiet:
+                        sys.stdout.write('x')
+                        sys.stdout.flush()
+            except Queue.Empty:
+                pass
+            return num_accumulated
+
+        while accumulated < num_workers:
+            accumulated += accumulate_counts()
 
         if not self._run.quiet:
             print "\nAggregating data..."
 
-        processor = self._processor
-        try:
-            targets = { t.name : t for t in processor._targets.targets }
-            while 1 < num_workers:
-                data = self._pairs_done.get_nowait()
-                their_counters = data[0]
-                our_counters = processor.counters._counts
-                for key, value in their_counters.iteritems():
-                    if key != "_counts":
-                        our_counters[key] = our_counters.get(key, 0) + value
-                for i in range(len(processor._masks)):
-                    m = processor._masks[i]
-                    d = data[1][i]
-                    m.total += d[0]
-                    m.kept += d[1]
-                    m.update_with_count_data(d[2], targets)
-        except Queue.Empty:
-            pass
+        self._joinWorkers()
 
         processor.counters.total_pairs = total
         if self._pair_db:

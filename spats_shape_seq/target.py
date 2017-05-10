@@ -1,6 +1,6 @@
 
 from mask import longest_match
-from util import reverse_complement
+from util import reverse_complement, _warn
 
 class _Target(object):
 
@@ -159,9 +159,10 @@ class Targets(object):
                             candidate[0] = [ target, candidate[0] ]
         return candidate
 
-    def build_lookups(self, adapter_b, length = 35, end_only = True):
-        self._build_R1_lookup(adapter_b, length - 4, end_only)
-        self._build_R2_lookup(length)
+    def build_lookups(self, adapter_b, length = None, end_only = True):
+        use_length = length or 35
+        self._build_R1_lookup(adapter_b, use_length - 4, end_only)
+        self._build_R2_lookup(use_length)
 
     def _build_R1_lookup(self, adapter_b, length = 31, end_only = True):
         # we can pre-build the set of all possible (error-free) R1, b/c:
@@ -174,18 +175,22 @@ class Targets(object):
         for target in self.targets:
             tlen = target.n
             rc_tgt = reverse_complement(target.seq)
+            tcandidates = 0
             for i in range(length + 1):
                 r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
                 res = r1_table.get(r1_candidate)
                 if res:
                     if target != res[0]:
-                        #print "Fail for {} / {}".format(i, target.name)
                         r1_table[r1_candidate] = (None, None)
                     else:
                         # in case of multiple match on same target, set to None to indicate it's up to R2
                         r1_table[r1_candidate] = (target, None)
+                        tcandidates += 1
                 else:
                     r1_table[r1_candidate] = (target, None if i == length else tlen - i)
+                    tcandidates += 1
+            if 0 == tcandidates:
+                _warn("!! No R1 match candidates for {}".format(target.name))
         self.r1_lookup = r1_table
 
     def _build_R2_lookup(self, length = 35):

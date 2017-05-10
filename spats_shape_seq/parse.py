@@ -41,6 +41,18 @@ class FastFastqParser(object):
         self.r1_path = r1_path
         self.r2_path = r2_path
 
+    def pair_length(self):
+        with open(self.r1_path, 'rb') as r1_in:
+            with open(self.r2_path, 'rb') as r2_in:
+                r1_in.readline()
+                r1_first = r1_in.readline().strip('\r\n')
+                r2_in.readline()
+                r2_first = r2_in.readline().strip('\r\n')
+                pair_length = len(r1_first)
+                if pair_length != len(r2_first):
+                    raise Exception("Unexpected pair length mismatch in R1 vs R2: {} / {}".format(pair_length, len(r2_first)))
+                return pair_length
+
     def __enter__(self):
         self.r1_in = open(self.r1_path, 'rb')
         self.r2_in = open(self.r2_path, 'rb')

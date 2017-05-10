@@ -241,6 +241,9 @@ class Spats(object):
            :param pair: a :class:`.pair.Pair` to process.
         """
 
+        if not self.run.pair_length:
+            self.run.pair_length = len(pair.r1.original_seq)
+
         _set_debug(self.run.debug)
         _debug("> processing " + pair.identifier + "\n  --> " + pair.r1.original_seq + " , " + pair.r2.original_seq)
         _debug("  rc(R1): {}".format(pair.r1.reverse_complement))
@@ -291,10 +294,12 @@ class Spats(object):
         :param data_r1_path: path to R1 fragments
         :param data_r2_path: path to matching R2 fragments.
         """
-        if not self.run._skip_database:
+        if not self.run.skip_database:
             self.process_pair_db(self._memory_db_from_pairs(data_r1_path, data_r2_path))
         else:
             with FastFastqParser(data_r1_path, data_r2_path) as parser:
+                if not self.run.pair_length:
+                    self.run.pair_length = parser.pair_length()
                 self._process_pair_iter(parser.iterator(batch_size = 131072))
 
     def process_pair_db(self, pair_db):
@@ -305,6 +310,9 @@ class Spats(object):
 
            :param pair_db: a :class:`.db.PairDB` of pairs to process.
         """
+
+        if not self.run.pair_length:
+            self.run.pair_length = pair_db.pair_length()
 
         if not self._targets:
             self._addTargets(pair_db.targets())

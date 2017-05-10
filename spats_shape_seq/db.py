@@ -86,6 +86,9 @@ class PairDB(object):
             self.conn.execute("INSERT INTO unique_pair (pair_id, multiplicity) SELECT rowid, COUNT(rowid) FROM pair GROUP BY r1||r2")
             self.conn.commit()
 
+    def pair_length(self):
+        return len(_fetch_one("SELECT r1 FROM pair LIMIT 1"))
+
     def unique_pairs(self):
         self._cache_unique_pairs()
         return self._fetch_one("SELECT COUNT(*) from unique_pair")
