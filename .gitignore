@@ -11,3 +11,4 @@ tmp
 .DS_Store
 *.egg-info
 .idea
+test
