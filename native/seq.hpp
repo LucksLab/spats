@@ -6,25 +6,19 @@
 #include <string>
 #include <inttypes.h>
 
+#define SPATS_FRAG_WORDS 2
 
-/*
- * first (N-1) words are encodings of nt's ('ACGT')
- * last word flags any transcription errors (eg, 'N')
- */
-#define SPATS_FRAG_WORDS 3
-typedef uint64_t Fragment[SPATS_FRAG_WORDS];
-
-const uint64_t A_bits = 0x0;
-const uint64_t C_bits = 0x1;
-const uint64_t G_bits = 0x2;
-const uint64_t T_bits = 0x3;
-
-void
-parse_to_fragment(const char * text, Fragment &f, int length);
-
-std::string
-fragment_to_string(Fragment &f, int length);
-
+class Fragment
+{
+private:
+    uint64_t m_words[SPATS_FRAG_WORDS];
+    uint64_t m_errors;
+public:
+    Fragment() {}
+    Fragment(const char * text, int length) { this->parse(text, length); }
+    void parse(const char * text, int length);
+    std::string string(int length) const;
+};
 
 
 #endif // __SPATS_SEQ_HPP_INCLUDED__

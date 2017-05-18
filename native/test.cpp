@@ -7,9 +7,8 @@ void
 test_parse(const char * ftext)
 {
     int len = strlen(ftext);
-    Fragment f;
-    parse_to_fragment(ftext, f, len);
-    std::string res = fragment_to_string(f, len);
+    Fragment f(ftext, len);
+    std::string res = f.string(len);
     ATS_DEBUG("Res is: %s", res.c_str());
     ATS_DEBUG(" ft is: %s", ftext);
     ATS_ASSERT(res == std::string(ftext));
@@ -26,5 +25,6 @@ main(void)
     //test_parse("AAAAAACCCCCCGGGGGGTTTTTTAAAAAACCCCCCGGGGGGGGGTTTTTTTAAAAAAACCCCCC"); // should assert for length
     test_parse("AANT");
     // test_parse("AANTY"); // should assert for invalid char
+    ATS_DEBUG("s: %d", sizeof(Fragment));
     return 0;
 }
