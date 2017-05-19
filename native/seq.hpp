@@ -6,19 +6,59 @@
 #include <string>
 #include <inttypes.h>
 
+
 #define SPATS_FRAG_WORDS 2
+
+
+const uint64_t A_bits = 0x0;
+const uint64_t C_bits = 0x1;
+const uint64_t G_bits = 0x2;
+const uint64_t T_bits = 0x3;
+
 
 class Fragment
 {
 private:
     uint64_t m_words[SPATS_FRAG_WORDS];
     uint64_t m_errors;
+    void reset();
 public:
-    Fragment() {}
-    Fragment(const char * text, int length) { this->parse(text, length); }
-    void parse(const char * text, int length);
-    std::string string(int length) const;
+    Fragment() { reset(); }
+    Fragment(const char * text, size_t length) { this->parse(text, length); }
+    void parse(const char * text, size_t length);
+    std::string string(size_t length) const;
+    uint64_t at(int index) const;
+    bool equals(Fragment * other, size_t length) const;
+    void clone(Fragment * other);
 };
+
+inline
+char
+nt_bits_to_ch(uint64_t bits)
+{
+    switch (bits)
+    {
+    case A_bits: return 'A';
+    case C_bits: return 'C';
+    case G_bits: return 'G';
+    case T_bits: return 'T';
+    default: return '?';
+    }
+}
+
+inline
+uint64_t
+nt_bits_from_ch(char ch)
+{
+    switch (ch)
+    {
+    case 'A': return A_bits;
+    case 'C': return C_bits;
+    case 'G': return G_bits;
+    case 'T': return T_bits;
+    }
+    return -1;
+}
 
 
 #endif // __SPATS_SEQ_HPP_INCLUDED__

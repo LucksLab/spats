@@ -2,10 +2,15 @@
 HEADERS := $(shell ls *.hpp)
 SOURCES := $(shell ls *.cpp | grep -v test.cpp)
 OBJS := $(patsubst %.cpp, obj/%.o, $(SOURCES))
+#CFLAGS := -g
+CFLAGS := -O3
 
 obj/%.o : %.cpp $(HEADERS)
 	@mkdir -p obj
-	g++ -c -o $@ $<
+	g++ -c $(CFLAGS) -o $@ $<
 
 test: test.cpp $(OBJS)
-	g++ -o $@ $^
+	g++ $(CFLAGS) -o $@ $^
+
+debug: test
+	lldb test
