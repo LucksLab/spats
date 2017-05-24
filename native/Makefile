@@ -3,7 +3,7 @@ HEADERS := $(shell ls *.hpp)
 SOURCES := $(shell ls *.cpp | grep -v test.cpp)
 OBJS := $(patsubst %.cpp, obj/%.o, $(SOURCES))
 #CFLAGS := -g
-CFLAGS := -O3
+CFLAGS := -Ofast
 
 obj/%.o : %.cpp $(HEADERS)
 	@mkdir -p obj

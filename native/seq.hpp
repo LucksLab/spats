@@ -10,10 +10,10 @@
 #define SPATS_FRAG_WORDS 2
 
 
-const uint64_t A_bits = 0x0;
-const uint64_t C_bits = 0x1;
+const uint64_t A_bits = 0x1;
+const uint64_t C_bits = 0x3;
 const uint64_t G_bits = 0x2;
-const uint64_t T_bits = 0x3;
+const uint64_t T_bits = 0x0;
 
 
 class Fragment

@@ -8,7 +8,7 @@
 class R1Lookup
 {
 private:
-    Target * m_target;
+    Targets * m_targets;
     std::string m_adapter_b;
     int m_r1_length;
     int m_allowed_errors;
@@ -18,8 +18,8 @@ private:
 
 public:
 
-    R1Lookup(Target * target, std::string adapter_b, int r1_length, int allowed_errors = 0):
-        m_target(target), m_adapter_b(adapter_b), m_r1_length(r1_length), m_allowed_errors(allowed_errors), m_storage(NULL)
+    R1Lookup(Targets * targets, std::string adapter_b, int r1_length, int allowed_errors = 0):
+        m_targets(targets), m_adapter_b(adapter_b), m_r1_length(r1_length), m_allowed_errors(allowed_errors), m_storage(NULL)
     {
         build();
     }
@@ -31,6 +31,34 @@ public:
     }
 
     FragmentResult * find(Fragment * f) const;
+    void dump(void) const;
+};
+
+
+class R2Lookup
+{
+private:
+    int m_r2_length;
+    int m_allowed_errors;
+    int m_numTargets;
+    FragmentStorage ** m_targetStores;
+
+public:
+
+    R2Lookup(int r2_length, int allowed_errors = 0):
+        m_r2_length(r2_length), m_allowed_errors(allowed_errors), m_targetStores(NULL), m_numTargets(0)
+    {
+    }
+
+    ~R2Lookup()
+    {
+        for (int i = 0; i < m_numTargets; ++i)
+            delete m_targetStores[i];
+        delete [] m_targetStores;
+    }
+
+    void addTarget(Target * t);
+    FragmentResult * find(Fragment * f, Target * t) const;
     void dump(void) const;
 };
 

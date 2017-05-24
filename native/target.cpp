@@ -1,6 +1,7 @@
 
 #include "target.hpp"
-#include <assert.h>
+#include "parse.hpp"
+#include "ats.hpp"
 
 #define BUFFER_SIZE 2048
 
@@ -24,4 +25,33 @@ reverse_complement(std::string seq)
         buffer[i] = ch;
     }
     return std::string(buffer, len);
+}
+
+Targets * g_parsing_targets = NULL;
+
+bool
+Targets_fa_handler(const char * name, const char * seq)
+{
+    g_parsing_targets->addTarget(new Target(g_parsing_targets->size(), name, seq));
+    return true;
+}
+
+void
+Targets::addTarget(Target * target)
+{
+    Target ** targets = new Target *[1 + m_numTargets];
+    for (int i = 0; i < m_numTargets; ++i)
+        targets[i] = m_targets[i];
+    if (m_targets)
+        delete [] m_targets;
+    m_targets = targets;
+    targets[m_numTargets] = target;
+    ++m_numTargets;
+}
+
+void
+Targets::parse(const char * fasta_path)
+{
+    g_parsing_targets = this;
+    fasta_parse(fasta_path, &Targets_fa_handler);
 }

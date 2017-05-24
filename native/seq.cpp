@@ -33,35 +33,34 @@ Fragment::parse(const char * text, size_t in_length)
     int frag_idx = 0;
     int word_bits = (sizeof(uint64_t) << 3);
     uint64_t bits;
+    uint64_t curWord = 0LL;
+    uint64_t errors = 0LL;
+    char ch = 0;
 
     for (int idx = 0; idx < length; ++idx)
     {
-        bits = 0;
-        switch (text[idx])
-        {
-        case 'A': bits = A_bits; break;
-        case 'C': bits = C_bits; break;
-        case 'G': bits = G_bits; break;
-        case 'T': bits = T_bits; break;
-
-        case 'N':
-            m_errors += (0x1 << idx);
-            break;
-
-        default:
-            ATS_ASSERT_NOT_REACHED();
-            break;
+        ch = text[idx];
+        if (ch == 'N') {
+            errors += (0x1LL << idx);
+        }
+        else {
+            // fast translation of character byte to *_bits
+            bits = ch & 3;
+            if (3 == bits  &&  ch == 'G')
+                bits = 2;
         }
         if (frag_idx >= word_bits)
         {
+            m_words[frag_sel] = curWord;
             ++frag_sel;
             frag_idx -= word_bits;
         }
         ATS_ASSERT(frag_sel < sizeof(m_words));
-        m_words[frag_sel] += (bits << frag_idx);
+        curWord += (bits << frag_idx);
         frag_idx += 2;
         SEQ_DEBUG("FS/FI: %d[%d] <- %c", frag_sel, frag_idx, text[idx]);
     }
+    m_words[frag_sel] = curWord;
 }
 
 

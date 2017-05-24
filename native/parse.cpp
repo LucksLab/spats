@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <fstream>
 
 #include "ats.hpp"
 #include "seq.hpp"
@@ -95,6 +96,25 @@ fastq_parse(const char * r1_path, const char * r2_path, pair_handler handler)
     fclose(r1);
     fclose(r2);
 }
+
+void
+fasta_parse(const char * fasta_path, target_handler handler)
+{
+    std::ifstream infile(fasta_path);
+    std::string line;
+    std::string name;
+    while (true) {
+        if (!getline(infile, line))
+            break;
+        if (0 == line.size())
+            continue;
+        if ('>' == line.at(0))
+            name = line.substr(1);
+        else
+            handler(name.c_str(), line.c_str());
+    }
+}
+
 
 void
 pairs_to_spin(const char * r1_path, const char * r2_path, const char * spin_path)

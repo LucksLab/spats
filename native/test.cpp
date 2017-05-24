@@ -90,6 +90,7 @@ ttree()
     tfs(&t);
 }
 
+#if 0
 void
 tr1l()
 {
@@ -113,13 +114,52 @@ tf()
     f.insert(1, T_bits);
     printf("%s\n", f.string().c_str());
 }
+#endif
 
+#define MASK_NO_MATCH 0
+#define MASK_TREATED 1
+#define MASK_UNTREATED 2
+
+// RRRY = treated
+// YYYR = untreated
+int
+mask_match(const char * handle)
+{
+    bool treated = true;
+    bool untreated = true;
+    char ch;
+    for (int i = 0; i < 3; ++i) {
+        ch = handle[i];
+        if (ch == 'A' || ch == 'G')
+            untreated = false;
+        else if (ch == 'C' || ch == 'T')
+            treated = false;
+        else
+            untreated = treated = false;
+    }
+
+    ch = handle[3];
+    if (ch == 'A' || ch == 'G')
+        treated = false;
+    else if (ch == 'C' || ch == 'T')
+        untreated = false;
+    else
+        untreated = treated = false;
+
+    assert(!(treated  &&  untreated));
+    return (treated ? MASK_TREATED : (untreated ? MASK_UNTREATED : MASK_NO_MATCH));
+}
+
+#define MAX_SITES 256
 int g_total = 0;
 int g_indeterminate = 0;
 int g_matched = 0;
 int g_matched_with_errors = 0;
-int g_sites[256] = { 0 };
+int g_mask_failure = 0;
+int g_treated_sites[MAX_SITES] = { 0 };
+int g_untreated_sites[MAX_SITES] = { 0 };
 R1Lookup * g_r1l = NULL;
+R2Lookup * g_r2l = NULL;
 
 bool
 lookup_handler(Fragment * r1, Fragment * r2, const char * handle)
@@ -137,26 +177,112 @@ lookup_handler(Fragment * r1, Fragment * r2, const char * handle)
             ++g_matched_with_errors;
         else
             ++g_matched;
+        int site = res->m_site;
+        if (-1 == site) {
+            FragmentResult * res2 = g_r2l->find(r2, res->m_target);
+            if (res2)
+                site = res2->m_site;
+        }
+        else {
+            // TODO: need to build & verify R2 frag
+            site = res->m_site;
+        }
+        if (-1 != site) {
+            switch (mask_match(handle)) {
+            case MASK_TREATED:
+                ++g_treated_sites[site]; break;
+            case MASK_UNTREATED:
+                ++g_untreated_sites[site]; break;
+            default:
+                ++g_mask_failure;
+            }
+        }
     }
     return true;// false;
 }
 
 void
-tlp()
+t5s()
 {
-    Target t(1, "5s", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC");
+    Targets t;
+    t.parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/5S.fa");
     g_r1l = new R1Lookup(&t, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 31, 0);
+    g_r2l = new R2Lookup(35, 0);
+    g_r2l->addTarget(t.target(0));
     fastq_parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
                 "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
                 &lookup_handler);
-    printf("%d matched, %d w/errors, %d indeterminate, %d total\n", g_matched, g_matched_with_errors, g_indeterminate, g_total);
+    printf("%d matched, %d w/errors, %d indeterminate, %d mask failure, %d total\n", g_matched, g_matched_with_errors, g_indeterminate, g_mask_failure, g_total);
+    for (int i = 0; i < MAX_SITES; ++i) {
+        if (g_treated_sites[i] > 0 || g_untreated_sites[i] > 0)
+            printf("  %d: %d / %d\n", i, g_treated_sites[i], g_untreated_sites[i]);
+    }
     //g_r1l->dump();
 }
 
+void
+tfa()
+{
+    Targets t;
+    t.parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/panel_RNAs_complete.fa");
+    printf("%d\n", t.size());
+}
+
+void
+tpanel()
+{
+    Targets t;
+    t.parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/panel_RNAs_complete.fa");
+    g_r1l = new R1Lookup(&t, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 31, 0);
+    g_r2l = new R2Lookup(35, 0);
+    for (int i = 0; i < t.size(); ++i)
+        g_r2l->addTarget(t.target(i));
+    fastq_parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/data/KEW1_S1_L001_R1_001.fastq",
+                "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/data/KEW1_S1_L001_R2_001.fastq",
+                &lookup_handler);
+    printf("%d matched, %d w/errors, %d indeterminate, %d mask failure, %d total\n", g_matched, g_matched_with_errors, g_indeterminate, g_mask_failure, g_total);
+    for (int i = 0; i < MAX_SITES; ++i) {
+        if (g_treated_sites[i] > 0 || g_untreated_sites[i] > 0)
+            printf("  %d: %d / %d\n", i, g_treated_sites[i], g_untreated_sites[i]);
+    }
+    //g_r1l->dump();
+}
+
+void
+tcotrans()
+{
+    Targets t;
+    t.parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/F_wt.fa");
+    g_r1l = new R1Lookup(&t, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 32, 0);
+    g_r2l = new R2Lookup(36, 0);
+    for (int i = 0; i < t.size(); ++i)
+        g_r2l->addTarget(t.target(i));
+    fastq_parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
+                "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
+                &lookup_handler);
+    printf("%d matched, %d w/errors, %d indeterminate, %d mask failure, %d total\n", g_matched, g_matched_with_errors, g_indeterminate, g_mask_failure, g_total);
+    for (int i = 0; i < MAX_SITES; ++i) {
+        if (g_treated_sites[i] > 0 || g_untreated_sites[i] > 0)
+            printf("  %d: %d / %d\n", i, g_treated_sites[i], g_untreated_sites[i]);
+    }
+    //g_r1l->dump();
+}
+
+void
+f(char ch)
+{
+    int r = (ch & 3);
+    if (3 == r  &&  ch == 'G')
+        r = 2;
+    printf("%c: 0x%x, %d\n", ch, ch, r);
+}
 int
 main(void)
 {
-    tlp();
+    //f('A'); f('C'); f('G'); f('T');
+    tcotrans();
+    //tpanel();
+    //t5s();
     //tlookup();
     //ttree();
     //tr1l();
@@ -176,5 +302,10 @@ ok, what's shortest way to test this, say on 5s:
   * this is not complicated...
 * parse an R1 fastq file and find matches
   * for now, just report how many
+* R2 lookup
+  * and test
+* handles
+* cotrans basic test
+- track down all discrepancies with .py...
 
 */

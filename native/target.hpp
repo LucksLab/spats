@@ -12,10 +12,30 @@ class Target
 
 public:
     Target(int id, std::string name, std::string seq) : m_identifier(id), m_name(name), m_seq(seq) {}
+    int identifier() const { return m_identifier; }
     const std::string& name() const { return m_name; }
     const std::string& seq() const { return m_seq; }
     int n() const { return m_seq.size(); }
     std::string subseq(int start, int length) const { return m_seq.substr(start, length); }
+};
+
+class Targets
+{
+    int m_numTargets;
+    Target ** m_targets;
+public:
+    Targets() : m_numTargets(0), m_targets(NULL) { }
+    ~Targets()
+    {
+        for (int i = 0; i < m_numTargets; ++i)
+            delete m_targets[i];
+        if (m_targets)
+            delete [] m_targets;
+    }
+    int size() const { return m_numTargets; }
+    void addTarget(Target * target);
+    Target * target(int idx) const { return m_targets[idx]; }
+    void parse(const char * fasta_path);
 };
 
 class FragmentResult
