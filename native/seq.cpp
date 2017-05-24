@@ -1,4 +1,5 @@
 
+
 #include <string.h>
 #include <map>
 
@@ -14,16 +15,19 @@ Fragment::reset()
 {
     memset(&m_words, 0, sizeof(m_words));
     memset(&m_errors, 0, sizeof(m_errors));
+    m_length = 0;
 }
 
 void
-Fragment::parse(const char * text, size_t length)
+Fragment::parse(const char * text, size_t in_length)
 {
+    int length = (-1 == in_length ? strlen(text) : in_length);
     SEQ_DEBUG("WL: %d, MTL: %d", length >> 2, length >> 3);
     ATS_ASSERT(length <= (sizeof(m_words) << 2));     /* 2 bits / nt  ==>  4nt / byte */
     ATS_ASSERT(length <= (sizeof(m_errors) << 3));    /* a bit per nt to flag as mistranscribed */
 
     this->reset();
+    m_length = length;
 
     int frag_sel = 0;
     int frag_idx = 0;
@@ -62,14 +66,14 @@ Fragment::parse(const char * text, size_t length)
 
 
 std::string
-Fragment::string(size_t length) const
+Fragment::string() const
 {
     std::string res;
     int word_bits = (sizeof(uint64_t) << 3);
     int frag_sel = 0;
     int frag_idx = 0;
     char nt = 0;
-    for (int idx = 0; idx < length; ++idx)
+    for (int idx = 0; idx < m_length; ++idx)
     {
         if ((m_errors >> idx) & 0x1) {
             res.append(1, 'N');
@@ -103,11 +107,69 @@ Fragment::at(int index) const
     return ((m_words[frag_sel] >> frag_idx) & 0x3);
 }
 
-bool
-Fragment::equals(Fragment * other, size_t length) const
+void
+Fragment::set(int index, uint64_t nt)
 {
     int frag_sel = 0;
-    size_t frag_idx = length << 1;
+    int frag_idx = index << 1;
+    int word_bits = (sizeof(uint64_t) << 3);
+    while (frag_idx >= word_bits)
+    {
+        ++frag_sel;
+        frag_idx -= word_bits;
+    }
+    uint64_t mask = (0x3LL << frag_idx);
+    m_words[frag_sel] = (m_words[frag_sel] & (~mask)) | (nt << frag_idx);
+}
+
+void
+Fragment::insert(int index, uint64_t nt)
+{
+    // doesn't work with more than one word yet
+    assert(index <= 31);
+    int frag_sel = 0;
+    int frag_idx = index << 1;
+    int word_bits = (sizeof(uint64_t) << 3);
+    while (frag_idx >= word_bits)
+    {
+        ++frag_sel;
+        frag_idx -= word_bits;
+    }
+    uint64_t mask = ((0x1LL << frag_idx) - 0x1LL);
+    m_words[frag_sel] = ( (m_words[frag_sel] & mask)  |
+                          (nt << frag_idx)            |
+                          ((m_words[frag_sel] & (~mask)) << 2) );
+    ++m_length;
+}
+
+void
+Fragment::del(int index)
+{
+    // doesn't work with more than one word yet
+    assert(index <= 31);
+    int frag_sel = 0;
+    int frag_idx = index << 1;
+    int word_bits = (sizeof(uint64_t) << 3);
+    while (frag_idx >= word_bits)
+    {
+        ++frag_sel;
+        frag_idx -= word_bits;
+    }
+    uint64_t mask = ((0x1LL << frag_idx) - 0x1LL);
+    m_words[frag_sel] = ( (m_words[frag_sel] & mask)  |
+                          ((m_words[frag_sel] & (~mask)) >> 2) );
+    --m_length;
+}
+
+bool
+Fragment::equals(Fragment * other, int length, int start_index) const
+{
+    int use_length = (-1 == length ? m_length :length );
+    if (other->m_length < use_length)
+        return false;
+    int frag_sel = 0;
+    int start_frag_idx = start_index << 1;
+    size_t frag_idx = use_length << 1;
     int word_bits = (sizeof(uint64_t) << 3);
     while (frag_idx >= word_bits)
     {
@@ -115,14 +177,26 @@ Fragment::equals(Fragment * other, size_t length) const
             return false;
         ++frag_sel;
         frag_idx -= word_bits;
+        start_frag_idx -= word_bits;
     }
-    for (int idx = 0; idx < frag_idx; idx += 2) {
-        if ( ((m_words[frag_sel] >> idx) & 0x3) != ((other->m_words[frag_sel] >> idx) & 0x3) )
-            return false;
-    }
+    uint64_t mask = (1LL << frag_idx) - 1LL;
+    if ((m_words[frag_sel] & mask) != (other->m_words[frag_sel] & mask))
+        return false;
     if (m_errors != other->m_errors)
         return false;
     return true;
+}
+
+#define m1 0x5555555555555555LL
+#define m2 0x6666666666666666LL
+
+int
+Fragment::hamming_distance(Fragment * other) const
+{
+    // TODO: deal with length > one word..
+    register uint64_t a = m_words[0] ^ other->m_words[0];
+    register uint64_t b = ((a & m1) | ((a & m2) >> 1));
+    return __builtin_popcountll(b);
 }
 
 void
@@ -130,4 +204,5 @@ Fragment::clone(Fragment * other)
 {
     memcpy(&m_words, other->m_words, sizeof(m_words));
     m_errors = other->m_errors;
+    m_length = other->m_length;
 }

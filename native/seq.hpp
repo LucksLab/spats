@@ -19,16 +19,25 @@ const uint64_t T_bits = 0x3;
 class Fragment
 {
 private:
+    int m_length;
     uint64_t m_words[SPATS_FRAG_WORDS];
     uint64_t m_errors;
     void reset();
 public:
     Fragment() { reset(); }
-    Fragment(const char * text, size_t length) { this->parse(text, length); }
-    void parse(const char * text, size_t length);
-    std::string string(size_t length) const;
+    Fragment(const char * text, size_t length = -1) { this->parse(text, length = -1); }
+    bool has_errors() const { return (0LL != m_errors); }
+    int len() const { return m_length; }
+    void parse(const char * text, size_t length = -1);
+    std::string string() const;
+    const char * str() const { return string().c_str(); }
     uint64_t at(int index) const;
-    bool equals(Fragment * other, size_t length) const;
+    void set(int index, uint64_t nt);
+    void insert(int index, uint64_t nt);
+    void del(int index);
+    uint64_t key() const { return m_words[0]; }
+    bool equals(Fragment * other, int length = -1, int start_index = 0) const;
+    int hamming_distance(Fragment * other) const;
     void clone(Fragment * other);
 };
 

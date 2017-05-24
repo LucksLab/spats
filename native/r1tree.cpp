@@ -73,14 +73,14 @@ R1Tree::insert(FragmentResult * f)
 }
 
 FragmentResult *
-R1Tree::find(Fragment &f) const
+R1Tree::find(Fragment * f, int start_index) const
 {
-    if (!m_prefix.equals(&f, m_prefixLength))
+    if (!m_prefix.equals(f, m_prefixLength, start_index))
         return NULL;
-    uint64_t nextNt = f.at(m_prefixLength);
+    uint64_t nextNt = f->at(m_prefixLength);
     if (m_next[nextNt])
-        return m_next[nextNt]->find(f);
-    else if (m_leaf  &&  f.equals(&m_leaf->m_fragment, m_r1Length))
+        return m_next[nextNt]->find(f, m_prefixLength + 1);
+    else if (m_leaf  &&  f->equals(&m_leaf->m_fragment, m_r1Length))
         return m_leaf;
     else
         return NULL;
@@ -89,6 +89,8 @@ R1Tree::find(Fragment &f) const
 void
 R1Tree::dump() const
 {
+    assert(0); // TODO
+#if 0
     std::string indent(m_prefixLength, ' ');
     printf("%spfx: %s\n", indent.c_str(), m_prefix.string(m_prefixLength).c_str());
     if (m_leaf)
@@ -99,5 +101,6 @@ R1Tree::dump() const
             m_next[i]->dump();
         }
     }
+#endif
 }
 

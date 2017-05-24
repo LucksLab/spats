@@ -2,27 +2,13 @@
 #ifndef __SPATS_R1TREE_HPP_INCLUDED__
 #define __SPATS_R1TREE_HPP_INCLUDED__
 
-#include "seq.hpp"
-
-class Target
-{
-public:
-    int m_identifier;
-    std::string m_name;
-    Target(int id, std::string name) : m_identifier(id), m_name(name) {}
-};
-
-class FragmentResult
-{
-public:
-    Fragment m_fragment;
-    Target * m_target;
-    int m_site;
-};
+#include "target.hpp"
 
 class R1Tree;
 
-class R1Tree
+
+class R1Tree :
+    public virtual FragmentStorage
 {
 private:
 
@@ -49,15 +35,15 @@ public:
         clearNext();
     }
 
-    ~R1Tree()
+    virtual ~R1Tree()
     {
         for (int i = 0; i < 4; ++i)
             if (m_next[i])
                 delete m_next[i];
     }
-
+    int count() const { return 0; }
     bool insert(FragmentResult * f);
-    FragmentResult * find(Fragment &f) const;
+    FragmentResult * find(Fragment * f, int start_index = 0) const;
     void dump() const;
 };
 
