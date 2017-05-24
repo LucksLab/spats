@@ -31,7 +31,6 @@ Fragment::parse(const char * text, size_t in_length)
 
     int frag_sel = 0;
     int frag_idx = 0;
-    int word_bits = (sizeof(uint64_t) << 3);
     uint64_t bits;
     uint64_t curWord = 0LL;
     uint64_t errors = 0LL;
@@ -47,11 +46,11 @@ Fragment::parse(const char * text, size_t in_length)
             // fast translation of character byte to *_bits
             bits = ((ch >> 1) & 3);
         }
-        if (frag_idx >= word_bits)
+        if (frag_idx >= WORD_BITS)
         {
             m_words[frag_sel] = curWord;
             ++frag_sel;
-            frag_idx -= word_bits;
+            frag_idx -= WORD_BITS;
         }
         ATS_ASSERT(frag_sel < sizeof(m_words));
         curWord += (bits << frag_idx);
@@ -66,7 +65,6 @@ std::string
 Fragment::string() const
 {
     std::string res;
-    int word_bits = (sizeof(uint64_t) << 3);
     int frag_sel = 0;
     int frag_idx = 0;
     char nt = 0;
@@ -76,10 +74,10 @@ Fragment::string() const
             res.append(1, 'N');
         }
         else {
-            if (frag_idx >= word_bits)
+            if (frag_idx >= WORD_BITS)
             {
                 ++frag_sel;
-                frag_idx -= word_bits;
+                frag_idx -= WORD_BITS;
             }
             nt = nt_bits_to_ch((m_words[frag_sel] >> frag_idx) & 0x3)
             SEQ_DEBUG("FS/FI: %d[%d] -> %c", frag_sel, frag_idx, nt);
@@ -95,11 +93,10 @@ Fragment::at(int index) const
 {
     int frag_sel = 0;
     int frag_idx = index << 1;
-    int word_bits = (sizeof(uint64_t) << 3);
-    while (frag_idx >= word_bits)
+    while (frag_idx >= WORD_BITS)
     {
         ++frag_sel;
-        frag_idx -= word_bits;
+        frag_idx -= WORD_BITS;
     }
     return ((m_words[frag_sel] >> frag_idx) & 0x3);
 }
@@ -109,11 +106,10 @@ Fragment::set(int index, uint64_t nt)
 {
     int frag_sel = 0;
     int frag_idx = index << 1;
-    int word_bits = (sizeof(uint64_t) << 3);
-    while (frag_idx >= word_bits)
+    while (frag_idx >= WORD_BITS)
     {
         ++frag_sel;
-        frag_idx -= word_bits;
+        frag_idx -= WORD_BITS;
     }
     uint64_t mask = (0x3LL << frag_idx);
     m_words[frag_sel] = (m_words[frag_sel] & (~mask)) | (nt << frag_idx);
@@ -126,11 +122,10 @@ Fragment::insert(int index, uint64_t nt)
     assert(index <= 31);
     int frag_sel = 0;
     int frag_idx = index << 1;
-    int word_bits = (sizeof(uint64_t) << 3);
-    while (frag_idx >= word_bits)
+    while (frag_idx >= WORD_BITS)
     {
         ++frag_sel;
-        frag_idx -= word_bits;
+        frag_idx -= WORD_BITS;
     }
     uint64_t mask = ((0x1LL << frag_idx) - 0x1LL);
     m_words[frag_sel] = ( (m_words[frag_sel] & mask)  |
@@ -146,11 +141,10 @@ Fragment::del(int index)
     assert(index <= 31);
     int frag_sel = 0;
     int frag_idx = index << 1;
-    int word_bits = (sizeof(uint64_t) << 3);
-    while (frag_idx >= word_bits)
+    while (frag_idx >= WORD_BITS)
     {
         ++frag_sel;
-        frag_idx -= word_bits;
+        frag_idx -= WORD_BITS;
     }
     uint64_t mask = ((0x1LL << frag_idx) - 0x1LL);
     m_words[frag_sel] = ( (m_words[frag_sel] & mask)  |
@@ -161,20 +155,19 @@ Fragment::del(int index)
 bool
 Fragment::equals(Fragment * other, int length, int start_index) const
 {
-    int use_length = (-1 == length ? m_length :length );
+    int use_length = (-1 == length ? m_length : length);
     if (other->m_length < use_length)
         return false;
     int frag_sel = 0;
     int start_frag_idx = start_index << 1;
     size_t frag_idx = use_length << 1;
-    int word_bits = (sizeof(uint64_t) << 3);
-    while (frag_idx >= word_bits)
+    while (frag_idx >= WORD_BITS)
     {
         if (m_words[frag_sel] != other->m_words[frag_sel])
             return false;
         ++frag_sel;
-        frag_idx -= word_bits;
-        start_frag_idx -= word_bits;
+        frag_idx -= WORD_BITS;
+        start_frag_idx -= WORD_BITS;
     }
     uint64_t mask = (1LL << frag_idx) - 1LL;
     if ((m_words[frag_sel] & mask) != (other->m_words[frag_sel] & mask))

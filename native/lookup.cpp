@@ -74,20 +74,19 @@ Lookup::insert(FragmentResult * f)
     return true;
 }
 
-FragmentResult * 
+FragmentResult *
 Lookup::find(Fragment *f, int start_index) const
 {
-    uint64_t key = f->key();
-    uint64_t rem = key % m_modulus;
+    uint64_t rem = (f->key() % m_modulus);
     ATS_VERBOSE("F: 0x%x", (int)rem);
-    uint64_t base = rem * m_listSize;
-    uint64_t idx = 0;
-    FragmentResult * entry = m_table[base];
+    uint64_t idx = rem * m_listSize;
+    FragmentResult * entry = m_table[idx];
     while (NULL != entry) {
-        if (f->equals(&entry->m_fragment))
+        /* note we can always rely on a null terminator at the end of the list */
+        ATS_ASSERT(entry->m_fragment.can_use_fast_equals());
+        if (entry->m_fragment.fast_equals(f))
             return entry;
-        ++idx;
-        entry = m_table[base + idx];
+        entry = m_table[++idx];
     }
     return NULL;
 }

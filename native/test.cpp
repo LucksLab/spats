@@ -166,6 +166,8 @@ lookup_handler(Fragment * r1, Fragment * r2, const char * handle)
 {
     //printf("R1: %s\nR2: %s\nH: %s\n", r1->string().c_str(), r2->string().c_str(), handle);
     ++g_total;
+    //if (g_total > 200)
+    //    return false;
     //if (r1->has_errors() || r2->has_errors()) {
     // ++g_indeterminate;
     //    return true;
@@ -212,11 +214,11 @@ t5s()
     fastq_parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
                 "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
                 &lookup_handler);
-    printf("%d matched, %d w/errors, %d indeterminate, %d mask failure, %d total\n", g_matched, g_matched_with_errors, g_indeterminate, g_mask_failure, g_total);
     for (int i = 0; i < MAX_SITES; ++i) {
         if (g_treated_sites[i] > 0 || g_untreated_sites[i] > 0)
             printf("  %d: %d / %d\n", i, g_treated_sites[i], g_untreated_sites[i]);
     }
+    printf("%d matched, %d w/errors, %d indeterminate, %d mask failure, %d total\n", g_matched, g_matched_with_errors, g_indeterminate, g_mask_failure, g_total);
     //g_r1l->dump();
 }
 
@@ -280,9 +282,9 @@ int
 main(void)
 {
     //f('A'); f('C'); f('G'); f('T'); f('\n'); f('\r');
-    //tcotrans();
+    tcotrans();
     //tpanel();
-    t5s();
+    //t5s();
     //tlookup();
     //ttree();
     //tr1l();

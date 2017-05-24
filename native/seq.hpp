@@ -8,6 +8,7 @@
 
 
 #define SPATS_FRAG_WORDS 2
+#define WORD_BITS 64
 
 
 #define A_bits  0x0LL
@@ -37,6 +38,8 @@ public:
     void del(int index);
     uint64_t key() const { return m_words[0]; }
     bool equals(Fragment * other, int length = -1, int start_index = 0) const;
+    bool can_use_fast_equals() const { return ((m_length << 1) <= WORD_BITS  &&  !m_errors); }
+    bool fast_equals(Fragment * other) const { return (m_words[0] == other->m_words[0]  &&  !other->m_errors); }
     int hamming_distance(Fragment * other) const;
     void clone(Fragment * other);
 };
