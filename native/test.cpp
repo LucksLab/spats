@@ -271,18 +271,18 @@ tcotrans()
 void
 f(char ch)
 {
-    int r = (ch & 3);
-    if (3 == r  &&  ch == 'G')
-        r = 2;
+    int r = ((ch >> 1) & 3);
+    //if (3 == r  &&  ch == 'G')
+    //    r = 2;
     printf("%c: 0x%x, %d\n", ch, ch, r);
 }
 int
 main(void)
 {
-    //f('A'); f('C'); f('G'); f('T');
-    tcotrans();
+    //f('A'); f('C'); f('G'); f('T'); f('\n'); f('\r');
+    //tcotrans();
     //tpanel();
-    //t5s();
+    t5s();
     //tlookup();
     //ttree();
     //tr1l();

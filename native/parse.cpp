@@ -49,8 +49,10 @@ fastq_parse(const char * r1_path, const char * r2_path, pair_handler handler)
         {
             r1end = r1start;
             r2end = r2start;
-            FIND_EOL(r1end);
-            FIND_EOL(r2end);
+            while (*r1end >= 0x10) // slightly faster than FIND_EOL
+                ++r1end;
+            while (*r2end >= 0x10)
+                ++r2end;
             if (wrap)
             {
                 size_t r1x = strlen(r1line);

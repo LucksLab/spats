@@ -45,9 +45,7 @@ Fragment::parse(const char * text, size_t in_length)
         }
         else {
             // fast translation of character byte to *_bits
-            bits = ch & 3;
-            if (3 == bits  &&  ch == 'G')
-                bits = 2;
+            bits = ((ch >> 1) & 3);
         }
         if (frag_idx >= word_bits)
         {
