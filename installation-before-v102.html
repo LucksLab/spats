@@ -74,21 +74,50 @@
               <li><a href="index.html">Home</a></li>
               <li><a href="installation.html">Installation</a></li>
               <li><a href="manual.html">Manual</a></li>
+			  <!-- <li><a href="http://www.nature.com/nprot/journal/v7/n3/full/nprot.2012.016.html">Protocol</a></li> -->
             </ul>
           </div>
+          <!-- <h2>News and updates</h2>
+                    <div class="box">
+                      <ul>
+                        <table width="100%">
+                          <tbody>
+                            <tr>
+                              <td>New releases and related tools will be announced
+                                through the <a
+                                  href="https://lists.sourceforge.net/lists/listinfo/bowtie-bio-announce"><b>mailing
 
+
+                                    list</b></a></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </ul>
+                    </div> -->
+
+ 		  <!-- <h2>Getting Help</h2>
+ 		            <div class="box">
+ 		              <ul>
+ 		                <table width="100%">
+ 		                  <tbody>
+ 		                    <tr>
+ 		                      <td>Questions about Cufflinks should be sent to <a
+ 		                          href="mailto:tophat.cufflinks@gmail.com"><b>tophat.cufflinks@gmail.com</b></a>.
+ 		                        Please do not email technical questions to
+ 		                        Cufflinks contributors directly.</td>
+ 		                    </tr>
+ 		                  </tbody>
+ 		                </table>
+ 		              </ul>
+ 		            </div> -->
+
+		          <a href="./downloads">
 		            <h2><u>Releases</u></h2>
+		          </a>
 		          <div class="box">
 		            <ul>
 		              <table width="100%">
 		                <tbody>
-                                  <tr>
-                                    <td>spats version 1.0.2</td>
-                                    <td align="right">5/30/2017</td>
-                                  </tr>
-                                  <tr>
-                                    <td><a href="https://github.com/LucksLab/spats/releases/tag/v1.0.2">&nbsp;&nbsp;&nbsp;Source code</a></td>
-                                  </tr>
                                   <tr>
                                     <td>spats version 1.0.1</td>
                                     <td align="right">9/10/2016</td>
@@ -193,7 +222,7 @@
               <tr>
                 <td><h3>Installation</h3>
 			  	  <br/>
-					Spats runs on intel-based computers running Linux or Mac OS X and that have GCC 4.0 or greater installed.  Currently spats can be run from the released binaries and can be built from the source code.<p></p></br>
+					Spats runs on intel-based computers running Linux or Mac OS X and that have GCC 4.0 or greater installed.  Currently spats must be built from the source code, though we recognize the need for an easier installation system.<p></p></br>
 					
 					Several pieces of software are required to run the <tt>spats</tt> pipeline. The software below should be installed in the order listed.
 					Detailed instructions are given for a <it>local</it> installation on a Unix system (<b>recommended</b>)- i.e. where the software is installed 
@@ -204,9 +233,10 @@
 				  <div id="toc">
 			  	    <ul>
 			  	    <li><a href="#path">Path Setup</a></li>
-				    <li><a href="#fastx">FastX_Spats and Libgtextutils</a></li>
+					<li><a href="#fastx">FastX_Spats and Libgtextutils</a></li>
 			  	    <li><a href="#bowtie">Bowtie</a></li>
-			 	    <li><a href="#cutadapt">cutadapt</a></li>
+				    <li><a href="#boost">Boost</a></li>
+					<li><a href="#cutadapt">cutadapt</a></li>
     				<li><a href="#spats">Spats</a></li>
 			  	    </ul><br/>
 			  	  </div>
@@ -296,6 +326,43 @@
 					
 					<br/>
 				  
+                  <h3 id="boost">Installing Boost (Required)</h3>
+				  <tt>boost</tt> version 1.49.0 is required.
+                  <br/>
+					<ol>
+						<li> Download the software. Version 1.49.0 can be gotten from <a 
+							 href="http://www.boost.org/users/download/">here</a>.
+						<li> Copy the boost tarball into the <tt>&lt;path_prefix&gt;/SHAPE-Seq/src/</tt> directory using the <tt>cp</tt> command.
+						<li> Untar the boost file: <tt>tar xzvf boost_1_49_0.tar.gz</tt>
+						<li> Move the folder created to the build directory: <tt>mv boost_1_49_0 &lt;path_prefix&gt;/build/</tt>
+						<li> Change into the boost build directory: cd <tt>&lt;path_prefix&gt;/SHAPE-Seq/build/boost_1_49_0/</tt>
+						<li> Setup the boost build process: <tt>./bootstrap.sh</tt>
+						<li> Link the <tt>bjam</tt> into the <tt>&lt;path_prefix&gt;/SHAPE-Seq/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/bin; ln -s &lt;path_prefix&gt;/SHAPE-Seq/build/boost_1_49_0/bjam .; cd &lt;path_prefix&gt;/SHAPE-Seq/build/boost_1_49_0</tt>
+						<li>Build Boost. <p>If you are on Mac OS X, type (all on one line):
+		                        <br/>
+		                      </p>
+		                      <blockquote>bjam
+		                        --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin/
+		                        --toolset=darwin --architecture=x86
+		                        --address_model=32_64 --link=static
+		                        --runtime-link=static --layout=versioned --stage=install</blockquote>
+		                    </li>
+		                    <p>If you are on a 32-bit Linux system, type (all on
+		                      one line): <br/>
+		                    </p>
+		                    <blockquote>bjam
+		                      --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin/
+		                      --toolset=gcc --architecture=x86 --address_model=32
+		                      --link=static --runtime-link=static --stage=install</blockquote>
+		                    <p>If you are on a 64-bit Linux system, type (all on
+		                      one line): <br/>
+		                    </p>
+		                    <blockquote>bjam
+		                      --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin/
+		                      --toolset=gcc --architecture=x86 --address_model=64
+		                      --link=static --runtime-link=static --stage=install</blockquote>
+ 					</ol>
+                  <br/>
 
                   <h3 id="cutadapt">Installing Cutadapt (Required)</h3>
 				  <b>We currently use <tt>cutadapt</tt> version 1.5</b>
@@ -309,18 +376,59 @@
 
                  
                   <h3 id="spats">Building Spats (Required)</h3>
-				  <b>We currently recommend downloading <tt>spats</tt> version 1.0.2 binaries to avoid building from the source.</b>
+				  <b>We currently recommend installing <tt>spats</tt> version 1.0.0.</b>
                   <br/>
                   <ol>
-                    <li> Download the software. <tt>spats-1.0.2</tt> can be gotten from the spats website <a 
+                    <li> Download the software. <tt>spats-1.0.1</tt> can be gotten from the spats website <a 
 							href="https://github.com/LucksLab/spats/releases/">here</a>.
-
-					<li> Untar the spats file: <tt>tar -xvzf spats-1.0.2.tar.gz</tt>
-					<li> Move the contents of the folder created to the bin directory: <tt>mv spats-1.0.2/* &lt;path_prefix&gt;/bin/</tt>
+					<li> Untar the spats file: <tt>tar -xvzf spats-1.0.1.tar.gz</tt>
+					<li> Move the folder created to the build directory: <tt>mv spats-1.0.1 &lt;path_prefix&gt;/build/</tt>
+					<li> Change into the spats build directory: <tt>cd &lt;path_prefix&gt;/build/spats-1.0.1/ </tt>
+					<li> Configure the spats install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin 
+						 --with-boost=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>. If you encounter errors in this step, make sure the 
+						<tt>LD_LIBRARY_PATH</tt> variable is set to where the boost libraries are found. 
+						See <a href="#path">Path Setup</a> above.
+					<li> Run: <tt>make</tt> and <tt>make install</tt>.			
                   </ol>
-
-                                  <b>Instructions for building version 1.0.2 and earlier versions from the source code can be found <a href="installation-before-v102.html">here</a>.</b>
+                  <!-- <h2 id="test">Testing the installation</h2>
                   <br/>
+                  <ol>
+                    <li>Download the <a href="downloads/test_data.sam">test
+                        data</a> </li>
+                    <li>In the directory where you placed the test file,
+                      type:<br/>
+                      <blockquote>cufflinks ./test_data.sam</blockquote>
+                      <br/>
+                      You should see the following output:
+                      <pre>[bam_header_read] EOF marker is absent. The input is probably truncated.
+[bam_header_read] invalid BAM binary header (this is not a BAM file).
+File ./test_data.sam doesn't appear to be a valid BAM file, trying SAM...
+[13:23:15] Inspecting reads and determining fragment length distribution.
+&gt; Processed 1 loci.                            [*************************] 100%
+Warning: Using default Gaussian distribution due to insufficient paired-end reads in open ranges.  
+It is recommended that correct paramaters (--frag-len-mean and --frag-len-std-dev) be provided.
+&gt; Map Properties:
+&gt;       Total Map Mass: 102.50
+&gt;       Read Type: 75bp x 75bp
+&gt;       Fragment Length Distribution: Truncated Gaussian (default)
+&gt;                     Estimated Mean: 200
+&gt;                  Estimated Std Dev: 80
+[13:23:15] Assembling transcripts and estimating abundances.
+&gt; Processed 1 loci.                            [*************************] 100%
+</pre>
+                    </li>
+                    <li>Verify that the file <tt>transcripts.gtf</tt>
+                      is in the current directory and looks like this
+                      (your file will have GTF attributes, omitted here
+                      for clarity)
+                      <pre>test_chromosome Spats       exon    53      250     1000    +       . 
+test_chromosome Spats       exon    351     400     1000    +       . 
+test_chromosome Spats       exon    501     550     1000    +       .
+					
+				</pre>
+                    </li>
+                  </ol>
+                  <br/> -->
                  
                   
                   <div id="footer">
