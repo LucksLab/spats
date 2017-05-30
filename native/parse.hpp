@@ -2,6 +2,8 @@
 #ifndef __SPATS_PARSE_HPP_INCLUDED__
 #define __SPATS_PARSE_HPP_INCLUDED__
 
+#include "seq.hpp"
+
 typedef bool (*pair_handler)(Fragment * r1, Fragment * r2, const char * handle);
 
 void

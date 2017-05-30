@@ -1,4 +1,5 @@
 
+
 #include "ats.hpp"
 #include "lookup.hpp"
 #include "pair.hpp"
@@ -166,8 +167,8 @@ lookup_handler(Fragment * r1, Fragment * r2, const char * handle)
 {
     //printf("R1: %s\nR2: %s\nH: %s\n", r1->string().c_str(), r2->string().c_str(), handle);
     ++g_total;
-    //if (g_total > 200)
-    //    return false;
+    //if (g_total > 20)
+    //    exit(-1);
     //if (r1->has_errors() || r2->has_errors()) {
     // ++g_indeterminate;
     //    return true;
@@ -278,9 +279,13 @@ f(char ch)
     //    r = 2;
     printf("%c: 0x%x, %d\n", ch, ch, r);
 }
+
+extern void thash();
+
 int
 main(void)
 {
+    //thash();
     //f('A'); f('C'); f('G'); f('T'); f('\n'); f('\r');
     tcotrans();
     //tpanel();
