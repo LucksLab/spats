@@ -28,6 +28,10 @@ and now supports:
   analyzed by primer extension sequencing (SHAPE-Seq)
       Methods, 2016
 
+- Watters KE, Strobel EJ, Yu AM, Lis JT, Lucks JB.
+  Cotranscriptional folding of a riboswitch at nucleotide resolution
+      Nature Structure and Molecular Biology 10.1038/nsmb.3316
+
 and other papers from the SHAPE-Seq community.
 
 The Spats package implements a read mapping and reactivity analysis pipeline for calculating
