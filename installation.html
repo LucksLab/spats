@@ -193,136 +193,24 @@
               <tr>
                 <td><h3>Installation</h3>
 			  	  <br/>
-					Spats runs on intel-based computers running Linux or Mac OS X and that have GCC 4.0 or greater installed.  Currently spats can be run from the released binaries and can be built from the source code.<p></p></br>
-					
-					Several pieces of software are required to run the <tt>spats</tt> pipeline. The software below should be installed in the order listed.
-					Detailed instructions are given for a <it>local</it> installation on a Unix system (<b>recommended</b>)- i.e. where the software is installed 
-					into a specified location rather than the default Unix locations such as <tt>/usr/local</tt>. If a default installation is required,
-					<tt>/usr/local</tt> may be specified in place of the custom location, or the <tt>--prefix</tt> options may be left out.					
-			       	
-			      </p><br/>
-				  <div id="toc">
-			  	    <ul>
-			  	    <li><a href="#path">Path Setup</a></li>
-				    <li><a href="#fastx">FastX_Spats and Libgtextutils</a></li>
-			  	    <li><a href="#bowtie">Bowtie</a></li>
-			 	    <li><a href="#cutadapt">cutadapt</a></li>
-    				<li><a href="#spats">Spats</a></li>
-			  	    </ul><br/>
-			  	  </div>
-					
-				  <h3 id="path">Path Setup</h3><br/>
-					  <p> The creation of a local installation of spats is recommended. Currently we recommend creating the following directory
-						  structure:
-						<p></p></br>
-						<blockquote>
-							&lt;path_prefix&gt;/SHAPE-Seq/
-						</blockquote>
-						<p></p></br>
-						which should contain:
-						<p></p></br>
-						<blockquote>
-							&lt;path_prefix&gt;/SHAPE-Seq/bin/ &lt;path_prefix&gt;/SHAPE-Seq/bin/bin/ &lt;path_prefix&gt;/SHAPE-Seq/bin/lib/ &lt;path_prefix&gt;/SHAPE-Seq/src/ &lt;path_prefix&gt;/SHAPE-Seq/build/
-						</blockquote>
-						<p></p></br>
-						Here <tt>&lt;path_prefix&gt;</tt> is the location of this directory on your system. To ensure that these paths will be used correctly
-						by the installation system, it is helpful to add them to your default shell, for example in bash by including the following lines in
-						your <tt>.bash_profile</tt>:
-						<p></p></br>
-						<blockquote>
-							export PATH=$PATH:&lt;path_prefix&gt;/SHAPE-Seq/bin:&lt;path_prefix&gt;/SHAPE-Seq/bin/bin
-						</blockquote>
-						<blockquote>
-							export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:&lt;path_prefix&gt;/SHAPE-Seq/bin/lib
-						</blockquote>
-						<blockquote>
-							export PYTHONPATH=$PYTHONPATH:&lt;path_prefix&gt;/SHAPE-Seq/bin/bin
-						</blockquote>
-						
-				      </p><br/>
-				
-					<h3 id="fastx">Installing FastX_Spats_Toolkit and LibGTextUtils (Required)</h3>  
-					     <tt>fastx_spats_toolkit</tt> and <tt>libgtextutils</tt> are required for adapter trimming. Instructions for
-					     installing via sourcecode:
-					     <ol>
-							<li> Download the software. <tt>fastx_spats_toolkit-0.1.0</tt> can be gotten from the spats website <a 
-								href="https://github.com/LucksLab/spats/releases/"
-		                        onclick="javascript:
-		                        pageTracker._trackPageview('/downloads/cufflinks_source');
-		                        ">here</a>. <tt>libgtextutils-0.6.1.tar.bz2</tt> can be gotten from the 
-		 						<a href="http://hannonlab.cshl.edu/fastx_toolkit/download.html">Hannon Lab Fastx Site</a> at this <a 
-			                    href="http://hannonlab.cshl.edu/fastx_toolkit/libgtextutils-0.6.1.tar.bz2"> link </a>.
-							<li> Untar the libgtextutil file: <tt>tar -xvjf libgtextutils-0.6.tar.bz2 </tt>
-							<li> Move the folder created to the build directory: <tt>mv libgtextutils-0.6 &lt;path_prefix&gt;/SHAPE-Seq/build/ </tt>
-						    <li> Change into the libgtextutils build directory: <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/build/libgtextutils-0.6/</tt>
-							<li> Configure the libgtextutils install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin </tt>
-							<li> Run: <tt>make</tt> and <tt>make install</tt>.
-						    <li> Now tell package config tool where to look for libgtextutils: <tt>export 
-							     PKG_CONFIG_PATH=&lt;path_prefix&gt;/SHAPE-Seq/bin/lib/pkgconfig:$PKG_CONFIG_PATH</tt>
-							<li> Untar the FastX file: <tt>tar -xvjf fastx_spats_toolkit-0.1.0.tar.bz2</tt>
-							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit-0.1.0 &lt;path_prefix&gt;/SHAPE-Seq/build/</tt>
-							<li> Change into the FastX build directory: <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/build/fastx_spats_toolkit-0.1.0/ </tt>
-							<li> Configure the FastX install: <tt>./configure --prefix=&lt;path_prefix&gt;/SHAPE-Seq/bin</tt>
-							<li> Run: <tt>make</tt> and <tt>make install</tt>.
-						 </ol>
-						<p></p></br>
-						For 64-bit GNU/Linux 2.6.18 (and probably above), there is a binary distribution of the necessary fastx tools which
-						can be installed with these instructions. <b> Note - this will only work on 64-bit GNU Linux Systems with Kernel >= 2.6.18</b>
-						<ol>
-							<li> Download the software. <tt>fastx_spats_toolkit-0.1.0_bin_dist</tt> can be gotten from the spats website <a 
-								href="./downloads/fastx_spats_toolkit_0.0.1_bin_dist.tar.gz"
-		                        onclick="javascript:
-		                        pageTracker._trackPageview('/downloads/cufflinks_source');
-		                        ">here</a>.
-							<li> Untar the FastX file: <tt>tar -xvzf fastx_spats_toolkit_0.0.1_bin_dist.tar.gz</tt>
-							<li> Move the folder created to the build directory: <tt>mv fastx_spats_toolkit_0.0.1_bin_dist &lt;path_prefix&gt;/SHAPE-Seq/build/</tt>
-							<li> Link the <tt>fastx_reverse_complement</tt>, <tt>fastx_spats_clipper</tt> and <tt>fastx_trimmer</tt> binaries into the <tt>&lt;path_prefix&gt;/SHAPE-Seq/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/bin; ln -s &lt;path_prefix&gt;/SHAPE-Seq/build/fastx_spats_toolkit_0.0.1_bin_dist/* .</tt>
-						</ol>
-					
-					   
-						<br/>
-				
-					<h3 id="bowtie">Installing Bowtie (Required)</h3> 
-					<tt>bowtie</tt> is used to align next-generation sequencing reads. <b>Bowtie version 0.12.8 is required.</b> Spats is not currently compatible 
-					with Bowtie 2.
-						<ol>
-							<li> Download the software. Version 0.12.8 can be gotten from <a 
-								 href="http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.8/">the bowtie sourceforge site</a>.
-							<li> Copy the bowtie zip into the <tt>&lt;path_prefix&gt;/src/</tt> directory using the <tt>cp</tt> command.
-							<li> Unzip the bowtie zip file: <tt>unzip bowtie-0.12.8.zip</tt>
-							<li> Move the folder created to the build directory: <tt>mv bowtie-0.12.8 &lt;path_prefix&gt;/SHAPE-Seq/build/</tt>
-							<li> Link the <tt>bowtie</tt> and <tt>bowtie-build</tt> binaries into the <tt>&lt;path_prefix&gt;/SHAPE-Seq/bin</tt> directory (<b>Note ending periods are important</b>): <tt>cd &lt;path_prefix&gt;/SHAPE-Seq/bin; ln -s &lt;path_prefix&gt;/SHAPE-Seq/build/bowtie-0.12.8/bowtie .; ln -s &lt;path_prefix&gt;/SHAPE-Seq/build/bowtie-0.12.8/bowtie-build .</tt>
-						</ol>
-					
-					<br/>
-				  
-
-                  <h3 id="cutadapt">Installing Cutadapt (Required)</h3>
-				  <b>We currently use <tt>cutadapt</tt> version 1.5</b>
-                  <br/>
-                  <ol>
-                    <li> Download the software. <tt>cutadapt v1.5</tt> can be gotten from the cutadapt GitHub website <a 
-							href="https://github.com/marcelm/cutadapt/releases/tag/v1.5">here</a>.
-					<li> Follow the installation instructions for cutadapt <a href="https://cutadapt.readthedocs.org/en/stable/installation.html">here</a>
-                  </ol>
-                  <br/>
-
-                 
-                  <h3 id="spats">Building Spats (Required)</h3>
-				  <b>We currently recommend downloading <tt>spats</tt> version 1.0.2 binaries to avoid building from the source.</b>
-                  <br/>
-                  <ol>
-                    <li> Download the software. <tt>spats-1.0.2</tt> can be gotten from the spats website <a 
-							href="https://github.com/LucksLab/spats/releases/">here</a>.
-
-					<li> Untar the spats file: <tt>tar -xvzf spats-1.0.2.tar.gz</tt>
-					<li> Move the contents of the folder created to the bin directory: <tt>mv spats-1.0.2/* &lt;path_prefix&gt;/bin/</tt>
-                  </ol>
-
-                                  <b>Instructions for building version 1.0.2 and earlier versions from the source code can be found <a href="installation-before-v102.html">here</a>.</b>
-                  <br/>
-                 
-                  
+					Spats runs on intel-based computers running Linux or Mac OS X. Currently spats can be run from the released binaries and can be built from the source code.<p></p></br>
+<ul>
+  <li><b>Requirements</b></li>
+  <ul>
+    <li>Bowtie 0.12.8, must be available in your <tt>$PATH</tt>. Get it at: <a href="http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.8/">http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.8/</a></li>
+    <li><tt>cutadapt</tt>: python package (<tt>pip install cutadapt</tt>)</li>
+  </ul>
+  <li><b>Binary Distributions</b></li>
+  <ul>
+    <li>Available for Linux/x64 and Mac at: https://github.com/LucksLab/spats/releases/</li>
+  </ul>
+  <li><b>Build from Source</b></li>
+  <ul>
+    <li><tt>make -s</tt></li>
+    <li>Add the <tt>bin</tt> directory to your <tt>$PATH</tt>.</li>
+  </ul>
+</ul>
+<br/><br/><br/><br/><br/>                  
                   <div id="footer">
                     <table cellspacing="15" width="100%">
 			          <tbody>
