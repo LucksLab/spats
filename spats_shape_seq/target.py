@@ -140,6 +140,30 @@ class Targets(object):
                     else:
                         candidate[0] = [ target, candidate[0] ]
         return candidate
+
+    def find_partial_all(self, query, min_length = 0):
+        min_len = min_length or self._minimum_length
+        word_len = self._index_word_length
+        check_every = max(min_len - word_len, 1) # norah has proved that this guarantees finding a match if it exists
+        query_len = len(query)
+        last = query_len - max(check_every, word_len)
+        check_sites = range(0, last, check_every)
+        check_sites.append(last)
+        candidates = []
+        # NOTE: it's important to check all sites, and all hits -- to find the longest match.
+        for site in check_sites:
+            site_key = query[site:site+word_len]
+            #print "CS: {}, {}".format(site, site_key)
+            for target, index in self._index.get(site_key, []):
+                #print "GOT: " + str(index) + " -- " + target.name
+                left, right = longest_match(query, (site, word_len), target.seq, (index, word_len))
+                total_len = left + right + word_len
+                #print "extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
+                if total_len >= min_len:
+                    candidate = [target, site - left, total_len, index - left]
+                    if candidate not in candidates:
+                        candidates.append(candidate)
+        return candidates
         
     # returns ([target or targets], query_start_index, match_len, sequence_index), where:
     #  target or targets: if a single target match, then the target; otherwise a list of all matched targets, rest of params corresponding to first one

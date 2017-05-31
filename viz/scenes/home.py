@@ -10,9 +10,13 @@ class Home(BaseScene):
 
     def test(self, message = None):
         pair = Pair()
+        #pair.set_from_data("18333", "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG")
+        #pair.r1.tags = [('RRRY', 0, 4, 0), ('5s_rc', 4, 20, 0), ('5s', 24, 6, 76), ('adapter_b', 28, 7, 0)]
+        #pair.r2.tags = [('5s', 4, 20, 123), ('RRRY', 24, 4, 0), ('5s_rc', 26, 6, 16), ('adapter_t_rc', 28, 7, 0)]
         pair.set_from_data("21189", "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA")
-        pair.r1.tags = [('YYYR', 0, 4, 0), ('rc(5s)', 4, 21, 0), ('adapter_b', 25, 10, 1)]
-        pair.r2.tags = [('5s', 0, 20, 123), ('adapter_b', 24, 11, 0)]
+        pair.r1.tags = [('YYYR', 0, 4, 0), ('5s_rc', 4, 21, 0), ('adapter_b', 25, 10, 1)]
+        pair.r2.tags = [('5s', 0, 20, 123), ('YYYR', 20, 4, 0), ('adapter_t_rc', 24, 11, 0)]
+
         self.ui.setScene(PairScene(self.ui, pair))
 
     def build(self):
@@ -20,11 +24,9 @@ class Home(BaseScene):
         self.targetButtons([self.test]) #, self.interfaces, self.mediators, self.newRelationship, self.newInterface, self.newMediator])
 
     def handleKeyEvent(self, keyInfo):
-        handlers = { "r" : [ self.relationships, self.newRelationship],
-                     "i" : [ self.interfaces, self.newInterface],
-                     "m" : [ self.mediators, self.newMediator]}.get(keyInfo["t"])
-        if handlers:
-            handlers[1 if "shift" in keyInfo else 0]()
+        handler = { "t" : self.test }.get(keyInfo["t"])
+        if handler:
+            handler()
         else:
             BaseScene.handleKeyEvent(self, keyInfo)
 

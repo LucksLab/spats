@@ -1,12 +1,20 @@
 
+from partial import PartialFindProcessor
 from processor import PairProcessor
+from target import Targets
 from util import _warn, _debug, string_match_errors
 
 
 class TagProcessor(PairProcessor):
 
     def prepare(self):
-        self._targets.index()
+        self._partial = PartialFindProcessor(self._run, self._targets, self._masks)
+        self._partial.prepare()
+        self._tag_targets = Targets()
+        self._tag_targets_indexed = False
+
+    def addTagTarget(self, name, seq):
+        self._tag_targets.addTarget(name, seq)
 
     def _longest_unmatched(self, seq, tags):
         lstart, llen = 0, 0
@@ -30,8 +38,24 @@ class TagProcessor(PairProcessor):
             idx += 1
         return lstart, llen
 
-    # note targets should include all RC's as they may be found in r1/r2
     def _find_tags(self, pair):
+        # this pair wasn't a match, we want to all long-enough subsequences found (even if overlaps)
+        for seq, start, tags in [ (pair.r1.original_seq, 4, pair.r1.tags), (pair.r2.original_seq, 0, pair.r2.tags) ]:
+            for target, match_start, match_len, match_index in self._tag_targets.find_partial_all(seq):
+                if (0 == start and target.name == "adapter_b") or \
+                   (4 == start and target.name == "adapter_t_rc"):
+                    continue
+                tag = (target.name, match_start, match_len, match_index)
+                idx = 0
+                while idx <= len(tags):
+                    if idx == len(tags) or tag[1] < tags[idx][1]:
+                        tags.insert(idx, tag)
+                        break
+                    idx += 1
+
+
+    # note targets should include all RC's as they may be found in r1/r2
+    def _find_tags_old(self, pair):
         targets = self._targets
         unknown_tag = "???"
         pair.r1.tags = [ (pair.mask.chars, 0, 4, 0) ]
@@ -77,16 +101,37 @@ class TagProcessor(PairProcessor):
                     index += 1
         #endif
 
+    def _tag_handles(self, pair):
+        pair.r1.tags.append( (pair.mask.chars, 0, 4, 0) )
+        if pair.r2._rtrim > 0:
+            start = pair.r2.original_len - pair.r2._rtrim
+            pair.r2.tags.append( (pair.mask.chars, start, min(4, pair.r2._rtrim), 0) )
+
+    def _tag_match(self, pair):
+        pair.r1.tags.append( (pair.target.name, pair.r1._ltrim, pair.r1.seq_len, pair.r1.match_index) )
+        if pair.r1._rtrim > 0:
+            pair.r1.tags.append( ("adapter_b", pair.r1.original_len - pair.r1._rtrim, pair.r1._rtrim, 0) )
+        pair.r2.tags.insert(0, (pair.target.name, pair.r2._ltrim, pair.r2.seq_len, pair.r2.match_index) )
+        if pair.r2._rtrim > 4:
+            pair.r2.tags.append( ("adapter_t_rc", pair.r2.original_len - pair.r2._rtrim + 4, pair.r2._rtrim - 4, 0) )
+
     def process_pair(self, pair):
 
-        if not self._match_mask(pair):
+        self._partial.process_pair(pair)
+
+        pair.r1.tags = []
+        pair.r2.tags = []
+
+        if pair.mask:
+            self._tag_handles(pair)
+        if pair.has_site:
+            self._tag_match(pair)
             return
 
-        self._find_tags(pair)
-        pair.failure = "tags"
+        if not self._tag_targets_indexed:
+            self._tag_targets._minimum_length = 6
+            self._tag_targets._index_word_length = 6
+            self._tag_targets.index()
 
-        print pair.r1.original_seq
-        print pair.r1.tags
-        print pair.r2.original_seq
-        print pair.r2.tags
-        print "-----------------------------"
+        self._find_tags(pair)
+
