@@ -1,17 +1,23 @@
 
+from spats_shape_seq.pair import Pair
+
 from cjb.uif.layout import Size, Grid
-from viz.scenes.base import BaseScene
 from viz.layout import buttonSize
+from viz.scenes import BaseScene, PairScene
 
 
 class Home(BaseScene):
 
-    def relationships(self, message = None):
-        print "Rel"
+    def test(self, message = None):
+        pair = Pair()
+        pair.set_from_data("21189", "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA")
+        pair.r1.tags = [('YYYR', 0, 4, 0), ('rc(5s)', 4, 21, 0), ('adapter_b', 25, 10, 1)]
+        pair.r2.tags = [('5s', 0, 20, 123), ('adapter_b', 24, 11, 0)]
+        self.ui.setScene(PairScene(self.ui, pair))
 
     def build(self):
         BaseScene.build(self)
-        self.targetButtons([self.relationships]) #, self.interfaces, self.mediators, self.newRelationship, self.newInterface, self.newMediator])
+        self.targetButtons([self.test]) #, self.interfaces, self.mediators, self.newRelationship, self.newInterface, self.newMediator])
 
     def handleKeyEvent(self, keyInfo):
         handlers = { "r" : [ self.relationships, self.newRelationship],

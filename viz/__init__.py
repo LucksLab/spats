@@ -1,8 +1,8 @@
 
-import viz.ui
+from viz.ui import SpatsViz
 
 def run():
-    s = viz.ui.SpatsViz()
+    s = SpatsViz()
     s.start()
     print "SpatsViz started..."
     s.waitFor()

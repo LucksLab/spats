@@ -6,7 +6,7 @@ strings = {
     'newInterface' : 'New Interface',
     'newInterfacePrompt' : 'New Interface Name:',
     'newMediator' : 'New Mediator',
-    'relationships' : 'Relationships',
+    'test' : 'Test it out',
 }
 
 class Localizer(cjb.uif.Localizer):

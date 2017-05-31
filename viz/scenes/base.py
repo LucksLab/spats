@@ -23,6 +23,12 @@ class BaseScene(cjb.uif.Scene):
             home.frame = view.frame.bottomRightSubrect(size = buttonSize, margin = 20)
         return view
 
+    def addModelView(self, obj):
+        self.addView(cjb.uif.views.Button(obj = obj))
+
+    def addModelViews(self, objs):
+        map(self.addModelView, objs)
+
     def handleViewMessage(self, scene, obj, message):
         if obj:
             if isinstance(obj, Relationship):

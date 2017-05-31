@@ -15,6 +15,6 @@ class Colorize(cjb.uif.Filter):
                           'method' : [ 0.7, 0.7, 1.0 ] }.get(typeId)
             elif isinstance(v, cjb.uif.views.Button):
                 color = [ 0.7, 0.7, 0.7 ]
-            if color:
+            if color and not v.bg:
                 v.bg = color
         return view
