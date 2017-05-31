@@ -87,7 +87,7 @@ class PairDB(object):
             self.conn.commit()
 
     def pair_length(self):
-        return len(_fetch_one("SELECT r1 FROM pair LIMIT 1"))
+        return len(self._fetch_one("SELECT r1 FROM pair LIMIT 1"))
 
     def unique_pairs(self):
         self._cache_unique_pairs()

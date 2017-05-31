@@ -224,6 +224,8 @@ class Spats(object):
                 targets.append((name, seq, -1))
         self._addTargets(targets)
 
+    def addTarget(self, name, seq, rowid = -1):
+        self._addTargets( [ (name, seq, rowid) ] )
 
     def _addTargets(self, target_list):
         targets = self._targets or Targets()

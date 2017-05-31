@@ -115,6 +115,32 @@ class Targets(object):
                 return target, index
         return None, -1
 
+    def find_partial_prefix(self, query):
+        min_len = self._minimum_length
+        word_len = self._index_word_length
+        query_len = len(query)
+        candidate = [None, None, None, None]
+        if query_len < word_len:
+            return candidate
+        site_key = query[:word_len]
+        #print "  fpp query: " + query + " --> " + site_key
+        for target, index in self._index.get(site_key, []):
+            left, right = longest_match(query, (0, word_len), target.seq, (index, word_len))
+            total_len = left + right + word_len
+            #print "    extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
+            if total_len >= min_len:
+                if not candidate[2] or total_len > candidate[2]:
+                    # keep it if it's the best match so far
+                    candidate = [target, 0 - left, total_len, index - left]
+                    #print "C: {}".format(candidate)
+                elif total_len == candidate[2] and target != candidate[0]:
+                    # need to keep track if multiple candidates have this same max length
+                    if isinstance(candidate[0], list):
+                        candidate[0] = candidate[0] if target in candidate[0] else [ target ] + candidate[0]
+                    else:
+                        candidate[0] = [ target, candidate[0] ]
+        return candidate
+        
     # returns ([target or targets], query_start_index, match_len, sequence_index), where:
     #  target or targets: if a single target match, then the target; otherwise a list of all matched targets, rest of params corresponding to first one
     #  query_start_index: the index into the query where the match starts

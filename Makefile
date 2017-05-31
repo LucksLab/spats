@@ -28,6 +28,12 @@ pip_dist: unit
 docs:
 	@cd doc  &&  make html
 
+# runs a method in tests/misc.py
+.PHONY: viz
+viz:
+	@PYTHONPATH=.:/Users/jbrink/fw/trees/jbpy python ${TOOLS_DIR}/runviz.py
+
+
 # for some subset of tests:
 # make u.[module]
 # make u.[module]:[class]

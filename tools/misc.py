@@ -326,6 +326,44 @@ def rdiff():
                 print "... {} total.".format(len(rlist))
     print "{} total diffs.".format(sum(map(len, all_lists)))
 
+def tags():
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
+    from spats_shape_seq import Spats
+    s = Spats()
+    from spats_shape_seq.tag import TagProcessor
+    s.run._processor_class = TagProcessor
+
+    #from spats_shape_seq.target import Targets
+    #s.addTargets(bp + "5S.fa")
+    s.addTarget("5s", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC")
+    s.addTarget("rc(5s)", "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC")
+    s.addTarget("adapter_t", s.run.adapter_t)
+    s.addTarget("adapter_b", s.run.adapter_b)
+    s._targets._index_word_length = 6
+    s._targets._minimum_length = 6
+    #from spats_shape_seq.util import reverse_complement
+    #s.addTarget("adapter_t_rc", reverse_complement(s.run.adapter_t))
+    #s.addTarget("adapter_b_rc", reverse_complement(s.run.adapter_b))
+
+    from spats_shape_seq.pair import Pair
+    cases = [
+        #[ "1101:11562:1050", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG" ],
+        [ "21189", "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA" ],
+        [ "18333", "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG" ],
+    ]
+
+    pair = Pair()
+    for case in cases:
+        pair.set_from_data(case[0], case[1], case[2])
+        s.process_pair(pair)
+
+    #s.run.skip_database = True
+    #s.run.writeback_results = True
+    #s.run.resume_processing = True
+    #s.run.result_set_name = "lookup"
+    #s.process_pair_data(bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq", 
+    #                    bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()
