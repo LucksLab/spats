@@ -108,7 +108,7 @@ class TagProcessor(PairProcessor):
             pair.r2.tags.append( (pair.mask.chars, start, min(4, pair.r2._rtrim), 0) )
 
     def _tag_match(self, pair):
-        pair.r1.tags.append( (pair.target.name, pair.r1._ltrim, pair.r1.seq_len, pair.r1.match_index) )
+        pair.r1.tags.append( (pair.target.name + "_rc", pair.r1._ltrim, pair.r1.seq_len, pair.target.n - pair.r1.match_index - pair.r1.match_len) )
         if pair.r1._rtrim > 0:
             pair.r1.tags.append( ("adapter_b", pair.r1.original_len - pair.r1._rtrim, pair.r1._rtrim, 0) )
         pair.r2.tags.insert(0, (pair.target.name, pair.r2._ltrim, pair.r2.seq_len, pair.r2.match_index) )

@@ -1,7 +1,8 @@
 
 import cjb.uif
-from cjb.uif.layout import Size, Grid
+from cjb.uif.layout import Size, Grid, Rect
 from cjb.uif.views import Label
+from spats_shape_seq.util import reverse_complement
 from viz.scenes.base import BaseScene
 from viz.layout import buttonSize
 
@@ -24,7 +25,7 @@ TAG_COLORS = [
     [ 0.2, 0.7, 0.3 ],
 ]
 
-class PairScene(BaseScene):
+class RawPairScene(BaseScene):
 
     def __init__(self, ui, pair):
         self.pair = pair
@@ -117,3 +118,222 @@ class PairScene(BaseScene):
                 self.labels[part_name + tag[0]].frame = labelFrame(self.parts[part_name], self.parts[part_name + tag[0]])
 
         return view
+
+
+class PairInTargetScene(BaseScene):
+
+    def __init__(self, ui, pair, expanded = True):
+        self.pair = pair
+        self.expanded = expanded
+        self.parts = {}
+        self.labels = {}
+        self.nucSize = Size(10, 16)
+        BaseScene.__init__(self, ui, self.__class__.__name__)
+
+    def addNucView(self, nuc, bg):
+        v = cjb.uif.views.Button(obj = nuc)
+        v.fontSize = 11
+        v.sideSpacing = 0
+        v.bg = bg
+        self.addView(v)
+        return v
+
+    def addLabel(self, txt, bg = None):
+        return self.addView(Label(txt, fontSize = 11, bg = bg))
+
+    def build(self):
+
+        BaseScene.build(self)
+
+        # TODO
+        self.tag_seqs = { 
+            "5s" : "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC",
+            "5s_rc" : "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC",
+            "adapter_t_rc" : "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT",
+            "adapter_b" : "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC",
+            "RRRY" : "RRRY",
+            "YYYR" : "YYYR",
+        }
+
+        target = self.pair.target
+        tcol = [ 1.0, 0.5, 0.1 ]
+        tag_colors = {
+            target.name : tcol,
+            "adapter_t" : [ 1.0, 0.5, 0.5 ],
+            "adapter_b" : [ 0.5, 0.5, 1.0 ],
+            "RRRY" : [ 0.2, 1.0, 0.1 ],
+            "YYYR" : [ 0.2, 1.0, 0.1 ],
+            "RYYY" : [ 0.2, 1.0, 0.1 ],
+            "YRRR" : [ 0.2, 1.0, 0.1 ],
+        }
+        nomatch_col = [ 0.7, 0.7, 0.7 ]
+
+        skips = self._skips()
+
+        tseq = target.seq
+        tlen = target.n
+        def should_skip(idx):
+            for skip in skips:
+                if idx >= skip[0] and idx < skip[0] + skip[1]:
+                    return True
+            return False
+        self.parts[target.name] = [ None if should_skip(i) else self.addNucView(Nuc(tseq[i], (target.name, i, None)), tcol) for i in range(tlen)  ]
+        self.labels[target.name] = self.addLabel(target.name, bg = tcol)
+
+        for part_name in ( "r1", "r2" ):
+            parts = []
+            part = getattr(self.pair, part_name)
+            seq = part.original_seq
+            idx = 0
+
+            for tag in sorted(part.tags, key = lambda t : t[1]):
+                tkey = tag[0].rstrip("_rc_")
+                while idx < tag[1] + tag[2]:
+                    ntcol = nomatch_col if idx < tag[1] else tag_colors[tkey]
+                    parts.append(self.addNucView(Nuc(seq[idx], (part_name, idx, None if idx < tag[1] else tag[0])), ntcol))
+                    idx += 1
+
+                if self.expanded:
+                    if tag[0] == target.name + "_rc":
+                        rc = reverse_complement(seq[tag[1]:tag[1] + tag[2]])
+                        self.parts[part_name + tag[0]] = [ self.addNucView(Nuc(rc[j], (tag[0], j, None)), tcol) for j in range(0, tag[2]) ]
+                        self.labels[part_name + tag[0]] = self.addLabel("R1_rc")
+                    elif tkey.startswith("adapter"):
+                        tagseq = self.tag_seqs[tag[0]]
+                        aparts = []
+                        for j in range(max(tag[3] - 4, 0), min(tag[2] + 4, len(tagseq))):
+                            v = self.addNucView(Nuc(tagseq[j], (tag[0], j, None)), tag_colors[tkey])
+                            if j < tag[3] or j >= tag[3] + tag[2]:
+                                v.alpha = 0.5
+                            aparts.append(v)
+                        self.parts[part_name + tag[0]] = aparts
+                        self.labels[part_name + tag[0]] = self.addLabel(tag[0], bg = tag_colors[tkey])
+                    elif part_name == "r1" and (tag[0] == 'YYYR' or tag[0] == 'RRRY'):
+                        hcol = tag_colors[tag[0]]
+                        self.parts[part_name + tag[0]] = [ self.addNucView(Nuc(tag[0][j], (tag[0], j, None)), hcol) for j in range(len(tag[0])) ]
+                        self.labels[part_name + tag[0]] = self.addLabel(tag[0], bg = hcol)
+
+            while idx < len(seq):
+                parts.append(self.addNucView(Nuc(seq[idx], (part_name, idx, None)), nomatch_col))
+                idx += 1
+
+            self.parts[part_name] = parts
+            self.labels[part_name] = self.addLabel(part_name.upper())
+
+
+    def _skips(self):
+        target = self.pair.target
+        tlen = target.n
+        r1matches = [ (tlen - tag[3] - tag[2], tag[2]) for tag in self.pair.r1.tags if tag[0].startswith(target.name) ] # tlen - b/c of revcomp
+        r2matches = [ (tag[3], tag[2]) for tag in self.pair.r2.tags if tag[0].startswith(target.name) ]
+        matches = sorted(r1matches + r2matches, key = lambda x : x[0])
+        skips = []
+        for idx in range(len(matches) + 1):
+            m = matches[idx] if idx < len(matches) else None
+            mp = matches[idx - 1] if idx > 0 else None
+            if not mp:
+                if m[0] > 0:
+                    skips.append( (0, m[0]) )
+            elif not m:
+                if mp[0] + mp[1] < tlen:
+                    skips.append( (mp[0] + mp[1], tlen - mp[0] - mp[1]) )
+            else:
+                if mp[0] + mp[1] < m[0]:
+                    skips.append( (mp[0] + mp[1], m[0] - mp[0] - mp[1]) )
+        return [ (skip[0] + 4, skip[1] - 8) for skip in skips if skip[1] > 20 ]
+
+    def layout(self, view):
+        BaseScene.layout(self, view)
+        cols = 100
+        rows = 40
+        frame = view.frame.centeredSubrect(self.nucSize.w * cols, self.nucSize.h * rows)
+        grid = Grid(frame = frame, itemSize = self.nucSize, columns = cols, rows = rows)
+
+        skips = self._skips()
+        def skipped(idx):
+            ret_idx = idx
+            for skip in skips:
+                if idx > skip[0]:
+                    ret_idx = ret_idx - skip[1] + 1 # +1 for spaces representing skips
+            return ret_idx
+
+        target = self.pair.target
+        row_idx = 4
+        skipped_len = skipped(target.n)
+        start_col = int((cols - skipped_len) / 2)
+
+        def labelFrame(tag_parts):
+            return Rect(grid.frame(start_col).origin.x - 140, tag_parts[0].frame.origin.y, 80, tag_parts[0].frame.size.height)
+
+        grid.setLocation(start_col, row_idx)
+        curskip_idx = 0
+        nucs = self.parts[target.name]
+        for idx in range(len(nucs)):
+            nv = nucs[idx]
+            if nv:
+                nv.frame = grid.nextFrame()
+            elif curskip_idx < len(skips) and idx == skips[curskip_idx][0]:
+                nv = self.addNucView(Nuc("/", None), [1.0, 1.0, 1.0, 0.0 ])
+                nv.frame = grid.nextFrame() # skip a frame
+                curskip_idx += 1
+        self.labels[target.name].frame = labelFrame(self.parts[target.name])
+
+        row_idx += (2 if self.expanded else 1)
+        r2tagmap = { tag[0] : tag for tag in self.pair.r2.tags }
+        r2match = r2tagmap[target.name]
+        grid.setLocation(start_col + skipped(r2match[3]), row_idx)
+        grid.applyToViews(self.parts["r2"])
+        self.labels["r2"].frame = labelFrame(self.parts["r2"])
+
+        nucs = self.parts.get("r2" + "adapter_t_rc")
+        if nucs:
+            row_idx += 1
+            atag = r2tagmap["adapter_t_rc"]
+            grid.setLocation(start_col + skipped(r2match[3] - r2match[1] + atag[1] - atag[3]), row_idx)
+            grid.applyToViews(nucs)
+            self.labels["r2" + "adapter_t_rc"].frame = labelFrame(nucs)
+
+        r1tagmap = { tag[0] : tag for tag in self.pair.r1.tags }
+        r1match = r1tagmap[target.name + "_rc"]
+        r1start = target.n - r1match[3] - r1match[2]
+        nucs = self.parts.get("r1" + target.name + "_rc")
+        if nucs:
+            row_idx += 1
+            grid.setLocation(start_col + skipped(r1start), row_idx)
+            grid.applyToViews(nucs)
+            self.labels["r1" + target.name + "_rc"].frame = labelFrame(nucs)
+
+        row_idx += (1 if (self.expanded or r1match[3] < r2match[3] + r2match[2]) else 0)
+        grid.setLocation(start_col + skipped(r1start - r1match[1]), row_idx)
+        grid.applyToViews(self.parts["r1"])
+        self.labels["r1"].frame = labelFrame(self.parts["r1"])
+
+        nucs = self.parts.get("r1" + "adapter_b")
+        if nucs:
+            row_idx += 1
+            atag = r1tagmap["adapter_b"]
+            grid.setLocation(start_col + skipped(r1start - r1match[1] + atag[1] - atag[3]), row_idx)
+            grid.applyToViews(nucs)
+            self.labels["r1" + "adapter_b"].frame = labelFrame(nucs)
+
+        for handle in [ "YYYR", "RRRY" ]:
+            nucs = self.parts.get("r1" + handle)
+            if nucs:
+                row_idx += 1
+                grid.setLocation(start_col + skipped(r1start - r1match[1]), row_idx)
+                grid.applyToViews(nucs)
+                self.labels["r1" + handle].frame = labelFrame(nucs)
+            
+        return view
+
+    def handleKeyEvent(self, keyInfo):
+        handler = { "x" : self.expand }.get(keyInfo["t"])
+        if handler:
+            handler()
+        else:
+            BaseScene.handleKeyEvent(self, keyInfo)
+
+    def expand(self, message = None):
+        self.ui.setScene(PairScene(self.ui, self.pair, expanded = not self.expanded))
+
+PairScene = PairInTargetScene
