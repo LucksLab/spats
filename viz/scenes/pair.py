@@ -303,10 +303,15 @@ class PairInTargetScene(BaseScene):
             grid.applyToViews(nucs)
             self.labels["r1" + target.name + "_rc"].frame = labelFrame(nucs)
 
-        row_idx += (1 if (self.expanded or r1match[3] < r2match[3] + r2match[2]) else 0)
+        same_row = (not self.expanded) and (r1start >= r2match[3] + r2match[2])
+        row_idx += (0 if same_row else 1)
         grid.setLocation(start_col + skipped(r1start - r1match[1]), row_idx)
         grid.applyToViews(self.parts["r1"])
-        self.labels["r1"].frame = labelFrame(self.parts["r1"])
+        if same_row:
+            self.labels["r2"].text = "R2 / R1"
+            self.labels["r1"].alpha = 0
+        else:
+            self.labels["r1"].frame = labelFrame(self.parts["r1"])
 
         nucs = self.parts.get("r1" + "adapter_b")
         if nucs:

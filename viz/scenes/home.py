@@ -9,10 +9,10 @@ from viz.scenes import BaseScene, PairScene
 
 class Home(BaseScene):
 
-    def _pair(self):
+    def _pair(self, pairid):
         pair = Pair()
 
-        if True:
+        if 0 == pairid:
             #pair.set_from_data("18333", "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG")
             #pair.r1.tags = [('RRRY', 0, 4, 0), ('5s_rc', 4, 20, 0), ('5s', 24, 6, 76), ('adapter_b', 28, 7, 0)]
             #pair.r2.tags = [('5s', 4, 20, 123), ('RRRY', 24, 4, 0), ('5s_rc', 26, 6, 16), ('adapter_t_rc', 28, 7, 0)]
@@ -29,10 +29,10 @@ class Home(BaseScene):
 
 
     def test(self, message = None):
-        self.ui.setScene(PairScene(self.ui, self._pair(), expanded = False))
+        self.ui.setScene(PairScene(self.ui, self._pair(0), expanded = False))
 
     def test2(self, message = None):
-        self.ui.setScene(PairScene(self.ui, self._pair(), expanded = True))
+        self.ui.setScene(PairScene(self.ui, self._pair(1), expanded = False))
 
     def build(self):
         BaseScene.build(self)
