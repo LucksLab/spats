@@ -208,11 +208,11 @@ class SpatsWorker(object):
                     if not quiet:
                         sys.stdout.write('^')
                         sys.stdout.flush()
-                    total += len(pair_info)
                     results = []
                     for lines in pair_info:
                         pair.set_from_data('', str(lines[1]), str(lines[2]), lines[0])
                         processor.process_pair(pair)
+                        total += pair.multiplicity
                         if writeback:
                             if tagged:
                                 results.append((lines[3],

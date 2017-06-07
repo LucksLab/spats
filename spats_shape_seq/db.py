@@ -159,6 +159,10 @@ class PairDB(object):
         if rid is not None and not resume_processing:
             self.conn.execute("DELETE FROM result WHERE set_id=?", (rid,))
             self.conn.execute("DELETE FROM result_set WHERE rowid=?", (rid,))
+            try:
+                self.conn.execute("DELETE FROM result_tag WHERE set_id=?", (rid,))
+            except:
+                pass
             rid = None
         if rid is None:
             self.conn.execute("INSERT INTO result_set (set_id) VALUES (?)", (set_name,))
@@ -180,10 +184,10 @@ class PairDB(object):
         if cursor.rowcount != len(results):
             raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
         if has_tags:
-            rstmt_template = 'INSERT INTO result_tag (result_id, tag_id) VALUES ({}, ?)'
+            rstmt_template = 'INSERT INTO result_tag (set_id, result_id, tag_id) VALUES ({}, {}, ?)'
             for res in results:
                 rid = conn.execute("SELECT rowid FROM result WHERE set_id=? AND pair_id=?", (result_set_id, res[0])).fetchone()[0]
-                conn.executemany(rstmt_template.format(rid), [ (t,) for t in res[6] ])
+                conn.executemany(rstmt_template.format(result_set_id, rid), [ (t,) for t in res[6] ])
         conn.commit()
 
     def index_results(self):
@@ -205,8 +209,8 @@ class PairDB(object):
     def setup_tags(self):
         self.conn.execute("CREATE TABLE IF NOT EXISTS tag (name TEXT)")
         self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS tag_name_idx ON tag (name)")
-        self.conn.execute("CREATE TABLE IF NOT EXISTS result_tag (result_id INT, tag_id INT)")
-        self.conn.execute("CREATE INDEX IF NOT EXISTS result_tag_idx ON result_tag (tag_id)")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result_tag (set_id INT, result_id INT, tag_id INT)")
+        self.conn.execute("CREATE INDEX IF NOT EXISTS result_tag_idx ON result_tag (set_id, tag_id)")
 
     def add_tags(self, tags):
         existing = self.tagmap()
@@ -218,14 +222,19 @@ class PairDB(object):
     def tagmap(self):
         return { str(res[1]) : int(res[0]) for res in self.conn.execute("SELECT rowid, name FROM tag") }
 
-    def count_tags(self):
+    def count_tags(self, result_set_id):
         self.conn.execute("DROP TABLE IF EXISTS tag_count")
-        self.conn.execute("CREATE TABLE tag_count (tag_id INT, count INT)")
+        self.conn.execute("CREATE TABLE tag_count (set_id INT, tag_id INT, count INT)")
         self.conn.execute('''INSERT INTO tag_count
-                             SELECT t.rowid, SUM(r.multiplicity)
+                             SELECT ?, t.rowid, SUM(r.multiplicity)
                              FROM result_tag rt
                              JOIN tag t ON t.rowid=rt.tag_id
-                             JOIN result r ON r.rowid=rt.result_id''')
+                             JOIN result r ON r.rowid=rt.result_id
+                             GROUP BY t.rowid''', (result_set_id,) )
+        self.conn.commit()
+
+    def tag_counts(self, result_set_id):
+        return { str(res[0]) : int(res[1]) for res in self.conn.execute("SELECT t.name, tc.count FROM tag_count tc JOIN tag t ON t.rowid = tc.tag_id WHERE set_id=?", (result_set_id,)) }
 
 
     #v102 delta analysis

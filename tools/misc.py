@@ -399,14 +399,21 @@ def tags():
     s.run.num_workers = 1
     s.loadTargets(pair_db)
 
+    s.run.allow_indeterminate = True
+    s.run.allowed_target_errors = 2
+    s.run.allowed_adapter_errors = 2
+
     p = s._processor
-    p.addTagTarget("5s", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC")
-    p.addTagTarget("5s_rc", "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC")
+    p.addTagTarget("5S", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC")
+    p.addTagTarget("5S_rc", "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC")
     from spats_shape_seq.util import reverse_complement
     p.addTagTarget("adapter_t_rc", reverse_complement(s.run.adapter_t))
     p.addTagTarget("adapter_b", s.run.adapter_b)
 
     s.process_pair_db(pair_db)
+    rsid = pair_db.result_set_id_for_name(s.run.result_set_name)
+    pair_db.count_tags(rsid)
+    print pair_db.tag_counts(rsid)
 
 if __name__ == "__main__":
     import sys

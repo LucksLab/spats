@@ -10,7 +10,8 @@ TAG_INDETERMINATE = "indeterminate"
 TAG_TREATED = "treated"
 TAG_UNTREATED = "untreated"
 TAG_MASK_FAILURE = "mask_failure"
-TAG_PARTIAL_TARGET = "partial_target"
+TAG_ADAPTER_ERRORS = "adapter_errors"
+TAG_MATCH_ERRORS = "match_errors"
 TAG_UNKNOWN = "unknown"
 ALL_TAGS = [ TAG_MATCH,
              TAG_ADAPTER,
@@ -18,6 +19,8 @@ ALL_TAGS = [ TAG_MATCH,
              TAG_TREATED,
              TAG_UNTREATED,
              TAG_MASK_FAILURE,
+             TAG_ADAPTER_ERRORS,
+             TAG_MATCH_ERRORS,
              TAG_UNKNOWN,
 ]
 MASK_TO_TAG = { "RRRY" : TAG_TREATED, "YYYR" : TAG_UNTREATED }
@@ -35,6 +38,7 @@ class TagProcessor(PairProcessor):
     def setup_tags(self, pair_db):
         pair_db.setup_tags()
         pair_db.add_tags(ALL_TAGS)
+        pair_db.add_tags([t.name for t in self._targets.targets])
         self._tagmap = pair_db.tagmap()
 
     def addTagTarget(self, name, seq):
@@ -150,18 +154,23 @@ class TagProcessor(PairProcessor):
         tags = []
         if pair.has_site:
             tags.append(TAG_MATCH)
+            if pair.r1.match_errors or pair.r2.match_errors:
+                tags.append(TAG_MATCH_ERRORS)
             if pair.r1._rtrim or pair.r2._rtrim:
                 tags.append(TAG_ADAPTER)
+            if pair.r1.adapter_errors or pair.r2.adapter_errors:
+                tags.append(TAG_ADAPTER_ERRORS)
         else:
             if not self._tag_targets_indexed:
                 self._tag_targets._minimum_length = 6
                 self._tag_targets._index_word_length = 6
                 self._tag_targets.index()
             for t in self._find_tag_names(pair):
-                if t.startswith("adapter"):
+                tname = t.rstrip("_rc")
+                if tname.startswith("adapter"):
                     tags.append(TAG_ADAPTER)
-                elif pair.target and t.startswith(pair.target.name):
-                    tags.append(TAG_PARTIAL_TARGET)
+                else:
+                    tags.append(tname)
             if 0 == len(tags):
                 tags.append(TAG_UNKNOWN)
         if not pair.is_determinate():
