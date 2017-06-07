@@ -34,9 +34,12 @@ class Home(BaseScene):
     def test2(self, message = None):
         self.ui.setScene(PairScene(self.ui, self._pair(1), expanded = False))
 
+    def overview(self, message = None):
+        self.ui.setScene(Overview(self.ui))
+
     def build(self):
         BaseScene.build(self)
-        self.targetButtons([self.test, self.test2]) #, self.interfaces, self.mediators, self.newRelationship, self.newInterface, self.newMediator])
+        self.targetButtons([self.test, self.test2, self.overview]) #, self.interfaces, self.mediators, self.newRelationship, self.newInterface, self.newMediator])
 
     def handleKeyEvent(self, keyInfo):
         handler = { "t" : self.test }.get(keyInfo["t"])

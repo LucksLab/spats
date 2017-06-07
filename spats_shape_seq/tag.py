@@ -4,14 +4,38 @@ from processor import PairProcessor
 from target import Targets
 from util import _warn, _debug, string_match_errors
 
+TAG_MATCH = "match"
+TAG_ADAPTER = "adapter"
+TAG_INDETERMINATE = "indeterminate"
+TAG_TREATED = "treated"
+TAG_UNTREATED = "untreated"
+TAG_MASK_FAILURE = "mask_failure"
+TAG_PARTIAL_TARGET = "partial_target"
+TAG_UNKNOWN = "unknown"
+ALL_TAGS = [ TAG_MATCH,
+             TAG_ADAPTER,
+             TAG_INDETERMINATE,
+             TAG_TREATED,
+             TAG_UNTREATED,
+             TAG_MASK_FAILURE,
+             TAG_UNKNOWN,
+]
+MASK_TO_TAG = { "RRRY" : TAG_TREATED, "YYYR" : TAG_UNTREATED }
+
 
 class TagProcessor(PairProcessor):
 
     def prepare(self):
+        self.uses_tags = True
         self._partial = PartialFindProcessor(self._run, self._targets, self._masks)
         self._partial.prepare()
         self._tag_targets = Targets()
         self._tag_targets_indexed = False
+
+    def setup_tags(self, pair_db):
+        pair_db.setup_tags()
+        pair_db.add_tags(ALL_TAGS)
+        self._tagmap = pair_db.tagmap()
 
     def addTagTarget(self, name, seq):
         self._tag_targets.addTarget(name, seq)
@@ -53,6 +77,12 @@ class TagProcessor(PairProcessor):
                         break
                     idx += 1
 
+    def _find_tag_names(self, pair):
+        tags = []
+        for seq in [ pair.r1.original_seq, pair.r2.original_seq ]:
+            for target, match_start, match_len, match_index in self._tag_targets.find_partial_all(seq):
+                tags.append(target.name)
+        return tags
 
     # note targets should include all RC's as they may be found in r1/r2
     def _find_tags_old(self, pair):
@@ -116,6 +146,33 @@ class TagProcessor(PairProcessor):
             pair.r2.tags.append( ("adapter_t_rc", pair.r2.original_len - pair.r2._rtrim + 4, pair.r2._rtrim - 4, 0) )
 
     def process_pair(self, pair):
+        self._partial.process_pair(pair)
+        tags = []
+        if pair.has_site:
+            tags.append(TAG_MATCH)
+            if pair.r1._rtrim or pair.r2._rtrim:
+                tags.append(TAG_ADAPTER)
+        else:
+            if not self._tag_targets_indexed:
+                self._tag_targets._minimum_length = 6
+                self._tag_targets._index_word_length = 6
+                self._tag_targets.index()
+            for t in self._find_tag_names(pair):
+                if t.startswith("adapter"):
+                    tags.append(TAG_ADAPTER)
+                elif pair.target and t.startswith(pair.target.name):
+                    tags.append(TAG_PARTIAL_TARGET)
+            if 0 == len(tags):
+                tags.append(TAG_UNKNOWN)
+        if not pair.is_determinate():
+            tags.append(TAG_INDETERMINATE)
+        if pair.mask:
+            tags.append(MASK_TO_TAG[pair.mask.chars])
+        else:
+            tags.append(TAG_MASK_FAILURE)
+        pair.tags = [self._tagmap[t] for t in set(tags)]
+
+    def process_pair_detail(self, pair):
 
         self._partial.process_pair(pair)
 

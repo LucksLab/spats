@@ -227,6 +227,9 @@ class Spats(object):
     def addTarget(self, name, seq, rowid = -1):
         self._addTargets( [ (name, seq, rowid) ] )
 
+    def loadTargets(self, pair_db):
+        self._addTargets(pair_db.targets())
+
     def _addTargets(self, target_list):
         targets = self._targets or Targets()
         for name, seq, rowid in target_list:
@@ -317,9 +320,11 @@ class Spats(object):
             self.run.pair_length = pair_db.pair_length()
 
         if not self._targets:
-            self._addTargets(pair_db.targets())
+            self.loadTargets(pair_db)
 
         result_set_id = pair_db.add_result_set(self.run.result_set_name or "default", self.run.resume_processing) if self.run.writeback_results else None
+        if self._processor.uses_tags:
+            self._processor.setup_tags(pair_db)
 
         batch_size = 65536
         if self.run.resume_processing:

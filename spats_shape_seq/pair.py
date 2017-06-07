@@ -15,6 +15,7 @@ class Pair(object):
         self.site = None
         self.failure = None
         self.multiplicity = 1
+        self.tags = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()

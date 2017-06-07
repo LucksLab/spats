@@ -326,7 +326,7 @@ def rdiff():
                 print "... {} total.".format(len(rlist))
     print "{} total diffs.".format(sum(map(len, all_lists)))
 
-def tags():
+def test_tags():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
     from spats_shape_seq import Spats
     s = Spats()
@@ -377,6 +377,36 @@ def tags():
     #s.run.result_set_name = "lookup"
     #s.process_pair_data(bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq", 
     #                    bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
+
+
+
+def tags():
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/"
+
+    from spats_shape_seq.db import PairDB
+    pair_db = PairDB(bp + "db/pairs.db")
+    if True:
+        pair_db.add_targets_table(bp + "5S.fa")
+        pair_db.parse(bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
+                      bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
+
+    from spats_shape_seq import Spats
+    from spats_shape_seq.tag import TagProcessor
+    s = Spats()
+    s.run._processor_class = TagProcessor
+    s.run.writeback_results = True
+    s.run.result_set_name = "tags"
+    s.run.num_workers = 1
+    s.loadTargets(pair_db)
+
+    p = s._processor
+    p.addTagTarget("5s", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC")
+    p.addTagTarget("5s_rc", "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC")
+    from spats_shape_seq.util import reverse_complement
+    p.addTagTarget("adapter_t_rc", reverse_complement(s.run.adapter_t))
+    p.addTagTarget("adapter_b", s.run.adapter_b)
+
+    s.process_pair_db(pair_db)
 
 if __name__ == "__main__":
     import sys

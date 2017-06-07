@@ -24,6 +24,7 @@ class SpatsWorker(object):
             if self._pair_db:
                 self._pair_db.worker_id = worker_id
             writeback = bool(self._result_set_id)
+            tagged = processor.uses_tags
             pair = Pair()
             while True:
                 pairs = self._pairs_to_do.get()
@@ -31,15 +32,24 @@ class SpatsWorker(object):
                     break
                 results = []
                 for lines in pairs:
-                    pair.set_from_data('', lines[1], lines[2], lines[0])
+                    pair.set_from_data('', str(lines[1]), str(lines[2]), lines[0])
                     processor.process_pair(pair)
                     if writeback:
-                        results.append((lines[3],
-                                        pair.target.rowid if pair.target else None,
-                                        pair.site if pair.has_site else -1,
-                                        pair.mask.chars if pair.mask else None,
-                                        pair.multiplicity,
-                                        pair.failure))
+                        if tagged:
+                            results.append((lines[3],
+                                            pair.target.rowid if pair.target else None,
+                                            pair.site if pair.has_site else -1,
+                                            pair.mask.chars if pair.mask else None,
+                                            pair.multiplicity,
+                                            pair.failure,
+                                            pair.tags))
+                        else:
+                            results.append((lines[3],
+                                            pair.target.rowid if pair.target else None,
+                                            pair.site if pair.has_site else -1,
+                                            pair.mask.chars if pair.mask else None,
+                                            pair.multiplicity,
+                                            pair.failure))
 
                 if writeback:
                     self._results.put(results)
@@ -54,8 +64,6 @@ class SpatsWorker(object):
             raise
 
     def _createWorkers(self, num_workers):
-        if 1 == num_workers:
-            return
         for i in range(num_workers):
             worker = multiprocessing.Process(target = self._worker, args = (i,))
             self._workers.append(worker)
@@ -64,15 +72,17 @@ class SpatsWorker(object):
             print "Created {} workers".format(num_workers)
 
     def _joinWorkers(self):
-        if not self._workers:
-            self._worker(0)
-            return
         for w in self._workers:
             w.join()
 
     def run(self, pair_iterator):
 
         num_workers = max(1, self._run.num_workers or multiprocessing.cpu_count())
+
+        if 1 == num_workers:
+            self.run_simple(pair_iterator)
+            return
+
         self._pairs_to_do = multiprocessing.Queue(maxsize = 2 * num_workers)
         self._pairs_done = multiprocessing.Queue()
         self._results = multiprocessing.Queue()
@@ -169,6 +179,67 @@ class SpatsWorker(object):
             print "\nAggregating data..."
 
         self._joinWorkers()
+
+        processor.counters.total_pairs = total
+        if self._pair_db:
+            processor.counters.unique_pairs = self._pair_db.unique_pairs()
+
+
+    def run_simple(self, pair_iterator):
+
+        quiet = self._run.quiet
+        more_pairs = True
+        pair_db = self._pair_db
+        writeback = bool(self._result_set_id)
+        total = 0
+        if writeback:
+            result_set_id = self._result_set_id
+
+        processor = self._processor
+        if self._pair_db:
+            self._pair_db.worker_id = 0
+        tagged = processor.uses_tags
+        pair = Pair()
+
+        while more_pairs:
+            try:
+                while True:
+                    pair_info = next(pair_iterator)
+                    if not quiet:
+                        sys.stdout.write('^')
+                        sys.stdout.flush()
+                    total += len(pair_info)
+                    results = []
+                    for lines in pair_info:
+                        pair.set_from_data('', str(lines[1]), str(lines[2]), lines[0])
+                        processor.process_pair(pair)
+                        if writeback:
+                            if tagged:
+                                results.append((lines[3],
+                                                pair.target.rowid if pair.target else None,
+                                                pair.site if pair.has_site else -1,
+                                                pair.mask.chars if pair.mask else None,
+                                                pair.multiplicity,
+                                                pair.failure,
+                                                pair.tags))
+                            else:
+                                results.append((lines[3],
+                                                pair.target.rowid if pair.target else None,
+                                                pair.site if pair.has_site else -1,
+                                                pair.mask.chars if pair.mask else None,
+                                                pair.multiplicity,
+                                                pair.failure))
+                    if not quiet:
+                        sys.stdout.write('v')
+                        sys.stdout.flush()
+                    if results:
+                        pair_db.add_results(self._result_set_id, results)
+
+            except StopIteration:
+                more_pairs = False
+
+        if not self._run.quiet:
+            print "\nAggregating data..."
 
         processor.counters.total_pairs = total
         if self._pair_db:

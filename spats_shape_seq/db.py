@@ -18,6 +18,9 @@ class PairDB(object):
         self.conn.execute("DROP INDEX IF EXISTS r1_idx")
         self.conn.execute("DROP INDEX IF EXISTS r2_idx")
         self.conn.execute("DROP INDEX IF EXISTS pair_id_idx")
+        self.conn.execute("DROP TABLE IF EXISTS tag")
+        self.conn.execute("DROP TABLE IF EXISTS result")
+        self.conn.execute("DROP TABLE IF EXISTS result_set")
         self._wipe_v102()
 
     def _create(self):
@@ -165,16 +168,22 @@ class PairDB(object):
     def result_set_id_for_name(self, set_name):
         return self._fetch_one("SELECT rowid FROM result_set WHERE set_id=?", (set_name,))
 
-    # results a list of (rowid, target_name, site, mask, multiplicity)
+    # results a list of (rowid, target_name, site, mask, multiplicity, failure, [optional: tags])
     def add_results(self, result_set_id, results):
         # grab a new connection since this might be in a new process (due to multiprocessing)
         #print " --> Thd in AR {}".format(self.worker_id)
+        has_tags = (len(results[0]) > 6)
         conn = sqlite3.connect(self._dbpath)
         stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
                   VALUES ({}, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
-        cursor = conn.executemany(stmt, results)
+        cursor = conn.executemany(stmt, [ r[0:6] for r in results ] if has_tags else results)
         if cursor.rowcount != len(results):
             raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
+        if has_tags:
+            rstmt_template = 'INSERT INTO result_tag (result_id, tag_id) VALUES ({}, ?)'
+            for res in results:
+                rid = conn.execute("SELECT rowid FROM result WHERE set_id=? AND pair_id=?", (result_set_id, res[0])).fetchone()[0]
+                conn.executemany(rstmt_template.format(rid), [ (t,) for t in res[6] ])
         conn.commit()
 
     def index_results(self):
@@ -191,6 +200,33 @@ class PairDB(object):
                                     FROM result s1 JOIN result s2 ON s2.set_id=? AND s2.pair_id=s1.pair_id
                                     JOIN pair p ON p.rowid=s1.pair_id
                                     WHERE s1.set_id=? AND (s1.site != s2.site OR s1.target != s2.target)''', (id2, id1))
+
+    # results analysis
+    def setup_tags(self):
+        self.conn.execute("CREATE TABLE IF NOT EXISTS tag (name TEXT)")
+        self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS tag_name_idx ON tag (name)")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result_tag (result_id INT, tag_id INT)")
+        self.conn.execute("CREATE INDEX IF NOT EXISTS result_tag_idx ON result_tag (tag_id)")
+
+    def add_tags(self, tags):
+        existing = self.tagmap()
+        for t in tags:
+            if -1 == existing.get(t, -1):
+                self.conn.execute("INSERT INTO tag (name) VALUES (?)", (t,) )
+        self.conn.commit()
+
+    def tagmap(self):
+        return { str(res[1]) : int(res[0]) for res in self.conn.execute("SELECT rowid, name FROM tag") }
+
+    def count_tags(self):
+        self.conn.execute("DROP TABLE IF EXISTS tag_count")
+        self.conn.execute("CREATE TABLE tag_count (tag_id INT, count INT)")
+        self.conn.execute('''INSERT INTO tag_count
+                             SELECT t.rowid, SUM(r.multiplicity)
+                             FROM result_tag rt
+                             JOIN tag t ON t.rowid=rt.tag_id
+                             JOIN result r ON r.rowid=rt.result_id''')
+
 
     #v102 delta analysis
     def _create_v102(self):

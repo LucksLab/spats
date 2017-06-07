@@ -9,6 +9,7 @@ class PairProcessor(object):
         self._targets = targets
         self._masks = masks
         self.__adapter_t_rc = 0
+        self.uses_tags = False
         self.counters = Counters()
         self.prepare()
 
