@@ -27,12 +27,13 @@ TAG_COLORS = [
 
 class RawPairScene(BaseScene):
 
-    def __init__(self, ui, pair):
+    def __init__(self, prev_scene, pair, expanded = False):
+        self.prev_scene = prev_scene
         self.pair = pair
         self.parts = {}
         self.labels = {}
         self.nucSize = Size(12, 18)
-        BaseScene.__init__(self, ui, self.__class__.__name__)
+        BaseScene.__init__(self, prev_scene.ui, self.__class__.__name__)
 
     def addNucView(self, nuc, bg):
         v = cjb.uif.views.Button(obj = nuc)
@@ -44,8 +45,8 @@ class RawPairScene(BaseScene):
     def build(self):
         # TODO
         self.tag_seqs = { 
-            "5s" : "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC",
-            "5s_rc" : "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC",
+            "5S" : "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC",
+            "5S_rc" : "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC",
             "adapter_t_rc" : "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT",
             "adapter_b" : "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC",
             "RRRY" : "RRRY",
@@ -53,6 +54,8 @@ class RawPairScene(BaseScene):
         }
 
         BaseScene.build(self)
+        self.targetButtons([self.back])
+
         tag_colors = {}
         color_idx = 1
         for part_name in ( "r1", "r2" ):
@@ -60,7 +63,8 @@ class RawPairScene(BaseScene):
             seq = part.original_seq
             self.parts[part_name] = map(lambda x: self.addNucView(x, TAG_COLORS[0]), [ Nuc(seq[idx], (part_name, idx, None)) for idx in range(len(seq)) ])
             self.labels[part_name] = self.addView(Label(part_name.upper()))
-            for tag in part.tags:
+            for tindex in range(len(part.tags)):
+                tag = part.tags[tindex]
                 tkey = tag[0].rstrip("_rc_")
                 tcol = tag_colors.get(tkey)
                 if not tcol:
@@ -76,14 +80,15 @@ class RawPairScene(BaseScene):
                         v.alpha = 0.5
                         #print " set a=0.5, bg: {}".format(v.bg)
                     views.append(v)
-                self.parts[part_name + tag[0]] = views
+                self.parts[part_name + str(tindex)] = views
                 label = Label(tag[0])
                 label.bg = tcol
-                self.labels[part_name + tag[0]] = self.addView(label)
+                self.labels[part_name + str(tindex)] = self.addView(label)
 
 
     def layout(self, view):
         BaseScene.layout(self, view)
+        self.buttonWithKey('back').frame = view.frame.topRightSubrect(size = buttonSize, margin = 20)
         cols = 100
         rows = 40
         frame = view.frame.centeredSubrect(self.nucSize.w * cols, self.nucSize.h * rows)
@@ -105,7 +110,8 @@ class RawPairScene(BaseScene):
             grid.applyToViews(self.parts[part_name])
             self.labels[part_name].frame = labelFrame(self.parts[part_name], self.parts[part_name])
 
-            for tag in part.tags:
+            for tindex in range(len(part.tags)):
+                tag = part.tags[tindex]
                 tseq = self.tag_seqs[tag[0]]
                 match_index = tag[3]
                 tstart = max(0, match_index - 4)
@@ -113,22 +119,33 @@ class RawPairScene(BaseScene):
                 row_idx += 1
                 #print part_name + tag[0] + ": {} , {}".format(col, row_idx)
                 grid.setLocation(col, row_idx)
-                grid.applyToViews(self.parts[part_name + tag[0]])
+                grid.applyToViews(self.parts[part_name + str(tindex)])
 
-                self.labels[part_name + tag[0]].frame = labelFrame(self.parts[part_name], self.parts[part_name + tag[0]])
+                self.labels[part_name + str(tindex)].frame = labelFrame(self.parts[part_name], self.parts[part_name + str(tindex)])
 
         return view
+
+    def handleKeyEvent(self, keyInfo):
+        handler = { "b" : self.back }.get(keyInfo["t"])
+        if handler:
+            handler()
+        else:
+            BaseScene.handleKeyEvent(self, keyInfo)
+
+    def back(self, message = None):
+        self.ui.setScene(self.prev_scene)
 
 
 class PairInTargetScene(BaseScene):
 
-    def __init__(self, ui, pair, expanded = True):
+    def __init__(self, prev_scene, pair, expanded = True):
+        self.prev_scene = prev_scene
         self.pair = pair
         self.expanded = expanded
         self.parts = {}
         self.labels = {}
         self.nucSize = Size(10, 16)
-        BaseScene.__init__(self, ui, self.__class__.__name__)
+        BaseScene.__init__(self, prev_scene.ui, self.__class__.__name__)
 
     def addNucView(self, nuc, bg):
         v = cjb.uif.views.Button(obj = nuc)
@@ -138,12 +155,10 @@ class PairInTargetScene(BaseScene):
         self.addView(v)
         return v
 
-    def addLabel(self, txt, bg = None):
-        return self.addView(Label(txt, fontSize = 11, bg = bg))
-
     def build(self):
 
         BaseScene.build(self)
+        self.targetButtons([self.back])
 
         # TODO
         self.tag_seqs = { 
@@ -156,7 +171,7 @@ class PairInTargetScene(BaseScene):
         }
 
         target = self.pair.target
-        tcol = [ 1.0, 0.5, 0.1 ]
+        tcol = [ 1.0, 0.85, 0.7 ]
         tag_colors = {
             target.name : tcol,
             "adapter_t" : [ 1.0, 0.5, 0.5 ],
@@ -167,6 +182,7 @@ class PairInTargetScene(BaseScene):
             "YRRR" : [ 0.2, 1.0, 0.1 ],
         }
         nomatch_col = [ 0.7, 0.7, 0.7 ]
+        error_col = [ 0.9, 0.1, 0.2 ]
 
         skips = self._skips()
 
@@ -190,6 +206,8 @@ class PairInTargetScene(BaseScene):
                 tkey = tag[0].rstrip("_rc_")
                 while idx < tag[1] + tag[2]:
                     ntcol = nomatch_col if idx < tag[1] else tag_colors[tkey]
+                    if idx in part.match_errors or idx in part.adapter_errors:
+                        ntcol = error_col
                     parts.append(self.addNucView(Nuc(seq[idx], (part_name, idx, None if idx < tag[1] else tag[0])), ntcol))
                     idx += 1
 
@@ -228,22 +246,27 @@ class PairInTargetScene(BaseScene):
         r2matches = [ (tag[3], tag[2]) for tag in self.pair.r2.tags if tag[0].startswith(target.name) ]
         matches = sorted(r1matches + r2matches, key = lambda x : x[0])
         skips = []
+        farthest = 0
         for idx in range(len(matches) + 1):
             m = matches[idx] if idx < len(matches) else None
             mp = matches[idx - 1] if idx > 0 else None
             if not mp:
-                if m[0] > 0:
+                if m and m[0] > 0:
                     skips.append( (0, m[0]) )
             elif not m:
                 if mp[0] + mp[1] < tlen:
                     skips.append( (mp[0] + mp[1], tlen - mp[0] - mp[1]) )
             else:
-                if mp[0] + mp[1] < m[0]:
-                    skips.append( (mp[0] + mp[1], m[0] - mp[0] - mp[1]) )
+                right = max(farthest, mp[0] + mp[1])
+                if right < m[0]:
+                    skips.append( (right, m[0] - right) )
+            if mp:
+                farthest = max(farthest, mp[0] + mp[1])
         return [ (skip[0] + 4, skip[1] - 8) for skip in skips if skip[1] > 20 ]
 
     def layout(self, view):
         BaseScene.layout(self, view)
+        self.buttonWithKey('back').frame = view.frame.topRightSubrect(size = buttonSize, margin = 20)
         cols = 100
         rows = 40
         frame = view.frame.centeredSubrect(self.nucSize.w * cols, self.nucSize.h * rows)
@@ -280,8 +303,8 @@ class PairInTargetScene(BaseScene):
 
         row_idx += (2 if self.expanded else 1)
         r2tagmap = { tag[0] : tag for tag in self.pair.r2.tags }
-        r2match = r2tagmap[target.name]
-        grid.setLocation(start_col + skipped(r2match[3]), row_idx)
+        r2match = r2tagmap.get(target.name, ("", 0, 0, 0))
+        grid.setLocation(start_col + skipped(r2match[3] - r2match[1]), row_idx)
         grid.applyToViews(self.parts["r2"])
         self.labels["r2"].frame = labelFrame(self.parts["r2"])
 
@@ -294,7 +317,7 @@ class PairInTargetScene(BaseScene):
             self.labels["r2" + "adapter_t_rc"].frame = labelFrame(nucs)
 
         r1tagmap = { tag[0] : tag for tag in self.pair.r1.tags }
-        r1match = r1tagmap[target.name + "_rc"]
+        r1match = r1tagmap.get(target.name + "_rc", ("", 0, 0, 0))
         r1start = target.n - r1match[3] - r1match[2]
         nucs = self.parts.get("r1" + target.name + "_rc")
         if nucs:
@@ -332,7 +355,7 @@ class PairInTargetScene(BaseScene):
         return view
 
     def handleKeyEvent(self, keyInfo):
-        handler = { "x" : self.expand }.get(keyInfo["t"])
+        handler = { "x" : self.expand, "b" : self.back }.get(keyInfo["t"])
         if handler:
             handler()
         else:
@@ -340,5 +363,8 @@ class PairInTargetScene(BaseScene):
 
     def expand(self, message = None):
         self.ui.setScene(PairScene(self.ui, self.pair, expanded = not self.expanded))
+
+    def back(self, message = None):
+        self.ui.setScene(self.prev_scene)
 
 PairScene = PairInTargetScene

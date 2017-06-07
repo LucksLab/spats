@@ -18,9 +18,13 @@ class PairDB(object):
         self.conn.execute("DROP INDEX IF EXISTS r1_idx")
         self.conn.execute("DROP INDEX IF EXISTS r2_idx")
         self.conn.execute("DROP INDEX IF EXISTS pair_id_idx")
+        self.conn.execute("DROP TABLE IF EXISTS unique_pair")
         self.conn.execute("DROP TABLE IF EXISTS tag")
+        self.conn.execute("DROP TABLE IF EXISTS target")
+        self.conn.execute("DROP TABLE IF EXISTS tag_count")
         self.conn.execute("DROP TABLE IF EXISTS result")
         self.conn.execute("DROP TABLE IF EXISTS result_set")
+        self.conn.execute("DROP TABLE IF EXISTS result_tag")
         self._wipe_v102()
 
     def _create(self):
@@ -36,7 +40,7 @@ class PairDB(object):
     #  - some sqlite tricks like: conn.execute("PRAGMA synchronous=OFF"), conn.execute("PRAGMA cache_size=16000"), etc.
     #  - parsing in one thread and inserting in another
     # but for now this seems fast enough (~300k pairs/s?)
-    def parse(self, r1_path, r2_path):
+    def parse(self, r1_path, r2_path, sample_size = 0):
         conn = self.conn
         conn.execute("DROP INDEX IF EXISTS r1_idx")
         conn.execute("DROP INDEX IF EXISTS r2_idx")
@@ -58,6 +62,11 @@ class PairDB(object):
                         sys.stdout.write('.')
                         sys.stdout.flush()
         conn.commit()
+        if sample_size:
+            samples = random.sample(xrange(total), min(sample_size, total))
+            conn.execute("DELETE FROM pair WHERE (1+rowid) NOT IN (" + ",".join(map(str,samples)) + ")")
+            conn.commit()
+            total = sample_size
         return total
 
     def index(self):
@@ -235,6 +244,22 @@ class PairDB(object):
 
     def tag_counts(self, result_set_id):
         return { str(res[0]) : int(res[1]) for res in self.conn.execute("SELECT t.name, tc.count FROM tag_count tc JOIN tag t ON t.rowid = tc.tag_id WHERE set_id=?", (result_set_id,)) }
+
+    def results_matching(self, result_set_id, incl_tags = None, excl_tags = None):
+        tagmap = self.tagmap()
+        if 1 == len(incl_tags) and not excl_tags:
+            tag_clause = "rt.tag_id={}".format(tagmap[incl_tags[0]])
+        else:
+            # this won't work, may have to iterate through all results, or do a first-pass filter on incl_tags[0]
+            incl_clause = ("rt.tag_id IN (" + (",".join(incl_tags)) + ")") if incl_tags else ""
+            excl_clause = ("rt.tag_id NOT IN (" + (",".join(incl_tags)) + ")") if incl_tags else ""
+            raise Exception("NYI")
+        results =  self.conn.execute('''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity
+                                        FROM result_tag rt
+                                        JOIN result r ON r.rowid=rt.result_id
+                                        JOIN pair p ON p.rowid=r.pair_id
+                                        WHERE rt.set_id=? AND ''' + tag_clause, (result_set_id,))
+        return [ ( int(r[0]), str(r[1]), str(r[2]), str(r[3]), int(r[4]) ) for r in results ]
 
 
     #v102 delta analysis

@@ -69,17 +69,16 @@ class TagProcessor(PairProcessor):
     def _find_tags(self, pair):
         # this pair wasn't a match, we want to all long-enough subsequences found (even if overlaps)
         for seq, start, tags in [ (pair.r1.original_seq, 4, pair.r1.tags), (pair.r2.original_seq, 0, pair.r2.tags) ]:
+            tagmap = {}
             for target, match_start, match_len, match_index in self._tag_targets.find_partial_all(seq):
                 if (0 == start and target.name == "adapter_b") or \
                    (4 == start and target.name == "adapter_t_rc"):
                     continue
                 tag = (target.name, match_start, match_len, match_index)
-                idx = 0
-                while idx <= len(tags):
-                    if idx == len(tags) or tag[1] < tags[idx][1]:
-                        tags.insert(idx, tag)
-                        break
-                    idx += 1
+                cur = tagmap.get(target.name)
+                if not cur or tag[2] > cur[2]:
+                    tagmap[target.name] = tag
+            tags.extend(sorted(tagmap.values(), key = lambda x : x[1]))
 
     def _find_tag_names(self, pair):
         tags = []

@@ -1,6 +1,7 @@
 
 import cjb.uif
 
+from cjb.uif.views import Label
 from viz.layout import buttonSize
 
 
@@ -8,6 +9,7 @@ class BaseScene(cjb.uif.Scene):
 
     def __init__(self, ui, key = None):
         self.ui = ui
+        self.scroller = None
         cjb.uif.Scene.__init__(self, ui.manager, key or self.__class__.__name__)
         self.container.properties['sendKeys'] = 1
 
@@ -22,6 +24,9 @@ class BaseScene(cjb.uif.Scene):
         if home:
             home.frame = view.frame.bottomRightSubrect(size = buttonSize, margin = 20)
         return view
+
+    def addLabel(self, txt, bg = None):
+        return self.addView(Label(txt, fontSize = 11, bg = bg))
 
     def addModelView(self, obj):
         self.addView(cjb.uif.views.Button(obj = obj))

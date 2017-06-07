@@ -1,13 +1,20 @@
 
-from spats_shape_seq.pair import Pair
-from spats_shape_seq.target import _Target
-
 from cjb.uif.layout import Size, Grid
 from viz.layout import buttonSize
-from viz.scenes import BaseScene, PairScene
+from viz.scenes import BaseScene, Tagset, PairScene
+
+
+# TEMP
+from spats_shape_seq.db import PairDB
+from spats_shape_seq.pair import Pair
+from spats_shape_seq.target import _Target
+# END TEMP
 
 
 class Home(BaseScene):
+
+    def _pair_db(self):
+        return PairDB("/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/db/pairs.db")
 
     def _pair(self, pairid):
         pair = Pair()
@@ -35,20 +42,21 @@ class Home(BaseScene):
         self.ui.setScene(PairScene(self.ui, self._pair(1), expanded = False))
 
     def overview(self, message = None):
-        self.ui.setScene(Overview(self.ui))
+        self.ui.setScene(Tagset(self.ui, self._pair_db()))
 
     def build(self):
         BaseScene.build(self)
-        self.targetButtons([self.test, self.test2, self.overview]) #, self.interfaces, self.mediators, self.newRelationship, self.newInterface, self.newMediator])
+        self.targetButtons([self.test, self.test2, self.overview])
 
     def handleKeyEvent(self, keyInfo):
-        handler = { "t" : self.test }.get(keyInfo["t"])
+        handler = { "t" : self.test, "o" : self.overview }.get(keyInfo["t"])
         if handler:
             handler()
         else:
             BaseScene.handleKeyEvent(self, keyInfo)
 
     def layout(self, view):
+        BaseScene.layout(self, view)
         grid = Grid(frame = view.frame, itemSize = buttonSize, columns = 3, rows = 2, spacing = Size(100, 300))
         grid.applyToViews([ v for v in view.subviews if getattr(v, "key", None) != 'home' ])
         return view
