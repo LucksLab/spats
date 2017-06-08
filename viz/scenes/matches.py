@@ -1,4 +1,5 @@
 
+import math
 import cjb.uif
 
 from cjb.uif.layout import Size, Grid, Rect, layoutInScroller
@@ -51,8 +52,11 @@ class Matches(BaseScene):
     def addMatchView(self, matched_pair):
         v = cjb.uif.views.View(obj = matched_pair)
         v.name_label = v.addSubview(cjb.uif.views.Label(str(matched_pair.display_id()), fontSize = 11))
+        v.mult_bar = v.addSubview(cjb.uif.views.View())
+        v.mult_bar.bg = [ 0.8, 0.6, 1.0 ]
         v.mult_label = v.addSubview(cjb.uif.views.Label(str(matched_pair.multiplicity), fontSize = 11))
         v.mult_label.alignment = "right"
+        v.mult_percent = v.addSubview(cjb.uif.views.Label("{:.2f}%".format(100.0 * matched_pair.multiplicity / float(self.total_matches)), fontSize = 11))
         v.bg = [ 0.8, 0.8, 0.8 ]
 
         tagged_pair = self.processed_pair(matched_pair)
@@ -118,6 +122,7 @@ class Matches(BaseScene):
     def build(self):
         BaseScene.build(self)
         pairs = self.ui.db.results_matching(self.ui.result_set_id, self.include_tags, self.exclude_tags, limit = 50)
+        self.total_matches = self.ui.db.count_matches(self.ui.result_set_id, self.include_tags, self.exclude_tags)
         matches = [ MatchedPair(p[2], p[3], p[4], p[0], p[1]) for p in pairs ]
         self.matchViews = [ self.addMatchView(m) for m in matches ]
 
@@ -130,9 +135,19 @@ class Matches(BaseScene):
         f = grid.frame(0)
         f.update(origin = f.origin, w = f.size.width * 10, h = f.size.height)
         view.name_label.frame = f
-        f = grid.frame(89)
+        f = grid.frame(88)
         f.update(origin = f.origin, w = f.size.width * 10, h = f.size.height)
         view.mult_label.frame = f
+        f = grid.frame(88)
+        # take the 4th root, since most of these will be very small as a straight % of total
+        factor = math.sqrt(math.sqrt((float(view.obj.multiplicity) / float(self.total_matches))))
+        width = int(factor * float(f.size.width * 12))
+        f.update(origin = f.origin, w = width, h = f.size.height)
+        view.mult_bar.frame = f
+        f = grid.frame(88)
+        f.update(origin = f.origin, w = f.size.width * 10, h = f.size.height)
+        view.mult_percent.frame = f
+
 
     def layout(self, view):
         BaseScene.layout(self, view)

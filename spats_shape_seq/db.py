@@ -255,7 +255,7 @@ class PairDB(object):
     def tag_counts(self, result_set_id):
         return { str(res[0]) : int(res[1]) for res in self.conn.execute("SELECT t.name, tc.count FROM tag_count tc JOIN tag t ON t.rowid = tc.tag_id WHERE set_id=?", (result_set_id,)) }
 
-    def results_matching(self, result_set_id, incl_tags = None, excl_tags = None, limit = 0):
+    def _tag_clause(self, incl_tags, excl_tags):
         tagmap = self.tagmap()
         if 1 == len(incl_tags) and not excl_tags:
             tag_clause = "rt.tag_id={}".format(tagmap[incl_tags[0]])
@@ -264,6 +264,10 @@ class PairDB(object):
             incl_clause = ("rt.tag_id IN (" + (",".join(incl_tags)) + ")") if incl_tags else ""
             excl_clause = ("rt.tag_id NOT IN (" + (",".join(incl_tags)) + ")") if incl_tags else ""
             raise Exception("NYI")
+        return tag_clause
+
+    def results_matching(self, result_set_id, incl_tags = None, excl_tags = None, limit = 0):
+        tag_clause = self._tag_clause(incl_tags, excl_tags)
         results =  self.conn.execute('''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity
                                         FROM result_tag rt
                                         JOIN result r ON r.rowid=rt.result_id
@@ -274,6 +278,13 @@ class PairDB(object):
                                      (result_set_id,))
         return [ ( int(r[0]), str(r[1]), str(r[2]), str(r[3]), int(r[4]) ) for r in results ]
 
+    def count_matches(self, result_set_id, incl_tags = None, excl_tags = None):
+        tag_clause = self._tag_clause(incl_tags, excl_tags)
+        return self._fetch_one('''SELECT SUM(r.multiplicity)
+                                  FROM result_tag rt
+                                  JOIN result r ON r.rowid=rt.result_id
+                                  WHERE rt.set_id=? AND ''' + tag_clause,
+                               (result_set_id,))
 
     #v102 delta analysis
     def _create_v102(self):
