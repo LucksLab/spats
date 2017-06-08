@@ -33,6 +33,9 @@ class MatchedPair(object):
         self.rowid = rowid
         self.identifier = identifier
 
+    def display_id(self):
+        return ":".join(self.identifier.split(':')[-2:])
+
     #@property
     #def displayName(self):
     #    return self.r1 + "   " + self.r2
@@ -47,8 +50,9 @@ class Matches(BaseScene):
 
     def addMatchView(self, matched_pair):
         v = cjb.uif.views.View(obj = matched_pair)
-        v.name_label = v.addSubview(cjb.uif.views.Label(str(matched_pair.rowid), fontSize = 11))
+        v.name_label = v.addSubview(cjb.uif.views.Label(str(matched_pair.display_id()), fontSize = 11))
         v.mult_label = v.addSubview(cjb.uif.views.Label(str(matched_pair.multiplicity), fontSize = 11))
+        v.mult_label.alignment = "right"
         v.bg = [ 0.8, 0.8, 0.8 ]
 
         tagged_pair = self.processed_pair(matched_pair)
@@ -126,7 +130,7 @@ class Matches(BaseScene):
         f = grid.frame(0)
         f.update(origin = f.origin, w = f.size.width * 10, h = f.size.height)
         view.name_label.frame = f
-        f = grid.frame(90)
+        f = grid.frame(89)
         f.update(origin = f.origin, w = f.size.width * 10, h = f.size.height)
         view.mult_label.frame = f
 
