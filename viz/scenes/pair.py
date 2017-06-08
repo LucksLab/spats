@@ -27,13 +27,12 @@ TAG_COLORS = [
 
 class RawPairScene(BaseScene):
 
-    def __init__(self, prev_scene, pair, expanded = False):
-        self.prev_scene = prev_scene
+    def __init__(self, ui, pair, expanded = False):
         self.pair = pair
         self.parts = {}
         self.labels = {}
         self.nucSize = Size(12, 18)
-        BaseScene.__init__(self, prev_scene.ui, self.__class__.__name__)
+        BaseScene.__init__(self, ui, self.__class__.__name__)
 
     def addNucView(self, nuc, bg):
         v = cjb.uif.views.Button(obj = nuc)
@@ -54,7 +53,6 @@ class RawPairScene(BaseScene):
         }
 
         BaseScene.build(self)
-        self.targetButtons([self.back])
 
         tag_colors = {}
         color_idx = 1
@@ -88,7 +86,6 @@ class RawPairScene(BaseScene):
 
     def layout(self, view):
         BaseScene.layout(self, view)
-        self.buttonWithKey('back').frame = view.frame.topRightSubrect(size = buttonSize, margin = 20)
         cols = 100
         rows = 40
         frame = view.frame.centeredSubrect(self.nucSize.w * cols, self.nucSize.h * rows)
@@ -125,27 +122,16 @@ class RawPairScene(BaseScene):
 
         return view
 
-    def handleKeyEvent(self, keyInfo):
-        handler = { "b" : self.back }.get(keyInfo["t"])
-        if handler:
-            handler()
-        else:
-            BaseScene.handleKeyEvent(self, keyInfo)
-
-    def back(self, message = None):
-        self.ui.setScene(self.prev_scene)
-
 
 class PairInTargetScene(BaseScene):
 
-    def __init__(self, prev_scene, pair, expanded = True):
-        self.prev_scene = prev_scene
+    def __init__(self, ui, pair, expanded = True):
         self.pair = pair
         self.expanded = expanded
         self.parts = {}
         self.labels = {}
         self.nucSize = Size(10, 16)
-        BaseScene.__init__(self, prev_scene.ui, self.__class__.__name__)
+        BaseScene.__init__(self, ui, self.__class__.__name__)
 
     def addNucView(self, nuc, bg):
         v = cjb.uif.views.Button(obj = nuc)
@@ -158,7 +144,6 @@ class PairInTargetScene(BaseScene):
     def build(self):
 
         BaseScene.build(self)
-        self.targetButtons([self.back])
 
         # TODO
         self.tag_seqs = { 
@@ -266,7 +251,6 @@ class PairInTargetScene(BaseScene):
 
     def layout(self, view):
         BaseScene.layout(self, view)
-        self.buttonWithKey('back').frame = view.frame.topRightSubrect(size = buttonSize, margin = 20)
         cols = 100
         rows = 40
         frame = view.frame.centeredSubrect(self.nucSize.w * cols, self.nucSize.h * rows)
@@ -355,16 +339,14 @@ class PairInTargetScene(BaseScene):
         return view
 
     def handleKeyEvent(self, keyInfo):
-        handler = { "x" : self.expand, "b" : self.back }.get(keyInfo["t"])
+        handler = { "x" : self.expand }.get(keyInfo["t"])
         if handler:
             handler()
         else:
             BaseScene.handleKeyEvent(self, keyInfo)
 
     def expand(self, message = None):
-        self.ui.setScene(PairScene(self.ui, self.pair, expanded = not self.expanded))
+        self.ui.setScene(PairInTargetScene(self.ui, self.pair, expanded = not self.expanded))
 
-    def back(self, message = None):
-        self.ui.setScene(self.prev_scene)
 
 PairScene = PairInTargetScene

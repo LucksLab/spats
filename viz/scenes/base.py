@@ -16,14 +16,20 @@ class BaseScene(cjb.uif.Scene):
     def build(self):
         # common UI
         if self.key != 'Home':
-            self.targetButton(self.ui.home)
+            self.targetButtons([self.ui.home, self.back])
 
     def layout(self, view):
         # common layout
         home = self.buttonWithKey('home')
         if home:
-            home.frame = view.frame.bottomRightSubrect(size = buttonSize, margin = 20)
+            home.frame = view.frame.bottomRightSubrect(size = buttonSize, margin = 10)
+        back = self.buttonWithKey('back')
+        if back:
+            back.frame = view.frame.topRightSubrect(size = buttonSize, margin = 10)
         return view
+
+    def back(self, message = None):
+        self.ui.popScene()
 
     def addLabel(self, txt, bg = None):
         return self.addView(Label(txt, fontSize = 11, bg = bg))
@@ -49,5 +55,7 @@ class BaseScene(cjb.uif.Scene):
     def handleKeyEvent(self, keyInfo):
         if keyInfo["t"] == "h" and 1 == len(keyInfo):
             self.ui.home()
+        elif keyInfo["t"] == "b" and 1 == len(keyInfo):
+            self.back()
         else:
             print "Unhandled key: " + str(keyInfo)

@@ -7,25 +7,12 @@ from viz.scenes.base import BaseScene
 from viz.scenes.matches import Matches
 from viz.layout import buttonSize
 
-
-class Tag(object):
-
-    def __init__(self, tag, percent, query = None):
-        self.tag = tag
-        self.percent = percent
-        self.query = query
-
-    @property
-    def displayName(self):
-        return "{}: {}".format(self.query or self.tag, self.percent)
-
-
-class Tagset(BaseScene):
+class Targets(BaseScene):
 
     def __init__(self, ui):
         BaseScene.__init__(self, ui, self.__class__.__name__)
 
-    def addTagView(self, tag, bg):
+    def addTargetView(self, tag, bg):
         v = cjb.uif.views.Button(obj = tag)
         v.fontSize = 11
         v.bg = bg
@@ -34,9 +21,9 @@ class Tagset(BaseScene):
 
     def build(self):
         BaseScene.build(self)
-        counts = self.ui.db.tag_counts(self.ui.result_set_id)
+        counts = self.pair_db.tag_counts(self.result_set_id)
         counts = sorted([ (key, counts[key]) for key in counts.keys() ], key = lambda x : x[1], reverse = True)
-        total = float(self.ui.db.count())
+        total = float(self.pair_db.count())
         tags = [ Tag(tc[0], "{:.1f}%".format(float(tc[1]) * 100.0 / total)) for tc in counts ]
         self.tagViews = [ self.addTagView(t, [ 0.7, 0.7, 0.9 ]) for t in tags ]
 
@@ -48,7 +35,7 @@ class Tagset(BaseScene):
 
     def handleViewMessage(self, scene, obj, message):
         if obj and isinstance(obj, Tag):
-            self.ui.pushScene(Matches(self.ui, obj.tag))
+            self.ui.pushScene(Matches(self, obj.tag))
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
 

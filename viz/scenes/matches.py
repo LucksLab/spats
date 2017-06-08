@@ -2,13 +2,12 @@
 import cjb.uif
 
 from cjb.uif.layout import Size, Grid, Rect, layoutInScroller
-from spats_shape_seq import Spats
-from spats_shape_seq.pair import Pair
-from spats_shape_seq.tag import TagProcessor
-from spats_shape_seq.util import reverse_complement
 from viz.scenes.base import BaseScene
 from viz.scenes.pair import PairScene, RawPairScene
 from viz.layout import buttonSize
+
+from spats_shape_seq.pair import Pair
+
 
 
 class Nuc(object):
@@ -41,12 +40,10 @@ class MatchedPair(object):
 
 class Matches(BaseScene):
 
-    def __init__(self, tagset_scene, tag):
-        self.tagset_scene = tagset_scene
+    def __init__(self, ui, tag):
         self.include_tags = [tag]
         self.exclude_tags = []
-        self._spats = None
-        BaseScene.__init__(self, tagset_scene.ui, self.__class__.__name__)
+        BaseScene.__init__(self, ui, self.__class__.__name__)
 
     def addMatchView(self, matched_pair):
         v = cjb.uif.views.View(obj = matched_pair)
@@ -116,9 +113,8 @@ class Matches(BaseScene):
 
     def build(self):
         BaseScene.build(self)
-        pairs = self.tagset_scene.pair_db.results_matching(self.tagset_scene.result_set_id, self.include_tags, self.exclude_tags, limit = 50)
+        pairs = self.ui.db.results_matching(self.ui.result_set_id, self.include_tags, self.exclude_tags, limit = 50)
         matches = [ MatchedPair(p[2], p[3], p[4], p[0], p[1]) for p in pairs ]
-        self.targetButtons([self.back])
         self.matchViews = [ self.addMatchView(m) for m in matches ]
 
     def layoutMatch(self, view):
@@ -136,35 +132,16 @@ class Matches(BaseScene):
 
     def layout(self, view):
         BaseScene.layout(self, view)
-        self.buttonWithKey('back').frame = view.frame.topRightSubrect(size = buttonSize, margin = 20)
         cur = view.frame.centeredSubrect(w = 1000, h = view.frame.size.h - 100)
         self.scroller = layoutInScroller(self.matchViews, cur, Size(1000, 14), 2, self.scroller)
         for v in self.matchViews:
             self.layoutMatch(v)
         return view
 
-    @property
-    def processor(self):
-        if not self._spats:
-            s = Spats()
-            s.run._processor_class = TagProcessor
-            s.run.allow_indeterminate = True
-            s.run.allowed_target_errors = 2
-            s.run.allowed_adapter_errors = 2
-            s.loadTargets(self.tagset_scene.pair_db)
-            p = s._processor
-            for t in s._targets.targets:
-                p.addTagTarget(t.name, t.seq)
-                p.addTagTarget(t.name + "_rc", reverse_complement(t.seq))
-            p.addTagTarget("adapter_t_rc", reverse_complement(s.run.adapter_t))
-            p.addTagTarget("adapter_b", s.run.adapter_b)
-            self._spats = s
-        return self._spats._processor
-
     def processed_pair(self, matched_pair):
         pair = Pair()
         pair.set_from_data(matched_pair.identifier, matched_pair.r1, matched_pair.r2, matched_pair.multiplicity)
-        self.processor.process_pair_detail(pair)
+        self.ui.processor.process_pair_detail(pair)
         return pair
         
     def handleViewMessage(self, scene, obj, message):
@@ -172,19 +149,9 @@ class Matches(BaseScene):
             mp = obj if isinstance(obj, MatchedPair) else obj.context
             pair = self.processed_pair(mp)
             if pair.has_site:
-                self.ui.setScene(PairScene(self, pair, expanded = True))
+                self.ui.pushScene(PairScene(self.ui, pair, expanded = True))
             else:
-                self.ui.setScene(RawPairScene(self, pair, expanded = True))
+                self.ui.pushScene(RawPairScene(self.ui, pair, expanded = True))
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
-
-    def back(self, message = None):
-        self.ui.setScene(self.tagset_scene)
-
-    def handleKeyEvent(self, keyInfo):
-        handler = { "b" : self.back }.get(keyInfo["t"])
-        if handler:
-            handler()
-        else:
-            BaseScene.handleKeyEvent(self, keyInfo)
 
