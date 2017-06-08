@@ -181,22 +181,32 @@ class PairDB(object):
     def result_set_id_for_name(self, set_name):
         return self._fetch_one("SELECT rowid FROM result_set WHERE set_id=?", (set_name,))
 
-    # results a list of (rowid, target_name, site, mask, multiplicity, failure, [optional: tags])
-    def add_results(self, result_set_id, results):
+    def add_results_with_tags(self, result_set_id, results):
         # grab a new connection since this might be in a new process (due to multiprocessing)
-        #print " --> Thd in AR {}".format(self.worker_id)
-        has_tags = (len(results[0]) > 6)
         conn = sqlite3.connect(self._dbpath)
         stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
                   VALUES ({}, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
-        cursor = conn.executemany(stmt, [ r[0:6] for r in results ] if has_tags else results)
+        rstmt_template = 'INSERT INTO result_tag (set_id, result_id, tag_id) VALUES ({}, {}, ?)'
+        for res in results:
+            cursor = conn.cursor()
+            cursor.execute(stmt, res[:6])
+            rstmt = rstmt_template.format(result_set_id, cursor.lastrowid)
+            cursor.executemany(rstmt, [ (t,) for t in res[6] ])
+        conn.commit()
+
+    # results a list of (rowid, target_name, site, mask, multiplicity, failure, [optional: tags])
+    def add_results(self, result_set_id, results):
+        if len(results[0]) > 6:
+            self.add_results_with_tags(result_set_id, results)
+            return
+        # grab a new connection since this might be in a new process (due to multiprocessing)
+        #print " --> Thd in AR {}".format(self.worker_id)
+        conn = sqlite3.connect(self._dbpath)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
+                  VALUES ({}, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
+        cursor = conn.executemany(stmt, results)
         if cursor.rowcount != len(results):
             raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
-        if has_tags:
-            rstmt_template = 'INSERT INTO result_tag (set_id, result_id, tag_id) VALUES ({}, {}, ?)'
-            for res in results:
-                rid = conn.execute("SELECT rowid FROM result WHERE set_id=? AND pair_id=?", (result_set_id, res[0])).fetchone()[0]
-                conn.executemany(rstmt_template.format(result_set_id, rid), [ (t,) for t in res[6] ])
         conn.commit()
 
     def index_results(self):
@@ -245,7 +255,7 @@ class PairDB(object):
     def tag_counts(self, result_set_id):
         return { str(res[0]) : int(res[1]) for res in self.conn.execute("SELECT t.name, tc.count FROM tag_count tc JOIN tag t ON t.rowid = tc.tag_id WHERE set_id=?", (result_set_id,)) }
 
-    def results_matching(self, result_set_id, incl_tags = None, excl_tags = None):
+    def results_matching(self, result_set_id, incl_tags = None, excl_tags = None, limit = 0):
         tagmap = self.tagmap()
         if 1 == len(incl_tags) and not excl_tags:
             tag_clause = "rt.tag_id={}".format(tagmap[incl_tags[0]])
@@ -258,7 +268,10 @@ class PairDB(object):
                                         FROM result_tag rt
                                         JOIN result r ON r.rowid=rt.result_id
                                         JOIN pair p ON p.rowid=r.pair_id
-                                        WHERE rt.set_id=? AND ''' + tag_clause, (result_set_id,))
+                                        WHERE rt.set_id=? AND ''' + tag_clause + '''
+                                        ORDER BY r.multiplicity DESC ''' +
+                                     'LIMIT {}'.format(limit) if limit > 0 else '',
+                                     (result_set_id,))
         return [ ( int(r[0]), str(r[1]), str(r[2]), str(r[3]), int(r[4]) ) for r in results ]
 
 

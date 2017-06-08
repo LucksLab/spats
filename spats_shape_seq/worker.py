@@ -234,6 +234,9 @@ class SpatsWorker(object):
                         sys.stdout.flush()
                     if results:
                         pair_db.add_results(self._result_set_id, results)
+                        if not quiet:
+                            sys.stdout.write('.')
+                            sys.stdout.flush()
 
             except StopIteration:
                 more_pairs = False

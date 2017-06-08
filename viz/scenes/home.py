@@ -14,7 +14,7 @@ from spats_shape_seq.target import _Target
 class Home(BaseScene):
 
     def _pair_db(self):
-        return PairDB("/Users/jbrink/mos/tasks/1RwIBa/tmp/5sq_dev/db/pairs.db")
+        return PairDB("/Users/jbrink/mos/tasks/1RwIBa/tmp/5s/db/pairs.db")
 
     def _pair(self, pairid):
         pair = Pair()

@@ -116,7 +116,7 @@ class Matches(BaseScene):
 
     def build(self):
         BaseScene.build(self)
-        pairs = self.tagset_scene.pair_db.results_matching(self.tagset_scene.result_set_id, self.include_tags, self.exclude_tags)
+        pairs = self.tagset_scene.pair_db.results_matching(self.tagset_scene.result_set_id, self.include_tags, self.exclude_tags, limit = 50)
         matches = [ MatchedPair(p[2], p[3], p[4], p[0], p[1]) for p in pairs ]
         self.targetButtons([self.back])
         self.matchViews = [ self.addMatchView(m) for m in matches ]

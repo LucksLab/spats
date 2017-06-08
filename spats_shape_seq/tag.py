@@ -179,6 +179,7 @@ class TagProcessor(PairProcessor):
         else:
             tags.append(TAG_MASK_FAILURE)
         pair.tags = [self._tagmap[t] for t in set(tags)]
+        self.counters.processed_pairs += pair.multiplicity
 
     def process_pair_detail(self, pair):
 
