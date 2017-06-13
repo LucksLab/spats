@@ -39,11 +39,13 @@ class Tagset(BaseScene):
         total = float(self.ui.db.count())
         tags = [ Tag(tc[0], "{:.1f}%".format(float(tc[1]) * 100.0 / total)) for tc in counts ]
         self.tagViews = [ self.addTagView(t, [ 0.7, 0.7, 0.9 ]) for t in tags ]
+        self.targetButtons([self.showAll])
 
     def layout(self, view):
         BaseScene.layout(self, view)
         cur = view.frame.centeredSubrect(w = 300, h = view.frame.size.h - 100)
         self.scroller = layoutInScroller(self.tagViews, cur, Size(200, 40), 20, self.scroller)
+        self.buttonWithKey('showAll').frame = view.frame.topRightSubrect(size = buttonSize, margins = Size(300, 10))
         return view
 
     def handleViewMessage(self, scene, obj, message):
@@ -52,3 +54,5 @@ class Tagset(BaseScene):
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
 
+    def showAll(self, message = None):
+        self.ui.pushScene(Matches(self.ui, None))

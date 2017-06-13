@@ -224,6 +224,14 @@ class PairDB(object):
                                     JOIN pair p ON p.rowid=s1.pair_id
                                     WHERE s1.set_id=? AND (s1.site != s2.site OR s1.target != s2.target)''', (id2, id1))
 
+
+    def result_sites(self, result_set_id, target_id):
+        return self.conn.execute('''SELECT r.mask, r.site, SUM(r.multiplicity)
+                                    FROM result r
+                                    WHERE r.set_id = ? AND r.target = ? AND r.site != -1
+                                    GROUP BY r.mask||r.site
+                                    ORDER BY r.site ASC''', (result_set_id, target_id))
+
     # results analysis
     def setup_tags(self):
         self.conn.execute("CREATE TABLE IF NOT EXISTS tag (name TEXT)")
@@ -257,7 +265,9 @@ class PairDB(object):
 
     def _tag_clause(self, incl_tags, excl_tags):
         tagmap = self.tagmap()
-        if 1 == len(incl_tags) and not excl_tags:
+        if not incl_tags and not excl_tags:
+            tag_clause = "1=1"
+        elif 1 == len(incl_tags) and not excl_tags:
             tag_clause = "rt.tag_id={}".format(tagmap[incl_tags[0]])
         else:
             # this won't work, may have to iterate through all results, or do a first-pass filter on incl_tags[0]
@@ -273,6 +283,7 @@ class PairDB(object):
                                         JOIN result r ON r.rowid=rt.result_id
                                         JOIN pair p ON p.rowid=r.pair_id
                                         WHERE rt.set_id=? AND ''' + tag_clause + '''
+                                        GROUP BY p.rowid
                                         ORDER BY r.multiplicity DESC ''' +
                                      'LIMIT {}'.format(limit) if limit > 0 else '',
                                      (result_set_id,))
@@ -285,6 +296,16 @@ class PairDB(object):
                                   JOIN result r ON r.rowid=rt.result_id
                                   WHERE rt.set_id=? AND ''' + tag_clause,
                                (result_set_id,))
+
+    def results_matching_site(self, result_set_id, target_id, site, limit = 0):
+        results =  self.conn.execute('''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity
+                                        FROM result r
+                                        JOIN pair p ON p.rowid=r.pair_id
+                                        WHERE r.set_id=? AND r.target=? AND r.site=?
+                                        ORDER BY r.multiplicity DESC ''' +
+                                     'LIMIT {}'.format(limit) if limit > 0 else '',
+                                     (result_set_id, target_id, site))
+        return [ ( int(r[0]), str(r[1]), str(r[2]), str(r[3]), int(r[4]) ) for r in results ]
 
     #v102 delta analysis
     def _create_v102(self):

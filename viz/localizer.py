@@ -3,10 +3,10 @@ import cjb.uif
 
 strings = {
     'home' : 'Home',
-    'newInterface' : 'New Interface',
-    'newInterfacePrompt' : 'New Interface Name:',
-    'newMediator' : 'New Mediator',
-    'test' : 'Test it out',
+    'back' : 'Back',
+    'reads' : 'Reads',
+    'targets' : 'Targets',
+    'showAll' : 'Show All',
 }
 
 class Localizer(cjb.uif.Localizer):

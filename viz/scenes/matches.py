@@ -44,9 +44,10 @@ class MatchedPair(object):
 
 class Matches(BaseScene):
 
-    def __init__(self, ui, tag):
-        self.include_tags = [tag]
+    def __init__(self, ui, tag, site = None):
+        self.include_tags = [tag] if tag else []
         self.exclude_tags = []
+        self.site = site
         BaseScene.__init__(self, ui, self.__class__.__name__)
 
     def addMatchView(self, matched_pair):
@@ -113,16 +114,17 @@ class Matches(BaseScene):
             v.r2_nucs.append(nv)
 
         v.target = matched_pair
-        #v.addSubview(cjb.uif.views.Button(obj = matched_pair))
-        #v = cjb.uif.views.Button(obj = matched_pair)
-        #v.fontSize = 11
         self.addView(v)
         return v
 
     def build(self):
         BaseScene.build(self)
-        pairs = self.ui.db.results_matching(self.ui.result_set_id, self.include_tags, self.exclude_tags, limit = 50)
-        self.total_matches = self.ui.db.count_matches(self.ui.result_set_id, self.include_tags, self.exclude_tags)
+        if self.site:
+            pairs = self.ui.db.results_matching_site(self.ui.result_set_id, self.site.target_id, self.site.index, limit = 50)
+            self.total_matches = self.site.total
+        else:
+            pairs = self.ui.db.results_matching(self.ui.result_set_id, self.include_tags, self.exclude_tags, limit = 50)
+            self.total_matches = self.ui.db.count_matches(self.ui.result_set_id, self.include_tags, self.exclude_tags)
         matches = [ MatchedPair(p[2], p[3], p[4], p[0], p[1]) for p in pairs ]
         self.matchViews = [ self.addMatchView(m) for m in matches ]
 
@@ -132,21 +134,14 @@ class Matches(BaseScene):
         grid.applyToViews(view.r1_nucs)
         grid.setLocation(50, 0)
         grid.applyToViews(view.r2_nucs)
-        f = grid.frame(0)
-        f.update(origin = f.origin, w = f.size.width * 10, h = f.size.height)
-        view.name_label.frame = f
-        f = grid.frame(88)
-        f.update(origin = f.origin, w = f.size.width * 10, h = f.size.height)
-        view.mult_label.frame = f
-        f = grid.frame(88)
+        view.name_label.frame = grid.frame(0, 10)
+        view.mult_label.frame = grid.frame(88, 10)
+        f = grid.frame(88, 12)
         # take the 4th root, since most of these will be very small as a straight % of total
         factor = math.sqrt(math.sqrt((float(view.obj.multiplicity) / float(self.total_matches))))
-        width = int(factor * float(f.size.width * 12))
-        f.update(origin = f.origin, w = width, h = f.size.height)
+        f.update(origin = f.origin, w = int(factor * float(f.size.width)), h = f.size.height)
         view.mult_bar.frame = f
-        f = grid.frame(88)
-        f.update(origin = f.origin, w = f.size.width * 10, h = f.size.height)
-        view.mult_percent.frame = f
+        view.mult_percent.frame = grid.frame(88, 10)
 
 
     def layout(self, view):
