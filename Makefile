@@ -40,7 +40,11 @@ bin/UIClient.app: pkg/UIClient.zip
 .PHONY: viz
 viz: cjb bin/UIClient.app
 	@./bin/UIClient.app/Contents/MacOS/UIClient &
-	@PYTHONPATH=.:. python ${TOOLS_DIR}/runviz.py
+	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
+
+.PHONY: vizsrv
+vizsrv: cjb
+	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
 
 .PHONY: jbpy-pkg
 jbpy-pkg:

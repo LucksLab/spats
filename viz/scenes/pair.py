@@ -42,19 +42,25 @@ class RawPairScene(BaseScene):
         return v
 
     def build(self):
-        # TODO
-        self.tag_seqs = { 
-            "5S" : "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC",
-            "5S_rc" : "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC",
-            "adapter_t_rc" : "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT",
-            "adapter_b" : "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC",
-            "RRRY" : "RRRY",
-            "YYYR" : "YYYR",
-        }
 
         BaseScene.build(self)
 
+        processor = self.ui.processor
+        seqs = {
+            "adapter_t_rc" : reverse_complement(processor._run.adapter_t),
+            "adapter_b" : processor._run.adapter_b,
+            "RRRY" : "RRRY",
+            "YYYR" : "YYYR",
+        }
+        for target in processor._tag_targets.targets:
+            seqs[target.name] = target.seq
+            seqs[target.name + "_rc"] = reverse_complement(target.seq)
+        self.tag_seqs = seqs
+
         tag_colors = {}
+        colors = self.ui.colors
+        for col in colors._colors.keys():
+            tag_colors[col] = colors.color(col)
         color_idx = 1
         for part_name in ( "r1", "r2" ):
             part = getattr(self.pair, part_name)
@@ -145,29 +151,24 @@ class PairInTargetScene(BaseScene):
 
         BaseScene.build(self)
 
-        # TODO
-        self.tag_seqs = { 
-            "5s" : "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC",
-            "5s_rc" : "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC",
-            "adapter_t_rc" : "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT",
-            "adapter_b" : "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC",
+        processor = self.ui.processor
+        seqs = {
+            "adapter_t_rc" : reverse_complement(processor._run.adapter_t),
+            "adapter_b" : processor._run.adapter_b,
             "RRRY" : "RRRY",
             "YYYR" : "YYYR",
         }
+        for target in processor._tag_targets.targets:
+            seqs[target.name] = target.seq
+            seqs[target.name + "_rc"] = reverse_complement(target.seq)
+        self.tag_seqs = seqs
 
+        colors = self.ui.colors
         target = self.pair.target
-        tcol = [ 1.0, 0.85, 0.7 ]
-        tag_colors = {
-            target.name : tcol,
-            "adapter_t" : [ 1.0, 0.5, 0.5 ],
-            "adapter_b" : [ 0.5, 0.5, 1.0 ],
-            "RRRY" : [ 0.2, 1.0, 0.1 ],
-            "YYYR" : [ 0.2, 1.0, 0.1 ],
-            "RYYY" : [ 0.2, 1.0, 0.1 ],
-            "YRRR" : [ 0.2, 1.0, 0.1 ],
-        }
-        nomatch_col = [ 0.7, 0.7, 0.7 ]
-        error_col = [ 0.9, 0.1, 0.2 ]
+        colors._colors[target.name] = colors.color("target")
+        tcol = colors.color("target")
+        nomatch_col = colors.color("grey")
+        error_col = colors.color("error")
 
         skips = self._skips()
 
@@ -190,7 +191,7 @@ class PairInTargetScene(BaseScene):
             for tag in sorted(part.tags, key = lambda t : t[1]):
                 tkey = tag[0].rstrip("_rc_")
                 while idx < tag[1] + tag[2]:
-                    ntcol = nomatch_col if idx < tag[1] else tag_colors[tkey]
+                    ntcol = nomatch_col if idx < tag[1] else colors.color(tkey)
                     if idx in part.match_errors or idx in part.adapter_errors:
                         ntcol = error_col
                     parts.append(self.addNucView(Nuc(seq[idx], (part_name, idx, None if idx < tag[1] else tag[0])), ntcol))
@@ -205,14 +206,14 @@ class PairInTargetScene(BaseScene):
                         tagseq = self.tag_seqs[tag[0]]
                         aparts = []
                         for j in range(max(tag[3] - 4, 0), min(tag[2] + 4, len(tagseq))):
-                            v = self.addNucView(Nuc(tagseq[j], (tag[0], j, None)), tag_colors[tkey])
+                            v = self.addNucView(Nuc(tagseq[j], (tag[0], j, None)), colors.color(tkey))
                             if j < tag[3] or j >= tag[3] + tag[2]:
                                 v.alpha = 0.5
                             aparts.append(v)
                         self.parts[part_name + tag[0]] = aparts
-                        self.labels[part_name + tag[0]] = self.addLabel(tag[0], bg = tag_colors[tkey])
+                        self.labels[part_name + tag[0]] = self.addLabel(tag[0], bg = colors.color(tkey))
                     elif part_name == "r1" and (tag[0] == 'YYYR' or tag[0] == 'RRRY'):
-                        hcol = tag_colors[tag[0]]
+                        hcol = colors.color(tag[0])
                         self.parts[part_name + tag[0]] = [ self.addNucView(Nuc(tag[0][j], (tag[0], j, None)), hcol) for j in range(len(tag[0])) ]
                         self.labels[part_name + tag[0]] = self.addLabel(tag[0], bg = hcol)
 

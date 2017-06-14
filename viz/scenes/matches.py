@@ -54,30 +54,22 @@ class Matches(BaseScene):
         v = cjb.uif.views.View(obj = matched_pair)
         v.name_label = v.addSubview(cjb.uif.views.Label(str(matched_pair.display_id()), fontSize = 11))
         v.mult_bar = v.addSubview(cjb.uif.views.View())
-        v.mult_bar.bg = [ 0.8, 0.6, 1.0 ]
+        v.mult_bar.bg = "bar"
         v.mult_label = v.addSubview(cjb.uif.views.Label(str(matched_pair.multiplicity), fontSize = 11))
         v.mult_label.alignment = "right"
         v.mult_percent = v.addSubview(cjb.uif.views.Label("{:.2f}%".format(100.0 * matched_pair.multiplicity / float(self.total_matches)), fontSize = 11))
-        v.bg = [ 0.8, 0.8, 0.8 ]
+        v.bg = "light_grey"
 
         tagged_pair = self.processed_pair(matched_pair)
 
-        bg = [0.7, 0.7, 0.7]
-
-        # TODO: share
-        tcol = [ 1.0, 0.85, 0.7 ]
+        colors = self.ui.colors
         target = tagged_pair.target
-        tag_colors = {
-            "5S" : tcol,  ## TODO
-            "adapter_t" : [ 1.0, 0.5, 0.5 ],
-            "adapter_b" : [ 0.5, 0.5, 1.0 ],
-            "RRRY" : [ 0.2, 1.0, 0.1 ],
-            "YYYR" : [ 0.2, 1.0, 0.1 ],
-            "RYYY" : [ 0.2, 1.0, 0.1 ],
-            "YRRR" : [ 0.2, 1.0, 0.1 ],
-        }
-        nomatch_col = [ 0.7, 0.7, 0.7 ]
-        error_col = [ 0.9, 0.1, 0.2 ]
+        if target:
+            colors._colors[target.name] = colors.color("target")
+        bg = colors.color("grey")
+        tcol = colors.color("target")
+        nomatch_col = colors.color("grey")
+        error_col = colors.color("error")
 
         v.r1_nucs = []
         for nuc in matched_pair.r1_nucs:
@@ -85,7 +77,7 @@ class Matches(BaseScene):
             bg = nomatch_col
             for tag in tagged_pair.r1.tags:
                 if nuc.idx >= tag[1] and nuc.idx < tag[1] + tag[2]:
-                    bg = tag_colors[tag[0].rstrip("_rc")]
+                    bg = colors.color(tag[0].rstrip("_rc"))
                     break
             if nuc.idx in tagged_pair.r1.match_errors or nuc.idx in tagged_pair.r1.adapter_errors:
                 bg = error_col
@@ -102,7 +94,7 @@ class Matches(BaseScene):
             bg = nomatch_col
             for tag in tagged_pair.r2.tags:
                 if nuc.idx >= tag[1] and nuc.idx < tag[1] + tag[2]:
-                    bg = tag_colors[tag[0].rstrip("_rc")]
+                    bg = colors.color(tag[0].rstrip("_rc"))
                     break
             if nuc.idx in tagged_pair.r2.match_errors or nuc.idx in tagged_pair.r2.adapter_errors:
                 bg = error_col

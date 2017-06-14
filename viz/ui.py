@@ -21,7 +21,8 @@ class SpatsViz(cjb.uif.UIServer):
         self.config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))["server"]
         self.data_config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))["data"]
         cjb.uif.UIServer.__init__(self, self.config["host"], int(self.config["port"]), self.config["portfile"])
-        self.addFilter(viz.colorize.Colorize())
+        self.colors = viz.colorize.Colorize()
+        self.addFilter(self.colors)
         self.addFilter(viz.localizer.Localizer())
         self.reloadModel()
 
