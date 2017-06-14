@@ -1,6 +1,6 @@
 *~
 obj
-bin
+bin/UIClient.app
 dist
 cjb
 Output_test/
