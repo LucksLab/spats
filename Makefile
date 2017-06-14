@@ -28,11 +28,29 @@ pip_dist: unit
 docs:
 	@cd doc  &&  make html
 
-# runs a method in tests/misc.py
-.PHONY: viz
-viz:
-	@PYTHONPATH=.:/Users/jbrink/fw/trees/jbpy python ${TOOLS_DIR}/runviz.py
+cjb: pkg/cjb.zip
+	@unzip pkg/cjb.zip
 
+bin/UIClient.app: pkg/UIClient.zip
+	@mkdir -p bin
+	@rm -rf bin/UIClient.app
+	@cd bin && unzip ../pkg/UIClient.zip
+	@touch bin/UIClient.app
+
+.PHONY: viz
+viz: cjb bin/UIClient.app
+	@./bin/UIClient.app/Contents/MacOS/UIClient &
+	@PYTHONPATH=.:. python ${TOOLS_DIR}/runviz.py
+
+.PHONY: jbpy-pkg
+jbpy-pkg:
+	@mkdir -p tmp
+	@rm -rf tmp/cjb
+	@cp -rf ~/fw/trees/jbpy/cjb tmp/
+	@rm `find tmp/cjb -name "*~"`
+	@rm `find tmp/cjb -name "*.pyc"`
+	@cd tmp  &&  zip -r cjb.zip cjb
+	@mv tmp/cjb.zip pkg/cjb.zip
 
 # for some subset of tests:
 # make u.[module]

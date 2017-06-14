@@ -2,6 +2,7 @@
 obj
 bin
 dist
+cjb
 Output_test/
 test_results.txt
 SRP_All_Stops*
