@@ -39,7 +39,8 @@ class Mask(object):
                 return False
         return True
 
-    def register_count(self, target, site, multiplicity = 1):
+    def register_count(self, target, site, end, multiplicity = 1):
+        # TODO: handle end
         self.counts(target)[site] += multiplicity
         self.kept += multiplicity
 

@@ -95,6 +95,18 @@ class Run(object):
         #: from input data. Otherwise, can be set explicitly.
         self.pair_length = None
 
+        #: Default ``False``, set to ``True`` to run as a cotrans
+        #: experiment. Pass a single target instead of a generated targets
+        #: file.
+        self.cotrans = False
+
+        #: Default ``CTGACTCGGGCACCAAGGAC``, change as necessary for cotrans experiments.
+        self.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+
+        #: Default ``20``, set to adjust the minimum number of bp to use from
+        #: the cotrans target.
+        self.cotrans_minimum_length = 20
+
         # private config
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
         self._processor_class = LookupProcessor

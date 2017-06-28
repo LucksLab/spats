@@ -66,6 +66,7 @@ class PairDB(object):
             samples = random.sample(xrange(total), min(sample_size, total))
             conn.execute("DELETE FROM pair WHERE (1+rowid) NOT IN (" + ",".join(map(str,samples)) + ")")
             conn.commit()
+            conn.execute("VACUUM")
             total = sample_size
         return total
 
@@ -154,7 +155,7 @@ class PairDB(object):
         return { name : seq for name, seq in target_list }
 
     def targets(self):
-        return [ (r[0], r[1], r[2]) for r in self.conn.execute("SELECT name, seq, rowid FROM target") ]
+        return [ (str(r[0]), str(r[1]), int(r[2])) for r in self.conn.execute("SELECT name, seq, rowid FROM target") ]
 
     # results storing
     def _prepare_results(self):
@@ -260,42 +261,58 @@ class PairDB(object):
                              GROUP BY t.rowid''', (result_set_id,) )
         self.conn.commit()
 
-    def tag_counts(self, result_set_id):
-        return { str(res[0]) : int(res[1]) for res in self.conn.execute("SELECT t.name, tc.count FROM tag_count tc JOIN tag t ON t.rowid = tc.tag_id WHERE set_id=?", (result_set_id,)) }
-
-    def _tag_clause(self, incl_tags, excl_tags):
-        tagmap = self.tagmap()
+    def tag_counts(self, result_set_id, incl_tags = None, excl_tags = None):
         if not incl_tags and not excl_tags:
-            tag_clause = "1=1"
-        elif 1 == len(incl_tags) and not excl_tags:
-            tag_clause = "rt.tag_id={}".format(tagmap[incl_tags[0]])
+            query = "SELECT t.name, tc.count FROM tag_count tc JOIN tag t ON t.rowid = tc.tag_id WHERE set_id=?"
         else:
-            # this won't work, may have to iterate through all results, or do a first-pass filter on incl_tags[0]
-            incl_clause = ("rt.tag_id IN (" + (",".join(incl_tags)) + ")") if incl_tags else ""
-            excl_clause = ("rt.tag_id NOT IN (" + (",".join(incl_tags)) + ")") if incl_tags else ""
-            raise Exception("NYI")
-        return tag_clause
+            query = self._tag_query(incl_tags, excl_tags)
+            query = "SELECT t.name, SUM(mult) FROM ( " + query + " ) JOIN result_tag rt ON rrid=rt.result_id JOIN tag t ON t.rowid = rt.tag_id GROUP BY t.rowid"
+        return { str(res[0]) : int(res[1]) for res in self.conn.execute(query, (result_set_id,)) }
+
+    def _tag_query(self, incl_tags, excl_tags):
+        if not incl_tags and not excl_tags:
+            query = '''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity AS mult, r.rowid AS rrid
+                       FROM result_tag rt
+                       JOIN result r ON r.rowid=rt.result_id
+                       JOIN pair p ON p.rowid=r.pair_id
+                       WHERE rt.set_id=?
+                       GROUP BY p.rowid
+                       ORDER BY r.multiplicity DESC'''
+
+        else:
+            tagmap = self.tagmap()
+            tag_clause = ''
+            def _mask(tags):
+                return sum([ 1 << tagmap[t] for t in tags ])
+
+            if incl_tags:
+                mask = _mask(incl_tags)
+                tag_clause += "(mask & {} == {})".format(mask, mask)
+            if excl_tags:
+                mask = _mask(excl_tags)
+                mask = sum([ 1 << tagmap[t] for t in excl_tags ])
+                tag_clause += (" AND " if tag_clause else "") + "(mask & {} == 0)".format(mask)
+            query = '''SELECT * FROM (
+                         SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity as mult, r.rowid AS rrid, SUM(1 << rt.tag_id) AS mask
+                         FROM result_tag rt
+                         JOIN result r ON r.rowid=rt.result_id
+                         JOIN pair p ON p.rowid=r.pair_id
+                         WHERE rt.set_id=?
+                         GROUP BY p.rowid)
+                       WHERE ''' + tag_clause + ' ORDER BY mult DESC'
+        return query
 
     def results_matching(self, result_set_id, incl_tags = None, excl_tags = None, limit = 0):
-        tag_clause = self._tag_clause(incl_tags, excl_tags)
-        results =  self.conn.execute('''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity
-                                        FROM result_tag rt
-                                        JOIN result r ON r.rowid=rt.result_id
-                                        JOIN pair p ON p.rowid=r.pair_id
-                                        WHERE rt.set_id=? AND ''' + tag_clause + '''
-                                        GROUP BY p.rowid
-                                        ORDER BY r.multiplicity DESC ''' +
-                                     'LIMIT {}'.format(limit) if limit > 0 else '',
-                                     (result_set_id,))
+        query = self._tag_query(incl_tags, excl_tags)
+        if limit > 0:
+            query += ' LIMIT {}'.format(limit)
+        results =  self.conn.execute(query, (result_set_id,))
         return [ ( int(r[0]), str(r[1]), str(r[2]), str(r[3]), int(r[4]) ) for r in results ]
 
     def count_matches(self, result_set_id, incl_tags = None, excl_tags = None):
-        tag_clause = self._tag_clause(incl_tags, excl_tags)
-        return self._fetch_one('''SELECT SUM(r.multiplicity)
-                                  FROM result_tag rt
-                                  JOIN result r ON r.rowid=rt.result_id
-                                  WHERE rt.set_id=? AND ''' + tag_clause,
-                               (result_set_id,))
+        query = self._tag_query(incl_tags, excl_tags)
+        query = 'SELECT SUM(mult) FROM ( ' + query + ' )'
+        return self._fetch_one(query, (result_set_id,))
 
     def results_matching_site(self, result_set_id, target_id, site, limit = 0):
         results =  self.conn.execute('''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity

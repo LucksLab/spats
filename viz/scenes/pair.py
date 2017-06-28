@@ -47,14 +47,11 @@ class RawPairScene(BaseScene):
 
         processor = self.ui.processor
         seqs = {
-            "adapter_t_rc" : reverse_complement(processor._run.adapter_t),
-            "adapter_b" : processor._run.adapter_b,
             "RRRY" : "RRRY",
             "YYYR" : "YYYR",
         }
         for target in processor._tag_targets.targets:
             seqs[target.name] = target.seq
-            seqs[target.name + "_rc"] = reverse_complement(target.seq)
         self.tag_seqs = seqs
 
         tag_colors = {}

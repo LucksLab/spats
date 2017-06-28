@@ -85,6 +85,24 @@ class PartialFindProcessor(PairProcessor):
             pair.failure = "no match"
             return
 
+
+        if self._run.cotrans:
+            # ok, R1 and R2 match
+            # R1 should have linker on the end, adjust for that
+            r1_rc = pair.r1.reverse_complement
+            r1_end = pair.r1.match_start + pair.r1.match_len 
+            linker = self._run.cotrans_linker
+            linker_len = len(linker)
+            if len(r1_rc) - r1_end < linker_len:
+                pair.failure = "R1 linker length failure"
+                return
+            pair.r1.linker_errors = string_match_errors(linker, r1_rc[r1_end:r1_end+linker_len])
+            if len(pair.r1.linker_errors) > self._run.allowed_adapter_errors:
+                pair.failure = "R1 linker match failure"
+                return
+            pair.r1.match_len += linker_len
+
+
         # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
         r2_start_in_target = pair.r2.match_index - pair.r2.match_start
         if r2_start_in_target < 0:
@@ -126,11 +144,15 @@ class PartialFindProcessor(PairProcessor):
         n = pair.target.n
         assert(pair.matched and pair.left >= 0 and pair.left <= n)
 
-        # NOTE: this might change later due to "starts"
-        if pair.right != n:
-            pair.failure = "R1 right edge failure: {} - {}, n={}".format(pair.left, pair.right, n)
-            self.counters.r1_not_on_right_edge += pair.multiplicity
-            return
+        if self._run.cotrans:
+            # we already verified it matches up with end (linker) above.
+            pass
+        else:
+            # NOTE: this might change later due to "starts"
+            if pair.right != n:
+                pair.failure = "R1 right edge failure: {} - {}, n={}".format(pair.left, pair.right, n)
+                self.counters.r1_not_on_right_edge += pair.multiplicity
+                return
 
-        pair.register_count()
+        pair.register_count(pair.right)
         self.counters.processed_pairs += pair.multiplicity

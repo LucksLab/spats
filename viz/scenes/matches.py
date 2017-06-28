@@ -44,9 +44,9 @@ class MatchedPair(object):
 
 class Matches(BaseScene):
 
-    def __init__(self, ui, tag, site = None):
-        self.include_tags = [tag] if tag else []
-        self.exclude_tags = []
+    def __init__(self, ui, include_tags = None, exclude_tags = None, site = None):
+        self.include_tags = include_tags
+        self.exclude_tags = exclude_tags
         self.site = site
         BaseScene.__init__(self, ui, self.__class__.__name__)
 
@@ -64,8 +64,6 @@ class Matches(BaseScene):
 
         colors = self.ui.colors
         target = tagged_pair.target
-        if target:
-            colors._colors[target.name] = colors.color("target")
         bg = colors.color("grey")
         tcol = colors.color("target")
         nomatch_col = colors.color("grey")

@@ -56,7 +56,7 @@ class Pair(object):
     def right(self):
         return self.r1.right
 
-    def register_count(self):
+    def register_count(self, end = -1):
         if self.site is None:
             self.site = self.left
-        self.mask.register_count(self.target, self.site, self.multiplicity)
+        self.mask.register_count(self.target, self.site, end, self.multiplicity)

@@ -6,7 +6,7 @@ strings = {
     'back' : 'Back',
     'reads' : 'Reads',
     'targets' : 'Targets',
-    'showAll' : 'Show All',
+    'showMatches' : 'Show Matches',
 }
 
 class Localizer(cjb.uif.Localizer):

@@ -1,4 +1,5 @@
 
+from lookup import LookupProcessor
 from partial import PartialFindProcessor
 from processor import PairProcessor
 from target import Targets
@@ -12,6 +13,7 @@ TAG_UNTREATED = "untreated"
 TAG_MASK_FAILURE = "mask_failure"
 TAG_ADAPTER_ERRORS = "adapter_errors"
 TAG_MATCH_ERRORS = "match_errors"
+TAG_LINKER = "linker_cotrans"
 TAG_UNKNOWN = "unknown"
 ALL_TAGS = [ TAG_MATCH,
              TAG_ADAPTER,
@@ -21,6 +23,7 @@ ALL_TAGS = [ TAG_MATCH,
              TAG_MASK_FAILURE,
              TAG_ADAPTER_ERRORS,
              TAG_MATCH_ERRORS,
+             TAG_LINKER,
              TAG_UNKNOWN,
 ]
 MASK_TO_TAG = { "RRRY" : TAG_TREATED, "YYYR" : TAG_UNTREATED }
@@ -30,8 +33,8 @@ class TagProcessor(PairProcessor):
 
     def prepare(self):
         self.uses_tags = True
-        self._partial = PartialFindProcessor(self._run, self._targets, self._masks)
-        self._partial.prepare()
+        self._base_processor = PartialFindProcessor(self._run, self._targets, self._masks) #LookupProcessor(self._run, self._targets, self._masks)
+        self._base_processor.prepare()
         self._tag_targets = Targets()
         self._tag_targets_indexed = False
 
@@ -141,7 +144,12 @@ class TagProcessor(PairProcessor):
             pair.r2.tags.append( (pair.mask.chars, start, min(4, pair.r2._rtrim), 0) )
 
     def _tag_match(self, pair):
-        pair.r1.tags.append( (pair.target.name + "_rc", pair.r1._ltrim, pair.r1.seq_len, pair.target.n - pair.r1.match_index - pair.r1.match_len) )
+        if self._run.cotrans:
+            linker_len = len(self._run.cotrans_linker)
+            pair.r1.tags.append( (pair.target.name + "_rc", pair.r1._ltrim + linker_len, pair.r1.seq_len - linker_len, pair.target.n - pair.r1.match_index - pair.r1.match_len + linker_len) )
+            pair.r1.tags.append( (TAG_LINKER, pair.r1._ltrim, linker_len, 0) )
+        else:
+            pair.r1.tags.append( (pair.target.name + "_rc", pair.r1._ltrim, pair.r1.seq_len, pair.target.n - pair.r1.match_index - pair.r1.match_len) )
         if pair.r1._rtrim > 0:
             pair.r1.tags.append( ("adapter_b", pair.r1.original_len - pair.r1._rtrim, pair.r1._rtrim, 0) )
         pair.r2.tags.insert(0, (pair.target.name, pair.r2._ltrim, pair.r2.seq_len, pair.r2.match_index) )
@@ -149,16 +157,19 @@ class TagProcessor(PairProcessor):
             pair.r2.tags.append( ("adapter_t_rc", pair.r2.original_len - pair.r2._rtrim + 4, pair.r2._rtrim - 4, 0) )
 
     def process_pair(self, pair):
-        self._partial.process_pair(pair)
+        self._base_processor.process_pair(pair)
         tags = []
         if pair.has_site:
             tags.append(TAG_MATCH)
+            tags.append(pair.target.name)
             if pair.r1.match_errors or pair.r2.match_errors:
                 tags.append(TAG_MATCH_ERRORS)
             if pair.r1._rtrim or pair.r2._rtrim:
                 tags.append(TAG_ADAPTER)
             if pair.r1.adapter_errors or pair.r2.adapter_errors:
                 tags.append(TAG_ADAPTER_ERRORS)
+            if self._run.cotrans:
+                tags.append(TAG_LINKER)
         else:
             if not self._tag_targets_indexed:
                 self._tag_targets._minimum_length = 6
@@ -183,7 +194,7 @@ class TagProcessor(PairProcessor):
 
     def process_pair_detail(self, pair):
 
-        self._partial.process_pair(pair)
+        self._base_processor.process_pair(pair)
 
         pair.r1.tags = []
         pair.r2.tags = []

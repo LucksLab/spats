@@ -381,25 +381,28 @@ def test_tags():
 
 
 def tags():
-    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/5s/"
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
 
     from spats_shape_seq.db import PairDB
     pair_db = PairDB(bp + "db/pairs.db")
-    if True:
+    if False:
         print "Parsing to db..."
         pair_db.wipe()
-        pair_db.add_targets_table(bp + "5S.fa")
-        pair_db.parse(bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
-                      bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
-                      sample_size = 0)
+        pair_db.add_targets_table(bp + "cotrans_single.fa")
+        pair_db.parse(bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
+                      bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq",
+                      sample_size = 100000)
 
     from spats_shape_seq import Spats
     from spats_shape_seq.tag import TagProcessor
+    from spats_shape_seq.util import reverse_complement
     s = Spats()
     s.run._processor_class = TagProcessor
     s.run.writeback_results = True
     s.run.result_set_name = "tags"
     s.run.num_workers = 1
+    s.run.cotrans = True
+    s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
     s.loadTargets(pair_db)
 
     s.run.allow_indeterminate = True
@@ -407,16 +410,28 @@ def tags():
     s.run.allowed_adapter_errors = 2
 
     p = s._processor
-    p.addTagTarget("5S", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC")
-    p.addTagTarget("5S_rc", "GTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTACTCTCGCATGGGGAGACCCCACACTACCATCGGCGCTACGGCGTTTCACTTCTGAGTTCGGCATGGGGTCAGGTGGGACCACCGCGCTACGGCCGCCAGGCATCC")
-    from spats_shape_seq.util import reverse_complement
+    for target in pair_db.targets():
+        p.addTagTarget(target[0], target[1])
+        p.addTagTarget(target[0] + "_rc", reverse_complement(target[1]))
     p.addTagTarget("adapter_t_rc", reverse_complement(s.run.adapter_t))
     p.addTagTarget("adapter_b", s.run.adapter_b)
+    if s.run.cotrans:
+        p.addTagTarget("linker_cotrans", s.run.cotrans_linker)
+        p.addTagTarget("linker_cotrans_rc", reverse_complement(s.run.cotrans_linker))
 
     s.process_pair_db(pair_db)
     rsid = pair_db.result_set_id_for_name(s.run.result_set_name)
     pair_db.count_tags(rsid)
     print pair_db.tag_counts(rsid)
+
+
+def tquery():
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
+
+    from spats_shape_seq.db import PairDB
+    pair_db = PairDB(bp + "db/pairs.db")
+    print pair_db.results_matching(1, [ "linker_cotrans", "adapter" ], [ "match" ])
+
 
 if __name__ == "__main__":
     import sys

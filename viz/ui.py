@@ -58,13 +58,18 @@ class SpatsViz(cjb.uif.UIServer):
         s.run.allow_indeterminate = True
         s.run.allowed_target_errors = 2
         s.run.allowed_adapter_errors = 2
+        s.run.cotrans = True
+        s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
         s.loadTargets(self._db)
         p = s._processor
         for t in s._targets.targets:
             p.addTagTarget(t.name, t.seq)
             p.addTagTarget(t.name + "_rc", reverse_complement(t.seq))
+            self.colors._colors[t.name] = self.colors.color("target")
         p.addTagTarget("adapter_t_rc", reverse_complement(s.run.adapter_t))
         p.addTagTarget("adapter_b", s.run.adapter_b)
+        p.addTagTarget("linker_cotrans", s.run.cotrans_linker)
+        p.addTagTarget("linker_cotrans_rc", reverse_complement(s.run.cotrans_linker))
         self._spats = s
 
     def home(self, message = None):

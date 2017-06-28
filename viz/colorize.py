@@ -8,6 +8,7 @@ class Colorize(cjb.uif.Filter):
             "target" : [ 1.0, 0.85, 0.7 ],
             "adapter_t" : [ 1.0, 0.5, 0.5 ],
             "adapter_b" : [ 0.5, 0.5, 1.0 ],
+            "linker_cotrans" : [ 0.7, 0.9, 1.0 ],
             "RRRY" : [ 0.2, 1.0, 0.1 ],
             "YYYR" : [ 0.2, 0.7, 0.1 ],
             "error" : [ 0.9, 0.1, 0.2 ],
