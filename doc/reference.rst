@@ -14,3 +14,11 @@ Reference
    :members:
    :undoc-members:
 
+.. autoclass:: spats_shape_seq.reads.ReadsData
+   :members:
+   :undoc-members:
+
+.. autoclass:: spats_shape_seq.reads.ReadsAnalyzer
+   :members:
+   :undoc-members:
+

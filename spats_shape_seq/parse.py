@@ -1,4 +1,7 @@
 
+import os
+
+
 # not currently used in spats, but potentially useful for tools
 class FastqRecord(object):
 
@@ -52,6 +55,12 @@ class FastFastqParser(object):
                 if pair_length != len(r2_first):
                     raise Exception("Unexpected pair length mismatch in R1 vs R2: {} / {}".format(pair_length, len(r2_first)))
                 return pair_length
+
+    def appx_number_of_pairs(self):
+        with open(self.r1_path, 'rb') as r1_in:
+            # the +1 is since first records tend to be short, and we'd rather underestimate than overestimate
+            frag_len = 1 + len(r1_in.readline()) + len(r1_in.readline()) + len(r1_in.readline()) + len(r1_in.readline())
+        return int(float(os.path.getsize(self.r1_path)) / float(frag_len))
 
     def __enter__(self):
         self.r1_in = open(self.r1_path, 'rb')

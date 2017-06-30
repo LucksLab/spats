@@ -35,16 +35,48 @@ class PairDB(object):
         self.parse(r1_path, r2_path)
         self._cache_unique_pairs()
 
+    def _parse_and_sample(self, r1_path, r2_path, sample_size):
+        conn = self.conn
+        total = 0
+        show_progress_every = self.show_progress_every
+        next_report_count = show_progress_every
+        with FastFastqParser(r1_path, r2_path) as parser:
+            num_pairs_left = parser.appx_number_of_pairs()
+            num_sampled = 0
+            read_chunk_size = 65536
+            print "Sampling {} out of ~{} total pairs".format(sample_size, num_pairs_left)
+            while True:
+                pairs, count = parser.read(read_chunk_size)
+                if not pairs:
+                    break
+                if count < read_chunk_size:
+                    num_to_take = sample_size - num_sampled
+                else:
+                    num_to_take = int((float(count) / float(max(1, num_pairs_left))) * float(sample_size - num_sampled))
+                pairs = random.sample(pairs, min(num_to_take, count, sample_size - num_sampled))
+                conn.executemany("INSERT INTO pair (identifier, r1, r2) VALUES (?, ?, ?)", pairs)
+                num_sampled += len(pairs)
+                num_pairs_left -= count
+                if show_progress_every:
+                    next_report_count -= count
+                    if next_report_count < 0:
+                        next_report_count = show_progress_every
+                        sys.stdout.write('.')
+                        sys.stdout.flush()
+        conn.commit()
+        if show_progress_every:
+            print "."
 
-    # we might be able to speed this up by:
-    #  - some sqlite tricks like: conn.execute("PRAGMA synchronous=OFF"), conn.execute("PRAGMA cache_size=16000"), etc.
-    #  - parsing in one thread and inserting in another
-    # but for now this seems fast enough (~300k pairs/s?)
+    # we might be able to speed this up, but for now this seems fast enough (~300k pairs/s?)
     def parse(self, r1_path, r2_path, sample_size = 0):
         conn = self.conn
         conn.execute("DROP INDEX IF EXISTS r1_idx")
         conn.execute("DROP INDEX IF EXISTS r2_idx")
         self._create()
+
+        if sample_size:
+            return self._parse_and_sample(r1_path, r2_path, sample_size)
+
         total = 0
         show_progress_every = self.show_progress_every
         next_report_count = show_progress_every

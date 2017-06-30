@@ -8,7 +8,7 @@ SPATS Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: See also:
 
    advanced
    reference
@@ -21,6 +21,12 @@ See the `SPATS Homepage <http://luckslab.github.io/spats/>`_ for
 general information.
 
 .. automodule:: spats_shape_seq
+
+
+Reads Analyzer
+==============
+
+.. automodule:: spats_shape_seq.reads
 
 
 

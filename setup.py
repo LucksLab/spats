@@ -12,7 +12,7 @@ http://luckslab.github.io/spats/
 '''
 
 setup(name='spats_shape_seq',
-      version="1.9.1",
+      version="1.9.2",
       description=DESCRIPTION,
       long_description=README,
       classifiers=[

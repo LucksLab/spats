@@ -379,13 +379,12 @@ def test_tags():
     #                    bp + "data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq")
 
 
-
 def tags():
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
 
     from spats_shape_seq.db import PairDB
     pair_db = PairDB(bp + "db/pairs.db")
-    if False:
+    if True:
         print "Parsing to db..."
         pair_db.wipe()
         pair_db.add_targets_table(bp + "cotrans_single.fa")

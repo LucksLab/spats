@@ -24,9 +24,20 @@ pip_dist: unit
 	python setup.py sdist
 	twine upload dist/spats_shape_seq-${VERSION}.tar.gz
 
+local_install:
+	@(pip show -q spats_shape_seq && sudo pip uninstall -y -q spats_shape_seq) || echo
+	@rm -rf build dist
+	@python setup.py sdist
+	@sudo pip install dist/spats_shape_seq-${VERSION}.tar.gz
+
 .PHONY: docs
 docs:
 	@cd doc  &&  make html
+
+.PHONY: showdocs
+showdocs: docs
+	@open doc/build/html/index.html
+
 
 cjb: pkg/cjb.zip
 	@unzip pkg/cjb.zip
