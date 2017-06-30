@@ -44,7 +44,7 @@ class PairDB(object):
             num_pairs_left = parser.appx_number_of_pairs()
             num_sampled = 0
             read_chunk_size = 65536
-            print "Sampling {} out of ~{} total pairs".format(sample_size, num_pairs_left)
+            print "Sampling {} out of ~{:.1f}M total pairs".format(sample_size, float(num_pairs_left)/1000000.0)
             while True:
                 pairs, count = parser.read(read_chunk_size)
                 if not pairs:
@@ -57,6 +57,7 @@ class PairDB(object):
                 conn.executemany("INSERT INTO pair (identifier, r1, r2) VALUES (?, ?, ?)", pairs)
                 num_sampled += len(pairs)
                 num_pairs_left -= count
+                total += count
                 if show_progress_every:
                     next_report_count -= count
                     if next_report_count < 0:
@@ -66,6 +67,8 @@ class PairDB(object):
         conn.commit()
         if show_progress_every:
             print "."
+
+        return total
 
     # we might be able to speed this up, but for now this seems fast enough (~300k pairs/s?)
     def parse(self, r1_path, r2_path, sample_size = 0):

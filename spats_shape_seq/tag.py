@@ -33,6 +33,7 @@ class TagProcessor(PairProcessor):
 
     def prepare(self):
         self.uses_tags = True
+        self.minimum_tag_match_length = 6
         self._base_processor = PartialFindProcessor(self._run, self._targets, self._masks) #LookupProcessor(self._run, self._targets, self._masks)
         self._base_processor.prepare()
         self._tag_targets = Targets()
@@ -172,8 +173,8 @@ class TagProcessor(PairProcessor):
                 tags.append(TAG_LINKER)
         else:
             if not self._tag_targets_indexed:
-                self._tag_targets._minimum_length = 6
-                self._tag_targets._index_word_length = 6
+                self._tag_targets._minimum_length = self.minimum_tag_match_length
+                self._tag_targets._index_word_length = self.minimum_tag_match_length
                 self._tag_targets.index()
             for t in self._find_tag_names(pair):
                 tname = t.rstrip("_rc")
@@ -206,8 +207,8 @@ class TagProcessor(PairProcessor):
             return
 
         if not self._tag_targets_indexed:
-            self._tag_targets._minimum_length = 6
-            self._tag_targets._index_word_length = 6
+            self._tag_targets._minimum_length = self.minimum_tag_match_length
+            self._tag_targets._index_word_length = self.minimum_tag_match_length
             self._tag_targets.index()
 
         self._find_tags(pair)

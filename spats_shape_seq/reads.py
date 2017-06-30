@@ -54,6 +54,7 @@ run the visualization tool using: ``make viz``
 """
 
 import os
+import time
 
 from spats_shape_seq import Spats
 from spats_shape_seq.db import PairDB
@@ -86,14 +87,15 @@ class ReadsData(object):
 
            :param show_progress_every: default show a '.' for every 1 million pairs parsed. Set to 0 to disable output.
         """
-
+        start = time.time()
         print "Parsing to db..."
         pair_db = self.pair_db
         if show_progress_every:
             pair_db.show_progress_every = show_progress_every
         pair_db.wipe()
         pair_db.add_targets_table(target_path)
-        pair_db.parse(r1_path, r2_path, sample_size = sample_size)
+        total = pair_db.parse(r1_path, r2_path, sample_size = sample_size)
+        print "Sampled {} records in {:.1f}s".format(total, time.time() - start)
 
     @property
     def pair_db(self):
@@ -133,6 +135,7 @@ class ReadsAnalyzer(object):
         s.run.allow_indeterminate = True
         s.run.allowed_target_errors = 2
         s.run.allowed_adapter_errors = 2
+        s.run.num_workers = 1
         self._spats = s
 
     @property
