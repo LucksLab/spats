@@ -107,6 +107,40 @@ class Run(object):
         #: the cotrans target.
         self.cotrans_minimum_length = 20
 
+        #: Default ``6``, set to adjust the minimum length for matching tags for the reads analyzer.
+        self.minimum_tag_match_length = 6
+
         # private config
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
         self._processor_class = LookupProcessor
+
+    def config_dict(self):
+        config = {}
+        for attr in dir(self):
+            if attr.startswith('_'):
+                continue
+            val = getattr(self, attr)
+            if callable(val) or attr == "log":
+                continue
+            config[attr] = val
+        return config
+
+    def config_string(self):
+        config = self.config_dict()
+        return "\n".join([ "{} = {}".format(attr, config[attr]) for attr in config.keys() ])
+
+    def load_from_config(self, config_dict):
+        defaults = { "None" : None, "False" : False, "True" : True, "0" : 0 }
+        for key in config_dict.keys():
+            val = config_dict[key]
+            if val in defaults:
+                val = defaults[val]
+            elif val.startswith('['):
+                # TODO...not important for now
+                continue
+            else:
+                try:
+                    val = int(val)
+                except:
+                    pass
+            setattr(self, key, val)

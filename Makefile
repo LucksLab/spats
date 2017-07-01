@@ -30,6 +30,9 @@ local_install:
 	@python setup.py sdist
 	@sudo pip install dist/spats_shape_seq-${VERSION}.tar.gz
 
+local_uninstall:
+	@sudo pip uninstall -y -q spats_shape_seq
+
 .PHONY: docs
 docs:
 	@cd doc  &&  make html

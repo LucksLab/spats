@@ -115,6 +115,9 @@ portfile = /tmp/uif.port
 [data]
 dbfile = {}
 result_set_name = tags
+
+[run]
+{}
 '''
 
 
@@ -174,7 +177,7 @@ class ReadsAnalyzer(object):
         """
         cfg_path = os.path.expanduser("~/.spats_viz")
         if overwrite or not os.path.exists(cfg_path):
-            cfg_data = CFG_TEMPLATE.format(os.path.abspath(self._reads_data.db_path))
+            cfg_data = CFG_TEMPLATE.format(os.path.abspath(self._reads_data.db_path), self.run.config_string())
             open(cfg_path, 'wb').write(cfg_data)
             return True
         return False

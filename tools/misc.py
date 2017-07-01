@@ -431,6 +431,10 @@ def tquery():
     pair_db = PairDB(bp + "db/pairs.db")
     print pair_db.results_matching(1, [ "linker_cotrans", "adapter" ], [ "match" ])
 
+def t2t():
+    from spats_shape_seq.run import Run
+    r = Run()
+    print r.config_string()
 
 if __name__ == "__main__":
     import sys

@@ -18,8 +18,8 @@ from spats_shape_seq.util import reverse_complement
 class SpatsViz(cjb.uif.UIServer):
 
     def __init__(self):
-        self.config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))["server"]
-        self.data_config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))["data"]
+        self.all_config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))
+        self.config = self.all_config["server"]
         cjb.uif.UIServer.__init__(self, self.config["host"], int(self.config["port"]), self.config["portfile"])
         self.colors = viz.colorize.Colorize()
         self.addFilter(self.colors)
@@ -50,16 +50,18 @@ class SpatsViz(cjb.uif.UIServer):
 
 
     def _loadDBAndModel(self):
-        self._db = PairDB(self.data_config["dbfile"])
-        self.result_set_id = self._db.result_set_id_for_name(self.data_config["result_set_name"])
+        data_config = self.all_config["data"]
+        self._db = PairDB(data_config["dbfile"])
+        self.result_set_id = self._db.result_set_id_for_name(data_config["result_set_name"])
 
         s = Spats()
         s.run._processor_class = TagProcessor
         s.run.allow_indeterminate = True
         s.run.allowed_target_errors = 2
         s.run.allowed_adapter_errors = 2
-        s.run.cotrans = True
-        s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+        if "run" in self.all_config:
+            s.run.load_from_config(self.all_config["run"])
+
         s.loadTargets(self._db)
         p = s._processor
         for t in s._targets.targets:
