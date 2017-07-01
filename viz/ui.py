@@ -21,7 +21,7 @@ class SpatsViz(cjb.uif.UIServer):
         self.all_config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))
         self.config = self.all_config["server"]
         cjb.uif.UIServer.__init__(self, self.config["host"], int(self.config["port"]), self.config["portfile"])
-        self.colors = viz.colorize.Colorize()
+        self.colors = viz.colorize.Colorize(self.all_config.get("colors"))
         self.addFilter(self.colors)
         self.addFilter(viz.localizer.Localizer())
         self.reloadModel()
@@ -67,7 +67,7 @@ class SpatsViz(cjb.uif.UIServer):
         for t in s._targets.targets:
             p.addTagTarget(t.name, t.seq)
             p.addTagTarget(t.name + "_rc", reverse_complement(t.seq))
-            self.colors._colors[t.name] = self.colors.color("target")
+            self.colors._colors[t.name.lower()] = self.colors.color("target")
         p.addTagTarget("adapter_t_rc", reverse_complement(s.run.adapter_t))
         p.addTagTarget("adapter_b", s.run.adapter_b)
         p.addTagTarget("linker_cotrans", s.run.cotrans_linker)

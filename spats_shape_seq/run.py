@@ -1,4 +1,5 @@
 
+import ast
 import sys
 
 from lookup import LookupProcessor
@@ -130,17 +131,11 @@ class Run(object):
         return "\n".join([ "{} = {}".format(attr, config[attr]) for attr in config.keys() ])
 
     def load_from_config(self, config_dict):
-        defaults = { "None" : None, "False" : False, "True" : True, "0" : 0 }
         for key in config_dict.keys():
             val = config_dict[key]
-            if val in defaults:
-                val = defaults[val]
-            elif val.startswith('['):
-                # TODO...not important for now
-                continue
-            else:
-                try:
-                    val = int(val)
-                except:
-                    pass
+            try:
+                val = ast.literal_eval(val)
+            except:
+                pass
+            #print "run set {} = {} ({})".format(key, val, val.__class__)
             setattr(self, key, val)
