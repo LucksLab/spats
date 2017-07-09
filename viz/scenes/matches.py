@@ -48,6 +48,7 @@ class Matches(BaseScene):
         self.include_tags = include_tags
         self.exclude_tags = exclude_tags
         self.site = site
+        self.match_filter = ""
         BaseScene.__init__(self, ui, self.__class__.__name__)
 
     def addMatchView(self, matched_pair):
@@ -117,6 +118,7 @@ class Matches(BaseScene):
             self.total_matches = self.ui.db.count_matches(self.ui.result_set_id, self.include_tags, self.exclude_tags)
         matches = [ MatchedPair(p[2], p[3], p[4], p[0], p[1]) for p in pairs ]
         self.matchViews = [ self.addMatchView(m) for m in matches ]
+        self.filter_label = self.addView(cjb.uif.views.Label("Filter: <None>", fontSize = 11))
 
     def layoutMatch(self, view):
         grid = Grid(frame = view.frame.bounds(), itemSize = Size(10, 16), columns = 100, rows = 1)
@@ -140,6 +142,7 @@ class Matches(BaseScene):
         self.scroller = layoutInScroller(self.matchViews, cur, Size(1000, 14), 2, self.scroller)
         for v in self.matchViews:
             self.layoutMatch(v)
+        self.filter_label.frame = view.frame.topLeftSubrect(w = 200, h = 20, margin = 20)
         return view
 
     def processed_pair(self, matched_pair):
@@ -148,6 +151,16 @@ class Matches(BaseScene):
         self.ui.processor.process_pair_detail(pair)
         return pair
         
+    def update_filter(self):
+        f = self.match_filter
+        for v in self.matchViews:
+            p = v.obj
+            hidden = (f and f not in p.r1 and f not in p.r2)
+            if v.hidden != hidden:
+                v.hidden = hidden
+                self.sendViewMessage(v, "hide" if hidden else "show")
+        self.sendViewMessage(self.filter_label, "setText", "Filter: {}".format(self.match_filter or "<None>"))
+
     def handleViewMessage(self, scene, obj, message):
         if obj and (isinstance(obj, MatchedPair) or isinstance(obj, Nuc)):
             mp = obj if isinstance(obj, MatchedPair) else obj.context
@@ -158,4 +171,17 @@ class Matches(BaseScene):
                 self.ui.pushScene(RawPairScene(self.ui, pair, expanded = True))
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
+
+    def handleKeyEvent(self, keyInfo):
+        if keyInfo.get("s") == "DEL":
+            self.match_filter = self.match_filter[:-1]
+            self.update_filter()
+        elif keyInfo.get("t") in [ "a","c","g","t" ] and 1 == len(keyInfo):
+            self.match_filter += keyInfo["t"].upper()
+            self.update_filter()
+        elif keyInfo.get("t") == "x" and 1 == len(keyInfo):
+            self.match_filter = ""
+            self.update_filter()
+        else:
+            BaseScene.handleKeyEvent(self, keyInfo)
 
