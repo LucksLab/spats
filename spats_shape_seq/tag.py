@@ -39,6 +39,7 @@ class TagProcessor(PairProcessor):
         self._tag_targets = Targets()
         self._tag_targets_indexed = False
         self._extra_tags = []
+        self._plugins = {}
 
     def setup_tags(self, pair_db):
         pair_db.setup_tags()
@@ -46,11 +47,15 @@ class TagProcessor(PairProcessor):
         pair_db.add_tags([t.name for t in self._targets.targets])
         pair_db.add_tags(Failures.all_failures())
         pair_db.add_tags(self._extra_tags)
+        pair_db.add_tags(self._plugins.keys())
         self._tagmap = pair_db.tagmap()
 
     def addTagTarget(self, name, seq):
         self._extra_tags.append(name)
         self._tag_targets.addTarget(name, seq)
+
+    def addTagPlugin(self, tag, handler):
+        self._plugins[tag] = handler
 
     def _longest_unmatched(self, seq, tags):
         lstart, llen = 0, 0
@@ -180,6 +185,7 @@ class TagProcessor(PairProcessor):
                 self._tag_targets._minimum_length = self._run.minimum_tag_match_length
                 self._tag_targets._index_word_length = self._run.minimum_tag_match_length
                 self._tag_targets.index()
+                self._tag_targets_indexed = True
             for t in self._find_tag_names(pair):
                 tname = t.rstrip("_rc")
                 if tname.startswith("adapter"):
@@ -196,7 +202,13 @@ class TagProcessor(PairProcessor):
             tags.append(MASK_TO_TAG[pair.mask.chars])
         else:
             tags.append(TAG_MASK_FAILURE)
+
         pair.tags = [self._tagmap[t] for t in set(tags)]
+
+        for tag, handler in self._plugins.iteritems():
+            if handler(pair, tags):
+                pair.tags.append(self._tagmap[tag])
+
 
     def process_pair_detail(self, pair):
 
@@ -215,6 +227,7 @@ class TagProcessor(PairProcessor):
             self._tag_targets._minimum_length = self._run.minimum_tag_match_length
             self._tag_targets._index_word_length = self._run.minimum_tag_match_length
             self._tag_targets.index()
+            self._tag_targets_indexed = True
 
         self._find_tags(pair)
 

@@ -150,9 +150,10 @@ class ReadsAnalyzer(object):
         s.run.allow_indeterminate = True
         s.run.allowed_target_errors = 2
         s.run.allowed_adapter_errors = 2
-        s.run.num_workers = 1
+        s.run.num_workers = 8
         self._spats = s
         self._extra_tag_targets = []
+        self._plugins = {}
 
     @property
     def run(self):
@@ -162,6 +163,9 @@ class ReadsAnalyzer(object):
 
     def addTagTarget(self, name, tag):
         self._extra_tag_targets.append((name, tag))
+
+    def addTagPlugin(self, tag, handler):
+        self._plugins[tag] = handler
 
     def process_tags(self):
         """Processes the tags in the input data for the visualization tool.
@@ -180,6 +184,8 @@ class ReadsAnalyzer(object):
             p.addTagTarget("linker_cotrans_rc", reverse_complement(s.run.cotrans_linker))
         for tag in self._extra_tag_targets:
             p.addTagTarget(tag[0], tag[1])
+        for tag, handler in self._plugins.iteritems():
+            p.addTagPlugin(tag, handler)
 
         s.process_pair_db(pair_db)
         self.result_set_id = pair_db.result_set_id_for_name(s.run.result_set_name)
