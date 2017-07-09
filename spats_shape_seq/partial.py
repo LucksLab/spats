@@ -1,5 +1,5 @@
 
-from processor import PairProcessor
+from processor import PairProcessor, Failures
 from util import _warn, _debug, string_match_errors
 
 
@@ -13,7 +13,9 @@ class PartialFindProcessor(PairProcessor):
         target = pair.r1.find_in_targets(self._targets, reverse_complement = True)
         if isinstance(target, list):
             _debug("dropping pair due to multiple R1 match")
-            pair.failure = "multiple R1 match"
+            print pair.r1.original_seq
+            print target
+            pair.failure = Failures.multiple_R1
             self.counters.multiple_R1_match += pair.multiplicity
             return
         if target:
@@ -65,8 +67,10 @@ class PartialFindProcessor(PairProcessor):
             if not target or isinstance(target, list):
                 # note that target may be None if pair.r1.match_len is less than the index word length
                 _debug("dropping pair due to multiple R1 match after adapter trim")
+                print "multiple R1 trim: " + pair.r1.original_seq
+                print [r1_match_trimmed, r1_adapter_match, r1_length_to_trim]
                 pair.target = None
-                pair.failure = "multiple R1 match"
+                pair.failure = Failures.multiple_R1
                 self.counters.multiple_R1_match += pair.multiplicity
                 return False
 
@@ -82,7 +86,7 @@ class PartialFindProcessor(PairProcessor):
         self._find_matches(pair)
         if not pair.matched:
             self.counters.unmatched += pair.multiplicity
-            pair.failure = "no match"
+            pair.failure = Failures.nomatch
             return
 
 
@@ -94,11 +98,12 @@ class PartialFindProcessor(PairProcessor):
             linker = self._run.cotrans_linker
             linker_len = len(linker)
             if len(r1_rc) - r1_end < linker_len:
-                pair.failure = "R1 linker length failure"
-                return
+                delta = linker_len - (len(r1_rc) - r1_end)
+                pair.r1.match_len -= delta
+                r1_end -= delta
             pair.r1.linker_errors = string_match_errors(linker, r1_rc[r1_end:r1_end+linker_len])
             if len(pair.r1.linker_errors) > self._run.allowed_adapter_errors:
-                pair.failure = "R1 linker match failure"
+                pair.failure = Failures.linker
                 return
             pair.r1.match_len += linker_len
 
@@ -106,15 +111,18 @@ class PartialFindProcessor(PairProcessor):
         # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
         r2_start_in_target = pair.r2.match_index - pair.r2.match_start
         if r2_start_in_target < 0:
-            pair.failure = "R2 to left of site 0 failure on R2 for: {}".format(pair.identifier)
+            pair.failure = Failures.left_of_zero
             self.counters.left_of_target += pair.multiplicity
             return
         elif r2_start_in_target + pair.r2.original_len <= pair.target.n:
             # we're in the middle -- no problem
             pass
+        elif self._run.cotrans and r2_start_in_target + pair.r2.original_len <= pair.target.n + len(self._run.cotrans_linker):
+            # we're still in the middle due to cotrans linker
+            pass
         elif not self._trim_adapters(pair):
             # we're over the right edge, and adapter trimming failed
-            pair.failure = pair.failure or "adapter trim failure"
+            pair.failure = pair.failure or Failures.adapter_trim
             self.counters.adapter_trim_failure += pair.multiplicity
             return
         else:
@@ -137,7 +145,7 @@ class PartialFindProcessor(PairProcessor):
                     _debug("R1 errors: {}".format(pair.r1.match_errors))
                 if pair.r2.match_errors:
                     _debug("R2 errors: {}".format(pair.r2.match_errors))
-                pair.failure = "match errors failure"
+                pair.failure = Failures.match_errors
                 self.counters.match_errors += pair.multiplicity
                 return
 
@@ -150,9 +158,9 @@ class PartialFindProcessor(PairProcessor):
         else:
             # NOTE: this might change later due to "starts"
             if pair.right != n:
-                pair.failure = "R1 right edge failure: {} - {}, n={}".format(pair.left, pair.right, n)
+                pair.failure = Failures.right_edge
                 self.counters.r1_not_on_right_edge += pair.multiplicity
                 return
 
-        pair.register_count(pair.right)
-        self.counters.processed_pairs += pair.multiplicity
+        pair.site = pair.site or pair.left
+        self.counters.register_count(pair)

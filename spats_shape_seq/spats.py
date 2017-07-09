@@ -362,20 +362,19 @@ class Spats(object):
     def _report_counts(self, delta = None):
         counters = self._processor.counters
         total = counters.total_pairs
-        print "Successfully processed {} properly paired fragments:".format(counters.processed_pairs)
+        print "Successfully processed {} properly paired fragments:".format(counters.registered_pairs)
         warn_keys = [ "multiple_R1_match", ]
         countinfo = counters.counts_dict()
         for key in sorted(countinfo.keys(), key = lambda k : countinfo[k], reverse = True):
             print "  {}{} : {} ({:.1f}%)".format("*** " if key in warn_keys else "", key, countinfo[key], 100.0 * (float(countinfo[key])/float(total)) if total else 0)
         print "Masks:"
-        tmap = { t.name : 0 for t in self._targets.targets }
         for m in self._masks:
-            print "  {}: kept {}/{} ({:.1f}%)".format(m.chars, m.kept, m.total, (100.0 * float(m.kept)) / float(m.total) if m.total else 0)
-        for t in self._targets.targets:
-            tmap[t.name] += sum(m.counts(t))
+            kept, total = counters.mask_kept(m), counters.mask_total(m)
+            print "  {}: kept {}/{} ({:.1f}%)".format(m.chars, kept, total, (100.0 * float(kept)) / float(total) if total else 0)
         if 1 < len(self._targets.targets):
             print "Targets:"
-            total = counters.processed_pairs
+            tmap = { t.name : counters.target_total(t) for t in self._targets.targets }
+            total = counters.registered_pairs
             for tgt in sorted(self._targets.targets, key = lambda t : tmap[t.name], reverse = True):
                 if tmap[tgt.name] > 0:
                     print "  {}: {} ({:.1f}%)".format(tgt.name, tmap[tgt.name], (100.0 * float(tmap[tgt.name])) / float(total) if total else 0)

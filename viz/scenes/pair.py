@@ -1,5 +1,6 @@
 
 import cjb.uif
+import cjb.util
 from cjb.uif.layout import Size, Grid, Rect
 from cjb.uif.views import Label
 from spats_shape_seq.util import reverse_complement
@@ -34,6 +35,13 @@ class RawPairScene(BaseScene):
         self.nucSize = Size(12, 18)
         BaseScene.__init__(self, ui, self.__class__.__name__)
 
+    def dump(self, message = None):
+        cjb.util.writeJsonToPath({ "id" : self.pair.identifier,
+                                   "r1" : self.pair.r1.original_seq,
+                                   "r2" : self.pair.r2.original_seq },
+                                 "/tmp/spats_test.json")
+        print "Dumped to /tmp/spats_test.json"
+
     def addNucView(self, nuc, bg):
         v = cjb.uif.views.Button(obj = nuc)
         v.sideSpacing = 0
@@ -44,6 +52,7 @@ class RawPairScene(BaseScene):
     def build(self):
 
         BaseScene.build(self)
+        self.targetButton(self.dump)
 
         processor = self.ui.processor
         seqs = {
@@ -89,6 +98,7 @@ class RawPairScene(BaseScene):
 
     def layout(self, view):
         BaseScene.layout(self, view)
+        self.buttonWithKey('dump').frame = view.frame.topLeftSubrect(size = buttonSize, margin = 20)
         cols = 100
         rows = 40
         frame = view.frame.centeredSubrect(self.nucSize.w * cols, self.nucSize.h * rows)

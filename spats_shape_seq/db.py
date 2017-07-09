@@ -3,15 +3,41 @@ import os
 import random
 import sqlite3
 import sys
+import time
 
 from parse import FastFastqParser
+
+SHOW_SLOW_QUERIES = False
+
+class _ConnWrapper(object):
+    def __init__(self, conn):
+        self._conn = conn
+    def execute(self, query, args = []):
+        start = time.time()
+        res = self._conn.execute(query, args)
+        delta = time.time() - start
+        if delta > 1.0:
+            print "VERY SLOW [{:.1f}s]: ".format(delta) + query
+        elif delta > 0.1:
+            print "SLOW [{:.01f}s]: ".format(delta) + query
+        return res
+    def executemany(self, query, multiargs):
+        return self._conn.executemany(query, multiargs)
+    def cursor(self):
+        return self._conn.cursor()
+    def commit(self):
+        self._conn.commit()
 
 class PairDB(object):
 
     def __init__(self, database_path = None):
         self._dbpath = database_path or ":memory:"
-        self.conn = sqlite3.connect(self._dbpath)
+        self.conn = self._get_connection()
         self.show_progress_every = False
+
+    def _get_connection(self):
+        conn = sqlite3.connect(self._dbpath)
+        return _ConnWrapper(conn) if SHOW_SLOW_QUERIES else conn
 
     def wipe(self):
         self.conn.execute("DROP TABLE IF EXISTS pair")
@@ -194,7 +220,7 @@ class PairDB(object):
 
     # results storing
     def _prepare_results(self):
-        self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, site INT, mask TEXT, multiplicity INT, failure TEXT)")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, site INT, mask TEXT, multiplicity INT, failure TEXT, tag_mask INT)")
         self.conn.execute("DROP INDEX IF EXISTS pair_result_idx")
 
     def add_result_set(self, set_name, resume_processing = False):
@@ -219,13 +245,14 @@ class PairDB(object):
 
     def add_results_with_tags(self, result_set_id, results):
         # grab a new connection since this might be in a new process (due to multiprocessing)
-        conn = sqlite3.connect(self._dbpath)
-        stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
-                  VALUES ({}, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
+        conn = self._get_connection()
+        stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure, tag_mask)
+                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
         rstmt_template = 'INSERT INTO result_tag (set_id, result_id, tag_id) VALUES ({}, {}, ?)'
         for res in results:
             cursor = conn.cursor()
-            cursor.execute(stmt, res[:6])
+            mask = sum([ 1 << t for t in res[6] ])
+            cursor.execute(stmt, [ res[i] if i < 6 else mask for i in range(7) ])
             rstmt = rstmt_template.format(result_set_id, cursor.lastrowid)
             cursor.executemany(rstmt, [ (t,) for t in res[6] ])
         conn.commit()
@@ -305,36 +332,21 @@ class PairDB(object):
         return { str(res[0]) : int(res[1]) for res in self.conn.execute(query, (result_set_id,)) }
 
     def _tag_query(self, incl_tags, excl_tags):
-        if not incl_tags and not excl_tags:
-            query = '''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity AS mult, r.rowid AS rrid
-                       FROM result_tag rt
-                       JOIN result r ON r.rowid=rt.result_id
-                       JOIN pair p ON p.rowid=r.pair_id
-                       WHERE rt.set_id=?
-                       GROUP BY p.rowid
-                       ORDER BY r.multiplicity DESC'''
-
-        else:
-            tagmap = self.tagmap()
-            tag_clause = ''
-            def _mask(tags):
-                return sum([ 1 << tagmap[t] for t in tags ])
-
-            if incl_tags:
-                mask = _mask(incl_tags)
-                tag_clause += "(mask & {} == {})".format(mask, mask)
-            if excl_tags:
-                mask = _mask(excl_tags)
-                mask = sum([ 1 << tagmap[t] for t in excl_tags ])
-                tag_clause += (" AND " if tag_clause else "") + "(mask & {} == 0)".format(mask)
-            query = '''SELECT * FROM (
-                         SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity as mult, r.rowid AS rrid, SUM(1 << rt.tag_id) AS mask
-                         FROM result_tag rt
-                         JOIN result r ON r.rowid=rt.result_id
-                         JOIN pair p ON p.rowid=r.pair_id
-                         WHERE rt.set_id=?
-                         GROUP BY p.rowid)
-                       WHERE ''' + tag_clause + ' ORDER BY mult DESC'
+        tagmap = self.tagmap()
+        tag_clause = ''
+        def _mask(tags):
+            return sum([ 1 << tagmap[t] for t in tags ])
+        if incl_tags:
+            mask = _mask(incl_tags)
+            tag_clause += " AND (tag_mask & {} == {})".format(mask, mask)
+        if excl_tags:
+            mask = _mask(excl_tags)
+            mask = sum([ 1 << tagmap[t] for t in excl_tags ])
+            tag_clause += " AND (tag_mask & {} == 0)".format(mask)
+        query = '''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity as mult, r.rowid AS rrid, r.tag_mask
+                   FROM result r
+                   JOIN pair p ON p.rowid=r.pair_id
+                   WHERE r.set_id=?''' + tag_clause + ' ORDER BY mult DESC'
         return query
 
     def results_matching(self, result_set_id, incl_tags = None, excl_tags = None, limit = 0):

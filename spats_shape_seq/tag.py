@@ -1,7 +1,7 @@
 
 from lookup import LookupProcessor
 from partial import PartialFindProcessor
-from processor import PairProcessor
+from processor import PairProcessor, Failures
 from target import Targets
 from util import _warn, _debug, string_match_errors
 
@@ -34,6 +34,7 @@ class TagProcessor(PairProcessor):
     def prepare(self):
         self.uses_tags = True
         self._base_processor = PartialFindProcessor(self._run, self._targets, self._masks) #LookupProcessor(self._run, self._targets, self._masks)
+        self.counters = self._base_processor.counters
         self._base_processor.prepare()
         self._tag_targets = Targets()
         self._tag_targets_indexed = False
@@ -42,6 +43,7 @@ class TagProcessor(PairProcessor):
         pair_db.setup_tags()
         pair_db.add_tags(ALL_TAGS)
         pair_db.add_tags([t.name for t in self._targets.targets])
+        pair_db.add_tags(Failures.all_failures())
         self._tagmap = pair_db.tagmap()
 
     def addTagTarget(self, name, seq):
@@ -183,6 +185,8 @@ class TagProcessor(PairProcessor):
                     tags.append(tname)
             if 0 == len(tags):
                 tags.append(TAG_UNKNOWN)
+            if pair.failure:
+                tags.append(pair.failure)
         if not pair.is_determinate():
             tags.append(TAG_INDETERMINATE)
         if pair.mask:
@@ -190,7 +194,6 @@ class TagProcessor(PairProcessor):
         else:
             tags.append(TAG_MASK_FAILURE)
         pair.tags = [self._tagmap[t] for t in set(tags)]
-        self.counters.processed_pairs += pair.multiplicity
 
     def process_pair_detail(self, pair):
 

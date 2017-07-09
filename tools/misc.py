@@ -431,10 +431,28 @@ def tquery():
     pair_db = PairDB(bp + "db/pairs.db")
     print pair_db.results_matching(1, [ "linker_cotrans", "adapter" ], [ "match" ])
 
-def t2t():
-    from spats_shape_seq.run import Run
-    r = Run()
-    print r.config_string()
+def tag_test():
+    from spats_shape_seq import Spats
+    s = Spats()
+    s.run.cotrans = True
+    s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    from spats_shape_seq.partial import PartialFindProcessor
+    s.run._processor_class = PartialFindProcessor
+
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
+    s.addTargets(bp + "cotrans_single.fa")
+
+    from spats_shape_seq.pair import Pair
+    pair = Pair()
+    import cjb.util
+    d = cjb.util.jsonAtPath("/tmp/spats_test.json")
+    pair.set_from_data(str(d['id']), str(d['r1']), str(d['r2']))
+    print "{}\n{} / {}".format(pair.identifier, pair.r1.original_seq, pair.r2.original_seq)
+    s.process_pair(pair)
+    if pair.has_site:
+        print "{}: {} / {}".format(pair.target.name, pair.site, pair.right)
+    else:
+        print "FAIL: {}".format(pair.failure)
 
 if __name__ == "__main__":
     import sys

@@ -22,7 +22,6 @@ class Colorize(cjb.uif.Filter):
         if custom_colors:
             for key in custom_colors.keys():
                 self._colors[key] = ast.literal_eval(custom_colors[key])
-            print self._colors
 
     def color(self, key):
         return self._colors[key.lower()]

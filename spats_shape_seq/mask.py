@@ -26,9 +26,6 @@ class Mask(object):
     def __init__(self, chars):
         self.chars = chars.upper()
         self.values = [ char_to_mask[ch] for ch in chars ]
-        self.total = 0
-        self.kept = 0
-        self._counts = {}
 
     def matches(self, seq):
         # raises if len(seq) < len(self.values)
@@ -38,27 +35,6 @@ class Mask(object):
             if 0 == (seqval & maskvals[i]):
                 return False
         return True
-
-    def register_count(self, target, site, end, multiplicity = 1):
-        # TODO: handle end
-        self.counts(target)[site] += multiplicity
-        self.kept += multiplicity
-
-    def counts(self, target):
-        counts = self._counts.get(target.name)
-        if not counts:
-            counts = [ 0 for x in range(target.n + 1) ]
-            self._counts[target.name] = counts
-        return counts
-
-    def count_data(self):
-        return self._counts
-
-    def update_with_count_data(self, count_data, target_map):
-        for key, values in count_data.iteritems():
-            our_counts = self.counts(target_map[key])
-            for j in range(len(values)):
-                our_counts[j] += values[j]
 
 
 # returns (left, right), where 'left' is the max number of chars extending to the left,

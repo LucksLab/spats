@@ -1,5 +1,5 @@
 
-from processor import PairProcessor
+from processor import PairProcessor, Failures
 from util import _warn, _debug, reverse_complement
 
 
@@ -22,15 +22,10 @@ class LookupProcessor(PairProcessor):
         if not self._check_indeterminate(pair) or not self._match_mask(pair):
             return
 
-        if not self._run.allow_indeterminate  and  not pair.is_determinate():
-            pair.failure = "indeterminate sequence failure"
-            self.counters.indeterminate += pair.multiplicity
-            return
-
         targets = self._targets
         r1_res = targets.r1_lookup.get(pair.r1.original_seq[4:])
         if not r1_res or not r1_res[0]:
-            pair.failure = "no match"
+            pair.failure = Failures.nomatch
             return
 
         site = -1
@@ -44,7 +39,7 @@ class LookupProcessor(PairProcessor):
             if r2_res is not None:
                 match_site = r2_res
             else:
-                pair.failure = "no match"
+                pair.failure = Failures.nomatch
                 return
         else:
             match_site = r1_res[1]
@@ -56,10 +51,10 @@ class LookupProcessor(PairProcessor):
             if adapter_len <= 0 or self._adapter_t_rc[:adapter_len] == pair.r2.original_seq[-adapter_len:]:
                 site = match_site
             else:
-                pair.failure = "adapter trim failure"
+                pair.failure = Failures.adapter_trim
                 return
         else:
-            pair.failure = "no match"
+            pair.failure = Failures.nomatch
             return
 
         if site is None or site == -1:
@@ -71,7 +66,7 @@ class LookupProcessor(PairProcessor):
             adapter_len = pair.r1.original_len - match_len - 4
             r1_match = reverse_complement(target.seq[-match_len:]) + self._run.adapter_b[:adapter_len]
             if pair.r1.original_seq[4:] != r1_match:
-                pair.failure = "R1/R2 mismatch"
+                pair.failure = Failures.mismatch
                 return
 
         pair.target = target
@@ -79,5 +74,4 @@ class LookupProcessor(PairProcessor):
         n = target.n
 
         assert(pair.site is not None)
-        pair.register_count()
-        self.counters.processed_pairs += pair.multiplicity
+        self.counters.register_count(pair)

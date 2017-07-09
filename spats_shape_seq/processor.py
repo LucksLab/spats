@@ -1,5 +1,27 @@
 
-from util import _warn, _debug, Counters, reverse_complement, string_match_errors
+from counters import Counters
+from util import _warn, _debug, reverse_complement, string_match_errors
+
+class Failures(object):
+    mask = "mask failure"
+    indeterminate = "indeterminate sequence failure"
+    nomatch = "no match"
+    adapter_trim = "adapter trim failure"
+    mismatch = "R1/R2 mismatch"
+    multiple_R1 = "multiple R1 match"
+    linker = "R1 linker failure"
+    left_of_zero = "R2 to left of site 0 failure"
+    match_errors = "match errors failure"
+    right_edge = "R1 right edge failure"
+
+    @staticmethod
+    def all_failures():
+        failures = []
+        for attr in dir(Failures):
+            if attr == "all_failures" or attr.startswith('_'):
+                continue
+            failures.append(getattr(Failures, attr))
+        return failures
 
 
 class PairProcessor(object):
@@ -24,14 +46,15 @@ class PairProcessor(object):
         for mask in self._masks:
             if mask.matches(seq):
                 pair.set_mask(mask)
+                self.counters.increment_mask(mask, pair.multiplicity)
                 return True
         self.counters.mask_failure += pair.multiplicity
-        pair.failure = "mask failure"
+        pair.failure = Failures.mask
         return False
 
     def _check_indeterminate(self, pair):
         if not self._run.allow_indeterminate  and  not pair.is_determinate():
-            pair.failure = "indeterminate sequence failure"
+            pair.failure = Failures.indeterminate
             self.counters.indeterminate += pair.multiplicity
             return False
         return True

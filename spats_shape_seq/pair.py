@@ -37,7 +37,6 @@ class Pair(object):
 
     def set_mask(self, mask):
         self.mask = mask
-        mask.total += self.multiplicity
         self.r1._ltrim = 4
 
     @property
@@ -55,8 +54,3 @@ class Pair(object):
     @property
     def right(self):
         return self.r1.right
-
-    def register_count(self, end = -1):
-        if self.site is None:
-            self.site = self.left
-        self.mask.register_count(self.target, self.site, end, self.multiplicity)

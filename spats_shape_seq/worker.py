@@ -58,7 +58,7 @@ class SpatsWorker(object):
                     sys.stdout.write('.')#str(worker_id))
                     sys.stdout.flush()
 
-            self._pairs_done.put((processor.counters._counts, [(m.total, m.kept, m.count_data()) for m in processor._masks]))
+            self._pairs_done.put(processor.counters.count_data())
         except:
             print "**** Worker exception, aborting..."
             raise
@@ -153,17 +153,7 @@ class SpatsWorker(object):
             try:
                 while 1 < num_workers:
                     data = self._pairs_done.get_nowait()
-                    their_counters = data[0]
-                    our_counters = processor.counters._counts
-                    for key, value in their_counters.iteritems():
-                        if key != "_counts":
-                            our_counters[key] = our_counters.get(key, 0) + value
-                    for i in range(len(processor._masks)):
-                        m = processor._masks[i]
-                        d = data[1][i]
-                        m.total += d[0]
-                        m.kept += d[1]
-                        m.update_with_count_data(d[2], targets)
+                    processor.counters.update_with_count_data(data)
                     num_accumulated += 1
                     if not quiet:
                         sys.stdout.write('x')
