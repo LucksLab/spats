@@ -220,8 +220,9 @@ class PairDB(object):
 
     # results storing
     def _prepare_results(self):
-        self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, site INT, mask TEXT, multiplicity INT, failure TEXT, tag_mask INT)")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, mask TEXT, site INT, end INT, multiplicity INT, failure TEXT, tag_mask INT)")
         self.conn.execute("DROP INDEX IF EXISTS pair_result_idx")
+        self.conn.execute("DROP INDEX IF EXISTS result_site_idx")
 
     def add_result_set(self, set_name, resume_processing = False):
         self._prepare_results()
@@ -246,15 +247,15 @@ class PairDB(object):
     def add_results_with_tags(self, result_set_id, results):
         # grab a new connection since this might be in a new process (due to multiprocessing)
         conn = self._get_connection()
-        stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure, tag_mask)
-                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, multiplicity, failure, tag_mask)
+                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
         rstmt_template = 'INSERT INTO result_tag (set_id, result_id, tag_id) VALUES ({}, {}, ?)'
         for res in results:
             cursor = conn.cursor()
-            mask = sum([ 1 << t for t in res[6] ])
-            cursor.execute(stmt, [ res[i] if i < 6 else mask for i in range(7) ])
+            mask = sum([ 1 << t for t in res[7] ])
+            cursor.execute(stmt, [ res[i] if i < 7 else mask for i in range(8) ])
             rstmt = rstmt_template.format(result_set_id, cursor.lastrowid)
-            cursor.executemany(rstmt, [ (t,) for t in res[6] ])
+            cursor.executemany(rstmt, [ (t,) for t in res[7] ])
         conn.commit()
 
     # results a list of (rowid, target_name, site, mask, multiplicity, failure, [optional: tags])
@@ -265,8 +266,8 @@ class PairDB(object):
         # grab a new connection since this might be in a new process (due to multiprocessing)
         #print " --> Thd in AR {}".format(self.worker_id)
         conn = sqlite3.connect(self._dbpath)
-        stmt = '''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
-                  VALUES ({}, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, multiplicity, failure)
+                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
         cursor = conn.executemany(stmt, results)
         if cursor.rowcount != len(results):
             raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
@@ -274,26 +275,26 @@ class PairDB(object):
 
     def index_results(self):
         self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS pair_result_idx ON result (set_id, pair_id)")
+        self.conn.execute("CREATE INDEX IF NOT EXISTS result_site_idx ON result (set_id, target, mask, end)")
 
     def num_results(self, result_set_name):
         return self._fetch_one("SELECT count(*) FROM result r JOIN result_set n ON r.set_id = n.rowid WHERE n.set_id = ?", (result_set_name,))
 
     def differing_results(self, result_set_name_1, result_set_name_2):
-        self.index_results()
         id1 = self.result_set_id_for_name(result_set_name_1)
         id2 = self.result_set_id_for_name(result_set_name_2)
-        return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.site, s1.failure, s2.target, s2.site, s2.failure
+        return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.end, s1.site, s1.failure, s2.target, s2.end, s2.site, s2.failure
                                     FROM result s1 JOIN result s2 ON s2.set_id=? AND s2.pair_id=s1.pair_id
                                     JOIN pair p ON p.rowid=s1.pair_id
-                                    WHERE s1.set_id=? AND (s1.site != s2.site OR s1.target != s2.target)''', (id2, id1))
+                                    WHERE s1.set_id=? AND (s1.site != s2.site OR s1.end != s2.end OR s1.target != s2.target)''', (id2, id1))
 
 
     def result_sites(self, result_set_id, target_id):
-        return self.conn.execute('''SELECT r.mask, r.site, SUM(r.multiplicity)
+        return self.conn.execute('''SELECT r.mask, r.end, r.site, SUM(r.multiplicity)
                                     FROM result r
                                     WHERE r.set_id = ? AND r.target = ? AND r.site != -1
-                                    GROUP BY r.mask||r.site
-                                    ORDER BY r.site ASC''', (result_set_id, target_id))
+                                    GROUP BY r.mask||r.end||r.site
+                                    ORDER BY r.end, r.site ASC''', (result_set_id, target_id))
 
     # results analysis
     def setup_tags(self):
@@ -361,15 +362,20 @@ class PairDB(object):
         query = 'SELECT SUM(mult) FROM ( ' + query + ' )'
         return self._fetch_one(query, (result_set_id,))
 
-    def results_matching_site(self, result_set_id, target_id, site, limit = 0):
+    def results_matching_site(self, result_set_id, target_id, end, site, limit = 0):
         results =  self.conn.execute('''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity
                                         FROM result r
                                         JOIN pair p ON p.rowid=r.pair_id
-                                        WHERE r.set_id=? AND r.target=? AND r.site=?
+                                        WHERE r.set_id=? AND r.target=? AND r.site=? AND r.end=?
                                         ORDER BY r.multiplicity DESC ''' +
                                      'LIMIT {}'.format(limit) if limit > 0 else '',
-                                     (result_set_id, target_id, site))
+                                     (result_set_id, target_id, site, end))
         return [ ( int(r[0]), str(r[1]), str(r[2]), str(r[3]), int(r[4]) ) for r in results ]
+
+    def counter_data_for_results(self, result_set_id):
+        results =  self.conn.execute('SELECT target, mask, site, end, multiplicity FROM result WHERE set_id=? AND site != -1 AND end != -1', (result_set_id,))
+        return [ ( int(r[0]), str(r[1]), int(r[2]), int(r[3]), int(r[4]) ) for r in results ]
+
 
     #v102 delta analysis
     def _create_v102(self):

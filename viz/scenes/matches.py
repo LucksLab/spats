@@ -110,7 +110,7 @@ class Matches(BaseScene):
     def build(self):
         BaseScene.build(self)
         if self.site:
-            pairs = self.ui.db.results_matching_site(self.ui.result_set_id, self.site.target_id, self.site.index, limit = 50)
+            pairs = self.ui.db.results_matching_site(self.ui.result_set_id, self.site.target_id, self.site.end, self.site.site, limit = 50)
             self.total_matches = self.site.total
         else:
             pairs = self.ui.db.results_matching(self.ui.result_set_id, self.include_tags, self.exclude_tags, limit = 50)

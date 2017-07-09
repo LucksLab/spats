@@ -38,16 +38,18 @@ class SpatsWorker(object):
                         if tagged:
                             results.append((lines[3],
                                             pair.target.rowid if pair.target else None,
-                                            pair.site if pair.has_site else -1,
                                             pair.mask.chars if pair.mask else None,
+                                            pair.site if pair.has_site else -1,
+                                            pair.end if pair.has_site else -1,
                                             pair.multiplicity,
                                             pair.failure,
                                             pair.tags))
                         else:
                             results.append((lines[3],
                                             pair.target.rowid if pair.target else None,
-                                            pair.site if pair.has_site else -1,
                                             pair.mask.chars if pair.mask else None,
+                                            pair.site if pair.has_site else -1,
+                                            pair.end if pair.has_site else -1,
                                             pair.multiplicity,
                                             pair.failure))
 
@@ -207,16 +209,18 @@ class SpatsWorker(object):
                             if tagged:
                                 results.append((lines[3],
                                                 pair.target.rowid if pair.target else None,
-                                                pair.site if pair.has_site else -1,
                                                 pair.mask.chars if pair.mask else None,
+                                                pair.site if pair.has_site else -1,
+                                                pair.end if pair.has_site else -1,
                                                 pair.multiplicity,
                                                 pair.failure,
                                                 pair.tags))
                             else:
                                 results.append((lines[3],
                                                 pair.target.rowid if pair.target else None,
-                                                pair.site if pair.has_site else -1,
                                                 pair.mask.chars if pair.mask else None,
+                                                pair.site if pair.has_site else -1,
+                                                pair.end if pair.has_site else -1,
                                                 pair.multiplicity,
                                                 pair.failure))
                     if not quiet:

@@ -53,6 +53,7 @@ class SpatsViz(cjb.uif.UIServer):
         data_config = self.all_config["data"]
         self._db = PairDB(data_config["dbfile"])
         self.result_set_id = self._db.result_set_id_for_name(data_config["result_set_name"])
+        self._db.index_results()
 
         s = Spats()
         s.run._processor_class = TagProcessor
@@ -72,6 +73,9 @@ class SpatsViz(cjb.uif.UIServer):
         p.addTagTarget("adapter_b", s.run.adapter_b)
         p.addTagTarget("linker_cotrans", s.run.cotrans_linker)
         p.addTagTarget("linker_cotrans_rc", reverse_complement(s.run.cotrans_linker))
+
+        p.counters.load_from_db_data(self._db.counter_data_for_results(self.result_set_id))
+
         self._spats = s
 
     def home(self, message = None):

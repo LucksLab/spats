@@ -4,14 +4,22 @@ import math
 
 class Profiles(object):
 
-    def __init__(self, targets, masks):
+    def __init__(self, targets, run, counters):
         self._targets = targets
+        self._counters = counters
+        masks = run.masks
         profiles = {}
         for target in self._targets.targets:
-            # assume first mask is treated
-            if len(masks) != 2:
-                raise Exception("Expect exactly two masks to distinguish treated/untreated.")
-            profiles[target.name] = TargetProfiles(target, masks[0].counts(target), masks[1].counts(target))
+            n = len(target.seq)
+            if run.cotrans:
+                for end in range(run.cotrans_minimum_length, n + 1):
+                    profiles["{}_{}".format(target.name, end)] = TargetProfiles(target,
+                                                                                counters.mask_counts(target, masks[0], end),
+                                                                                counters.mask_counts(target, masks[1], end))
+            else:
+                profiles[target.name] = TargetProfiles(target,
+                                                       counters.mask_counts(target, masks[0], n),
+                                                       counters.mask_counts(target, masks[1], n))
         self._profiles = profiles
 
     def profilesForTarget(self, target):
@@ -19,6 +27,9 @@ class Profiles(object):
 
     def profilesForTargetNamed(self, target_name):
         return self._profiles[target_name]
+
+    def profilesForTargetAndEnd(self, target_name, end):
+        return self._profiles["{}_{}".format(target_name, end)]
 
     def compute(self):
         for profile in self._profiles.values():
@@ -39,9 +50,9 @@ class TargetProfiles(object):
         self.untreated_counts = untreated_counts
 
     def compute(self):
-        n = self._target.n
         treated_counts = self.treated_counts
         untreated_counts = self.untreated_counts
+        n = len(treated_counts) - 1
         betas = [ 0 for x in range(n+1) ]
         thetas = [ 0 for x in range(n+1) ]
         treated_sum = 0.0    # keep a running sum

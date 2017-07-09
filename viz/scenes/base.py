@@ -35,7 +35,7 @@ class BaseScene(cjb.uif.Scene):
         return self.addView(Label(txt, fontSize = 11, bg = bg))
 
     def addModelView(self, obj):
-        self.addView(cjb.uif.views.Button(obj = obj))
+        return self.addView(cjb.uif.views.Button(obj = obj))
 
     def addModelViews(self, objs):
         map(self.addModelView, objs)

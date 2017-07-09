@@ -153,8 +153,10 @@ class PartialFindProcessor(PairProcessor):
         assert(pair.matched and pair.left >= 0 and pair.left <= n)
 
         if self._run.cotrans:
-            # we already verified it matches up with end (linker) above.
-            pass
+            # we already verified it matches up with end (linker) above. just make sure about minimum len now.
+            if pair.right <= self._run.cotrans_minimum_length:
+                pair.failure = Failures.cotrans_min
+                return
         else:
             # NOTE: this might change later due to "starts"
             if pair.right != n:

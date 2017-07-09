@@ -54,3 +54,8 @@ class Pair(object):
     @property
     def right(self):
         return self.r1.right
+
+    @property
+    def end(self):
+        return self.right
+

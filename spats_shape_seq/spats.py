@@ -388,7 +388,7 @@ class Spats(object):
            :return: a :class:`.profiles.Profiles` object, which contains the reactivities for all targets.
         """
 
-        self._profiles = Profiles(self._targets, self._masks)
+        self._profiles = Profiles(self._targets, self.run, self._processor.counters)
         self._profiles.compute()
         return self._profiles
 
