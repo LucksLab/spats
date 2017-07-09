@@ -63,10 +63,7 @@ class RawPairScene(BaseScene):
             seqs[target.name] = target.seq
         self.tag_seqs = seqs
 
-        tag_colors = {}
         colors = self.ui.colors
-        for col in colors._colors.keys():
-            tag_colors[col] = colors.color(col)
         color_idx = 1
         for part_name in ( "r1", "r2" ):
             part = getattr(self.pair, part_name)
@@ -76,11 +73,7 @@ class RawPairScene(BaseScene):
             for tindex in range(len(part.tags)):
                 tag = part.tags[tindex]
                 tkey = tag[0].rstrip("_rc_")
-                tcol = tag_colors.get(tkey)
-                if not tcol:
-                    tcol = TAG_COLORS[color_idx % len(TAG_COLORS)]
-                    color_idx += 1
-                    tag_colors[tkey] = tcol
+                tcol = colors.color(tkey)
                 tseq = self.tag_seqs[tag[0]]
                 match_index = tag[3]
                 views = []

@@ -38,15 +38,18 @@ class TagProcessor(PairProcessor):
         self._base_processor.prepare()
         self._tag_targets = Targets()
         self._tag_targets_indexed = False
+        self._extra_tags = []
 
     def setup_tags(self, pair_db):
         pair_db.setup_tags()
         pair_db.add_tags(ALL_TAGS)
         pair_db.add_tags([t.name for t in self._targets.targets])
         pair_db.add_tags(Failures.all_failures())
+        pair_db.add_tags(self._extra_tags)
         self._tagmap = pair_db.tagmap()
 
     def addTagTarget(self, name, seq):
+        self._extra_tags.append(name)
         self._tag_targets.addTarget(name, seq)
 
     def _longest_unmatched(self, seq, tags):

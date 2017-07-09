@@ -73,6 +73,8 @@ class SpatsViz(cjb.uif.UIServer):
         p.addTagTarget("adapter_b", s.run.adapter_b)
         p.addTagTarget("linker_cotrans", s.run.cotrans_linker)
         p.addTagTarget("linker_cotrans_rc", reverse_complement(s.run.cotrans_linker))
+        for tag, seq in self.all_config.get("extra_tags", {}).iteritems():
+            p.addTagTarget(tag, seq)
 
         p.counters.load_from_db_data(self._db.counter_data_for_results(self.result_set_id))
 

@@ -19,12 +19,14 @@ class Colorize(cjb.uif.Filter):
             "grey" : [ 0.7, 0.7, 0.7 ],
             "light_grey" : [ 0.8, 0.8, 0.8 ],
         }
+        self.default = [ 1.0, 1.0, 1.0 ]
+
         if custom_colors:
             for key in custom_colors.keys():
                 self._colors[key] = ast.literal_eval(custom_colors[key])
 
     def color(self, key):
-        return self._colors[key.lower()]
+        return self._colors.get(key.lower(), self.default)
 
     def filterView(self, view, scene):
         view.bg = [ 0.8, 0.85, 0.8 ]

@@ -108,8 +108,8 @@ class Run(object):
         #: the cotrans target.
         self.cotrans_minimum_length = 20
 
-        #: Default ``6``, set to adjust the minimum length for matching tags for the reads analyzer.
-        self.minimum_tag_match_length = 6
+        #: Default ``8``, set to adjust the minimum length for matching tags for the reads analyzer.
+        self.minimum_tag_match_length = 8
 
         # private config
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)

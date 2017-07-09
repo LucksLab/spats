@@ -116,6 +116,9 @@ portfile = /tmp/uif.port
 dbfile = {}
 result_set_name = tags
 
+[extra_tags]
+{}
+
 [colors]
 target = [ 1.0, 0.85, 0.7 ]
 adapter_t = [ 1.0, 0.5, 0.5 ]
@@ -149,12 +152,16 @@ class ReadsAnalyzer(object):
         s.run.allowed_adapter_errors = 2
         s.run.num_workers = 1
         self._spats = s
+        self._extra_tag_targets = []
 
     @property
     def run(self):
         """Provides access to the :class:`.run.Run` which is used to configure tag analysis.
         """
         return self._spats.run
+
+    def addTagTarget(self, name, tag):
+        self._extra_tag_targets.append((name, tag))
 
     def process_tags(self):
         """Processes the tags in the input data for the visualization tool.
@@ -171,6 +178,8 @@ class ReadsAnalyzer(object):
         if s.run.cotrans:
             p.addTagTarget("linker_cotrans", s.run.cotrans_linker)
             p.addTagTarget("linker_cotrans_rc", reverse_complement(s.run.cotrans_linker))
+        for tag in self._extra_tag_targets:
+            p.addTagTarget(tag[0], tag[1])
 
         s.process_pair_db(pair_db)
         self.result_set_id = pair_db.result_set_id_for_name(s.run.result_set_name)
@@ -186,7 +195,9 @@ class ReadsAnalyzer(object):
         """
         cfg_path = os.path.expanduser("~/.spats_viz")
         if overwrite or not os.path.exists(cfg_path):
-            cfg_data = CFG_TEMPLATE.format(os.path.abspath(self._reads_data.db_path), self.run.config_string())
+            cfg_data = CFG_TEMPLATE.format(os.path.abspath(self._reads_data.db_path),
+                                           "\n".join(["{} = {}".format(t[0].lower(), t[1]) for t in self._extra_tag_targets]),
+                                           self.run.config_string())
             open(cfg_path, 'wb').write(cfg_data)
             return True
         return False
