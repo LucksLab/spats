@@ -3,6 +3,7 @@ import ast
 import sys
 
 from lookup import LookupProcessor
+from partial import PartialFindProcessor
 
 class Run(object):
     """Encapsulates the inputs/config required for a Spats run.
@@ -113,9 +114,12 @@ class Run(object):
 
         # private config
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
-        self._processor_class = LookupProcessor
+        self._processor_class = None
         self._run_limit = 0 # for testing, only supported on num_workers=1
 
+
+    def _get_processor_class(self):
+        return self._processor_class or (PartialFindProcessor if self.cotrans else LookupProcessor)
 
     def config_dict(self):
         config = {}

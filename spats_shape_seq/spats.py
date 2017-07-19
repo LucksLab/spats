@@ -202,7 +202,7 @@ class Spats(object):
     def _processor(self):
         if not self.__processor:
             self._addMasks()
-            self.__processor = self.run._processor_class(self.run, self._targets, self._masks)
+            self.__processor = self.run._get_processor_class()(self.run, self._targets, self._masks)
         return self.__processor
 
     @property
