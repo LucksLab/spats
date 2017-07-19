@@ -180,6 +180,7 @@ class SpatsWorker(object):
     def run_simple(self, pair_iterator):
 
         quiet = self._run.quiet
+        run_limit = self._run._run_limit
         more_pairs = True
         pair_db = self._pair_db
         writeback = bool(self._result_set_id)
@@ -231,6 +232,8 @@ class SpatsWorker(object):
                         if not quiet:
                             sys.stdout.write('.')
                             sys.stdout.flush()
+                    if run_limit and total > run_limit:
+                        raise StopIteration()
 
             except StopIteration:
                 more_pairs = False

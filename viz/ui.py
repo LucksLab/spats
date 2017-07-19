@@ -54,6 +54,7 @@ class SpatsViz(cjb.uif.UIServer):
         self._db = PairDB(data_config["dbfile"])
         self.result_set_id = self._db.result_set_id_for_name(data_config["result_set_name"])
         self._db.index_results()
+        self.has_tags = bool(self.result_set_id)
 
         s = Spats()
         s.run._processor_class = TagProcessor
@@ -76,7 +77,11 @@ class SpatsViz(cjb.uif.UIServer):
         for tag, seq in self.all_config.get("extra_tags", {}).iteritems():
             p.addTagTarget(tag, seq)
 
-        p.counters.load_from_db_data(self._db.counter_data_for_results(self.result_set_id))
+        if self.has_tags:
+            p.counters.load_from_db_data(self._db.counter_data_for_results(self.result_set_id))
+
+        if "counters_key" in data_config:
+            self._db.load_counters(data_config["counters_key"], p.counters)
 
         self._spats = s
 

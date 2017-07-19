@@ -37,6 +37,17 @@ class Targets(BaseScene):
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
 
+    def handleKeyEvent(self, keyInfo):
+        handler = { "0" : self.firstTarget }.get(keyInfo["t"])
+        if handler:
+            handler()
+        else:
+            BaseScene.handleKeyEvent(self, keyInfo)
+
+    def firstTarget(self, message = None):
+        self.handleViewMessage(None, self.targetViews[0].obj, None)
+
+
 class Site(object):
 
     def __init__(self, target_id, site, end, nuc, treated_count, untreated_count):
@@ -122,21 +133,27 @@ class Target(BaseScene):
             self.ui.pushScene(Matches(self.ui, None, site = obj))
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
-
+        
 
 
 class CotransTarget(BaseScene):
 
-    def __init__(self, ui, target):
+    def __init__(self, ui, target, data_type = "treated_counts"):
         self.name = target[0]
         self.seq = target[1]
         self.target_id = target[2]
         self.scroller = None
+        self.data_type = data_type
         BaseScene.__init__(self, ui, self.__class__.__name__)
 
     def build(self):
         BaseScene.build(self)
-        sitemap = { "{}_{}_{}".format(s[0], s[1], s[2]) : s[3] for s in self.ui.db.result_sites(self.ui.result_set_id, self.target_id) }
+        self.targetButtons([self.treated, self.untreated, self.beta, self.theta, self.reactivity])
+        self.type_label = self.addView(cjb.uif.views.Label("Query: {}".format(self.data_type), fontSize = 16))
+        if self.ui.has_tags:
+            sitemap = { "{}:{}:{}:{}".format(self.target_id, s[0], s[2], s[1]) : s[3] for s in self.ui.db.result_sites(self.ui.result_set_id, self.target_id) }
+        else:
+            sitemap = self.ui.spats.counters.registered_dict()
         max_count = float(max(sitemap.values()))
         seq = self.seq
         n = len(seq)
@@ -147,25 +164,30 @@ class CotransTarget(BaseScene):
         self.siteViews = []
         self.scroller = cjb.uif.views.Scroller()
         self.addView(self.scroller)
-        max_beta = 0
+        max_val = 0
         for end in range(spats.run.cotrans_minimum_length, n + 1):
-            betas = profiles.profilesForTargetAndEnd(self.name, end).betas
-            for s in range(end + 1): 
+            end_profiles = profiles.profilesForTargetAndEnd(self.name, end)
+            data = getattr(end_profiles, self.data_type)
+            for s in range(1, end + 1):
                 site = Site(self.target_id,
                             s,
                             end,
                             seq[s - 1] if s else "*",
-                            sitemap.get("{}_{}_{}".format(masks[0], end, s), 0),
-                            sitemap.get("{}_{}_{}".format(masks[1], end, s), 0))
+                            sitemap.get("{}:{}:{}:{}".format(self.target_id, masks[0], s, end), 0),
+                            sitemap.get("{}:{}:{}:{}".format(self.target_id, masks[1], s, end), 0))
                 v = cjb.uif.views.Button(obj = site)
                 self.scroller.addSubview(v)
                 self.addView(v)
-                v.factor = betas[s]
-                max_beta = max(max_beta, v.factor)
+                v.factor = float(data[s])
+                max_val = max(max_val, v.factor)
                 self.siteViews.append(v)
                 total += site.total
-        for v in self.siteViews:
-            v.bg = [ v.factor / max_beta, v.factor / max_beta, v.factor / max_beta ]
+        if max_val > 0:
+            for v in self.siteViews:
+                bg = float("{:.2f}".format(min(v.factor, max_val) / max_val))
+                v.bg = [ bg, bg, bg ]
+        else:
+            print "warning: data all zero"
         self.total = total
 
     def layout(self, view):
@@ -178,11 +200,42 @@ class CotransTarget(BaseScene):
         for v in self.siteViews:
             site = v.obj
             v.frame = grid.frame(200 * (site.end - self.ui.spats.run.cotrans_minimum_length) + spacer + site.site)
+        grid = Grid(frame = view.frame.leftCenteredSubrect(w = 120, h = 400, margin = 40), itemSize = Size(120, 40), columns = 1, rows = 5, spacing = Size(0, 40))
+        grid.applyToViews(map(self.buttonWithKey, [ 'treated', 'untreated', 'beta', 'theta', 'reactivity' ]))
+        self.type_label.frame = view.frame.topLeftSubrect(w = 240, h = 24, margins = Size(40, 100))
         return view
 
     def handleViewMessage(self, scene, obj, message):
         if obj and isinstance(obj, Site):
-            self.ui.pushScene(Matches(self.ui, None, site = obj))
+            print "{} - {} / {} - {}".format(obj.end, obj.site, obj.treated_count, obj.untreated_count)
+            #self.ui.pushScene(Matches(self.ui, None, site = obj))
+            # TODO: push profile row scene
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
+
+    def beta(self, message = None):
+        self.ui.setScene(CotransTarget(self.ui, (self.name, self.seq, self.target_id), data_type = "betas"))
+
+    def theta(self, message = None):
+        self.ui.setScene(CotransTarget(self.ui, (self.name, self.seq, self.target_id), data_type = "thetas"))
+
+    def reactivity(self, message = None):
+        self.ui.setScene(CotransTarget(self.ui, (self.name, self.seq, self.target_id), data_type = "reactivities"))
+
+    def treated(self, message = None):
+        self.ui.setScene(CotransTarget(self.ui, (self.name, self.seq, self.target_id), data_type = "treated_counts"))
+
+    def untreated(self, message = None):
+        self.ui.setScene(CotransTarget(self.ui, (self.name, self.seq, self.target_id), data_type = "untreated_counts"))
+
+    def handleKeyEvent(self, keyInfo):
+        handler = { "b" : self.beta,
+                    "h" : self.theta,
+                    "r" : self.reactivity,
+                    "t" : self.treated,
+                    "u" : self.untreated }.get(keyInfo["t"])
+        if handler:
+            handler()
+        else:
+            BaseScene.handleKeyEvent(self, keyInfo)
 

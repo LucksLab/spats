@@ -5,6 +5,7 @@ import sqlite3
 import sys
 import time
 
+from counters import Counters
 from parse import FastFastqParser
 
 SHOW_SLOW_QUERIES = False
@@ -205,15 +206,24 @@ class PairDB(object):
     def all_pairs(self, batch_size = 0):
         return self._batch_results("SELECT 1, r1, r2, rowid FROM pair WHERE rowid >= {} ORDER BY rowid LIMIT {}", batch_size)
 
-    def add_targets_table(self, targets_path):
-        from parse import fasta_parse
+    def _prep_targets(self):
         self.conn.execute("DROP TABLE IF EXISTS target")
         self.conn.execute("DROP INDEX IF EXISTS target_idx")
         self.conn.execute("CREATE TABLE target (name TEXT, seq TEXT)")
         self.conn.execute("CREATE INDEX target_idx ON target (name)")
+
+    def add_targets_table(self, targets_path):
+        self._prep_targets()
+        from parse import fasta_parse
         target_list = fasta_parse(targets_path)
         self.conn.executemany('INSERT INTO target (name, seq) VALUES (? , ?)', target_list)
+        self.conn.commit()
         return { name : seq for name, seq in target_list }
+
+    def add_targets(self, targets):
+        self._prep_targets()
+        self.conn.executemany('INSERT INTO target (name, seq) VALUES (? , ?)', [ (t.name, t.seq) for t in targets.targets ])
+        self.conn.commit()
 
     def targets(self):
         return [ (str(r[0]), str(r[1]), int(r[2])) for r in self.conn.execute("SELECT name, seq, rowid FROM target") ]
@@ -223,10 +233,10 @@ class PairDB(object):
         self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, mask TEXT, site INT, end INT, multiplicity INT, failure TEXT, tag_mask INT)")
         self.conn.execute("DROP INDEX IF EXISTS pair_result_idx")
         self.conn.execute("DROP INDEX IF EXISTS result_site_idx")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result_set (set_id TEXT)")
 
     def add_result_set(self, set_name, resume_processing = False):
         self._prepare_results()
-        self.conn.execute("CREATE TABLE IF NOT EXISTS result_set (set_id TEXT)")
         rid = self.result_set_id_for_name(set_name)
         if rid is not None and not resume_processing:
             self.conn.execute("DELETE FROM result WHERE set_id=?", (rid,))
@@ -242,6 +252,7 @@ class PairDB(object):
         return self.result_set_id_for_name(set_name)
 
     def result_set_id_for_name(self, set_name):
+        self._prepare_results()
         return self._fetch_one("SELECT rowid FROM result_set WHERE set_id=?", (set_name,))
 
     def add_results_with_tags(self, result_set_id, results):
@@ -375,6 +386,29 @@ class PairDB(object):
     def counter_data_for_results(self, result_set_id):
         results =  self.conn.execute('SELECT target, mask, site, end, multiplicity FROM result WHERE set_id=? AND site != -1 AND end != -1', (result_set_id,))
         return [ ( int(r[0]), str(r[1]), int(r[2]), int(r[3]), int(r[4]) ) for r in results ]
+
+
+    # counters storage
+    def setup_counters(self):
+        self.conn.execute("CREATE TABLE IF NOT EXISTS counter (run_key TEXT, dict_index INT, count_key TEXT, count INT)")
+        self.conn.execute("CREATE INDEX IF NOT EXISTS counter_key_idx ON counter (run_key)")
+
+    def store_counters(self, run_key, counters):
+        self.setup_counters()
+        self.conn.execute("DELETE FROM counter WHERE run_key=?", (run_key,))
+        count_data = counters.count_data()
+        row_data = [ (run_key, i, key, count_data[i][key]) for i in range(2) for key in count_data[i].keys() ]
+        self.conn.executemany("INSERT INTO counter VALUES (?, ?, ?, ?)", row_data)
+        self.conn.commit()
+
+    def load_counters(self, run_key, counters):
+        count_data = ( {}, {} )
+        results =  self.conn.execute("SELECT dict_index, count_key, count FROM counter WHERE run_key=?", (run_key,))
+        for r in results:
+            count_data[int(r[0])][str(r[1])] = int(r[2])
+        counters.reset()
+        counters.update_with_count_data(count_data)
+        return counters
 
 
     #v102 delta analysis

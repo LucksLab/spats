@@ -26,6 +26,9 @@ class Counters(object):
     def counts_dict(self):
         return { key : value for key, value in self._counts.iteritems() if not key.startswith('_') }
 
+    def registered_dict(self):
+        return self._registered
+
     def _count_key(self, pair):
         return "{}:{}:{}:{}".format(pair.target.rowid, pair.mask.chars, pair.site, pair.end)
 
@@ -61,11 +64,11 @@ class Counters(object):
         return total
 
     def mask_counts(self, target, mask, end):
-        c = self._counts
+        c = self._registered
         return [ c.get("{}:{}:{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
 
     def load_from_db_data(self, data):
-        c = self._counts
+        c = self._registered
         for r in data:
             c["{}:{}:{}:{}".format(r[0], r[1], r[2], r[3])] = r[4]
 

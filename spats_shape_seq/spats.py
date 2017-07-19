@@ -205,6 +205,9 @@ class Spats(object):
             self.__processor = self.run._processor_class(self.run, self._targets, self._masks)
         return self.__processor
 
+    @property
+    def targets(self):
+        return self._targets
 
     def _addMasks(self):
         if not self._masks:
@@ -221,11 +224,11 @@ class Spats(object):
         targets = []
         for path in target_paths:
             for name, seq in fasta_parse(path):
-                targets.append((name, seq, -1))
+                targets.append((name, seq, 1 + len(targets)))
         self._addTargets(targets)
 
     def addTarget(self, name, seq, rowid = -1):
-        self._addTargets( [ (name, seq, rowid) ] )
+        self._addTargets( [ (name, seq, rowid if rowid != -1 else len(self._targets.targets)) ] )
 
     def loadTargets(self, pair_db):
         self._addTargets(pair_db.targets())
@@ -360,7 +363,7 @@ class Spats(object):
 
 
     def _report_counts(self, delta = None):
-        counters = self._processor.counters
+        counters = self.counters
         total = counters.total_pairs
         print "Successfully processed {} properly paired fragments:".format(counters.registered_pairs)
         warn_keys = [ "multiple_R1_match", ]
@@ -381,6 +384,12 @@ class Spats(object):
         if delta:
             print "Total time: ({:.1f}s)".format(delta)
 
+    @property
+    def counters(self):
+        """Returns the underlying :class:`.counters.Counters` object, which
+        contains information about site and tag counts.
+        """
+        return self._processor.counters
 
     def compute_profiles(self):
         """Computes beta/theta/c reactivity values after pair data have been processed.

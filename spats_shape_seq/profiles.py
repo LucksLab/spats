@@ -81,6 +81,7 @@ class TargetProfiles(object):
             thetas[k] = max(c_factor * thetas[k], 0)
         self.betas = betas
         self.thetas = thetas
+        self.reactivities = [ n * th for th in thetas ]
         self.c = c
 
     def write(self, outfile):
