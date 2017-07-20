@@ -135,7 +135,6 @@ class Target(BaseScene):
             BaseScene.handleViewMessage(self, scene, obj, message)
         
 
-
 class CotransTarget(BaseScene):
 
     def __init__(self, ui, target, data_type = "treated_counts"):
@@ -207,9 +206,8 @@ class CotransTarget(BaseScene):
 
     def handleViewMessage(self, scene, obj, message):
         if obj and isinstance(obj, Site):
-            print "{} - {} / {} - {}".format(obj.end, obj.site, obj.treated_count, obj.untreated_count)
             #self.ui.pushScene(Matches(self.ui, None, site = obj))
-            # TODO: push profile row scene
+            self.ui.plotter.submit_plot("plot data")
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
 
@@ -238,4 +236,3 @@ class CotransTarget(BaseScene):
             handler()
         else:
             BaseScene.handleKeyEvent(self, keyInfo)
-

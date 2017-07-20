@@ -6,13 +6,13 @@ import cjb.util.cfg
 import viz.scenes
 import viz.colorize
 import viz.localizer
+import viz.plotter
 
 from spats_shape_seq import Spats
 from spats_shape_seq.db import PairDB
 from spats_shape_seq.pair import Pair
 from spats_shape_seq.tag import TagProcessor
 from spats_shape_seq.util import reverse_complement
-
 
 
 class SpatsViz(cjb.uif.UIServer):
@@ -22,9 +22,14 @@ class SpatsViz(cjb.uif.UIServer):
         self.config = self.all_config["server"]
         cjb.uif.UIServer.__init__(self, self.config["host"], int(self.config["port"]), self.config["portfile"])
         self.colors = viz.colorize.Colorize(self.all_config.get("colors"))
+        self.plotter = viz.plotter.Plotter()
         self.addFilter(self.colors)
         self.addFilter(viz.localizer.Localizer())
         self.reloadModel()
+
+    def waitFor(self):
+        cjb.uif.UIServer.waitFor(self)
+        self.plotter.stop()
 
     def reloadModel(self):
         self._db = None
