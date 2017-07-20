@@ -143,11 +143,13 @@ class CotransTarget(BaseScene):
         self.target_id = target[2]
         self.scroller = None
         self.data_type = data_type
+        self.plot_type = "row"
         BaseScene.__init__(self, ui, self.__class__.__name__)
 
     def build(self):
         BaseScene.build(self)
-        self.targetButtons([self.treated, self.untreated, self.beta, self.theta, self.reactivity])
+        self.targetButtons([self.treated, self.untreated, self.beta, self.theta, self.reactivity, self.togglePlotType])
+        self.buttonWithKey('togglePlotType').text = "Plot Type: Row"
         self.type_label = self.addView(cjb.uif.views.Label("Query: {}".format(self.data_type), fontSize = 16))
         if self.ui.has_tags:
             sitemap = { "{}:{}:{}:{}".format(self.target_id, s[0], s[2], s[1]) : s[3] for s in self.ui.db.result_sites(self.ui.result_set_id, self.target_id) }
@@ -158,14 +160,14 @@ class CotransTarget(BaseScene):
         n = len(seq)
         total = 0
         spats = self.ui.spats
-        profiles = spats.compute_profiles()
+        self.profiles = spats.compute_profiles()
         masks = spats.run.masks
         self.siteViews = []
         self.scroller = cjb.uif.views.Scroller()
         self.addView(self.scroller)
         max_val = 0
         for end in range(spats.run.cotrans_minimum_length, n + 1):
-            end_profiles = profiles.profilesForTargetAndEnd(self.name, end)
+            end_profiles = self.profiles.profilesForTargetAndEnd(self.name, end)
             data = getattr(end_profiles, self.data_type)
             for s in range(1, end + 1):
                 site = Site(self.target_id,
@@ -202,12 +204,12 @@ class CotransTarget(BaseScene):
         grid = Grid(frame = view.frame.leftCenteredSubrect(w = 120, h = 400, margin = 40), itemSize = Size(120, 40), columns = 1, rows = 5, spacing = Size(0, 40))
         grid.applyToViews(map(self.buttonWithKey, [ 'treated', 'untreated', 'beta', 'theta', 'reactivity' ]))
         self.type_label.frame = view.frame.topLeftSubrect(w = 240, h = 24, margins = Size(40, 100))
+        self.buttonWithKey('togglePlotType').frame = view.frame.bottomCenteredSubrect(200, 40, margin = 24)
         return view
 
     def handleViewMessage(self, scene, obj, message):
         if obj and isinstance(obj, Site):
-            #self.ui.pushScene(Matches(self.ui, None, site = obj))
-            self.ui.plotter.submit_plot("plot data")
+            self.show_plot(obj)
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
 
@@ -226,13 +228,52 @@ class CotransTarget(BaseScene):
     def untreated(self, message = None):
         self.ui.setScene(CotransTarget(self.ui, (self.name, self.seq, self.target_id), data_type = "untreated_counts"))
 
+    def togglePlotType(self, message = None):
+        self.plot_type = ("column" if self.plot_type == "row" else "row")
+        button = self.buttonWithKey('togglePlotType')
+        self.sendViewMessage(button, "setText", "Plot Type: {}".format(self.plot_type.capitalize()))
+
     def handleKeyEvent(self, keyInfo):
         handler = { "b" : self.beta,
                     "h" : self.theta,
                     "r" : self.reactivity,
                     "t" : self.treated,
+                    "p" : self.togglePlotType,
                     "u" : self.untreated }.get(keyInfo["t"])
         if handler:
             handler()
         else:
             BaseScene.handleKeyEvent(self, keyInfo)
+
+    def show_plot(self, site):
+        if self.plot_type == "row":
+            profiles = self.profiles.profilesForTargetAndEnd(self.name, site.end)
+            if self.data_type == "treated_counts" or self.data_type == "untreated_counts":
+                plot = { "type" : "Treated/Untreated Counts, length = {}".format(site.end),
+                         "data" : [ { "label" : "f+", "x" : range(site.end + 1), "y" : profiles.treated_counts, "m" : "r-" },
+                                    { "label" : "f-", "x" : range(site.end + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
+                         "x_axis" : "Site",
+                         "y_axis" : "% of stops" }
+            else:
+                data = getattr(profiles, self.data_type)
+                data = data[1:] # exclude 0
+                plot = { "type" : "{}, length = {}".format(self.data_type, site.end),
+                         "data" : [ { "x" : range(1, site.end + 1), "y" : data, "m" : "-" } ],
+                         "x_axis" : "Site",
+                         "y_axis" : self.data_type }
+        else:
+            plot_axis = []
+            plot_data = []
+            seq = self.seq
+            n = len(seq)
+            for end in range(self.ui.spats.run.cotrans_minimum_length, n + 1):
+                if site.site <= end:
+                    profiles = self.profiles.profilesForTargetAndEnd(self.name, end)
+                    data = getattr(profiles, self.data_type)
+                    plot_axis.append(end)
+                    plot_data.append(data[site.site])
+            plot = { "type" : "NT {}: {}".format(site.site, self.data_type),
+                     "data" : [ { "x" : plot_axis, "y" : plot_data, "m" : "g-", "label": "Site {}".format(site.site) } ],
+                     "x_axis" : "Length",
+                     "y_axis" : self.data_type }
+        self.ui.plotter.submit_plot(plot)

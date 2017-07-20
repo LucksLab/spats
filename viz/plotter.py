@@ -33,15 +33,18 @@ class Plotter(object):
 
     def _show_plot(self, res):
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(figsize=(15, 10))
-        plt.axes()
-        plt.gca().add_patch(plt.Circle((42, 80), radius=0.02, fc = 'g', alpha = 0.2))
-        plt.axis('scaled')
-        plt.xlim([0,1])
-        plt.ylim([0,1])
+        for plot in res["data"]:
+            plt.plot(plot["x"], plot["y"], plot["m"])
+
+        if "ylim" in res:
+            plt.ylim(res["ylim"])
+
+        plt.legend([ p.get("label", "") for p in res["data"] ])
+        plt.title(res["type"])
+        plt.xlabel(res["x_axis"])
+        plt.ylabel(res["y_axis"])
 
         def onclick(event):
             plt.close(fig)
-
-        cid = fig.canvas.mpl_connect('button_press_event', onclick)
+        cid = plt.gcf().canvas.mpl_connect('button_press_event', onclick)
         plt.show()
