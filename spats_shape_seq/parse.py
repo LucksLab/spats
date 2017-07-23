@@ -225,8 +225,8 @@ class SamParser(object):
         self.sam_in = None
         self.sam_iter = None
 
-    # returns a list of (target, site, mask, numeric_id) -- the 'mask' is convenience to not have to recreate lists when inserting in DB
-    def read(self, max_num_pairs, mask):
+    # returns a list of (target, site, end, mask, numeric_id) -- the 'mask' is convenience to not have to recreate lists when inserting in DB
+    def read(self, max_num_pairs, mask, cotrans = False, single_target = None):
         pairs = []
         count = 0
         sam_iter = self.sam_iter
@@ -245,14 +245,19 @@ class SamParser(object):
                 r2.parse(nextline())
                 if not r1.identifier or r1.identifier != r2.identifier:
                     raise Exception("Parse error?") # might just want continue?
-                if not r1.target_name:
+                if not r1.target_name or single_target and single_target != r1.target_name:
                     continue
-                target_length = len(self.target_map[r1.target_name])
                 left = min(r1.left, r2.left)
                 right = max(r1.right, r2.right)
-                if left >= 0 and left <= target_length and right == target_length:
-                    pairs.append((r1.target_name, left, mask, r1.identifier))
-                    count += 1
+                if cotrans:
+                    target_length = 20 + int(r1.target_name[r1.target_name.rfind('_')+1:-2])
+                    if left >= 0 and left <= target_length and right == target_length:
+                        pairs.append((left, right - 20, mask, r1.identifier))
+                else:
+                    target_length = len(self.target_map[r1.target_name])
+                    if left >= 0 and left <= target_length and right == target_length:
+                        pairs.append((r1.target_name, left, right, mask, r1.identifier))
+                count += 1
         except StopIteration:
             pass
         return pairs, count

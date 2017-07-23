@@ -144,6 +144,9 @@ class PairDB(object):
     def count(self):
         return self._fetch_one("SELECT COUNT(*) from pair")
 
+    def has_pairs(self):
+        return (1 == self._fetch_one("SELECT 1 FROM pair LIMIT 1"))
+
     def unique_r1(self):
         self.index()
         return self._fetch_one("SELECT COUNT(distinct r1) from pair")
@@ -204,7 +207,7 @@ class PairDB(object):
                                       ORDER BY u.rowid LIMIT {}''', batch_size, (result_set_id,))
 
     def all_pairs(self, batch_size = 0):
-        return self._batch_results("SELECT 1, r1, r2, rowid FROM pair WHERE rowid >= {} ORDER BY rowid LIMIT {}", batch_size)
+        return self._batch_results("SELECT 1, r1, r2, rowid, rowid FROM pair WHERE rowid >= {} ORDER BY rowid LIMIT {}", batch_size)
 
     def _prep_targets(self):
         self.conn.execute("DROP TABLE IF EXISTS target")
@@ -271,7 +274,7 @@ class PairDB(object):
 
     # results a list of (rowid, target_name, site, mask, multiplicity, failure, [optional: tags])
     def add_results(self, result_set_id, results):
-        if len(results[0]) > 6:
+        if len(results[0]) > 7:
             self.add_results_with_tags(result_set_id, results)
             return
         # grab a new connection since this might be in a new process (due to multiprocessing)
@@ -297,7 +300,7 @@ class PairDB(object):
         return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.end, s1.site, s1.failure, s2.target, s2.end, s2.site, s2.failure
                                     FROM result s1 JOIN result s2 ON s2.set_id=? AND s2.pair_id=s1.pair_id
                                     JOIN pair p ON p.rowid=s1.pair_id
-                                    WHERE s1.set_id=? AND (s1.site != s2.site OR s1.end != s2.end OR s1.target != s2.target)''', (id2, id1))
+                                    WHERE s1.set_id=? AND (s1.site != s2.site OR s1.end != s2.end OR s1.target != s2.target) AND (s1.site != -1 OR s2.site != -1)''', (id2, id1))
 
 
     def result_sites(self, result_set_id, target_id):
@@ -413,7 +416,7 @@ class PairDB(object):
 
     #v102 delta analysis
     def _create_v102(self):
-        self.conn.execute("CREATE TABLE IF NOT EXISTS v102 (pair_id INT, numeric_id INT, target INT, site INT, nomask_r1 TEXT, nomask_r2 TEXT, mask TEXT)")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS v102 (pair_id INT, numeric_id INT, target INT, site INT, end INT, nomask_r1 TEXT, nomask_r2 TEXT, mask TEXT)")
         self.conn.execute("CREATE INDEX IF NOT EXISTS pair_id_idx ON pair (identifier)")
 
     def _wipe_v102(self):
@@ -422,9 +425,10 @@ class PairDB(object):
         self.conn.execute("DROP INDEX IF EXISTS pair_id_idx")
         self.conn.execute("DROP INDEX IF EXISTS v102_site_idx")
 
-    def add_v102_comparison(self, targets_path, output_path):
+    def add_v102_comparison(self, targets_path, output_path, cotrans = False):
         import sys
         from parse import reactivities_parse, SamParser
+        print "Creating index..."
         self.index()
         self._wipe_v102()
         self._create_v102()
@@ -433,7 +437,8 @@ class PairDB(object):
 
         # create the targets table
         targets = self.add_targets_table(targets_path)
-
+        
+        print "Parsing NOMASK*..."
         # parse NOMASK to get the ID<->numeric_id map
         with FastFastqParser(os.path.join(output_path, 'NOMASK_1.fq'), os.path.join(output_path, 'NOMASK_2.fq')) as parser:
             while True:
@@ -442,8 +447,8 @@ class PairDB(object):
                 if not pairs:
                     break
                 conn.executemany('''INSERT INTO v102
-                                           (pair_id, numeric_id, target, site, nomask_r1, nomask_r2, mask)
-                                    SELECT  pair.rowid,       ?,   NULL,   -1,         ?,         ?, NULL
+                                           (pair_id, numeric_id, target, site, end, nomask_r1, nomask_r2, mask)
+                                    SELECT  pair.rowid,       ?,   NULL,   -1,  -1,         ?,         ?, NULL
                                     FROM pair WHERE pair.identifier=?''', pairs)
                 sys.stdout.write('.')
                 sys.stdout.flush()
@@ -454,20 +459,21 @@ class PairDB(object):
             raise Exception("some v102 pairs did not match? {} != {}".format(check, total))
         print "\nParsed {} records from NOMASK_{{1,2}}.fq".format(total)
 
-        # now, parse sam to get the numeric_id->site map
+        # now, parse sam to get the numeric_id->site,end map
         total = 0
         mask_totals = {}
         masks = ('RRRY', 'YYYR')
         for mask in masks:
             mask_total = 0
             with SamParser(os.path.join(output_path, mask + '.sam'), targets) as parser:
+                insert = 'UPDATE v102 SET target=' + ('1' if cotrans else '(SELECT rowid FROM target WHERE name=?)') + ', site=?, end=?, mask=? WHERE numeric_id=?'
                 while True:
-                    pairs, count = parser.read(16384, mask)
+                    pairs, count = parser.read(16384, mask, cotrans = cotrans)
                     if not pairs:
                         break
                     total += count
                     mask_total += count
-                    conn.executemany('UPDATE v102 SET target=(SELECT rowid FROM target WHERE name=?), site=?, mask=? WHERE numeric_id=?', pairs)
+                    conn.executemany(insert, pairs)
                     sys.stdout.write('.')
                     sys.stdout.flush()
             mask_totals[mask] = mask_total
@@ -478,17 +484,29 @@ class PairDB(object):
             print "  {}.sam: {}".format(mask, mask_totals[mask])
 
         # now, compare against reactivities.out to verify our counts
-        all_counts = { "{}::{}::{}".format(r[0],r[1],r[2]) : r[3] for r in self.conn.execute('''SELECT t.name, v.mask, v.site, count(v.rowid)
-                                                                                                FROM v102 v
-                                                                                                JOIN target t ON v.target=t.rowid
-                                                                                                GROUP BY t.name, v.site, v.mask''') }
+        if cotrans:
+            all_counts = { "{}::{}::{}".format(r[0],r[1],r[2]) : r[3] for r in self.conn.execute('''SELECT v.mask, v.site, v.end, count(v.rowid)
+                                                                                                    FROM v102 v
+                                                                                                    GROUP BY v.end, v.site, v.mask''') }
+        else:
+            all_counts = { "{}::{}::{}".format(r[0],r[1],r[2]) : r[3] for r in self.conn.execute('''SELECT t.name, v.mask, v.site, count(v.rowid)
+                                                                                                    FROM v102 v
+                                                                                                    JOIN target t ON v.target=t.rowid
+                                                                                                    GROUP BY t.name, v.site, v.mask''') }
+
         count = 0
         for entry in reactivities_parse(os.path.join(output_path, 'reactivities.out')):
             # (target, rt_start, site, nuc, treated_count, untreated_count, beta, theta, c)
-            key = "{}::{}::{}".format(entry[0], 'RRRY', int(entry[2]))
+            if cotrans:
+                key = "{}::{}::{}".format('RRRY', int(entry[2]), int(entry[1]) - 19)
+            else:
+                key = "{}::{}::{}".format(entry[0], 'RRRY', int(entry[2]))
             if all_counts.get(key, 0) != int(entry[4]):
                 raise Exception("Treated db does not match reactivities: key={}, db={}, r={}".format(key, all_counts.get(key, 0), int(entry[4])))
-            key = "{}::{}::{}".format(entry[0], 'YYYR', int(entry[2]))
+            if cotrans:
+                key = "{}::{}::{}".format('YYYR', int(entry[2]), int(entry[1]) - 19)
+            else:
+                key = "{}::{}::{}".format(entry[0], 'YYYR', int(entry[2]))
             if all_counts.get(key, 0) != int(entry[5]):
                 raise Exception("Untreated db does not match reactivities: key={}, db={}, r={}".format(key, all_counts.get(key, 0), int(entry[5])))
             count += 1
@@ -499,8 +517,8 @@ class PairDB(object):
 
     def add_v102_to_results(self):
         v102_id = self.add_result_set("v102")
-        self.conn.execute('''INSERT INTO result (set_id, pair_id, target, site, mask, multiplicity, failure)
-                             SELECT ?, pair_id, target, site, mask, 1, NULL FROM v102''', (v102_id,))
+        self.conn.execute('''INSERT INTO result (set_id, pair_id, target, site, end, mask, multiplicity, failure)
+                             SELECT ?, pair_id, target, site, end, mask, 1, NULL FROM v102''', (v102_id,))
         self.conn.commit()
 
     def v102_counts(self, target_name, mask):

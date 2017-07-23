@@ -454,6 +454,28 @@ def tag_test():
     else:
         print "FAIL: {}".format(pair.failure)
 
+def cotrans_debug():
+    from spats_shape_seq import Spats
+    s = Spats()
+    s.run.cotrans = True
+    s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
+    s.addTargets(bp + "cotrans_single.fa")
+
+    from spats_shape_seq.pair import Pair
+    pair = Pair()
+
+    import cjb.util
+    d = cjb.util.jsonAtPath("/tmp/spats_test.json")
+    pair.set_from_data(str(d['id']), str(d['r1']), str(d['r2']))
+    print "{}\n{} / {}".format(pair.identifier, pair.r1.original_seq, pair.r2.original_seq)
+    s.process_pair(pair)
+    if pair.has_site:
+        print "{}: {} / {}".format(pair.target.name, pair.site, pair.right)
+    else:
+        print "FAIL: {}".format(pair.failure)
+    
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()
