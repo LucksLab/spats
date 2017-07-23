@@ -13,8 +13,6 @@ class PartialFindProcessor(PairProcessor):
         target = pair.r1.find_in_targets(self._targets, reverse_complement = True)
         if isinstance(target, list):
             _debug("dropping pair due to multiple R1 match")
-            print pair.r1.original_seq
-            print target
             pair.failure = Failures.multiple_R1
             self.counters.multiple_R1_match += pair.multiplicity
             return
@@ -78,19 +76,88 @@ class PartialFindProcessor(PairProcessor):
 
         return True
 
+    def _try_cotrans_adapter(self, pair):
+
+        run = self._run
+        linker = run.cotrans_linker
+        linker_len = len(linker)
+
+        r1_rc = pair.r1.reverse_complement
+        lindex = r1_rc.rfind(linker)
+        if -1 == lindex:
+            pair.failure = Failures.linker
+            return
+
+        r2_seq = pair.r2.original_seq
+        lindex = r2_seq.find(linker)
+        if -1 == lindex:
+            pair.failure = Failures.nomatch
+            return
+
+        # if R2 has the full linker, then this may be an adapter-trim case
+        adapter_start = lindex + 20 + 4
+        r2_len = pair.r2.original_len
+        trim_length = 0
+        if adapter_start < r2_len:
+            if self._adapter_t_rc.startswith(r2_seq[adapter_start:]):
+                trim_length = r2_len - adapter_start
+                pair.r2.trim(trim_length + 4) # +4 b/c of handle
+                if run.adapter_b.startswith(pair.r1.original_seq[-trim_length:]):
+                    pair.r1.trim(trim_length)
+                else:
+                    pair.failure = Failures.adapter_trim
+                    return
+            else:
+                pair.failure = Failures.adapter_trim
+                return
+        target_match_len = r2_len - linker_len - trim_length - 4
+        if target_match_len < 4:
+            pair.failure = Failures.nomatch
+            return
+        target_match = r2_seq[:target_match_len]
+        if pair.r1.reverse_complement[:target_match_len] != target_match:
+            pair.failure = Failures.mismatch
+            return
+
+        target = self._targets.targets[0]
+        tseq = target.seq
+        index = tseq.find(target_match)
+        if -1 == index:
+            pair.failure = Failures.nomatch
+            return
+        if -1 != tseq.find(target_match, index + 1):
+            pair.failure = Failures.multiple_R1
+            return
+
+        pair.r2.match_index = index
+        pair.r2.match_len = target_match_len
+        pair.r2.match_start = 0
+        pair.r1.match_index = index
+        pair.r1.match_len = target_match_len
+        pair.r1.match_start = trim_length
+        pair.target = target
+        pair.site = pair.site or pair.left
+        self.counters.register_count(pair)
+
+
+
     def process_pair(self, pair):
 
         if not self._check_indeterminate(pair) or not self._match_mask(pair):
             return
 
+        run = self._run
+        cotrans = run.cotrans
+
         self._find_matches(pair)
         if not pair.matched:
+            if cotrans:
+                self._try_cotrans_adapter(pair)
+                return
             self.counters.unmatched += pair.multiplicity
             pair.failure = Failures.nomatch
             return
 
-        run = self._run
-        cotrans = run.cotrans
         linker = run.cotrans_linker or ""
         linker_len = len(linker)
 
@@ -160,7 +227,7 @@ class PartialFindProcessor(PairProcessor):
                     _debug("R1 errors: {}".format(pair.r1.match_errors))
                 if pair.r2.match_errors:
                     _debug("R2 errors: {}".format(pair.r2.match_errors))
-                if run._v102_compat and not [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]:
+                if run._v102_compat and not (pair.r1.match_errors + [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]):
                     _debug("** v102 compat, allowing")
                 else:
                     pair.failure = Failures.match_errors

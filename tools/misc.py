@@ -459,6 +459,7 @@ def cotrans_debug():
     s = Spats()
     s.run.cotrans = True
     s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    s.run._v102_compat = True
 
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
     s.addTargets(bp + "cotrans_single.fa")
