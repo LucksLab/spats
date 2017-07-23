@@ -99,6 +99,7 @@ class PartialFindProcessor(PairProcessor):
             # R1 should have linker on the end, adjust for that
             r1_rc = pair.r1.reverse_complement
             r1_end = pair.r1.match_start + pair.r1.match_len 
+            delta = 0
             if len(r1_rc) - r1_end < linker_len:
                 delta = linker_len - (len(r1_rc) - r1_end)
                 pair.r1.match_len -= delta
@@ -108,6 +109,15 @@ class PartialFindProcessor(PairProcessor):
                 pair.failure = Failures.linker
                 return
             pair.r1.match_len += linker_len
+
+            if pair.r2.match_len < pair.r2.seq_len and pair.r2.match_index + pair.r2.seq_len > pair.r1.match_index:
+                # r2 overlaps the linker. check and extend as necessary
+                pair.r2.match_len -= delta
+                pair.r2.linker_errors = string_match_errors(pair.r2.original_seq[pair.r2.match_start + pair.r2.match_len:], linker)
+                if len(pair.r2.linker_errors) > run.allowed_adapter_errors:
+                    pair.failure = Failures.linker
+                    return
+                pair.r2.match_len = pair.r2.original_len - pair.r2.match_start
 
 
         # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
@@ -131,14 +141,6 @@ class PartialFindProcessor(PairProcessor):
             # we're at the right and trimming went ok, cool
             self.counters.adapter_trimmed += pair.multiplicity
 
-        if cotrans and pair.r2.match_len < pair.r2.seq_len and pair.r2.match_index + pair.r2.seq_len > pair.r1.match_index:
-            # r2 overlaps the linker. check and extend as necessary
-            pair.r2.linker_errors = string_match_errors(pair.r2.original_seq[pair.r2.match_start + pair.r2.match_len:], linker)
-            if len(pair.r2.linker_errors) > run.allowed_adapter_errors:
-                pair.failure = Failures.linker
-                return
-            pair.r2.match_len = pair.r2.original_len - pair.r2.match_start
-
         if pair.r2.match_len == pair.r2.seq_len  and  pair.r1.match_len == pair.r1.seq_len:
             # everything that wasn't adapter trimmed was matched -- nothing to do
             pass
@@ -147,7 +149,10 @@ class PartialFindProcessor(PairProcessor):
             pair.r1.match_to_seq(reverse_complement = True)
             pair.r2.match_to_seq()
             target_seq = pair.target.seq
-            pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement, target_seq[pair.r1.match_index:])
+            r1_matcher = pair.r1.reverse_complement
+            if cotrans:
+                r1_matcher = r1_matcher[:-linker_len]
+            pair.r1.match_errors = string_match_errors(r1_matcher, target_seq[pair.r1.match_index:])
             pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
 
             if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
@@ -155,9 +160,12 @@ class PartialFindProcessor(PairProcessor):
                     _debug("R1 errors: {}".format(pair.r1.match_errors))
                 if pair.r2.match_errors:
                     _debug("R2 errors: {}".format(pair.r2.match_errors))
-                pair.failure = Failures.match_errors
-                self.counters.match_errors += pair.multiplicity
-                return
+                if run._v102_compat and not [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]:
+                    _debug("** v102 compat, allowing")
+                else:
+                    pair.failure = Failures.match_errors
+                    self.counters.match_errors += pair.multiplicity
+                    return
 
         n = pair.target.n
         assert(pair.matched and pair.left >= 0 and pair.left <= n)

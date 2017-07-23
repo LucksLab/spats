@@ -7,6 +7,12 @@ from spats_shape_seq.pair import Pair
 # [ id, r1, r2, end, site ]
 cases = [
     [ "1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", 93, 68 ],
+    [ "1116:16151:46609", "GGGTGTCCTTGGTGCCCGAGTCAGAAAAGTTCTTCT", "TCTATGAGCAAAGGAGAAGAACTTTTCTGACTCGGG", 119, 93 ],
+    [ "1116:2824:48570", "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT", "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA", None, None ],
+]
+
+v102_compat_cases = [
+    [ "1116:2824:48570", "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT", "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA", 115, 59 ],
 ]
 
 class TestPairs(unittest.TestCase):
@@ -28,11 +34,15 @@ class TestPairs(unittest.TestCase):
     def run_case(self, case):
         pair = self.pair_for_case(case)
         self.spats.process_pair(pair)
-        self.assertEqual(case[3], pair.end)
         self.assertEqual(case[4], pair.site)
+        if pair.site:
+            self.assertEqual(case[3], pair.end)
         return pair
 
     def test_pairs(self):
         for case in cases:
+            self.run_case(case)
+        self.spats.run._v102_compat = True
+        for case in v102_compat_cases:
             self.run_case(case)
         print "Ran {} pair->site cases.".format(len(cases))

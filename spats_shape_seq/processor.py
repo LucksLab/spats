@@ -9,7 +9,7 @@ class Failures(object):
     adapter_trim = "adapter trim failure"
     mismatch = "R1/R2 mismatch"
     multiple_R1 = "multiple R1 match"
-    linker = "R1 linker failure"
+    linker = "linker match failure"
     left_of_zero = "R2 to left of site 0 failure"
     match_errors = "match errors failure"
     right_edge = "R1 right edge failure"
