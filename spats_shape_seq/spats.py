@@ -252,7 +252,7 @@ class Spats(object):
         if not self.run.pair_length:
             self.run.pair_length = len(pair.r1.original_seq)
 
-        _set_debug(self.run.debug)
+        _set_debug(self.run)
         _debug("> processing " + pair.identifier + "\n  --> " + pair.r1.original_seq + " , " + pair.r2.original_seq)
         _debug("  rc(R1): {}".format(pair.r1.reverse_complement))
         try:
@@ -344,7 +344,7 @@ class Spats(object):
     #@profile
     def _process_pair_iter(self, pair_iter, pair_db = None, result_set_id = None):
 
-        _set_debug(self.run.debug)
+        _set_debug(self.run)
 
         start = time.time()
 

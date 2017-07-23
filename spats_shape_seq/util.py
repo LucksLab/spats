@@ -1,18 +1,18 @@
 
 import string
 
-_is_debug = False
+_debug_run = None
 
-def _set_debug(dbg):
-    global _is_debug
-    _is_debug = dbg
+def _set_debug(run):
+    global _debug_run
+    _debug_run = run
 
 def _warn(stuff):
-    spats_config.log.write(str(stuff) + "\n")
+    _debug_run.log.write(str(stuff) + "\n")
 
 def _debug(stuff):
-    if _is_debug:
-        spats_config.log.write(str(stuff) + "\n")
+    if _debug_run.debug:
+        _debug_run.log.write(str(stuff) + "\n")
 
 
 rev_comp_complementor = string.maketrans("ATCGatcg", "TAGCtagc")

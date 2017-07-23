@@ -45,6 +45,6 @@ class Plotter(object):
         plt.ylabel(res["y_axis"])
 
         def onclick(event):
-            plt.close(fig)
+            plt.close()
         cid = plt.gcf().canvas.mpl_connect('button_press_event', onclick)
         plt.show()

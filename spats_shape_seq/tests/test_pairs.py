@@ -1,6 +1,5 @@
 import unittest
 
-from spats_shape_seq import spats_config
 from spats_shape_seq.pair import Pair
 
 
@@ -64,7 +63,6 @@ class TestPairs(unittest.TestCase):
         from spats_shape_seq import Spats
         self.spats = Spats()
         self.spats.addTargets("test/5s/5s.fa")
-        self.spats.addMasks('RRRY', 'YYYR')
 
     def tearDown(self):
         self.spats = None
@@ -92,16 +90,20 @@ class TestPairs(unittest.TestCase):
         print "{} / {}".format(pair.site, pair.failure)
 
     def test_minimum_length(self):
-        # minimum_target_match_length auto on 5s should be 10
+        from spats_shape_seq import Spats
+        from spats_shape_seq.partial import PartialFindProcessor
+        self.spats = Spats()
+        self.spats.run._processor_class = PartialFindProcessor
+        self.spats.run.minimum_target_match_length = 11
+        self.spats.addTargets("test/5s/5s.fa")
         self.assertEqual(11, self.spats._targets.minimum_match_length)
         case = [ '1109:22737:14675', 'TCCAGTCCTTGGAGATCGGAAGAGCACACGTCTGA', 'CCAAGGACTGGAAGATCGGAAGAGCGTCGTGTAGG', None ]
         self.run_case(case)
-        # this case only matches in the minimum length is set to 8
-        spats_config.minimum_target_match_length = 8
-        from spats_shape_seq import Spats
+
+        # this case only matches if the minimum length is set to 8
+        self.spats.run.minimum_target_match_length = 8
         self.spats = Spats()
         self.spats.addTargets("test/5s/5s.fa")
-        self.spats.addMasks('RRRY', 'YYYR')
         case[3] = 135
         self.run_case(case)
 
@@ -110,10 +112,9 @@ class TestPanelPairs(unittest.TestCase):
 
     def setUp(self):
         from spats_shape_seq import Spats
-        spats_config.minimum_target_match_length = 10
         self.spats = Spats()
+        self.spats.run.minimum_target_match_length = 10
         self.spats.addTargets("test/panel_RNAs/panel_RNAs_complete.fa")
-        self.spats.addMasks('RRRY', 'YYYR')
 
     def tearDown(self):
         self.spats = None
@@ -121,7 +122,9 @@ class TestPanelPairs(unittest.TestCase):
     def test_single_R1_match_with_adapter_multiple_without(self):
         pair = Pair()
         pair.set_from_data('M02465:8:000000000-A5D', 'CCCGCCGTCCTTGGTGCCCGAGTGAGATCGGAAGA','CACTCGGGCACCAAGGACGGCGGGAGATCGGAAGA')
-        spats_config.debug = True
+        self.spats.run.debug = True
+        from spats_shape_seq.partial import PartialFindProcessor
+        self.spats.run._processor_class = PartialFindProcessor
         self.spats.process_pair(pair)
         self.assertEqual(None, pair.target)
         self.assertEqual(1, self.spats.counters.multiple_R1_match)
