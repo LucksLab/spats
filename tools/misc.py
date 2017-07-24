@@ -470,6 +470,10 @@ def cotrans_debug():
     import cjb.util
     d = cjb.util.jsonAtPath("/tmp/spats_test.json")
     pair.set_from_data(str(d['id']), str(d['r1']), str(d['r2']))
+    #c = ['683779', 'TCCGGTCCTTGGTGCCCGAGTCAGAAAAAAATAGAA', 'TCTATTTTTTTCTGACTCGGGCACCAAGGACCGGAA', 82, 71]
+    #c = [ "1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", 93, 68 ]
+    c = [ "301028", "AAGTGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAAGGACACTTAGATCGGA", 96, 92 ]
+    pair.set_from_data(c[0], c[1], c[2])
     print "{}\n{} / {}".format(pair.identifier, pair.r1.original_seq, pair.r2.original_seq)
     s.process_pair(pair)
     if pair.has_site:

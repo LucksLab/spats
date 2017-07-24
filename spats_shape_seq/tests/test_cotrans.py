@@ -11,10 +11,12 @@ cases = [
     [ "1116:2824:48570", "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT", "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA", None, None ],
     [ "301028", "AAGTGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAAGGACACTTAGATCGGA", 96, 92 ],
     [ "360389", "GAATGTCCTTGGTGCCCGAGTCAGAAAAAAATTTTT", "ATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACT", None, None ],
+    [ "683779", "TCCGGTCCTTGGTGCCCGAGTCAGAAAAAAATAGAA", "TCTATTTTTTTCTGACTCGGGCACCAAGGACCGGAA", 82, 71 ],
 ]
 
 v102_compat_cases = [
     [ "1116:2824:48570", "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT", "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA", 115, 59 ],
+    [ "1011640", "GGACGTCCTTGGTGCCCGAGTCAGTAGCTAAGCAGC", "AACGCTGCTTAGCTACTGACTCGGGCACCAAGTACG", 39, 24 ],
 ]
 
 class TestPairs(unittest.TestCase):
@@ -36,7 +38,7 @@ class TestPairs(unittest.TestCase):
     def run_case(self, case):
         pair = self.pair_for_case(case)
         self.spats.process_pair(pair)
-        self.assertEqual(case[4], pair.site)
+        self.assertEqual(case[4], pair.site) #, str(case))
         if pair.site:
             self.assertEqual(case[3], pair.end)
         return pair

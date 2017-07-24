@@ -140,6 +140,143 @@ class PartialFindProcessor(PairProcessor):
         self.counters.register_count(pair)
 
 
+    def _process_pair_cotrans(self, pair):
+        # algorithm:
+        # (1) find linker in R1
+        # (2) find_partial R2 in target
+        #   (2a) if no match, find linker in target
+        #     (2a1) if no linker, no match, return
+        #     (2a2) if linker, then determine target index, and goto 3
+        #   (2b) if match, the find_partial of R1 (w/o linker) in target
+        #     (2b1) if no match, return
+        #     (2b2) if match, then goto 3
+        # (3) R1/R2 are now fully determined, check for match/errors and return
+
+        run = self._run
+        # TODO: xref TODO below
+        if 0 != run.allowed_target_errors:
+            raise Exception("match w/errors NYI")
+        if 1 != len(self._targets.targets):
+            raise Exception("multiple cotrans targets?")
+
+        linker = run.cotrans_linker
+        linker_len = len(linker)
+        target = self._targets.targets[0]
+        tseq = target.seq
+
+        r1_len = pair.r1.seq_len
+        r1_rc = pair.r1.reverse_complement
+
+        # (1)
+        lindex = r1_rc.rfind(linker)
+        if -1 == lindex:
+            pair.failure = Failures.linker
+            return
+
+        r2_seq = pair.r2.subsequence
+        r2_len = pair.r2.original_len
+        rtrim = 0
+        # (2)
+        pair.r2.find_in_targets(self._targets, force_target = target)
+        if not pair.r2.match_len:
+            # (2a) if no match, then only chance is short match b/c of linker/trim
+            l2index = r2_seq.rfind(linker)
+            # TODO match errors in linker
+            if -1 == l2index:
+                pair.failure = Failures.nomatch
+                return
+
+            target_match_len = l2index
+            target_match = r2_seq[:l2index]
+
+            # TODO: w/match errors
+            index = tseq.find(target_match)
+            if -1 == index:
+                pair.failure = Failures.nomatch
+                return
+            if -1 != tseq.find(target_match, index + 1):
+                pair.failure = Failures.multiple_R1
+                return
+
+            # (2a2)
+            rtrim = r2_len - l2index - linker_len - 4
+
+            pair.r1.match_start = rtrim
+            pair.r1.match_len = lindex - rtrim
+            pair.r1.match_index = index
+
+            pair.r2.match_start = 0
+            pair.r2.match_len = l2index
+            pair.r2.match_index = index
+
+        else:
+
+            # (2b)
+            pair.r1.find_in_targets(self._targets, reverse_complement = True, force_target = target)
+            if not pair.r1.match_len:
+                pair.failure = Failures.nomatch
+                return
+
+            linker_start = pair.r1.match_index + (lindex - pair.r1.match_start)
+            check_len = 0
+            if pair.r2.match_index + (r2_len - pair.r2.match_start) > linker_start:
+                linker_in_r2_idx = linker_start - pair.r2.match_index
+                linker_check = r2_seq[linker_in_r2_idx:]
+                pair.r2.linker_errors = string_match_errors(linker_check, linker)
+                if len(pair.r2.linker_errors) > run.allowed_adapter_errors:
+                    if run._v102_compat and not [e for e in pair.r2.linker_errors if e + linker_in_r2_idx < pair.r2.original_len - 4]:
+                        _debug("** v102 compat, allowing")
+                    else:
+                        pair.failure = Failures.linker
+                        return
+                check_len = len(linker_check)
+                if check_len > linker_len + 4:
+                    rtrim = check_len - linker_len - 4
+
+            delta = pair.r1.match_start - rtrim
+            pair.r1.match_start -= delta
+            pair.r1.match_len = lindex - pair.r1.match_start
+            pair.r1.match_index -= delta
+
+            delta = pair.r2.match_start
+            pair.r2.match_start = 0
+            pair.r2.match_index -= delta
+            pair.r2.match_len = r2_len - check_len
+
+
+        # (3) R1/R2 are now fully determined, check for match/errors and return
+        pair.target = target
+
+        # trim case
+        if rtrim > 0:
+            if not run.adapter_b.startswith(pair.r1.original_seq[-rtrim:]) or \
+               not self._adapter_t_rc.startswith(pair.r2.original_seq[-rtrim:]):
+                pair.failure = Failures.adapter_trim
+                return
+            pair.r1.trim(rtrim)
+            pair.r2.trim(rtrim + 4) # also trim rc of handle
+
+        pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement[:pair.r1.match_len], tseq[pair.r1.match_index:])
+        pair.r2.match_errors = string_match_errors(pair.r2.subsequence[:pair.r2.match_len], tseq[pair.r2.match_index:])
+        if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
+            if len(pair.r1.match_errors) > run.allowed_target_errors:
+                _debug("R1 errors: {}".format(pair.r1.match_errors))
+            if len(pair.r2.match_errors) > run.allowed_target_errors:
+                _debug("R2 errors: {}".format(pair.r2.match_errors))
+            if run._v102_compat and not [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]:
+                _debug("** v102 compat, allowing")
+            else:
+                pair.failure = Failures.match_errors
+                self.counters.match_errors += pair.multiplicity
+                return
+
+        if pair.right <= run.cotrans_minimum_length:
+            pair.failure = Failures.cotrans_min
+            return
+
+        pair.site = pair.left
+        self.counters.register_count(pair)
+
 
     def process_pair(self, pair):
 
@@ -148,6 +285,9 @@ class PartialFindProcessor(PairProcessor):
 
         run = self._run
         cotrans = run.cotrans
+        if cotrans:
+            self._process_pair_cotrans(pair)
+            return
 
         self._find_matches(pair)
         if not pair.matched:
@@ -182,9 +322,12 @@ class PartialFindProcessor(PairProcessor):
                 pair.r2.match_len -= delta
                 pair.r2.linker_errors = string_match_errors(pair.r2.original_seq[pair.r2.match_start + pair.r2.match_len:], linker)
                 if len(pair.r2.linker_errors) > run.allowed_adapter_errors:
-                    pair.failure = Failures.linker
-                    return
-                pair.r2.match_len = pair.r2.original_len - pair.r2.match_start
+                    if run._v102_compat and not [e for e in pair.r2.linker_errors if e + pair.r2.match_start + pair.r2.match_len < pair.r2.original_len - 4]:
+                        _debug("** v102 compat, allowing")
+                    else:
+                        pair.failure = Failures.linker
+                        return
+                pair.r2.match_len = min(pair.r2.original_len - pair.r2.match_start, pair.r2.match_len + linker_len + 4)
 
 
         # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
