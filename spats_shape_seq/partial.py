@@ -274,6 +274,10 @@ class PartialFindProcessor(PairProcessor):
                 self.counters.match_errors += pair.multiplicity
                 return
 
+        if pair.left < 0:
+            pair.failure = Failures.left_of_zero
+            return
+
         if pair.right < run.cotrans_minimum_length:
             pair.failure = Failures.cotrans_min
             return
