@@ -249,10 +249,14 @@ class PartialFindProcessor(PairProcessor):
 
         # trim case
         if rtrim > 0:
-            if not run.adapter_b.startswith(pair.r1.original_seq[-rtrim:]) or \
-               not self._adapter_t_rc.startswith(pair.r2.original_seq[-rtrim:]):
-                pair.failure = Failures.adapter_trim
-                return
+            pair.r1.adapter_errors = string_match_errors(pair.r1.original_seq[-rtrim:], run.adapter_b)
+            pair.r2.adapter_errors = string_match_errors(pair.r2.original_seq[-rtrim:], self._adapter_t_rc)
+            if max(len(pair.r2.adapter_errors), len(pair.r1.adapter_errors)) > self._run.allowed_adapter_errors:
+                if run._v102_compat and not [e for e in (pair.r1.adapter_errors + pair.r2.adapter_errors) if e < rtrim - 4]:
+                    _debug("** v102 compat, allowing adapter errors in last 4")
+                else:
+                    pair.failure = Failures.adapter_trim
+                    return
             pair.r1.trim(rtrim)
             pair.r2.trim(rtrim + 4) # also trim rc of handle
 
@@ -263,14 +267,14 @@ class PartialFindProcessor(PairProcessor):
                 _debug("R1 errors: {}".format(pair.r1.match_errors))
             if len(pair.r2.match_errors) > run.allowed_target_errors:
                 _debug("R2 errors: {}".format(pair.r2.match_errors))
-            if run._v102_compat and not [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]:
+            if run._v102_compat and not pair.r1.match_errors and not [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]:
                 _debug("** v102 compat, allowing")
             else:
                 pair.failure = Failures.match_errors
                 self.counters.match_errors += pair.multiplicity
                 return
 
-        if pair.right <= run.cotrans_minimum_length:
+        if pair.right < run.cotrans_minimum_length:
             pair.failure = Failures.cotrans_min
             return
 
