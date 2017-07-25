@@ -30,6 +30,8 @@ class TestPairs(unittest.TestCase):
         self.spats = Spats()
         self.spats.run.cotrans = True
         self.spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+        from spats_shape_seq.lookup import LookupProcessor
+        self.spats.run._processor_class = LookupProcessor
         self.spats.addTargets("test/cotrans/cotrans_single.fa")
 
     def tearDown(self):

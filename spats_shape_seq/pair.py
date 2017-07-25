@@ -16,6 +16,7 @@ class Pair(object):
         self.failure = None
         self.multiplicity = 1
         self.tags = None
+        self._end = -1
 
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()
@@ -57,5 +58,8 @@ class Pair(object):
 
     @property
     def end(self):
-        return self.right
+        return self.right if self._end == -1 else self._end
 
+    @end.setter
+    def end(self, val):
+        self._end = val

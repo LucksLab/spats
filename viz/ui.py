@@ -57,9 +57,13 @@ class SpatsViz(cjb.uif.UIServer):
     def _loadDBAndModel(self):
         data_config = self.all_config["data"]
         self._db = PairDB(data_config["dbfile"])
-        self.result_set_id = self._db.result_set_id_for_name(data_config["result_set_name"])
-        self._db.index_results()
-        self.has_tags = bool(self.result_set_id)
+        if "result_set_name" in data_config:
+            self.result_set_id = self._db.result_set_id_for_name(data_config["result_set_name"])
+            self._db.index_results()
+            self.has_tags = bool(self.result_set_id)
+        else:
+            self.result_set_id = -1
+            self.has_tags = False
 
         s = Spats()
         s.run._processor_class = TagProcessor

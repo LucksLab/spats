@@ -184,6 +184,8 @@ class CotransTarget(BaseScene):
                 self.siteViews.append(v)
                 total += site.total
         if max_val > 0:
+            if self.data_type == "reactivities":
+                max_val = 4.0 # TEMP
             for v in self.siteViews:
                 bg = float("{:.2f}".format(min(v.factor, max_val) / max_val))
                 v.bg = [ bg, bg, bg ]

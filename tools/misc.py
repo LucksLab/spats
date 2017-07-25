@@ -459,6 +459,8 @@ def cotrans_debug():
     s = Spats()
     s.run.cotrans = True
     s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    from spats_shape_seq.lookup import LookupProcessor
+    s.run._processor_class = LookupProcessor
     s.run._v102_compat = True
     s.run.minimum_target_match_length = 10
 
@@ -473,17 +475,18 @@ def cotrans_debug():
     pair.set_from_data(str(d['id']), str(d['r1']), str(d['r2']))
     #c = ['683779', 'TCCGGTCCTTGGTGCCCGAGTCAGAAAAAAATAGAA', 'TCTATTTTTTTCTGACTCGGGCACCAAGGACCGGAA', 82, 71]
     #c = [ "1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", 93, 68 ]
-    #c = [ "301028", "AAGTGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAAGGACACTTAGATCGGA", 96, 92 ]
+    c = [ "301028", "AAGTGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAAGGACACTTAGATCGGA", 96, 92 ]
     #c = [ "31631284", "TTCAGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAATGACCGGAAGATCGGA", 96, 92 ]
     #c = [ "7232", "AGGTGTCCTTGGTGCCCGAGTCAGTAGCTAAGAAAT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", -1, -1 ]
     #c = [ "16845404", "AAATGTCCTTGGTGCCCGAGTCAGACTGGTAGGAGT", "TCTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT", -1, -1 ]
     #c = [ "24102328", "AAGCGTCCTTGGTGCCCGAGTCAGGAGTCATAGATC", "ATGACTCCTGACTCGGGCACCAAGGACGCTTAGATC", 46, 39 ]
-    c = [ "51216106", "GGGTGTCCTTGGTGCCCGAGTCAGATTAGCTAAGCA", "AGCTAATCTGACTCGGGCACCAAGGACGCTGCTTAG", 41, 34 ]
+    #c = [ "51216106", "GGGTGTCCTTGGTGCCCGAGTCAGATTAGCTAAGCA", "AGCTAATCTGACTCGGGCACCAAGGACGCTGCTTAG", 41, 34 ]
+    #c = [ "1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", 93, 68 ]
     pair.set_from_data(c[0], c[1], c[2])
     print "{}\n{} / {}".format(pair.identifier, pair.r1.original_seq, pair.r2.original_seq)
     s.process_pair(pair)
     if pair.has_site:
-        print "{}: {} / {}".format(pair.target.name, pair.site, pair.right)
+        print "{}: {} / {}".format(pair.target.name, pair.site, pair.end)
     else:
         print "FAIL: {}".format(pair.failure)
     

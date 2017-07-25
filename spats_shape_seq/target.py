@@ -209,6 +209,40 @@ class Targets(object):
                             candidate[0] = [ target, candidate[0] ]
         return candidate
 
+    def build_cotrans_lookups(self, run):
+        # for cotrans experiments, R1 includes a linker and is relatively restricted
+        # store RC in table so that we can directly lookup R1[4:]
+
+        minimum_target_length = 3 # TODO: run config?
+        linker = run.cotrans_linker
+        linker_len = len(linker)
+        r1_table = {}
+
+        if 1 != len(self.targets):
+            raise Exception("cotrans requires one target")
+        target = self.targets[0]
+        tseq = target.seq
+        tlen = len(tseq)
+        adapter_b = run.adapter_b
+        pair_len = run.pair_length
+        assert(0 < pair_len)
+        r1_match_len = pair_len - 4
+
+        for end in range(run.cotrans_minimum_length, tlen):
+            target_subseq = tseq[:end]
+            for i in range(0, r1_match_len - linker_len - minimum_target_length):
+                r1_rc_match = target_subseq[i - (r1_match_len - linker_len):] + linker
+                r1_match = reverse_complement(r1_rc_match) + adapter_b[:i]
+                entries = r1_table.get(r1_match, [])
+                entries.append( (target, end, i) ) # target, end, amount of adapter to trim
+                r1_table[r1_match] = entries
+        self.r1_lookup = r1_table
+
+        # we only need to build R2 lookups for full sequences (excepting linker)
+        # trim cases are just tested against R1
+        self._build_R2_lookup(pair_len - linker_len)
+
+
     def build_lookups(self, adapter_b, length = None, end_only = True):
         use_length = length or 35
         self._build_R1_lookup(adapter_b, use_length - 4, end_only)
