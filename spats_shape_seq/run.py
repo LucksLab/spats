@@ -40,7 +40,7 @@ class Run(object):
         #: analyze your targets (xref
         #: :meth:`.target.Target.longest_target_self_matches`) to
         #: determine an appropriate value.
-        self.minimum_target_match_length = 8
+        self.minimum_target_match_length = 10
 
         #: Defaults to ``0``, set higher to require a minimal amount of
         #: adapter in order to do trimming. Generally not necessary since

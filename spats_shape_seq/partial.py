@@ -144,7 +144,7 @@ class PartialFindProcessor(PairProcessor):
         # algorithm:
         # (1) find linker in R1
         # (2) find_partial R2 in target
-        #   (2a) if no match, find linker in target
+        #   (2a) if no match, find linker in R2
         #     (2a1) if no linker, no match, return
         #     (2a2) if linker, then determine target index, and goto 3
         #   (2b) if match, the find_partial of R1 (w/o linker) in target

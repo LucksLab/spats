@@ -460,6 +460,7 @@ def cotrans_debug():
     s.run.cotrans = True
     s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
     s.run._v102_compat = True
+    s.run.minimum_target_match_length = 10
 
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
     s.addTargets(bp + "cotrans_single.fa")
@@ -475,7 +476,9 @@ def cotrans_debug():
     #c = [ "301028", "AAGTGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAAGGACACTTAGATCGGA", 96, 92 ]
     #c = [ "31631284", "TTCAGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAATGACCGGAAGATCGGA", 96, 92 ]
     #c = [ "7232", "AGGTGTCCTTGGTGCCCGAGTCAGTAGCTAAGAAAT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", -1, -1 ]
-    c = [ "16845404", "AAATGTCCTTGGTGCCCGAGTCAGACTGGTAGGAGT", "TCTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT", -1, -1 ]
+    #c = [ "16845404", "AAATGTCCTTGGTGCCCGAGTCAGACTGGTAGGAGT", "TCTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT", -1, -1 ]
+    #c = [ "24102328", "AAGCGTCCTTGGTGCCCGAGTCAGGAGTCATAGATC", "ATGACTCCTGACTCGGGCACCAAGGACGCTTAGATC", 46, 39 ]
+    c = [ "51216106", "GGGTGTCCTTGGTGCCCGAGTCAGATTAGCTAAGCA", "AGCTAATCTGACTCGGGCACCAAGGACGCTGCTTAG", 41, 34 ]
     pair.set_from_data(c[0], c[1], c[2])
     print "{}\n{} / {}".format(pair.identifier, pair.r1.original_seq, pair.r2.original_seq)
     s.process_pair(pair)
