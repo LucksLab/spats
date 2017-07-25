@@ -151,6 +151,9 @@ class PartialFindProcessor(PairProcessor):
         #     (2b1) if no match, return
         #     (2b2) if match, then goto 3
         # (3) R1/R2 are now fully determined, check for match/errors and return
+        #
+        # xref full algorithm description at the end of the file for more detail
+        #
 
         run = self._run
         # TODO: xref TODO below
@@ -406,3 +409,69 @@ class PartialFindProcessor(PairProcessor):
 
         pair.site = pair.site or pair.left
         self.counters.register_count(pair)
+
+#
+# _process_pair_cotrans algorithm
+#
+# overview:
+# (1) find linker in R1
+# (2) find_partial R2 in target
+#   (2a) if no match, find linker in R2
+#     (2a1) if no linker, no match, return
+#     (2a2) if linker, then determine target index, and goto 3
+#   (2b) if match, the find_partial of R1 (w/o linker) in target
+#     (2b1) if no match, return
+#     (2b2) if match, then goto 3
+# (3) R1/R2 are now fully determined, check for match/errors and return
+#
+# details:
+#
+# (1) this is just a string search of rc(R1) for the linker. it has to
+#     be there to be a valid fragment.
+#
+# (2) this is the same algorithm (find_partial) as was used before for
+#     non-cotrans experiments: it finds the longest subsequence of R2
+#     that matches the target (not including any linker).
+#
+#   (2a) if we can't find a long enough match (>=10bp), it could be
+#        because R1 and R2 are not far apart, and therefore R2
+#        contains the linker. so we search for it (simple string
+#        search)
+#
+#     (2a1) if R2 has no linker and doesn't have a long enough
+#           subsequence matching the target, then it's not a match
+#
+#     (2a2) if the linker is found in R2, then everything to the left
+#           of the linker is the part of the target to search. simple
+#           string search will find that. if we don't find it -- or
+#           find it multiple times (can be the case if it's very
+#           short, say 3bp) -- then it's not a match,
+#           return. otherwise, we now know where in the target R2
+#           aligns, and therefore the linker, and therefore R1. go to
+#           step [3]
+#
+#   (2b) in this case, we've found a subsequence match to the target
+#        in R2, so we now know where it aligns. do the same
+#        find_partial on R1 to find out where it aligns.
+#
+#     (2b1) if R1 doesn't have a sufficient-length matching
+#           subsequence in the target, then it's not a match. (it
+#           can't be too short, b/c we've found R2, and the only way
+#           R1 can have a match that's too short is if R1 and R2
+#           overlap, which corresponds to case [2a2] above.)
+#
+#     (2b2) if we do find a match, then we've aligned both R1 and R2
+#           to the target. go to step [3]
+#
+# (3) we now know where R1 and R2 align with the target. if they are
+#     near each other, R2 will include some or all of the linker;
+#     verify that matches properly, if that's the case. if they are
+#     even closer together, then adapter trimming will be required: in
+#     which case, we know exactly how much of the adapters should be
+#     on the end, we can check that it matches and trim it
+#     off. finally, we make sure that R1 and R2 match the target
+#     everywhere they're supposed to based on alignment. if all of
+#     that passes, the a count is registered at the appropriate length
+#     (right side where R1 matches the target) and site (left side of
+#     where R2 matches the target).
+#
