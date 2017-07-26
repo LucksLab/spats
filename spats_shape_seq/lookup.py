@@ -1,7 +1,51 @@
+#
+# lookup algorithm implementation
+#
+# general idea: there are only so many valid possibilities for R1 (w/o
+# handle): so, just create a dictionary whose keys are the possible
+# R1[4:], and whose values indicate the associated information (which
+# target, length L of subsequence for cotrans, how much adapter to
+# trim, etc). to process a pair, first lookup R1 in the dictionary,
+# and then use a similar lookup on R2 (or else R2 is determined by the
+# presence of adapter).
+#
+# cotrans detail:
+#
+# - possible R1 keys (i.e., R1[4:]) are of the form:
+#     rc([target][linker]) + adapter_b
+#   the total length is 32, so len(adapter) + len(target) must add up to len(R1) - 4 - len(linker)
+#
+# - xref target.py:build_cotrans_lookups, where the lookup table is
+#   built.  basically, just iterate over all possible L, and then over
+#   the valid amounts of target/adapter, to form the table
+#
+# - note that some keys are ambiguous: for example, if the target-part
+#   starts with "T", then when there's no adapter, the key will end in
+#   "A". but the len=1 adapter key will also end in "A", and otherwise
+#   be identical (since adapter_b starts with "A"). so,
+#   _process_pair_cotrans iterates through all of these "hits" and see
+#   which one works.
+#
+# - in some cases the keys are ambiguous: the same key and R2 could be
+#   at two different spots. that fails with the "multiple_R1" error
+#   code.
+#
+# - once R1 is looked up, there are two possibilities for R2:
+#
+#   (a) it's fully in the sequence: then we look it up using the
+#       r2_lookup table, and we're done
+#
+#   (b) it overlaps linker/adapter: in which case, the site it has to
+#       start at is determined by R1. so then it only remains to check
+#       that R2 has no errors.
+#
+# - that's pretty much it. in the common case, this is just two
+#   dictionary lookups and a few string compares, so it's very
+#   fast. see _try_lookup_hit() below for details.
+#
 
 from processor import PairProcessor, Failures
 from util import _warn, _debug, reverse_complement
-
 
 class LookupProcessor(PairProcessor):
 
