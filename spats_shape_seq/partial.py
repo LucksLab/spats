@@ -263,6 +263,10 @@ class PartialFindProcessor(PairProcessor):
             pair.r1.trim(rtrim)
             pair.r2.trim(rtrim + 4) # also trim rc of handle
 
+        if pair.right > target.n:
+            pair.failure = Failures.right_edge
+            return
+
         pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement[:pair.r1.match_len], tseq[pair.r1.match_index:])
         pair.r2.match_errors = string_match_errors(pair.r2.subsequence[:pair.r2.match_len], tseq[pair.r2.match_index:])
         if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
@@ -283,6 +287,10 @@ class PartialFindProcessor(PairProcessor):
 
         if pair.right < run.cotrans_minimum_length:
             pair.failure = Failures.cotrans_min
+            return
+
+        if pair.r1.match_start + pair.r1.match_len + linker_len + rtrim < r1_len:
+            pair.failure = Failures.right_edge
             return
 
         pair.site = pair.left

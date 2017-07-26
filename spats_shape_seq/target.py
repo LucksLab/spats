@@ -228,10 +228,13 @@ class Targets(object):
         assert(0 < pair_len)
         r1_match_len = pair_len - 4
 
-        for end in range(run.cotrans_minimum_length, tlen):
+        for end in range(minimum_target_length, tlen):
             target_subseq = tseq[:end]
             for i in range(0, r1_match_len - linker_len - minimum_target_length):
-                r1_rc_match = target_subseq[i - (r1_match_len - linker_len):] + linker
+                tstart = i - (r1_match_len - linker_len)
+                if tstart + end < 0:
+                    continue
+                r1_rc_match = target_subseq[tstart:] + linker
                 r1_match = reverse_complement(r1_rc_match) + adapter_b[:i]
                 entries = r1_table.get(r1_match, [])
                 entries.append( (target, end, i) ) # target, end, amount of adapter to trim

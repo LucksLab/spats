@@ -6,17 +6,82 @@ from spats_shape_seq.pair import Pair
 
 # [ id, r1, r2, end, site ]
 cases = [
+
     [ "1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", 93, 68 ],
+    # R2 partial linker case
+
     [ "1116:16151:46609", "GGGTGTCCTTGGTGCCCGAGTCAGAAAAGTTCTTCT", "TCTATGAGCAAAGGAGAAGAACTTTTCTGACTCGGG", 119, 93 ],
+    # R2 partial linker case
+
     [ "1116:2824:48570", "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT", "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA", None, None ],
+    # 1 bp toggle in last 4 of R2 (xref v102 compat cases)
+
     [ "301028", "AAGTGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAAGGACACTTAGATCGGA", 96, 92 ],
+    # adapter trim case
+
     [ "360389", "GAATGTCCTTGGTGCCCGAGTCAGAAAAAAATTTTT", "ATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACT", None, None ],
+    # R1 no-match case
+
     [ "683779", "TCCGGTCCTTGGTGCCCGAGTCAGAAAAAAATAGAA", "TCTATTTTTTTCTGACTCGGGCACCAAGGACCGGAA", 82, 71 ],
+    # TTATAGGC....CACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC
+    # r2:                        TCTATTTTTTT.CTGACTCGGGCACCAAGGAC.CGGA.A
+    # LNK:                                  .CTGACTCGGGCACCAAGGAC
+    # rc                         TCTATTTTTTT.CTGACTCGGGCACCAAGGAC
+    # r1:                   TCCG.GTCCTTGGTGCCCGAGTCAG.AAAAAAATAGA.A
+    # one bp adapter trim case
+
     [ "31631284", "TTCAGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAATGACCGGAAGATCGGA", None, None ],
+    # r2: ATCTCTGACTCGGGCACCAATGAC.CGGA.AGATCGGA
+    # LNK:   .CTGACTCGGGCACCAAGGAC.
+    # one bp toggle in linker !
+
     [ "7232", "AGGTGTCCTTGGTGCCCGAGTCAGTAGCTAAGAAAT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", None, None ],
+    #     TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGCTA.ATGACTCCTACCAGTATCACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC
+    # rc                             ATTTCTTAGCTA.CTGACTCGGGCACCAAGGAC ==> match errors
+    # LNK:                                       .CTGACTCGGGCACCAAGGAC
+    # r1:                       AGGT.GTCCTTGGTGCCCGAGTCAGTAGCTAAGAAAT
+
     [ "16845404", "AAATGTCCTTGGTGCCCGAGTCAGACTGGTAGGAGT", "TCTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT", None, None ],
+    # R2 left of zero case
+
     [ "24102328", "AAGCGTCCTTGGTGCCCGAGTCAGGAGTCATAGATC", "ATGACTCCTGACTCGGGCACCAAGGACGCTTAGATC", 46, 39 ],
+    # f_wt: TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACTCCTACCAGTATCACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAG.>GATCTATGA<.GCAAAGGAG...
+    # r2:                                          ATGACTC.CTGACTCGGGCACCAAGGAC.GCTT.AGATC
+    #                                                     .CTGACTCGGGCACCAAGGAC.
+    # rc                                     GATCT.ATGACTC.CTGACTCGGGCACCAAGGAC
+    # r1:                                     AAGC.GTCCTTGGTGCCCGAGTCAG.GAGTCAT.AGATC
+    # corner case b/c longest_match on rc(r1) could match the target spot, or the spot indicated by ".>xx<." in target,
+    # both are 9bp long. make sure the code matches the correct one.
+
     [ "51216106", "GGGTGTCCTTGGTGCCCGAGTCAGATTAGCTAAGCA", "AGCTAATCTGACTCGGGCACCAAGGACGCTGCTTAG", None, None ],
+    #f_wt:  TTATAGGCGATGGAGTTCGCCATAAAC->GC.TGCTTAGCTAAT.GACTCCTACCAGTATCACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC
+    #r2:                                         AGCTAAT.CTGACTCGGGCACCAAGGAC.GCTGCTTAG  ==> R2 is misaligned with R1, when it includes the linker
+    #LNK:                                                CTGACTCGGGCACCAAGGAC                it should left-aligned with R1. also, note that the
+    #rc                                     TGCTTAGCTAAT.CTGACTCGGGCACCAAGGAC                right side of R2 matches the target, to the right of
+    #r1:                               GGGT.GTCCTTGGTGCCCGAGTCAGATTAGCTAAGCA                 the "->". clearly messed up, should be rejected.
+
+
+    [ "41823514", "GAATGTCCTTGGTGCCCGAGTCAGAACTCCAAGATC", "TGGAGTTCTGACTCGGGCACCAAGGACATTCAGATC", None, None ],
+    #    TTATAGGCGA.TGGAGTT.CGCC....TTCAC.TGGAGTT.GTC  ==> multiple R1 match
+    #r2:            TGGAGTT.CTGACTCGGGCACCAAGGAC.ATTC.AGATC
+    #LNK:                  .CTGACTCGGGCACCAAGGAC.
+
+    [ "180", "AAGCTGTCCTTGGTGCCCGAGTCAGGAAAAGTTCTT", "TTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAA", None, None ],
+    # f_wt:  TTAT....GAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC
+    # LNK:                                                               .CTGACTCGGGCACCAAGGAC.
+    # rc                                                      AAGAACTTTTC.CTGACTCGGGCACCAAGGAC.A ==> R1 over right edge (of linker)
+    # r1:                                                 AAGC.TGTCCTTGGTGCCCGAGTCAGGAAAAGTTCTT
+
+    [ "67219", "GAGTGTCCTTGGTGCCCGAGTCAGTCGACAACTCCA", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", None, None ],
+    # f_wt: TTAT...TCACTGGAGTTGTC
+    # LNK:                         .CTGACTCGGGCACCAAGGAC
+    # rc:              TGGAGTTGTCGA.CTGACTCGGGCACCAAGGAC  ==> R1 over right edge (of target)
+    # r1: GAGT.GTCCTTGGTGCCCGAGTCAGTCGACAACTCCA                       
+
+    [ "58726", "GGATGTCCTTGGTGCCCGAGTCAGCCTTAGATCGGA", "AAGGCTGACTCGGGCACCAAGGACATCCAGATCGGA", None, None ],
+    # LNK:                   .CTGACTCGGGCACCAAGGAC
+    #r2:                 AAGG.CTGACTCGGGCACCAAGGAC.ATCC.AGATCGGA
+    #f_wt:   TTAT...GAGG.AAGG.ATCTATGAGCA.AAGG.AGAAGAACTTTTCACTGGAGTTGTC => multiple R1 match
 ]
 
 v102_compat_cases = [
@@ -24,15 +89,17 @@ v102_compat_cases = [
     [ "1011640", "GGACGTCCTTGGTGCCCGAGTCAGTAGCTAAGCAGC", "AACGCTGCTTAGCTACTGACTCGGGCACCAAGTACG", 39, 24 ],
 ]
 
-class TestPairs(unittest.TestCase):
-
+class TestPairsPartial(unittest.TestCase):
+    
     def setUp(self):
         self.spats = Spats()
         self.spats.run.cotrans = True
         self.spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
-        from spats_shape_seq.lookup import LookupProcessor
-        self.spats.run._processor_class = LookupProcessor
+        self.setup_processor()
         self.spats.addTargets("test/cotrans/cotrans_single.fa")
+
+    def setup_processor(self):
+        self.run_compat = True
 
     def tearDown(self):
         self.spats = None
@@ -45,7 +112,7 @@ class TestPairs(unittest.TestCase):
     def run_case(self, case):
         pair = self.pair_for_case(case)
         self.spats.process_pair(pair)
-        self.assertEqual(case[4], pair.site) #, str(case))
+        self.assertEqual(case[4], pair.site, "res={} != {} ({}, {})".format(pair.site, case[4], self.__class__.__name__, case[0]))
         if pair.site:
             self.assertEqual(case[3], pair.end)
         return pair
@@ -54,6 +121,15 @@ class TestPairs(unittest.TestCase):
         for case in cases:
             self.run_case(case)
         self.spats.run._v102_compat = True
-        for case in v102_compat_cases:
-            self.run_case(case)
+        if self.run_compat:
+            for case in v102_compat_cases:
+                self.run_case(case)
         print "Ran {} pair->site cases.".format(len(cases))
+
+
+class TestPairsLookup(TestPairsPartial):
+    
+    def setup_processor(self):
+        self.run_compat = False
+        from spats_shape_seq.lookup import LookupProcessor
+        self.spats.run._processor_class = LookupProcessor
