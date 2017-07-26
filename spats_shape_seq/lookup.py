@@ -21,7 +21,7 @@ class LookupProcessor(PairProcessor):
             print "Lookup table: {} R1 entries, {} R2 entries for {} targets.".format(len(targets.r1_lookup),
                                                                                       sum(map(len, targets.r2_lookup.values())),
                                                                                       len(targets.r2_lookup))
-
+    #@profile
     def _process_pair_cotrans(self, pair):
 
         r1_res = self._targets.r1_lookup.get(pair.r1.original_seq[4:])
@@ -41,6 +41,7 @@ class LookupProcessor(PairProcessor):
             if pair.has_site:
                 return
 
+    #@profile
     def _try_lookup_hit(self, pair, r1_res):
 
         linker = self._run.cotrans_linker
@@ -82,20 +83,43 @@ class LookupProcessor(PairProcessor):
                 pair.failure = Failures.adapter_trim
                 return
 
+        if not self._check_indeterminate(pair):
+            return
+
         pair.end = L
         pair.target = target
         pair.site = site
         self.counters.register_count(pair)
-                
+
+    # an optimization override
+    def _match_mask(self, pair):
+        s = pair.r1.original_seq[:4]
+        if s[0] == 'A' or s[0] == 'G':
+            if (s[1] == 'A' or s[1] == 'G') and \
+               (s[2] == 'A' or s[2] == 'G') and \
+               (s[3] == 'C' or s[3] == 'T'):
+                pair.set_mask(self._masks[0])
+                return True
+        elif s[0] == 'C' or s[0] == 'T':
+            if (s[1] == 'C' or s[1] == 'T') and \
+               (s[2] == 'C' or s[2] == 'T') and \
+               (s[3] == 'G' or s[3] == 'A'):
+                pair.set_mask(self._masks[1])
+                return True
+        pair.failure = Failures.mask
+        return False
 
     #@profile
     def process_pair(self, pair):
 
-        if not self._check_indeterminate(pair) or not self._match_mask(pair):
+        if not self._match_mask(pair):
             return
 
         if self._run.cotrans:
             self._process_pair_cotrans(pair)
+            return
+
+        if not self._check_indeterminate(pair):
             return
 
         targets = self._targets

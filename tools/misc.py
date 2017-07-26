@@ -493,6 +493,24 @@ def cotrans_debug():
         print "{}: {} / {}".format(pair.target.name, pair.site, pair.end)
     else:
         print "FAIL: {}".format(pair.failure)
+
+def prof_run():
+    from spats_shape_seq import Spats
+    spats = Spats()
+    spats.run.cotrans = True
+    spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    spats.run.writeback_results = False
+    spats.run._process_all_pairs = True
+    spats.run.skip_database = True
+    #spats.run.num_workers = 1
+    from spats_shape_seq.lookup import LookupProcessor
+    spats.run._processor_class = LookupProcessor
+
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
+    spats.addTargets(bp + "cotrans_single.fa")
+    spats.process_pair_data(bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
+                            bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq")
+    exit(0)
     
 if __name__ == "__main__":
     import sys
