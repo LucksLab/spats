@@ -75,7 +75,7 @@ class LookupProcessor(PairProcessor):
         if r1_res[0][1] < self._run.cotrans_minimum_length:
             pair.failure = Failures.cotrans_min
             return
-        if len(r1_res) > 0:
+        if len(r1_res) > 1:
             for trim in [ h[2] for h in r1_res ]:
                 if len([ h[1] for h in r1_res if h[2] == trim]) > 1:
                     pair.failure = Failures.multiple_R1

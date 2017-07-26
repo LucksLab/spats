@@ -112,6 +112,9 @@ class Run(object):
         #: Default ``8``, set to adjust the minimum length for matching tags for the reads analyzer.
         self.minimum_tag_match_length = 8
 
+        #: Default ``lookup``, set to ``find_partial`` to use the partial find algorithm.
+        self.algorithm = "lookup"
+
         # private config
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
         self._processor_class = None
@@ -120,7 +123,7 @@ class Run(object):
 
 
     def _get_processor_class(self):
-        return self._processor_class or (PartialFindProcessor if self.cotrans else LookupProcessor)
+        return self._processor_class or { "lookup" : LookupProcessor, "find_partial" : PartialFindProcessor }[self.algorithm]
 
     def config_dict(self):
         config = {}

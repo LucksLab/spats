@@ -82,6 +82,27 @@ cases = [
     # LNK:                   .CTGACTCGGGCACCAAGGAC
     #r2:                 AAGG.CTGACTCGGGCACCAAGGAC.ATCC.AGATCGGA
     #f_wt:   TTAT...GAGG.AAGG.ATCTATGAGCA.AAGG.AGAAGAACTTTTCACTGGAGTTGTC => multiple R1 match
+
+    [ "188425", "GGACGTCCTTGGTGCCCGAGTCAGTATAGATCGGAA", "ATACTGACTCGGGCACCAAGGACTTCCAGATCGGAA", None, None ],
+    #f_wt:    TT.ATA.GGCGATGGAGTTCGCC.ATA.AACGCTGCTTA...
+    #r2:  ATA.CTGACTCGGGCACCAAGGACTTCC.AGATCGGAA
+    # should fail b/c of short match and multiple R1
+
+    [ "jjb_683779'", "TCCGGTCCTTGGTGCCCGAGTCAGAAAAAAATAGAA", "TCTATTTTTTTCTGACTCGGGCACCAAGGACCGTAA", 82, 71 ],
+    # TTATAGGC....CACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC
+    # r2:                        TCTATTTTTTT.CTGACTCGGGCACCAAGGAC.CGTA.A
+    # r1:                   TCCG.GTCCTTGGTGCCCGAGTCAG.AAAAAAATAGA.A
+    # 1-bp toggle in R2 of handle -- for now, confirms that we ignore this
+
+    [ "jjb_L21", "GGACGTCCTTGGTGCCCGAGTCAGGGCGAACTAGAT", "AGTTCGCCCTGACTCGGGCACCAAGGACGTCCAGAT", 21, 13 ],
+    # testing cotrans minimum length -- L=21 passes
+
+    [ "jjb_L20", "GGACGTCCTTGGTGCCCGAGTCAGGCGAACTCAGAT", "GAGTTCGCCTGACTCGGGCACCAAGGACGTCCAGAT", 20, 12 ],
+    # testing cotrans minimum length -- L=20 passes
+
+    [ "jjb_L19", "GGACGTCCTTGGTGCCCGAGTCAGCGAACTCCAGAT", "GGAGTTCGCTGACTCGGGCACCAAGGACGTCCAGAT", None, None ],
+    # testing cotrans minimum length -- L=19 fails
+
 ]
 
 v102_compat_cases = [
@@ -100,6 +121,7 @@ class TestPairsPartial(unittest.TestCase):
 
     def setup_processor(self):
         self.run_compat = True
+        self.spats.run.algorithm = "find_partial"
 
     def tearDown(self):
         self.spats = None
@@ -131,5 +153,4 @@ class TestPairsLookup(TestPairsPartial):
     
     def setup_processor(self):
         self.run_compat = False
-        from spats_shape_seq.lookup import LookupProcessor
-        self.spats.run._processor_class = LookupProcessor
+        self.spats.run.algorithm = "lookup"
