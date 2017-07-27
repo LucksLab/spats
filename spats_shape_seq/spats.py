@@ -438,7 +438,7 @@ class Spats(object):
         self.loadTargets(pair_db)
         pair_db.load_counters("spats", self.counters)
 
-    def validate_results(self, data_r1_path, data_r2_path, algorithm = "find_partial"):
+    def validate_results(self, data_r1_path, data_r2_path, algorithm = "find_partial", verbose = False):
         """Used to validate the results of the current run using against a
            different algorithm. Must be run after running
            :meth:`.process_pair_data`, or after loading the data
@@ -452,26 +452,51 @@ class Spats(object):
            can select a particular algorithm for data validation (see
            :attr:`.run.Run.algorithm`).
 
+        :param verbose: set to `True` for detailed output of mismatched sites.
+
+        :return: `True` if results validate, `False` otherwise.
         """
 
         original_algorithm = self.run.algorithm
         if original_algorithm == algorithm:
             raise Exception("Validation cannot be run using the same algorithm.")
 
-        our_counts = self.counters.registered_dict()
-        if not our_counts:
+        if not self.counters.registered_dict():
             raise Exception("Normal SPATS run required first in order to validate the results.")
 
-        # reset
-        self.__processor = None
-        self._masks = None
-        self._profiles = None
+        other = Spats()
+        other.run.load_from_config(self.run.config_dict())
+        other.run.algorithm = algorithm
+        other.process_pair_data(data_r1_path, data_r2_path)
 
-        self.run.algorithm = algorithm
+        match_count, total = self.compare_results(other, verbose = verbose)
+        if match_count == total:
+            print "Original results ({} algorithm) validated using {} algorithm, {} registered sites match.".format(original_algorithm, match_count, algorithm)
+            return True
+        else:
+            print "Validation FAILURE: results ({} algorithm) only match {}/{} registered sites (when validated using {} algorithm).".format(original_algorithm, match_count, total, algorithm)
+            return False
 
-        self.process_pair_data(data_r1_path, data_r2_path)
+        return 
 
-        their_counts = self.counters.registered_dict()
+    def compare_results(self, other_spats, verbose = False):
+        """Used to compare the results of the current run against another
+           SPATS instance. Must be run after running
+           :meth:`.process_pair_data`, or after loading the data
+           (:meth:`.load`) from a previously-run session.
+
+        :param other_spats: :class:`.Spats` instance to compare.
+
+        :param verbose: set to `True` for detailed output of mismatched sites.
+
+        :return: `(match_count, total)` : `match_count` indicates the
+        number of sites matched, `total` indicates total number of
+        sites.
+
+        """
+
+        our_counts = self.counters.registered_dict()
+        their_counts = other_spats.counters.registered_dict()
 
         match_count = 0
         total = 0
@@ -479,10 +504,6 @@ class Spats(object):
             total += 1
             if their_counts.get(key, 0) == value:
                 match_count += 1
-
-        if match_count == total:
-            print "Original results ({} algorithm) validated using {} algorithm, {} registered sites match.".format(original_algorithm, match_count, algorithm)
-            return True
-        else:
-            print "Validation FAILURE: results ({} algorithm) only match {}/{} registered sites (when validated using {} algorithm).".format(original_algorithm, match_count, total, algorithm)
-            return False
+            elif verbose:
+                print "Mismatch {}:  {} != {}".format(key, value, their_counts.get(key, 0))
+        return match_count, total
