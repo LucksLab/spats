@@ -115,11 +115,13 @@ class Run(object):
         #: Default ``lookup``, set to ``find_partial`` to use the partial find algorithm.
         self.algorithm = "lookup"
 
+
         # private config
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
         self._processor_class = None
         self._run_limit = 0 # for testing, only supported on num_workers=1
         self._v102_compat = False
+        self._extra_tags = None # used by reads analyzer
 
 
     def _get_processor_class(self):
@@ -128,7 +130,7 @@ class Run(object):
     def config_dict(self):
         config = {}
         for attr in dir(self):
-            if attr.startswith('_'):
+            if attr.startswith('_')  and attr != "_extra_tags":
                 continue
             val = getattr(self, attr)
             if callable(val) or attr == "log":

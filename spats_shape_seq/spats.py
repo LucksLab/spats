@@ -433,7 +433,7 @@ class Spats(object):
            :param input_path: the path of a previously saved SPATS session.
         """
 
-        pair_db = PairDB(output_path)
+        pair_db = PairDB(input_path)
         pair_db.load_run(self.run)
         self.loadTargets(pair_db)
         pair_db.load_counters("spats", self.counters)

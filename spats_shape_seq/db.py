@@ -258,6 +258,10 @@ class PairDB(object):
         self._prepare_results()
         return self._fetch_one("SELECT rowid FROM result_set WHERE set_id=?", (set_name,))
 
+    def result_sets(self):
+        self._prepare_results()
+        return [ str(r[0]) for r in self.conn.execute("SELECT set_id FROM result_set") ]
+
     def add_results_with_tags(self, result_set_id, results):
         # grab a new connection since this might be in a new process (due to multiprocessing)
         conn = self._get_connection()
@@ -395,6 +399,10 @@ class PairDB(object):
     def setup_counters(self):
         self.conn.execute("CREATE TABLE IF NOT EXISTS counter (run_key TEXT, dict_index INT, count_key TEXT, count INT)")
         self.conn.execute("CREATE INDEX IF NOT EXISTS counter_key_idx ON counter (run_key)")
+
+    def has_counters(self):
+        self.setup_counters()
+        return (1 == self._fetch_one("SELECT 1 FROM counter LIMIT 1"))
 
     def store_counters(self, run_key, counters):
         self.setup_counters()

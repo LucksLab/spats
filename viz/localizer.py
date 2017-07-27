@@ -8,6 +8,7 @@ strings = {
     'targets' : 'Targets',
     'showMatches' : 'Show Matches',
     'dump' : 'Dump',
+    'open_spats' : 'Open',
 }
 
 class Localizer(cjb.uif.Localizer):

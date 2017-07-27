@@ -163,6 +163,7 @@ class ReadsAnalyzer(object):
 
     def addTagTarget(self, name, tag):
         self._extra_tag_targets.append((name, tag))
+        self.run._extra_tags = self._extra_tag_targets
 
     def addTagPlugin(self, tag, handler):
         self._plugins[tag] = handler
