@@ -35,7 +35,7 @@ local_uninstall:
 
 .PHONY: docs
 docs:
-	@cd doc  &&  make html
+	@cd doc  &&  make html  ||  (echo "Docs failed. Make sure sphinx is installed on your system:\n\n$ sudo pip install sphinx\n"  &&  exit 1)
 
 .PHONY: showdocs
 showdocs: docs
