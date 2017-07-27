@@ -467,6 +467,7 @@ class Spats(object):
         other = Spats()
         other.run.load_from_config(self.run.config_dict())
         other.run.algorithm = algorithm
+        other._targets = self._targets
         other.process_pair_data(data_r1_path, data_r2_path)
 
         match_count, total = self.compare_results(other, verbose = verbose)
