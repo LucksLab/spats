@@ -413,6 +413,22 @@ class PairDB(object):
         counters.update_with_count_data(count_data)
         return counters
 
+    def setup_run(self):
+        self.conn.execute("CREATE TABLE IF NOT EXISTS run_data (param_key TEXT, param_val TEXT)")
+
+    def store_run(self, run):
+        self.setup_run()
+        self.conn.execute("DELETE FROM run_data")
+        for k, v in run.config_dict().iteritems():
+            self.conn.execute("INSERT INTO run_data VALUES (?, ?)", (k, str(v)))
+        self.conn.commit()
+
+    def load_run(self, run):
+        config_dict = {}
+        for r in self.conn.execute("SELECT param_key, param_val FROM run_data"):
+            config_dict[str(r[0])] = str(r[1])
+        run.load_from_config(config_dict)
+
 
     #v102 delta analysis
     def _create_v102(self):

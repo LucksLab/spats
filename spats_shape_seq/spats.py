@@ -172,6 +172,7 @@
 #
 
 
+import os
 import time
 
 from db import PairDB
@@ -190,8 +191,9 @@ class Spats(object):
     """The main SPATS driver.
     """
 
-    def __init__(self):
+    def __init__(self, cotrans = False):
         self.run = Run()
+        self.run.cotrans = cotrans
         self.__processor = None
         self._targets = None
         self._masks = None
@@ -410,3 +412,28 @@ class Spats(object):
         """
 
         self._profiles.write(output_path)
+
+    def store(self, output_path):
+        """Saves the state of the SPATS run for later processing.
+
+           :param output_path: the path for writing the
+                 output. recommended file extension is `.spats`
+        """
+
+        if os.path.exists(output_path):
+            os.remove(output_path)
+        pair_db = PairDB(output_path)
+        pair_db.store_run(self.run)
+        pair_db.add_targets(self.targets)
+        pair_db.store_counters("spats", self.counters)
+
+    def load(self, input_path):
+        """Loads SPATS state from a file.
+
+           :param input_path: the path of a previously saved SPATS session.
+        """
+
+        pair_db = PairDB(output_path)
+        pair_db.load_run(self.run)
+        self.loadTargets(pair_db)
+        pair_db.load_counters("spats", self.counters)

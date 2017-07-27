@@ -87,11 +87,11 @@ class Run(object):
         #: and the same :attr:`.result_set_name`).
         self.resume_processing = False
 
-        #: Default ``False``, set to ``True`` to parse directly from
-        #: input files. For some very large datasets (~>=50mm pairs?),
-        #: this can be faster than using the database to determine
+        #: Default ``True``, set to ``False`` to parse to a database and
+        #: only process unique counts. Typically straight parsing is faster,
+        #: but on some datasets it can be faster to determine
         #: and only process unique counts.
-        self.skip_database = False
+        self.skip_database = True
 
         #: Default ``None``, in which case the pair length is detected
         #: from input data. Otherwise, can be set explicitly.
