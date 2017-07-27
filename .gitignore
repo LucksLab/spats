@@ -1,7 +1,15 @@
 *~
 obj
-bin
+bin/UIClient.app
 dist
+cjb
 Output_test/
 test_results.txt
 SRP_All_Stops*
+*.pyc
+tmp
+*.lprof
+.DS_Store
+*.egg-info
+.idea
+test

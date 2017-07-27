@@ -31,6 +31,10 @@ and now supports:
   Cotranscriptional folding of a riboswitch at nucleotide resolution
       Nature Structure and Molecular Biology 10.1038/nsmb.3316
 
+- Watters KE, Strobel EJ, Yu AM, Lis JT, Lucks JB.
+  Cotranscriptional folding of a riboswitch at nucleotide resolution
+      Nature Structure and Molecular Biology 10.1038/nsmb.3316
+
 and other papers from the SHAPE-Seq community.
 
 The Spats package implements a read mapping and reactivity analysis pipeline for calculating
@@ -52,56 +56,10 @@ please see:
 Spats Installation
 ==================
 
-Check for latest instructions at: http://luckslab.github.io/spats/installation.html
-
-* Requirements
-  * Bowtie 0.12.8, must be available in your `PATH`. Get it at: http://sourceforge.net/projects/bowtie-bio/files/bowtie/0.12.8/
-  * cutadapt: python package (`pip install cutadapt`)
-
-* Binary Distributions
-  * Available for Linux/x64 and Mac at: https://github.com/LucksLab/spats/releases/
-
-* Build from Source
-  * `make -s`
-  * add `bin` directory to your `PATH`
-
-* Create binary distribution (current OS/architecture)
-  * `make -s dist`
+* `pip install spats_shape_seq`
 
 
 Spats Usage
 ===========
-For detailed usage and examples, please see http://luckslab.github.io/spats/manual.html
 
-The spats pipeline is run in two stages: adapter trimming and spats analysis. Adapter trimming is implemented in the adapter_trimmer code, while spats analysis is implemented in the spats toolkit. A typical workflow is as follows:
-
-adapter_trimmer --A-b-sequence=<second_adapter_sequence> --A-t-sequence=<first_adapter_sequence> --read-len=35 R1.fastq R2.fastq RNA_targets.fa
-
-spats --num-mismatches 0 -o Output RNA_targets.fa RRRY YYYR combined_R1.fastq combined_R2.fastq
-
-where <second_adapter_sequence> is the sequence of the second adapter (present at the 3' end of cDNAs), <first_adapter_sequence> is the sequence of the first adapter (present at the 5' end of cDNAs), R1.fastq and R2.fastq are the fastq sequencing files from the sequencing run, and RNA_targets.fa is the FASTA formatted file containing the RNA sequences under study. Spats outputs text files (in Output) containing (+) and (-) fragment counts, beta's and theta’s, for each position in each RNA in the targets file.
-
-Usage:
-     adapter_trimmer [options]* <R1_seq.fastq> <R2_seq.fastq> <targets.fa>
-
-     spats [options]* <targets.fa> <treated_handle> <untreated_handle> <R1_seq.fastq> <R2_seq.fastq>
-
-     reactivities_split [options] <reactivities_file.out>
-
-<targets.fa> is a fasta file containing the RNA sequences under study.
-<R1_seq.fastq> is a fastq file containing "_1" reads from a paired-end Illumina run.
-<R2_seq.fastq> is a fastq file containing "_2" reads from a paired-end Illumina run.
-<treated_handle> and <untreated_handle> are IUPAC strings indicating the barcoding
-scheme for the 1M7-treated and untreated pools.
-<reactivities_file.out> is the output reactivities file from spats.
-
-Given a paired end run (2x35bp) with target sequences (in DNA alphabet) in the file 
-target_bcs.fa, "_1" reads in HCT20611_50bp_s_7_1_sequence.fq, and 
-"_2" reads in HCT20611_50bp_s_7_2_sequence.fq, you can run the mapping pipeline like this:
-
-adapter_trimmer --A-b-sequence=AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAGACCGATCTCGTATGCCGTCTTCTGCTTG --A-t-sequence=AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATC --read-len=35 HCT20611_50bp_s_7_1_sequence.fq HCT20611_50bp_s_7_2_sequence.fq target_bcs.fa
-
-spats --num-mismatches 0 -o HCT20611_50bp.final RRRY YYYR combined_R1.fastq combined_R2.fastq
-
-cd HCT20611_50bp.final
-reactivities_split reactivities.out
+Please see the documentation at http://spats.readthedocs.io

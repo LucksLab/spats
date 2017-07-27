@@ -1,109 +1,105 @@
 
-CC = g++
-AR = ar
-RANLIB = ranlib
-
-SRCDIR = src
-SCRIPTDIR = src
-DEPSDIR = deps
-OBJDIR = obj
-BINDIR = bin
-DISTDIR = dist
-CFGDIR = config
-
-VERSION = $(shell cat $(CFGDIR)/version)
-BASE_CFLAGS = -I$(DEPSDIR) -DPACKAGE_VERSION=\"$(VERSION)\" -Wall -Wno-strict-aliasing -m64
-RELEASE_FLAGS = -O3 -DNDEBUG
-DEBUG_FLAGS = -g -O0 -DDEBUG
-CFLAGS = $(BASE_CFLAGS) $(RELEASE_FLAGS)
-LFLAGS = $(CFLAGS)
-
-ifeq (,$(findstring Darwin,$(shell uname)))
-    DISTFLAGS = -static
-else
-    DISTFLAGS =
-endif
-
-SRCS = $(shell echo $(SRCDIR)/*.cpp)
-OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCS))
-PAREN:=(
-LIB_SRCS = $(shell grep -L "main$(PAREN)" $(SRCDIR)/*.cpp)
-LIB_OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(LIB_SRCS))
-LIB = $(OBJDIR)/libspats.a
-TARGET_SRCS = $(shell grep -l "main$(PAREN)" $(SRCDIR)/*.cpp)
-TARGET_EXES = $(patsubst $(SRCDIR)/%.cpp, $(BINDIR)/%, $(TARGET_SRCS))
-
-SUPPORT_SCRIPT_NAMES = analyze_spats_targets targets_analyzer spats_common
-SUPPORT_SCRIPT_SRCS = $(patsubst %, $(SCRIPTDIR)/%.py, $(SUPPORT_SCRIPT_NAMES))
-SUPPORT_SCRIPTS = $(patsubst %, $(BINDIR)/%.py, $(SUPPORT_SCRIPT_NAMES))
-TARGET_SCRIPT_NAMES = adapter_trimmer reactivities_split spats
-TARGET_SCRIPT_SRCS = $(patsubst %, $(SCRIPTDIR)/%.py, $(TARGET_SCRIPT_NAMES))
-TARGET_SCRIPTS = $(patsubst %, $(BINDIR)/%, $(TARGET_SCRIPT_NAMES))
-
-TARGETS = $(TARGET_EXES) $(TARGET_SCRIPTS) $(SUPPORT_SCRIPTS)
+none : 
+	@echo Target required
+	@exit 1
 
 
-all : $(TARGETS)
+PYENV = PYTHONPATH=.
+TOOLS_DIR = tools
+TEST_PKG = spats_shape_seq.tests
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.cpp
-	@mkdir -p $(OBJDIR)
-	@echo CC: $<
-	$(CC) $(CFLAGS) -c -o $@ $<
+# unit tests
 
-$(LIB) : $(LIB_OBJS)
-	@mkdir -p $(BINDIR)
-	@echo AR: $@
-	@rm -f $@
-	$(AR) cr $@ $(LIB_OBJS)
-	$(RANLIB) $@
+.PHONY: unit
+unit :
+	nosetests
 
-$(BINDIR)/adapter_trimmer : $(SCRIPTDIR)/adapter_trimmer.py
-	@mkdir -p $(BINDIR)
-	cp $< $@
-	@chmod 755 $@
-
-$(BINDIR)/reactivities_split : $(SCRIPTDIR)/reactivities_split.py
-	@mkdir -p $(BINDIR)
-	cp $< $@
-	@chmod 755 $@
-
-$(BINDIR)/spats : $(SCRIPTDIR)/spats.py
-	@mkdir -p $(BINDIR)
-	cp $< $@
-	@chmod 755 $@
-
-$(BINDIR)/%.py : $(SCRIPTDIR)/%.py
-	cp $< $@
-
-$(BINDIR)/% : $(OBJDIR)/%.o $(LIB)
-	@echo LINK: $(shell basename $@)
-	$(CC) $(LFLAGS) -o $@ $?
-
-.PHONY: clean
-clean :
-	rm -rf $(OBJDIR)
-
-.PHONY: clear
-clear : clean
-	rm -rf $(DISTDIR) $(BINDIR)
-
-TEST_PATH=$(shell pwd)/$(BINDIR):$(PATH)
 .PHONY: test
-test : $(TARGETS)
-	@export PATH="$(TEST_PATH)"  &&  cd test/Read_Mapping  &&  bash test_read_mapping.sh
+test : unit
 
-PROJECT = spats
-OS = $(shell uname)
-ARCH = $(shell uname -m)
-FULLNAME = $(PROJECT)-$(VERSION)-$(OS)-$(ARCH)
-PKG = $(FULLNAME).tgz
-PKGDIR = $(PROJECT)-$(VERSION)
+VERSION = $(shell grep version= setup.py | sed -e 's/.*="\(.*\)",.*/\1/g')
+pip_dist: unit
+	@read -p "Submit new release, version ${VERSION}? " ANS; if [ "$$ANS" == "y" ]; then echo "Submitting..."; else echo "Aborted."; exit 1; fi
+	@rm -rf build dist
+	python setup.py sdist
+	twine upload dist/spats_shape_seq-${VERSION}.tar.gz
 
-$(DISTDIR)/$(PKG) : $(TARGETS)
-	@echo DIST: $(FULLNAME).tgz
-	mkdir -p $(DISTDIR)/$(PKGDIR)
-	cp $(TARGETS) $(DISTDIR)/$(PKGDIR)
-	cd $(DISTDIR)  &&  tar czf $(PKG) $(PKGDIR)
+local_install:
+	@(pip show -q spats_shape_seq && sudo pip uninstall -y -q spats_shape_seq) || echo
+	@rm -rf build dist
+	@python setup.py sdist
+	@sudo pip install dist/spats_shape_seq-${VERSION}.tar.gz
 
-dist: LFLAGS += $(DISTFLAGS)
-dist: clear $(DISTDIR)/$(PKG)
+local_uninstall:
+	@sudo pip uninstall -y -q spats_shape_seq
+
+.PHONY: docs
+docs:
+	@cd doc  &&  make html  ||  (echo "Docs failed. Make sure sphinx is installed on your system:\n\n$ sudo pip install sphinx\n"  &&  exit 1)
+
+.PHONY: showdocs
+showdocs: docs
+	@open doc/build/html/index.html
+
+
+cjb: pkg/cjb.zip
+	@unzip pkg/cjb.zip
+
+bin/UIClient.app: pkg/UIClient.zip
+	@mkdir -p bin
+	@rm -rf bin/UIClient.app
+	@cd bin && unzip ../pkg/UIClient.zip
+	@touch bin/UIClient.app
+
+.PHONY: viz
+viz: cjb bin/UIClient.app
+	@./bin/UIClient.app/Contents/MacOS/UIClient &
+	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
+
+.PHONY: vizsrv
+vizsrv: cjb
+	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
+
+.PHONY: jbpy-pkg
+jbpy-pkg:
+	@mkdir -p tmp
+	@rm -rf tmp/cjb
+	@cp -rf ~/fw/trees/jbpy/cjb tmp/
+	@rm `find tmp/cjb -name "*~"`
+	@rm `find tmp/cjb -name "*.pyc"`
+	@cd tmp  &&  zip -r cjb.zip cjb
+	@mv tmp/cjb.zip pkg/cjb.zip
+
+
+# for some subset of tests:
+# make u.[module]
+# make u.[module]:[class]
+# make u.[module]:[class].[function]
+u.%:
+	nosetests $(patsubst u.%, ${TEST_PKG}.%, $@)
+
+
+# runs a method in tests/misc.py
+t.%:
+	@${PYENV} python $(patsubst t.%, ${TOOLS_DIR}/misc.py %, $@)
+
+
+# profiling
+
+# profiles a method in tests/misc.py
+p.%:
+	@mkdir -p tmp
+	@${PYENV} python -m cProfile -o tmp/runprof.out $(patsubst p.%, ${TOOLS_DIR}/misc.py %, $@)
+
+prof:
+	@${PYENV} python ${TOOLS_DIR}/prof.py|head -50
+
+pstats:
+	@${PYENV} python -m pstats tmp/runprof.out
+
+# use @profile on the function that you want line profiled
+lp.%:
+	@${PYENV} kernprof -l $(patsubst lp.%, ${TOOLS_DIR}/misc.py %, $@)
+
+lprof:
+	@${PYENV} python -m line_profiler misc.py.lprof

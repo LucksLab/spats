@@ -1,0 +1,199 @@
+
+comparison to v1.0.2:
+- trying to get dev behavior "as close to" v102 as possible
+  - note: this is v102 on 5S dataset, with --num-mismatches=0
+    - though v102 adapter_trimmer is letting some (not all) mismatches go by anyway
+    - suspect due to details of the trim_search that are hard to reproduce
+  - requires these options:
+    - allow_errors_in_last_4_of_R2 = True: v102 trims off the right of R2 by 4-8 bp, so it misses any errors that might have been there
+    - ignore_minimal_adapter = True: similar to above, if the adapter length is <=4, just trim it and ignore errors
+    - minimum_adapter_matches = 8: meaning that the adapter has to be at least of length 8, or longer (N) allowing for N-8 mismatches
+
+- with these options:
+  - ~2mm total R1/R2 pairs, 442497 accepted by v102
+  - dev and v102 agree on 442065 cases (99.90%)
+  * 521 cases accepted by dev, missing from v102
+     - all adapter-trim related (all sites are at the end of the sequence)
+     - hard to determine a general rule for *why* adapter_trimmer is rejecting them
+     * from spot checking, it seems like:
+       - off by 1-2 bp in the adapter (1101:13433:5831, 1114:21343:8367)
+       - short adapter (len<=5, + handle=4) (1116:21540:21211)
+         - which is NOT trimmed by adapter trimmer
+         - but then taken off later b/c of removal of 4-8bp
+         - leaving R2 that has a one bp toggle in the last four, which bowtie rejects (but we kept due to allow_errors_in_last_4_of_R2 option)
+     - when we turn off the v102-match options, dev accepts none of these
+  * 2 cases with different results in dev/v102
+    - both errors in v102: (eg, 1114:24625:21410)
+      - due to adapter_trimmer not cutting properly, b/c of two bp toggles on the beginning
+      - so it keeps an extra bp on R1, which happens to match the sequence
+      - and then spats does min(R1.left, R2.left) instead of R2.left
+      - so the resulting site is one less than it should be
+  * 432 cases accepted by v102, missing/different from dev
+    * 42 due to v102 accepting indeterminate sequences that it chopped off the end of R2 (e.g., R2 ends in CTNG)
+    * 390 adapter-trim related
+      - hard to determine a general fule for *why* adapter_trimmer is keeping them
+      - spot checking:
+        - ~180: adapter_trimmer handles an insertion error R1 adapter (1103:19743:16573)
+        - ~160: adapter_trimmer handles a deletion error in R1 adapter (1108:11212:15952)
+        - ~40:  adapter_trimmer handles insertion/deletion error in R2 adapter (1107:6287:7763)
+        - 15: adapter_trimmer accepts a short adapter (len=5-6) with 1 bp error
+==> all differences are understood, and due to unclearly-specified behavior in v102
+
+
+===========================================================================================================================================================================
+===========================================================================================================================================================================
+
+
+@*1101:13433:5831..
+|                                                                             R2
++R2                                                           ATCTGACTCGGGCACCAAGGAC.TGAA.AGATCGAAA
++-err!                                                        |                    |      |     ! |
++RC(adapter_t)                                                |                    |      AGATCGGAA..
+|                                                        YYYR |             R1     |                 
++R1                                                      TTCA.GTCCTTGGTGCCCGAGTCAGAT.AGATCGGAA       
++adapter_b                                                    |                    | AGATCGGAA..     
+|                                                             |                    |                 
++(revcomp)                                                    ATCTGACTCGGGCACCAAGGAC                 
+|                                                             |                    |                 
+|                                                             |                    |                 
++site    0         1o  ..      9o        1oo       11o       12o       13o       14o                 
++5S      ggatgcctggcggc..tggggtctccccatgcgagagtagggaactgccaggcATCTGACTCGGGCACCAAGGAC                 
+|                                                             ^----l=121, r=143----^                 
+|                                                             ^----l=121, r=143----^                 
+\===>  ++SITE YYYR:121
+
+
+===========================================================================================================================================================================
+===========================================================================================================================================================================
+
+
+@*1114:21343:8367..
+|                                                                                   R2
++R2                                                                 CTCGGGCACCAAGGAC.TGAA.AGCTCGGAAGAGCGA
++-err!                                                              |              |      | !           !
++RC(adapter_t)                                                      |              |      AGATCGGAAGAGCGT..
+|                                                              YYYR |             R1                       
++R1                                                            TTCA.GTCCTTGGTGCCCGAG.TGATCGGAAGAGCAC       
++-err!                                                              |              | !             |       
++adapter_b                                                          |              | AGATCGGAAGAGCAC..     
+|                                                                   |              |                       
++(revcomp)                                                          CTCGGGCACCAAGGAC                       
+|                                                                   |              |                       
+|                                                                   |              |                       
++site    0         1o  ..      9o        1oo       11o       12o    |  13o       14o                       
++5S      ggatgcctggcggc..tggggtctccccatgcgagagtagggaactgccaggcatctgaCTCGGGCACCAAGGAC                       
+|                                                                   ^-l=127, r=143-^                       
+|                                                                   ^-l=127, r=143-^                       
+\===>  ++SITE YYYR:127
+@*1116:21540:21211..
+|                                                                        R2
++R2                                                      CAGGCATCTGACTCGGGCACCAAGCAC.ATCT.AGAT
++-err!                                                   |                       ! |      |  | 
++RC(adapter_t)                                           |                         |      AGAT..
+|                                                   RRRY |             R1          |            
++R1                                                 AGAT.GTCCTTGGTGCCCGAGTCAGATGCCTG.AGAT       
++adapter_b                                               |                         | AGAT..     
+|                                                        |                         |            
++(revcomp)                                               CAGGCATCTGACTCGGGCACCAAGGAC            
+|                                                        |                         |            
+|                                                        |                         |            
++site    0         1o  ..      9o        1oo       11o   |   12o       13o       14o            
++5S      ggatgcctggcggc..tggggtctccccatgcgagagtagggaactgcCAGGCATCTGACTCGGGCACCAAGGAC            
+|                                                        ^------l=116, r=143-------^            
+|                                                        ^------l=116, r=143-------^            
+\===>  ++SITE RRRY:116
+
+
+===========================================================================================================================================================================
+===========================================================================================================================================================================
+
+
+@*1114:24625:21410..
+|                                                                                  R2
++R2                                                                ACTCGGGCACCAAGGAC.GCTT.AGATCGGAAGAGCG
++RC(adapter_t)                                                     |               |      AGATCGGAAGAGCG..
+|                                                             RRRY |             R1|                      
++R1                                                           AAAC.GTCCTTGGTGCCCGAGT.CAATCGGAAGAGCA       
++-err!                                                             |               | !!           |       
++adapter_b                                                         |               | AGATCGGAAGAGCA..     
+|                                                                  |               |                      
++(revcomp)                                                        gACTCGGGCACCAAGGAC                      
+|                                                                 !|               |                      
+|                                                                  |               |                      
++site    0         1o  ..      9o        1oo       11o       12o   |   13o       14o                      
++5S      ggatgcctggcggc..tggggtctccccatgcgagagtagggaactgccaggcatctgACTCGGGCACCAAGGAC                      
+|                                                                  ^-l=126, r=143--^                      
+|                                                                  ^-l=126, r=143--^                      
+\===>  ++SITE RRRY:126
+
+
+===========================================================================================================================================================================
+===========================================================================================================================================================================
+
+
+[adapter insertion]
+
+> processing *1103:19743:16573
+  --> GAGTGTCCTTGGTGCCCGAGTATCGGAAGAGCACA , CGGGCACCAAGGACACTCAGATCGGAAGAGCGTCG
+  rc(R1): TGTGCTCTTCCGATACTCGGGCACCAAGGACACTC
+Warning: minimum_length 8 is not much longer than index length 8
+[14, 17, 126, '--', 0, 14, 129]
+R2 trim: 129, 14, 21
+  check = AGATCGGAAGAGCGTCG, errors = []
+trim reducing original match_len 17 -> 14
+  R1 check = AGTATCGGAAGAGCACA, errors = [2, 3, 4, 5, 7, 9, 10, 11, 12, 13, 14, 15, 16]
+ !! v102 rejecting short/mismatched R1 adapter
+adapter trim failure
+@*1103:19743:16573..
+|                                                                                     R2
++R2                                                                   CGGGCACCAAGGAC.ACTC.AGATCGGAAGAGCGTCG
++RC(adapter_t)                                                        |            |      AGATCGGAAGAGCGTCG..
+|                                                                RRRY |            |R1                       
++R1                                                              GAGT.GTCCTTGGTGCCCG.AGTATCGGAAGAGCACA       
++-err!                                                                |            | |               |
++adapter_b                                                            |            | AGiATCGGAAGAGCACA..     
+|                                                                     |            |   !                      
++(revcomp)                                                            CGGGCACCAAGGAC   !do we want to try to allow insertions?                      
+|                                                                     |            |                         
+|                                                                     |            |                         
++site    0         1o  ..      9o        1oo       11o       12o      |13o       14o                         
++5S      ggatgcctggcggc..tggggtctccccatgcgagagtagggaactgccaggcatctgactCGGGCACCAAGGAC                         
+|                                                                     ^l=129, r=143^                         
+|                                                                     ^l=129, r=143^                         
+\===>  FAIL
+
+
+===========================================================================================================================================================================
+===========================================================================================================================================================================
+
+
+[adapter deletion]
+
+> processing *1108:11212:15952
+  --> TTTGGTCCTTGGTGCCCGAGTCAGAGACGGAAGAG , CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA
+  rc(R1): CTCTTCCGTCTCTGACTCGGGCACCAAGGACCAAA
+Warning: minimum_length 8 is not much longer than index length 8
+[10, 21, 122, '--', 0, 20, 123]
+R2 trim: 123, 20, 15
+  check = AGATCGGAAGA, errors = []
+trim reducing original match_len 21 -> 20
+  R1 check = AGACGGAAGAG, errors = [3, 4, 6, 8, 9, 10]
+ !! v102 rejecting short/mismatched R1 adapter
+adapter trim failure
+@*1108:11212:15952..
+|                                                                               R2
++R2                                                             CTGACTCGGGCACCAAGGAC.CAAA.AGATCGGAAGA
++RC(adapter_t)                                                  |                  |      AGATCGGAAGA..
+|                                                          YYYR |             R1   |                   
++R1                                                        TTTG.GTCCTTGGTGCCCGAGTCAG.AGAdCGGAAGAG       
++-err!                                                          |                  | |  !
++adapter_b                                                      |                  | AGATCGGAAGAG..     
+|                                                               |                  |                   
++(revcomp)                                                      CTGACTCGGGCACCAAGGAC                   
+|                                                               |                  |                   
+|                                                               |                  |                   
++site    0         1o  ..      9o        1oo       11o       12o|      13o       14o                   
++5S      ggatgcctggcggc..tggggtctccccatgcgagagtagggaactgccaggcatCTGACTCGGGCACCAAGGAC                   
+|                                                               ^---l=123, r=143---^                   
+|                                                               ^---l=123, r=143---^                   
+\===>  FAIL
