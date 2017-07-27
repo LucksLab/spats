@@ -8,6 +8,12 @@ class PartialFindProcessor(PairProcessor):
     def prepare(self):
         self._targets.index()
 
+        if self._run.cotrans:
+            if 1 != len(self._targets.targets):
+                raise Exception("multiple cotrans targets?")
+            if 0 != self._run.allowed_target_errors:
+                print "Warning: cotrans match w/errors NYI"
+
     def _find_matches(self, pair):
         # use R1 to determine which target
         target = pair.r1.find_in_targets(self._targets, reverse_complement = True)
@@ -156,11 +162,6 @@ class PartialFindProcessor(PairProcessor):
         #
 
         run = self._run
-        # TODO: xref TODO below
-        if 0 != run.allowed_target_errors:
-            raise Exception("match w/errors NYI")
-        if 1 != len(self._targets.targets):
-            raise Exception("multiple cotrans targets?")
 
         linker = run.cotrans_linker
         linker_len = len(linker)

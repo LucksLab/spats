@@ -24,14 +24,14 @@ is gathered for non-matching pairs:
 
 .. code-block:: python
 
-    analyzer = ReadsAnalyzer(data)
+    analyzer = ReadsAnalyzer(data, cotrans = True)
 
 Configure the run, if desired, based on the :class:`.run.Run`; for
-example, for a cotrans experiment:
+example, to change the linker from the default for a cotrans
+experiment:
 
 .. code-block:: python
 
-    analyzer.run.cotrans = True
     analyzer.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
 
 Then, perform the analysis:
@@ -41,15 +41,7 @@ Then, perform the analysis:
     analyzer.process_tags()
 
 Once that completes, your reads data will be ready for use with the
-visualization tool. If you wish, a convenience method to create a
-default config file for the visualization tool is also included:
-
-.. code-block:: python
-
-    analyzer.write_viz_config()
-
-You may wish to edit the config file (``~/.spats_viz``). Then you can
-run the visualization tool using: ``make viz``
+visualization tool.
 
 """
 
@@ -140,11 +132,12 @@ class ReadsAnalyzer(object):
        :param reads_data: the :class:`.ReadsData` with the input data.
     """
 
-    def __init__(self, reads_data):
+    def __init__(self, reads_data, cotrans = False):
         self._reads_data = reads_data
         self._pair_db = reads_data.pair_db
         s = Spats()
         s.run._processor_class = TagProcessor
+        s.run.cotrans = True
         s.run.writeback_results = True
         s.run.result_set_name = "tags"
         s.run.allow_indeterminate = True
@@ -191,20 +184,9 @@ class ReadsAnalyzer(object):
         s.process_pair_db(pair_db)
         self.result_set_id = pair_db.result_set_id_for_name(s.run.result_set_name)
         pair_db.count_tags(self.result_set_id)
+        pair_db.store_run(s.run)
 
     def tag_counts(self):
         """Returns a dictionary of ``{ tag: count }`` of tags analyzed.
         """
         return self._pair_db.tag_counts(self.result_set_id)
-
-    def write_viz_config(self, overwrite = False):
-        """Writes a default visualizer config file.
-        """
-        cfg_path = os.path.expanduser("~/.spats_viz")
-        if overwrite or not os.path.exists(cfg_path):
-            cfg_data = CFG_TEMPLATE.format(os.path.abspath(self._reads_data.db_path),
-                                           "\n".join(["{} = {}".format(t[0].lower(), t[1]) for t in self._extra_tag_targets]),
-                                           self.run.config_string())
-            open(cfg_path, 'wb').write(cfg_data)
-            return True
-        return False

@@ -19,8 +19,8 @@ class SpatsViz(cjb.uif.UIServer):
 
     def __init__(self):
         self.all_config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))
-        self.config = self.all_config["server"]
-        cjb.uif.UIServer.__init__(self, self.config["host"], int(self.config["port"]), self.config["portfile"])
+        self.config = self.all_config.get("server", {})
+        cjb.uif.UIServer.__init__(self, self.config.get("host", "0.0.0.0"), int(self.config.get("port", 17862)), self.config.get("portfile", "/tmp/uif.port"))
         self.colors = viz.colorize.Colorize(self.all_config.get("colors"))
         self.plotter = viz.plotter.Plotter()
         self.addFilter(self.colors)
