@@ -3,7 +3,7 @@
 .. code-block:: python
 
     from spats_shape_seq import Spats
-    spats = Spats()
+    spats = Spats(cotrans = True)
 
 Then, configure the run, if desired, based on the :class:`.run.Run`:
 
@@ -39,13 +39,23 @@ For a case that requires no non-default configuration or processing,
 you can use the :func:`run_spats` convenience function, which will
 perform all of the above steps.
 
+For saving data for later analysis / output / visualization, use the
+:meth:`.spats.Spats.store` method:
+
+.. code-block:: python
+
+    spats.store('my_run.spats')
+
+This can be later loaded using the :meth:`.spats.Spats.load` method.
+
+
 """
 
 
 from spats import Spats
 
 
-def run_spats(target_path, r1_path, r2_path, output_path):
+def run_spats(target_path, r1_path, r2_path, output_path, cotrans = False):
     """Convenience function for a common-case SPATS run that doesn't
        require any non-default configuration.
 
@@ -56,7 +66,7 @@ def run_spats(target_path, r1_path, r2_path, output_path):
 
     """
 
-    spats = Spats()
+    spats = Spats(cotrans = cotrans)
     spats.addTargets(target_path)
     spats.process_pair_data(r1_path, r2_path)
     spats.compute_profiles()

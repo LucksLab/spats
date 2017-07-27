@@ -12,7 +12,7 @@ TEST_PKG = spats_shape_seq.tests
 
 .PHONY: unit
 unit :
-	nosetests
+	nosetests spats_shape_seq
 
 .PHONY: test
 test : unit
