@@ -264,7 +264,19 @@ class PartialFindProcessor(PairProcessor):
             pair.r1.trim(rtrim)
             pair.r2.trim(rtrim + 4) # also trim rc of handle
 
-        if pair.right > target.n:
+        if pair.right > target.n  or  pair.right < pair.left:
+            pair.failure = Failures.right_edge
+            return
+
+        if pair.left < 0:
+            pair.failure = Failures.left_of_zero
+            return
+
+        if pair.right < run.cotrans_minimum_length:
+            pair.failure = Failures.cotrans_min
+            return
+
+        if pair.r1.match_start + pair.r1.match_len + linker_len + rtrim < r1_len:
             pair.failure = Failures.right_edge
             return
 
@@ -281,18 +293,6 @@ class PartialFindProcessor(PairProcessor):
                 pair.failure = Failures.match_errors
                 self.counters.match_errors += pair.multiplicity
                 return
-
-        if pair.left < 0:
-            pair.failure = Failures.left_of_zero
-            return
-
-        if pair.right < run.cotrans_minimum_length:
-            pair.failure = Failures.cotrans_min
-            return
-
-        if pair.r1.match_start + pair.r1.match_len + linker_len + rtrim < r1_len:
-            pair.failure = Failures.right_edge
-            return
 
         pair.site = pair.left
         self.counters.register_count(pair)

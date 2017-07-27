@@ -106,6 +106,17 @@ cases = [
     [ "406149", "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", 132, 0 ],
     # R1 on end of target sequence
 
+    [ "70394", "AAGCGTCCTTGGTGCCCGAGTCAGTTGAGATCGGAA", "CAACTGACTCGGGCACCAAGGACCCTTAGATCGGAA", 104, 101 ],
+    # very short (3bp) target match
+
+    [ "89185", "TCCAGTCCTTGGTGCCCGAGTCAGCTAAGCAGCGTT", "AATGACTCCTACCAGTATCACTACTGGTAGGAGTCT", None, None ],
+    # R2 is to the right of R1 -- invalid pair
+
+    [ "3185000", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCC", None, None ],
+    # adapter trim corner case (R2 requires a single bp trim, but it's a 1bp toggle)
+
+    [ "jjb_3185000'", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCA", 27, 16 ],
+    # adapter trim corner case (R2 requires a trim -- which now matches R1)
 ]
 
 v102_compat_cases = [

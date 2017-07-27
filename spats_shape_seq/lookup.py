@@ -113,7 +113,7 @@ class LookupProcessor(PairProcessor):
         # R2: [target][linker][handle][adapter]
 
         target_match_len = min(pair_len, L - site)
-        if r2_seq[:target_match_len] != tseq[site:site + target_match_len]:
+        if target_match_len <= 0  or  r2_seq[:target_match_len] != tseq[site:site + target_match_len]:
             pair.failure = Failures.match_errors
             return
 
@@ -124,6 +124,9 @@ class LookupProcessor(PairProcessor):
                 return
 
             if trim > 0 and r2_seq[-trim:] != self._adapter_t_rc[:trim]:
+                pair.failure = Failures.adapter_trim
+                return
+            if pair_len - target_match_len - linker_len - 4 > trim:
                 pair.failure = Failures.adapter_trim
                 return
 

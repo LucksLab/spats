@@ -464,8 +464,7 @@ def cotrans_debug():
     s = Spats()
     s.run.cotrans = True
     s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
-    from spats_shape_seq.lookup import LookupProcessor
-    s.run._processor_class = LookupProcessor
+    s.run.algorithm = "find_partial"
     #s.run._v102_compat = True
     s.run.minimum_target_match_length = 10
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
@@ -494,7 +493,11 @@ def cotrans_debug():
     #c = [ "jjb_L21", "GGACGTCCTTGGTGCCCGAGTCAGGGCGAACTAGAT", "AGTTCGCCCTGACTCGGGCACCAAGGACGTCCAGAT", 21, 13 ]
     #c = [ "jjb_L20", "GGACGTCCTTGGTGCCCGAGTCAGGCGAACTCAGAT", "GAGTTCGCCTGACTCGGGCACCAAGGACGTCCAGAT", 20, 12 ]
     #c = [ "jjb_L19", "GGACGTCCTTGGTGCCCGAGTCAGCGAACTCCAGAT", "GGAGTTCGCTGACTCGGGCACCAAGGACGTCCAGAT", None, None ]
-    c = [ "406149", "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", 132, 0 ]
+    #c = [ "406149", "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", 132, 0 ]
+    #c = [ "89185", "TCCAGTCCTTGGTGCCCGAGTCAGCTAAGCAGCGTT", "AATGACTCCTACCAGTATCACTACTGGTAGGAGTCT", 36, 38 ]
+    #c = [ "3185000", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCC", -1, -1 ]
+    c =     [ "jjb_3185000'", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCA", None, None ]
+
     pair.set_from_data(c[0], c[1], c[2])
     print "{}\n{} / {}".format(pair.identifier, pair.r1.original_seq, pair.r2.original_seq)
     s.process_pair(pair)

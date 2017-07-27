@@ -230,7 +230,7 @@ class Targets(object):
 
         for end in range(minimum_target_length, tlen + 1):
             target_subseq = tseq[:end]
-            for i in range(0, r1_match_len - linker_len - minimum_target_length):
+            for i in range(0, r1_match_len - linker_len - minimum_target_length + 1):
                 tstart = i - (r1_match_len - linker_len)
                 if tstart + end < 0:
                     continue
