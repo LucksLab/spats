@@ -103,6 +103,9 @@ cases = [
     [ "jjb_L19", "GGACGTCCTTGGTGCCCGAGTCAGCGAACTCCAGAT", "GGAGTTCGCTGACTCGGGCACCAAGGACGTCCAGAT", None, None ],
     # testing cotrans minimum length -- L=19 fails
 
+    [ "406149", "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", 132, 0 ],
+    # R1 on end of target sequence
+
 ]
 
 v102_compat_cases = [

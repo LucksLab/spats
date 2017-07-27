@@ -173,8 +173,8 @@ class SpatsWorker(object):
         self._joinWorkers()
 
         processor.counters.total_pairs = total
-        if self._pair_db:
-            processor.counters.unique_pairs = self._pair_db.unique_pairs()
+        #if self._pair_db:
+        #    processor.counters.unique_pairs = self._pair_db.unique_pairs()
 
 
     def run_simple(self, pair_iterator):

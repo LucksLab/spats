@@ -228,7 +228,7 @@ class Targets(object):
         assert(0 < pair_len)
         r1_match_len = pair_len - 4
 
-        for end in range(minimum_target_length, tlen):
+        for end in range(minimum_target_length, tlen + 1):
             target_subseq = tseq[:end]
             for i in range(0, r1_match_len - linker_len - minimum_target_length):
                 tstart = i - (r1_match_len - linker_len)

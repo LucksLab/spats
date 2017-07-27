@@ -145,7 +145,10 @@ class PairDB(object):
         return self._fetch_one("SELECT COUNT(*) from pair")
 
     def has_pairs(self):
-        return (1 == self._fetch_one("SELECT 1 FROM pair LIMIT 1"))
+        try:
+            return (1 == self._fetch_one("SELECT 1 FROM pair LIMIT 1"))
+        except:
+            return False
 
     def unique_r1(self):
         self.index()
