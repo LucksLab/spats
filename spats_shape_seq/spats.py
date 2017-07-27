@@ -472,7 +472,7 @@ class Spats(object):
 
         match_count, total = self.compare_results(other, verbose = verbose)
         if match_count == total:
-            print "Original results ({} algorithm) validated using {} algorithm, {} registered sites match.".format(original_algorithm, match_count, algorithm)
+            print "Original results ({} algorithm) validated using {} algorithm, {} registered sites match.".format(original_algorithm, algorithm, match_count)
             return True
         else:
             print "Validation FAILURE: results ({} algorithm) only match {}/{} registered sites (when validated using {} algorithm).".format(original_algorithm, match_count, total, algorithm)
