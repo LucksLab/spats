@@ -441,8 +441,7 @@ def tag_test():
     s = Spats()
     s.run.cotrans = True
     s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
-    from spats_shape_seq.partial import PartialFindProcessor
-    s.run._processor_class = PartialFindProcessor
+    s.run.algorithm = "find_partial"
 
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
     s.addTargets(bp + "cotrans_single.fa")
@@ -465,7 +464,7 @@ def cotrans_debug():
     s.run.cotrans = True
     s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
     s.run.algorithm = "find_partial"
-    #s.run._v102_compat = True
+    #s.run._p_v102_compat = True
     s.run.minimum_target_match_length = 10
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
     s.addTargets(bp + "cotrans_single.fa")
@@ -514,9 +513,8 @@ def prof_run():
     spats.run.writeback_results = False
     spats.run._process_all_pairs = True
     spats.run.skip_database = True
+    spats.run.algorithm = "lookup"
     #spats.run.num_workers = 1
-    from spats_shape_seq.lookup import LookupProcessor
-    spats.run._processor_class = LookupProcessor
 
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
     spats.addTargets(bp + "cotrans_single.fa")

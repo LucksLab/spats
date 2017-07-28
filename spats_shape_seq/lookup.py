@@ -50,23 +50,92 @@ from util import _warn, _debug, reverse_complement
 class LookupProcessor(PairProcessor):
 
     def prepare(self):
-        if not self._run.quiet:
-            print "Preparing lookups..."
         targets = self._targets
         targets.index()
-        if self._run.cotrans:
-            targets.build_cotrans_lookups(self._run)
-            target = targets.targets[0]
-            self.r2_lookup = targets.r2_lookup[target.name]
-            self.r2_match_len = len(self.r2_lookup.keys()[0])
-        else:
-            targets.build_lookups(self._run.adapter_b, length = self._run.pair_length)
+        targets.build_lookups(self._run.adapter_b, length = self._run.pair_length)
         if not self._run.quiet:
             print "Lookup table: {} R1 entries, {} R2 entries for {} targets.".format(len(targets.r1_lookup),
                                                                                       sum(map(len, targets.r2_lookup.values())),
                                                                                       len(targets.r2_lookup))
+
     #@profile
-    def _process_pair_cotrans(self, pair):
+    def process_pair(self, pair):
+
+        if not self._match_mask(pair):
+            return
+
+        targets = self._targets
+        r1_res = targets.r1_lookup.get(pair.r1.original_seq[4:])
+        if not r1_res or not r1_res[0]:
+            pair.failure = Failures.nomatch
+            return
+
+        site = -1
+        target = r1_res[0]
+        r2len = pair.r2.original_len
+        if r1_res[1] == None:
+            lookup = targets.r2_lookup[target.name]
+            r2_match_len = len(lookup.keys()[0])
+            r2_key = pair.r2.original_seq[:r2_match_len]
+            r2_res = lookup.get(r2_key)
+            if r2_res is not None:
+                match_site = r2_res
+            else:
+                pair.failure = Failures.nomatch
+                return
+        else:
+            match_site = r1_res[1]
+
+        # need to check R2 against expectation
+        match_len = min(r2len, target.n - match_site)
+        if pair.r2.original_seq[:match_len] == target.seq[match_site:match_site + match_len]:
+            adapter_len = r2len - match_len - 4
+            if adapter_len <= 0 or self._adapter_t_rc[:adapter_len] == pair.r2.original_seq[-adapter_len:]:
+                site = match_site
+            else:
+                pair.failure = Failures.adapter_trim
+                return
+        else:
+            pair.failure = Failures.nomatch
+            return
+
+        # in rare cases, need to double-check what R1 should be based on R2
+        if site != r1_res[1]:
+            match_len = min(pair.r1.original_len - 4, target.n - match_site)
+            adapter_len = pair.r1.original_len - match_len - 4
+            r1_match = reverse_complement(target.seq[-match_len:]) + self._run.adapter_b[:adapter_len]
+            if pair.r1.original_seq[4:] != r1_match:
+                pair.failure = Failures.mismatch
+                return
+
+        if not self._check_indeterminate(pair):
+            return
+
+        pair.target = target
+        pair.site = site
+        n = target.n
+
+        self.counters.register_count(pair)
+
+
+class CotransLookupProcessor(PairProcessor):
+
+    def prepare(self):
+        targets = self._targets
+        targets.index()
+        targets.build_cotrans_lookups(self._run)
+        target = targets.targets[0]
+        self.r2_lookup = targets.r2_lookup[target.name]
+        self.r2_match_len = len(self.r2_lookup.keys()[0])
+        if not self._run.quiet:
+            print "Lookup table: {} R1 entries, {} R2 entries.".format(len(targets.r1_lookup),
+                                                                       sum(map(len, targets.r2_lookup.values())))
+
+    #@profile
+    def process_pair(self, pair):
+
+        if not self._match_mask(pair):
+            return
 
         r1_res = self._targets.r1_lookup.get(pair.r1.original_seq[4:])
         if not r1_res:
@@ -136,89 +205,4 @@ class LookupProcessor(PairProcessor):
         pair.end = L
         pair.target = target
         pair.site = site
-        self.counters.register_count(pair)
-
-    # an optimization override
-    def _match_mask(self, pair):
-        s = pair.r1.original_seq[:4]
-        if s[0] == 'A' or s[0] == 'G':
-            if (s[1] == 'A' or s[1] == 'G') and \
-               (s[2] == 'A' or s[2] == 'G') and \
-               (s[3] == 'C' or s[3] == 'T'):
-                pair.set_mask(self._masks[0])
-                return True
-        elif s[0] == 'C' or s[0] == 'T':
-            if (s[1] == 'C' or s[1] == 'T') and \
-               (s[2] == 'C' or s[2] == 'T') and \
-               (s[3] == 'G' or s[3] == 'A'):
-                pair.set_mask(self._masks[1])
-                return True
-        pair.failure = Failures.mask
-        return False
-
-    #@profile
-    def process_pair(self, pair):
-
-        if not self._match_mask(pair):
-            return
-
-        if self._run.cotrans:
-            self._process_pair_cotrans(pair)
-            return
-
-        if not self._check_indeterminate(pair):
-            return
-
-        targets = self._targets
-        r1_res = targets.r1_lookup.get(pair.r1.original_seq[4:])
-        if not r1_res or not r1_res[0]:
-            pair.failure = Failures.nomatch
-            return
-
-        site = -1
-        target = r1_res[0]
-        r2len = pair.r2.original_len
-        if r1_res[1] == None:
-            lookup = targets.r2_lookup[target.name]
-            r2_match_len = len(lookup.keys()[0])
-            r2_key = pair.r2.original_seq[:r2_match_len]
-            r2_res = lookup.get(r2_key)
-            if r2_res is not None:
-                match_site = r2_res
-            else:
-                pair.failure = Failures.nomatch
-                return
-        else:
-            match_site = r1_res[1]
-
-        # need to check R2 against expectation
-        match_len = min(r2len, target.n - match_site)
-        if pair.r2.original_seq[:match_len] == target.seq[match_site:match_site + match_len]:
-            adapter_len = r2len - match_len - 4
-            if adapter_len <= 0 or self._adapter_t_rc[:adapter_len] == pair.r2.original_seq[-adapter_len:]:
-                site = match_site
-            else:
-                pair.failure = Failures.adapter_trim
-                return
-        else:
-            pair.failure = Failures.nomatch
-            return
-
-        if site is None or site == -1:
-            raise Exception("No site?")
-
-        # in rare cases, need to double-check what R1 should be based on R2
-        if site != r1_res[1]:
-            match_len = min(pair.r1.original_len - 4, target.n - match_site)
-            adapter_len = pair.r1.original_len - match_len - 4
-            r1_match = reverse_complement(target.seq[-match_len:]) + self._run.adapter_b[:adapter_len]
-            if pair.r1.original_seq[4:] != r1_match:
-                pair.failure = Failures.mismatch
-                return
-
-        pair.target = target
-        pair.site = site
-        n = target.n
-
-        assert(pair.site is not None)
         self.counters.register_count(pair)

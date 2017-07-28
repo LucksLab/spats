@@ -68,7 +68,7 @@ class SpatsViz(cjb.uif.UIServer):
 
         s = Spats()
         self._db.load_run(s.run)
-        s.run._processor_class = TagProcessor
+        s.run._p_use_tag_processor = True
         s.loadTargets(self._db)
         if self.has_counters:
             self._db.load_counters("spats", s.counters)
@@ -84,8 +84,8 @@ class SpatsViz(cjb.uif.UIServer):
             if s.run.cotrans:
                 p.addTagTarget("linker_cotrans", s.run.cotrans_linker)
                 p.addTagTarget("linker_cotrans_rc", reverse_complement(s.run.cotrans_linker))
-            if s.run._extra_tags:
-                for tag, seq in s.run._extra_tags.iteritems():
+            if s.run._p_extra_tags:
+                for tag, seq in s.run._p_extra_tags.iteritems():
                     p.addTagTarget(tag, seq)
             if not self.has_counters:
                 p.counters.load_from_db_data(self._db.counter_data_for_results(self.result_set_id))

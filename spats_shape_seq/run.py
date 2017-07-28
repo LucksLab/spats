@@ -2,8 +2,10 @@
 import ast
 import sys
 
-from lookup import LookupProcessor
-from partial import PartialFindProcessor
+from lookup import LookupProcessor, CotransLookupProcessor
+from partial import PartialFindProcessor, CotransPartialFindProcessor
+from tag import TagProcessor
+
 
 class Run(object):
     """Encapsulates the inputs/config required for a Spats run.
@@ -116,21 +118,37 @@ class Run(object):
         self.algorithm = "lookup"
 
 
-        # private config
-        self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
-        self._processor_class = None
+        # private config that should be persisted (use _p_ prefix)
+        self._p_use_tag_processor = False
+        self._p_processor_class = None
+        self._p_v102_compat = False
+        self._p_extra_tags = None # used by reads analyzer
+
+
+        # private config that should not be persisted (use _ prefix)
         self._run_limit = 0 # for testing, only supported on num_workers=1
-        self._v102_compat = False
-        self._extra_tags = None # used by reads analyzer
+        self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
 
 
     def _get_processor_class(self):
-        return self._processor_class or { "lookup" : LookupProcessor, "find_partial" : PartialFindProcessor }[self.algorithm]
+        if self._p_use_tag_processor:
+            return TagProcessor
+        else:
+            return self._get_base_processor_class()
+
+    def _get_base_processor_class(self):
+        implementations = {
+            "lookup" : LookupProcessor,
+            "find_partial" : PartialFindProcessor,
+            "cotrans_lookup" : CotransLookupProcessor,
+            "cotrans_find_partial" : CotransPartialFindProcessor
+        }
+        return implementations[("cotrans_" if self.cotrans else "") + self.algorithm]
 
     def config_dict(self):
         config = {}
         for attr in dir(self):
-            if attr.startswith('_')  and attr != "_extra_tags":
+            if attr.startswith('_')  and  not attr.startswith('_p_'):
                 continue
             val = getattr(self, attr)
             if callable(val) or attr == "log":

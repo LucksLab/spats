@@ -50,7 +50,6 @@ import time
 
 from spats_shape_seq import Spats
 from spats_shape_seq.db import PairDB
-from spats_shape_seq.tag import TagProcessor
 from spats_shape_seq.util import reverse_complement
 
 
@@ -136,7 +135,7 @@ class ReadsAnalyzer(object):
         self._reads_data = reads_data
         self._pair_db = reads_data.pair_db
         s = Spats()
-        s.run._processor_class = TagProcessor
+        s.run._p_use_tag_processor = True
         s.run.cotrans = True
         s.run.writeback_results = True
         s.run.result_set_name = "tags"
@@ -156,7 +155,7 @@ class ReadsAnalyzer(object):
 
     def addTagTarget(self, name, tag):
         self._extra_tag_targets.append((name, tag))
-        self.run._extra_tags = self._extra_tag_targets
+        self.run._p_extra_tags = self._extra_tag_targets
 
     def addTagPlugin(self, tag, handler):
         self._plugins[tag] = handler

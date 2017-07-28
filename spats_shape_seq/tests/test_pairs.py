@@ -91,9 +91,8 @@ class TestPairs(unittest.TestCase):
 
     def test_minimum_length(self):
         from spats_shape_seq import Spats
-        from spats_shape_seq.partial import PartialFindProcessor
         self.spats = Spats()
-        self.spats.run._processor_class = PartialFindProcessor
+        self.spats.run.algorithm = "find_partial"
         self.spats.run.minimum_target_match_length = 11
         self.spats.addTargets("test/5s/5s.fa")
         self.assertEqual(11, self.spats._targets.minimum_match_length)
@@ -123,8 +122,7 @@ class TestPanelPairs(unittest.TestCase):
         pair = Pair()
         pair.set_from_data('M02465:8:000000000-A5D', 'CCCGCCGTCCTTGGTGCCCGAGTGAGATCGGAAGA','CACTCGGGCACCAAGGACGGCGGGAGATCGGAAGA')
         self.spats.run.debug = True
-        from spats_shape_seq.partial import PartialFindProcessor
-        self.spats.run._processor_class = PartialFindProcessor
+        self.spats.run.algorithm = "find_partial"
         self.spats.process_pair(pair)
         self.assertEqual(None, pair.target)
         self.assertEqual(1, self.spats.counters.multiple_R1_match)

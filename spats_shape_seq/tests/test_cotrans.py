@@ -156,7 +156,7 @@ class TestPairsPartial(unittest.TestCase):
     def test_pairs(self):
         for case in cases:
             self.run_case(case)
-        self.spats.run._v102_compat = True
+        self.spats.run._p_v102_compat = True
         if self.run_compat:
             for case in v102_compat_cases:
                 self.run_case(case)

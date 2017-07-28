@@ -1,6 +1,5 @@
 
 from lookup import LookupProcessor
-from partial import PartialFindProcessor
 from processor import PairProcessor, Failures
 from target import Targets
 from util import _warn, _debug, string_match_errors
@@ -33,7 +32,7 @@ class TagProcessor(PairProcessor):
 
     def prepare(self):
         self.uses_tags = True
-        self._base_processor = PartialFindProcessor(self._run, self._targets, self._masks) #LookupProcessor(self._run, self._targets, self._masks)
+        self._base_processor = self._run._get_base_processor_class()(self._run, self._targets, self._masks)
         self.counters = self._base_processor.counters
         self._base_processor.prepare()
         self._tag_targets = Targets()
