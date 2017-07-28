@@ -113,7 +113,7 @@ class LookupProcessor(PairProcessor):
 
         pair.target = target
         pair.site = site
-        n = target.n
+        pair.end = target.n
 
         self.counters.register_count(pair)
 

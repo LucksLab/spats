@@ -51,10 +51,10 @@ class Counters(object):
             _dict_incr(self._registered, key, their_value)
 
     def mask_total(self, mask):
-        return self._counts.get(mask.chars + "_total")
+        return self._counts.get(mask.chars + "_total", 0)
 
     def mask_kept(self, mask):
-        return self._counts.get(mask.chars + "_kept")
+        return self._counts.get(mask.chars + "_kept", 0)
 
     def target_total(self, target):
         total = 0

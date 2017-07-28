@@ -462,7 +462,7 @@ def cotrans_debug():
     from spats_shape_seq import Spats
     s = Spats()
     s.run.cotrans = True
-    s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    #s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
     s.run.algorithm = "find_partial"
     #s.run._p_v102_compat = True
     s.run.minimum_target_match_length = 10
@@ -495,8 +495,9 @@ def cotrans_debug():
     #c = [ "406149", "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", 132, 0 ]
     #c = [ "89185", "TCCAGTCCTTGGTGCCCGAGTCAGCTAAGCAGCGTT", "AATGACTCCTACCAGTATCACTACTGGTAGGAGTCT", 36, 38 ]
     #c = [ "3185000", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCC", -1, -1 ]
-    c =     [ "jjb_3185000'", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCA", None, None ]
-
+    #c =     [ "jjb_3185000'", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCA", None, None ]
+    #c = ['1', 'TCTGAGATCGGAAGAGCACACGTCTGAACTCCAGT', 'CAGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGT', None, None]
+    c = ['24941', 'TCCAGTCCTTGGTGCCCGAGTCAGAGACTCCTACCA', 'TATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGC', -1, -1]
     pair.set_from_data(c[0], c[1], c[2])
     print "{}\n{} / {}".format(pair.identifier, pair.r1.original_seq, pair.r2.original_seq)
     s.process_pair(pair)
@@ -521,7 +522,24 @@ def prof_run():
     spats.process_pair_data(bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
                             bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq")
     exit(0)
-    
+
+def make_test_dataset():
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/spats/test/5s/"
+    from spats_shape_seq import Spats
+    from spats_shape_seq.db import PairDB
+    pair_db = PairDB(bp + "ds.spats")
+    pair_db.add_targets_table(bp + "5s.fa")
+    pair_db.parse(bp + "R1.fq", bp + "R2.fq")
+    s = Spats(cotrans = False)
+    s.run.num_workers = 1
+    s.run.writeback_results = True
+    s.run._process_all_pairs = True
+    s.run.algorithm = "find_partial"
+    s.run.result_set_name = "test_validation"
+    s.process_pair_db(pair_db)
+    pair_db.store_run(s.run)
+
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()

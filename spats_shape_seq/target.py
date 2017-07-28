@@ -263,7 +263,7 @@ class Targets(object):
             tlen = target.n
             rc_tgt = reverse_complement(target.seq)
             tcandidates = 0
-            for i in range(length + 1):
+            for i in range(1, length + 1):
                 r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
                 res = r1_table.get(r1_candidate)
                 if res:

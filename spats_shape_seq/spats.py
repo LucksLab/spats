@@ -312,7 +312,7 @@ class Spats(object):
                     self.run.pair_length = parser.pair_length()
                 self._process_pair_iter(parser.iterator(batch_size = 131072))
 
-    def process_pair_db(self, pair_db):
+    def process_pair_db(self, pair_db, batch_size = 65536):
         """Processes pair data provided by a :class:`.db.PairDB`.
 
            Note that this may be called multiple times to process more
@@ -331,7 +331,6 @@ class Spats(object):
         if self._processor.uses_tags:
             self._processor.setup_tags(pair_db)
 
-        batch_size = 65536
         if self.run.resume_processing:
             db_iter = pair_db.unique_pairs_with_counts_and_no_results(result_set_id, batch_size = batch_size)
         elif self.run._process_all_pairs:
