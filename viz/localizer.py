@@ -9,6 +9,9 @@ strings = {
     'showMatches' : 'Show Matches',
     'dump' : 'Dump',
     'open_spats' : 'Open',
+    'betas' : 'beta',
+    'thetas' : 'theta',
+    'reactivities' : 'rho',
 }
 
 class Localizer(cjb.uif.Localizer):

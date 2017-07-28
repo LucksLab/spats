@@ -247,15 +247,19 @@ class CotransTarget(BaseScene):
         else:
             BaseScene.handleKeyEvent(self, keyInfo)
 
+    def count_plot(self, profiles, site):
+        return { "type" : "Treated/Untreated Counts, length = {}".format(site.end),
+                 "data" : [ { "label" : "f+", "x" : range(site.end + 1), "y" : profiles.treated_counts, "m" : "r-" },
+                            { "label" : "f-", "x" : range(site.end + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
+                 "x_axis" : "Site",
+                 "y_axis" : "% of stops" }
+
     def show_plot(self, site):
+        add_counts = False
         if self.plot_type == "row":
             profiles = self.profiles.profilesForTargetAndEnd(self.name, site.end)
             if self.data_type == "treated_counts" or self.data_type == "untreated_counts":
-                plot = { "type" : "Treated/Untreated Counts, length = {}".format(site.end),
-                         "data" : [ { "label" : "f+", "x" : range(site.end + 1), "y" : profiles.treated_counts, "m" : "r-" },
-                                    { "label" : "f-", "x" : range(site.end + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
-                         "x_axis" : "Site",
-                         "y_axis" : "% of stops" }
+                plot = self.count_plot(profiles, site)
             else:
                 data = getattr(profiles, self.data_type)
                 data = data[1:] # exclude 0
@@ -263,6 +267,7 @@ class CotransTarget(BaseScene):
                          "data" : [ { "x" : range(1, site.end + 1), "y" : data, "m" : "-" } ],
                          "x_axis" : "Site",
                          "y_axis" : self.data_type }
+                add_counts = True
         else:
             plot_axis = []
             plot_data = []
@@ -278,4 +283,7 @@ class CotransTarget(BaseScene):
                      "data" : [ { "x" : plot_axis, "y" : plot_data, "m" : "g-", "label": "Site {}".format(site.site) } ],
                      "x_axis" : "Length",
                      "y_axis" : self.data_type }
-        self.ui.plotter.submit_plot(plot)
+        if add_counts:
+            self.ui.plotter.submit_plots([plot, self.count_plot(profiles, site)])
+        else:
+            self.ui.plotter.submit_plot(plot)

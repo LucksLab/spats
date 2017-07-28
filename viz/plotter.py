@@ -29,23 +29,37 @@ class Plotter(object):
         self.worker.join()
 
     def submit_plot(self, data):
+        self.queue.put([data])
+
+    def submit_plots(self, data):
         self.queue.put(data)
 
-    def _show_plot(self, res):
+    def _show_plot(self, fig):
         import matplotlib.pyplot as plt
-        for plot in res["data"]:
-            plt.plot(plot["x"], plot["y"], plot["m"])
 
-        plt.xlim(0, max(plot["x"]))
-        if "ylim" in res:
-            plt.ylim(0, res["ylim"])
+        plt.figure(1)
 
-        plt.legend([ p.get("label", "") for p in res["data"] ])
-        plt.title(res["type"])
-        plt.xlabel(res["x_axis"])
-        plt.ylabel(res["y_axis"])
+        idx = 0
+        n = len(fig)
+        for res in fig:
+
+            idx += 1
+            plt.subplot(int("{}1{}".format(n, idx)))
+
+            for plot in res["data"]:
+                plt.plot(plot["x"], plot["y"], plot["m"])
+
+            plt.xlim(0, max(plot["x"]))
+            if "ylim" in res:
+                plt.ylim(0, res["ylim"])
+
+            plt.legend([ p.get("label", "") for p in res["data"] ])
+            plt.title(res["type"])
+            plt.xlabel(res["x_axis"])
+            plt.ylabel(res["y_axis"])
 
         def onclick(event):
             plt.close()
         cid = plt.gcf().canvas.mpl_connect('button_press_event', onclick)
+
         plt.show()

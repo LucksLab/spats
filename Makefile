@@ -69,6 +69,7 @@ jbpy-pkg:
 	@rm `find tmp/cjb -name "*.pyc"`
 	@cd tmp  &&  zip -r cjb.zip cjb
 	@mv tmp/cjb.zip pkg/cjb.zip
+	@echo "Make xcarchive of UIClient.app and export as Mac App to replace UIClient.zip."
 
 
 # for some subset of tests:

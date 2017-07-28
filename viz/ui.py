@@ -2,6 +2,7 @@
 import os
 
 import cjb.uif
+import cjb.util
 import cjb.util.cfg
 import viz.scenes
 import viz.colorize
@@ -18,6 +19,8 @@ from spats_shape_seq.util import reverse_complement
 class SpatsViz(cjb.uif.UIServer):
 
     def __init__(self):
+        self.last_path = "/tmp/viz.info"
+        self.db_name = "<No file loaded>"
         self.all_config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))
         self.config = self.all_config.get("server", {})
         cjb.uif.UIServer.__init__(self, self.config.get("host", "0.0.0.0"), int(self.config.get("port", 17862)), self.config.get("portfile", "/tmp/uif.port"))
@@ -92,9 +95,18 @@ class SpatsViz(cjb.uif.UIServer):
 
         self._spats = s
 
+    def try_load_last(self):
+        try:
+            last_path = cjb.util.jsonAtPath(self.last_path)["last"]
+            self.open_spats(last_path)
+        except:
+            pass
+
     def open_spats(self, path):
         self._db = PairDB(path)
         self._loadDBAndModel()
+        self.db_name = os.path.basename(path)
+        cjb.util.writeJsonToPath({ "last" : path}, self.last_path)
 
     def has_reads_data(self):
         return self._db and self.has_tags
