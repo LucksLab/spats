@@ -41,6 +41,9 @@ class Profiles(object):
             for target in self._targets.targets:
                 self.profilesForTarget(target).write(outfile)
 
+    def cotrans_data(self):
+        return [ (int(key.split('_')[-1]), prof.data()) for key, prof in self._profiles.iteritems() ]
+
 
 class TargetProfiles(object):
 
@@ -48,6 +51,26 @@ class TargetProfiles(object):
         self._target = target
         self.treated_counts = treated_counts
         self.untreated_counts = untreated_counts
+
+    @property
+    def treated(self):
+        return self.treated_counts
+
+    @property
+    def untreated(self):
+        return self.untreated_counts
+
+    @property
+    def beta(self):
+        return self.betas
+
+    @property
+    def theta(self):
+        return self.thetas
+
+    @property
+    def rho(self):
+        return self.rhos
 
     def compute(self):
         treated_counts = self.treated_counts
@@ -81,7 +104,7 @@ class TargetProfiles(object):
             thetas[k] = max(c_factor * thetas[k], 0)
         self.betas = betas
         self.thetas = thetas
-        self.reactivities = [ n * th for th in thetas ]
+        self.rhos = [ n * th for th in thetas ]
         self.c = c
 
     def write(self, outfile):
@@ -94,3 +117,7 @@ class TargetProfiles(object):
                                             um = self.untreated_counts[i],
                                             b = self.betas[i] if i > 0 else '-',
                                             th = self.thetas[i] if i > 0 else '-'))
+
+    def data(self):
+        return { "t" : self.treated_counts,
+                 "u" : self.untreated_counts }
