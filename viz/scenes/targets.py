@@ -143,12 +143,14 @@ class CotransTarget(BaseScene):
         self.target_id = target[2]
         self.data_type = data_type
         self.plot_type = "row"
+        self.show_counts = True
         BaseScene.__init__(self, ui, self.__class__.__name__)
 
     def build(self):
         BaseScene.build(self)
-        self.targetButtons([self.treated, self.untreated, self.beta, self.theta, self.rho, self.togglePlotType])
+        self.targetButtons([self.treated, self.untreated, self.beta, self.theta, self.rho, self.togglePlotType, self.toggleCounts])
         self.buttonWithKey('togglePlotType').text = "Plot Type: Row"
+        self.buttonWithKey('toggleCounts').text = "Show f+/f-: On"
         self.type_label = self.addView(cjb.uif.views.Label("Query: {}".format(self.data_type), fontSize = 16))
         if self.ui.has_tags:
             sitemap = { "{}:{}:{}:{}".format(self.target_id, s[0], s[2], s[1]) : s[3] for s in self.ui.db.result_sites(self.ui.result_set_id, self.target_id) }
@@ -173,7 +175,8 @@ class CotransTarget(BaseScene):
         cur = view.frame.centeredSubrect(w = 800, h = 600)
         self.matrix.frame = cur
         self.type_label.frame = view.frame.topLeftSubrect(w = 240, h = 24, margins = Size(40, 100))
-        self.buttonWithKey('togglePlotType').frame = view.frame.bottomCenteredSubrect(200, 40, margin = 24)
+        grid = Grid(frame = view.frame.bottomCenteredSubrect(w = 600, h = 40, margin = 40), itemSize = Size(180, 40), columns = 2, rows = 1, spacing = Size(20, 0))
+        grid.applyToViews(map(self.buttonWithKey, [ 'togglePlotType', 'toggleCounts' ]))
         grid = Grid(frame = view.frame.leftCenteredSubrect(w = 120, h = 400, margin = 40), itemSize = Size(120, 40), columns = 1, rows = 5, spacing = Size(0, 40))
         grid.applyToViews(map(self.buttonWithKey, [ 'treated', 'untreated', 'beta', 'theta', 'rho' ]))
         return view
@@ -220,6 +223,11 @@ class CotransTarget(BaseScene):
         button = self.buttonWithKey('togglePlotType')
         self.sendViewMessage(button, "setText", "Plot Type: {}".format(self.plot_type.capitalize()))
 
+    def toggleCounts(self, message = None):
+        self.show_counts = not self.show_counts
+        button = self.buttonWithKey('toggleCounts')
+        self.sendViewMessage(button, "setText", "Show f+/f-: {}".format("On" if self.show_counts else "Off"))
+
     def handleKeyEvent(self, keyInfo):
         handler = None
         if "t" in keyInfo and keyInfo.get('ctrl'):
@@ -228,8 +236,9 @@ class CotransTarget(BaseScene):
                         "r" : self.rho,
                         "t" : self.treated,
                         "u" : self.untreated }.get(keyInfo["t"])
-        elif "p" == keyInfo.get("t"):
-            handler = self.togglePlotType
+        elif "t" in keyInfo:
+            handler = { "p" : self.togglePlotType,
+                        "c" : self.toggleCounts }.get(keyInfo["t"])
         if handler:
             handler()
         else:
@@ -258,7 +267,7 @@ class CotransTarget(BaseScene):
                          "data" : [ { "x" : range(1, L + 1), "y" : data, "m" : "-" } ],
                          "x_axis" : "Site",
                          "y_axis" : self.data_type }
-                add_counts = True
+                add_counts = self.show_counts
         else:
             plot_axis = []
             plot_data = []
