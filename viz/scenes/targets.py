@@ -227,8 +227,9 @@ class CotransTarget(BaseScene):
                         "h" : self.theta,
                         "r" : self.rho,
                         "t" : self.treated,
-                        "p" : self.togglePlotType,
                         "u" : self.untreated }.get(keyInfo["t"])
+        elif "p" == keyInfo.get("t"):
+            handler = self.togglePlotType
         if handler:
             handler()
         else:
