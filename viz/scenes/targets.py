@@ -148,7 +148,7 @@ class CotransTarget(BaseScene):
 
     def build(self):
         BaseScene.build(self)
-        self.targetButtons([self.treated, self.untreated, self.beta, self.theta, self.rho, self.togglePlotType, self.toggleCounts])
+        self.targetButtons([self.treated, self.untreated, self.beta, self.theta, self.rho, self.togglePlotType, self.toggleCounts, self.totalCounts])
         self.buttonWithKey('togglePlotType').text = "Plot Type: Row"
         self.buttonWithKey('toggleCounts').text = "Show f+/f-: On"
         self.type_label = self.addView(cjb.uif.views.Label("Query: {}".format(self.data_type), fontSize = 16))
@@ -175,8 +175,8 @@ class CotransTarget(BaseScene):
         cur = view.frame.centeredSubrect(w = 800, h = 600)
         self.matrix.frame = cur
         self.type_label.frame = view.frame.topLeftSubrect(w = 240, h = 24, margins = Size(40, 100))
-        grid = Grid(frame = view.frame.bottomCenteredSubrect(w = 600, h = 40, margin = 20), itemSize = Size(180, 40), columns = 2, rows = 1, spacing = Size(20, 0))
-        grid.applyToViews(map(self.buttonWithKey, [ 'togglePlotType', 'toggleCounts' ]))
+        grid = Grid(frame = view.frame.bottomCenteredSubrect(w = 600, h = 40, margin = 20), itemSize = Size(180, 40), columns = 3, rows = 1, spacing = Size(20, 0))
+        grid.applyToViews(map(self.buttonWithKey, [ 'togglePlotType', 'toggleCounts', 'totalCounts' ]))
         grid = Grid(frame = view.frame.leftCenteredSubrect(w = 120, h = 400, margin = 40), itemSize = Size(120, 40), columns = 1, rows = 5, spacing = Size(0, 40))
         grid.applyToViews(map(self.buttonWithKey, [ 'treated', 'untreated', 'beta', 'theta', 'rho' ]))
         return view
@@ -228,6 +228,9 @@ class CotransTarget(BaseScene):
         button = self.buttonWithKey('toggleCounts')
         self.sendViewMessage(button, "setText", "Show f+/f-: {}".format("On" if self.show_counts else "Off"))
 
+    def totalCounts(self, message = None):
+        self.ui.plotter.submit_plot(self.total_reads_plot())
+
     def handleKeyEvent(self, keyInfo):
         handler = None
         if "t" in keyInfo and keyInfo.get('ctrl'):
@@ -238,16 +241,41 @@ class CotransTarget(BaseScene):
                         "u" : self.untreated }.get(keyInfo["t"])
         elif "t" in keyInfo:
             handler = { "p" : self.togglePlotType,
-                        "c" : self.toggleCounts }.get(keyInfo["t"])
+                        "c" : self.toggleCounts,
+                        "t" : self.totalCounts }.get(keyInfo["t"])
         if handler:
             handler()
         else:
             BaseScene.handleKeyEvent(self, keyInfo)
 
+    def total_reads_plot(self):
+        n = len(self.seq)
+        min_length = self.ui.spats.run.cotrans_minimum_length
+        treated = []
+        untreated = []
+        treated_sum = 0.0
+        untreated_sum = 0.0
+        for end in range(min_length, n + 1):
+            profiles = self.profiles.profilesForTargetAndEnd(self.name, end)
+            t = sum(profiles.treated)
+            treated.append(t)
+            treated_sum += t
+            u = sum(profiles.untreated)
+            untreated.append(u)
+            untreated_sum += u
+        treated = map(lambda x: (float(x) / treated_sum), treated)
+        untreated = map(lambda x: (float(x) / untreated_sum), untreated)
+        return { "type" : "Total Treated/Untreated Counts",
+                 "data" : [ { "label" : "f+", "x" : range(min_length, n + 1), "y" : treated, "m" : "r-" },
+                            { "label" : "f-", "x" : range(min_length, n + 1), "y" : untreated, "m" : "b-" } ],
+                 "xlim" : [ min_length, n + 1],
+                 "x_axis" : "Length",
+                 "y_axis" : "% of stops" }
+
     def count_plot(self, profiles, L, site):
         return { "type" : "Treated/Untreated Counts, length = {}".format(L),
-                 "data" : [ { "label" : "f+", "x" : range(L + 1), "y" : profiles.treated_counts, "m" : "r-" },
-                            { "label" : "f-", "x" : range(L + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
+                 "data" : [ { "label" : "f+", "x" : range(n + 1), "y" : profiles.treated_counts, "m" : "r-" },
+                            { "label" : "f-", "x" : range(n + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
                  "x_axis" : "Site",
                  "y_axis" : "# of stops" }
 
@@ -271,8 +299,7 @@ class CotransTarget(BaseScene):
         else:
             plot_axis = []
             plot_data = []
-            seq = self.seq
-            n = len(seq)
+            n = len(self.seq)
             for end in range(self.ui.spats.run.cotrans_minimum_length, n + 1):
                 if site <= end:
                     profiles = self.profiles.profilesForTargetAndEnd(self.name, end)

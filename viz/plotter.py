@@ -49,9 +49,13 @@ class Plotter(object):
             for plot in res["data"]:
                 plt.plot(plot["x"], plot["y"], plot["m"])
 
-            plt.xlim(0, max(plot["x"]))
+            if "xlim" in res:
+                plt.xlim(res["xlim"])
+            else:
+                plt.xlim(0, max(plot["x"]))
+
             if "ylim" in res:
-                plt.ylim(0, res["ylim"])
+                plt.ylim(res["ylim"])
 
             plt.legend([ p.get("label", "") for p in res["data"] ])
             plt.title(res["type"])

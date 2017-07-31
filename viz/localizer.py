@@ -12,6 +12,7 @@ strings = {
     'betas' : 'beta',
     'thetas' : 'theta',
     'reactivities' : 'rho',
+    'totalCounts' : 'Total Counts',
 }
 
 class Localizer(cjb.uif.Localizer):
