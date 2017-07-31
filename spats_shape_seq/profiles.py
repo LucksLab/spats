@@ -44,6 +44,15 @@ class Profiles(object):
     def cotrans_data(self):
         return [ (int(key.split('_')[-1]), prof.data()) for key, prof in self._profiles.iteritems() ]
 
+    def data_range(self, data_type):
+        vmin = None
+        vmax = None
+        for profile in self._profiles.values():
+            vals = getattr(profile, data_type)
+            vmin = min(vals) if vmin is None else min(min(vals), vmin)
+            vmax = max(vals) if vmax is None else max(max(vals), vmax)
+        return (vmin, vmax)
+
 
 class TargetProfiles(object):
 

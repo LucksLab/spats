@@ -3,7 +3,7 @@ import math
 import cjb.uif
 
 from cjb.uif.layout import Size, Grid, Rect, layoutInScroller
-from cjb.uif.views import Label
+from cjb.uif.views import Button, Label, TextField, View
 from viz.scenes.base import BaseScene
 from viz.scenes.matches import Matches
 from viz.layout import buttonSize
@@ -74,13 +74,13 @@ class Target(BaseScene):
 
     def addSiteView(self, site):
         v = cjb.uif.views.View(obj = site)
-        v.site_label = v.addSubview(cjb.uif.views.Label(str(site.site), fontSize = 11))
+        v.site_label = v.addSubview(Label(str(site.site), fontSize = 11))
         v.site_label.alignment = "right"
-        v.nuc_label = v.addSubview(cjb.uif.views.Label(site.nuc, fontSize = 11, bg = [ 1.0, 0.85, 0.7 ]))
+        v.nuc_label = v.addSubview(Label(site.nuc, fontSize = 11, bg = [ 1.0, 0.85, 0.7 ]))
         v.bar = v.addSubview(cjb.uif.views.View())
         v.bar.bg = [ 0.8, 0.6, 1.0 ]
-        v.treated_label = v.addSubview(cjb.uif.views.Label(str(site.treated_count), fontSize = 11))
-        v.untreated_label = v.addSubview(cjb.uif.views.Label(str(site.untreated_count), fontSize = 11))
+        v.treated_label = v.addSubview(Label(str(site.treated_count), fontSize = 11))
+        v.untreated_label = v.addSubview(Label(str(site.untreated_count), fontSize = 11))
         v.target = lambda msg : self.handleViewMessage(None, site, msg)
         v.click = 1
         self.addView(v)
@@ -144,11 +144,55 @@ class CotransTarget(BaseScene):
         self.data_type = data_type
         self.plot_type = "row"
         self.show_counts = True
+        self.data_types = [ "treated", "untreated", "beta", "theta", "rho" ]
+        for data_type in self.data_types:
+            setattr(self, data_type, self.changer(data_type))
+            setattr(self, "show_" + data_type, self.shower(data_type))
+            setattr(self, "update_" + data_type, self.updater(data_type))
         BaseScene.__init__(self, ui, self.__class__.__name__)
+
+    def changer(self, data_type):
+        return lambda message = None: self.change_plot(data_type)
+
+    def shower(self, data_type):
+        return lambda message = None: self.show_max(data_type)
+
+    def updater(self, data_type):
+        return lambda message = None: self.update_plot_max(data_type, message)
+
+    def show_max(self, data_type):
+        tf = self.data_type_views[self.data_types.index(data_type)].textField
+        self.sendViewMessage(tf, "show")
+        self.sendViewMessage(tf, "focus")
+
+    def update_plot_max(self, data_type, message):
+        self.data_type = data_type
+        dtv = self.data_type_views[self.data_types.index(data_type)]
+        max_val = float(message["arg"]) or self.profiles.data_range(data_type)[1]
+        self.maxes[self.data_type] = max_val
+        self.sendViewMessage(dtv.textField, "hide")
+        self.sendViewMessage(dtv.label, "setText", "max: {}".format(float(max_val)))
+        self.sendViewMessage(self.matrix, "matrix_plot", { "plot" : data_type, "max" : max_val })
+        
+    def makeDataTypeView(self, data_type):
+        dtv = self.addView(View())
+        dtv.button = dtv.addSubview(Button(target = getattr(self, data_type), text = data_type))
+        self.addView(dtv.button)
+        dtv.label = dtv.addSubview(Label("max: {}".format(self.maxes[data_type]), fontSize = 11))
+        dtv.label.click = 1
+        dtv.label.target = getattr(self, "show_" + data_type)
+        self.addView(dtv.label)
+        dtv.textField = dtv.addSubview(TextField(target = getattr(self, "update_" + data_type)))
+        dtv.textField.hidden = True
+        self.addView(dtv.textField)
+        return dtv
 
     def build(self):
         BaseScene.build(self)
-        self.targetButtons([self.treated, self.untreated, self.beta, self.theta, self.rho, self.togglePlotType, self.toggleCounts, self.totalCounts])
+        self.profiles = self.ui.spats.compute_profiles()
+        self.maxes = { dt : (4 if dt == "rho" else self.profiles.data_range(dt)[1]) for dt in self.data_types }
+        self.data_type_views = [ self.makeDataTypeView(data_type) for data_type in self.data_types ]
+        self.targetButtons([self.togglePlotType, self.toggleCounts, self.totalCounts])
         self.buttonWithKey('togglePlotType').text = "Plot Type: Row"
         self.buttonWithKey('toggleCounts').text = "Show f+/f-: On"
         self.type_label = self.addView(cjb.uif.views.Label("Query: {}".format(self.data_type), fontSize = 16))
@@ -156,18 +200,10 @@ class CotransTarget(BaseScene):
             sitemap = { "{}:{}:{}:{}".format(self.target_id, s[0], s[2], s[1]) : s[3] for s in self.ui.db.result_sites(self.ui.result_set_id, self.target_id) }
         else:
             sitemap = self.ui.spats.counters.registered_dict()
-        max_count = float(max(sitemap.values()))
-        seq = self.seq
-        n = len(seq)
-        total = 0
-        spats = self.ui.spats
-        self.profiles = spats.compute_profiles()
-        masks = spats.run.masks
-        self.siteViews = []
         self.matrix = cjb.uif.views.CustomView('SpatsMatrix')
         self.matrix.properties["d"] = self.profiles.cotrans_data()
         self.matrix.properties["plot"] = self.data_type
-        self.matrix.properties["max"] = 5
+        self.matrix.properties["max"] = self.profiles.data_range(self.data_type)[1]
         self.addView(self.matrix)
 
     def layout(self, view):
@@ -177,9 +213,19 @@ class CotransTarget(BaseScene):
         self.type_label.frame = view.frame.topLeftSubrect(w = 240, h = 24, margins = Size(40, 100))
         grid = Grid(frame = view.frame.bottomCenteredSubrect(w = 600, h = 40, margin = 20), itemSize = Size(180, 40), columns = 3, rows = 1, spacing = Size(20, 0))
         grid.applyToViews(map(self.buttonWithKey, [ 'togglePlotType', 'toggleCounts', 'totalCounts' ]))
-        grid = Grid(frame = view.frame.leftCenteredSubrect(w = 120, h = 400, margin = 40), itemSize = Size(120, 40), columns = 1, rows = 5, spacing = Size(0, 40))
-        grid.applyToViews(map(self.buttonWithKey, [ 'treated', 'untreated', 'beta', 'theta', 'rho' ]))
+        grid = Grid(frame = view.frame.leftCenteredSubrect(w = 120, h = 400, margin = 40), itemSize = Size(120, 70), columns = 1, rows = 5, spacing = Size(0, 10))
+        grid.applyToViews(self.data_type_views)
+        for dtv in self.data_type_views:
+            self.layoutDataTypeView(dtv)
         return view
+
+    def layoutDataTypeView(self, dtv):
+        f = dtv.frame.bounds()
+        dtv.button.frame = f.topSubrect(40)
+        f = f.leftover.topSubrect(24, 2)
+        dtv.label.frame = f
+        dtv.textField.frame = f
+        return dtv
 
     def handleViewMessage(self, scene, obj, message):
         if "site" == message.get("event"):
@@ -189,34 +235,9 @@ class CotransTarget(BaseScene):
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
 
-    def change_plot(self, plot):
-        self.data_type = plot
-        if plot == "rho":
-            # TODO
-            max_val = 4
-        else:
-            max_val = 0
-            n = len(self.seq)
-            for end in range(self.ui.spats.run.cotrans_minimum_length, n + 1):
-                profiles = self.profiles.profilesForTargetAndEnd(self.name, end)
-                data = getattr(profiles, plot)
-                max_val = max(max_val, max(data))
-        self.sendViewMessage(self.matrix, "matrix_plot", { "plot" : plot, "max" : max_val })
-
-    def beta(self, message = None):
-        self.change_plot("beta")
-
-    def theta(self, message = None):
-        self.change_plot("theta")
-
-    def rho(self, message = None):
-        self.change_plot("rho")
-
-    def treated(self, message = None):
-        self.change_plot("treated")
-
-    def untreated(self, message = None):
-        self.change_plot("untreated")
+    def change_plot(self, data_type):
+        self.data_type = data_type
+        self.sendViewMessage(self.matrix, "matrix_plot", { "plot" : data_type, "max" : self.maxes[data_type] })
 
     def togglePlotType(self, message = None):
         self.plot_type = ("column" if self.plot_type == "row" else "row")
@@ -233,12 +254,18 @@ class CotransTarget(BaseScene):
 
     def handleKeyEvent(self, keyInfo):
         handler = None
-        if "t" in keyInfo and keyInfo.get('ctrl'):
+        if "t" in keyInfo and keyInfo.get('cmd'):
             handler = { "b" : self.beta,
                         "h" : self.theta,
                         "r" : self.rho,
                         "t" : self.treated,
                         "u" : self.untreated }.get(keyInfo["t"])
+        elif "t" in keyInfo and keyInfo.get('ctrl'):
+            handler = { "b" : self.show_beta,
+                        "h" : self.show_theta,
+                        "r" : self.show_rho,
+                        "t" : self.show_treated,
+                        "u" : self.show_untreated }.get(keyInfo["t"])
         elif "t" in keyInfo:
             handler = { "p" : self.togglePlotType,
                         "c" : self.toggleCounts,
@@ -274,8 +301,8 @@ class CotransTarget(BaseScene):
 
     def count_plot(self, profiles, L, site):
         return { "type" : "Treated/Untreated Counts, length = {}".format(L),
-                 "data" : [ { "label" : "f+", "x" : range(n + 1), "y" : profiles.treated_counts, "m" : "r-" },
-                            { "label" : "f-", "x" : range(n + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
+                 "data" : [ { "label" : "f+", "x" : range(L + 1), "y" : profiles.treated_counts, "m" : "r-" },
+                            { "label" : "f-", "x" : range(L + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
                  "x_axis" : "Site",
                  "y_axis" : "# of stops" }
 
@@ -293,6 +320,7 @@ class CotransTarget(BaseScene):
                 data = data[1:] # exclude 0
                 plot = { "type" : "{}, length = {}".format(self.data_type, L),
                          "data" : [ { "x" : range(1, L + 1), "y" : data, "m" : "-" } ],
+                         "ylim" : [ 0, self.maxes[self.data_type] ],
                          "x_axis" : "Site",
                          "y_axis" : self.data_type }
                 add_counts = self.show_counts
@@ -308,6 +336,7 @@ class CotransTarget(BaseScene):
                     plot_data.append(data[site])
             plot = { "type" : "NT {}: {}".format(site, self.data_type),
                      "data" : [ { "x" : plot_axis, "y" : plot_data, "m" : "g-", "label": "Site {}".format(site) } ],
+                     "ylim" : [ 0, self.maxes[self.data_type] ],
                      "x_axis" : "Length",
                      "y_axis" : self.data_type }
         if add_counts:
