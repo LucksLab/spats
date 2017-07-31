@@ -249,7 +249,7 @@ class CotransTarget(BaseScene):
                  "data" : [ { "label" : "f+", "x" : range(L + 1), "y" : profiles.treated_counts, "m" : "r-" },
                             { "label" : "f-", "x" : range(L + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
                  "x_axis" : "Site",
-                 "y_axis" : "% of stops" }
+                 "y_axis" : "# of stops" }
 
     def show_plot_site(self, site):
         self.show_plot(site.end, site.site)
