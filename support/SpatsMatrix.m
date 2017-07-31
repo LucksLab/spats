@@ -29,7 +29,7 @@
 @end
 
 
-@interface SpatsMatrix : H2ViewImpl_View < H2ViewDrawer >
+@interface SpatsMatrix : H2ViewImpl_View < H2ViewLayout, H2ViewDrawer, H2MouseTracking >
 {
     UIClient * m_client;
     NSInteger m_viewId;
@@ -38,6 +38,11 @@
     CGSize m_siteSize;
     CGRect m_matrixFrame;
     Site * m_curSite;
+
+    id<H2View> m_rowTracker;
+    id<H2View> m_colTracker;
+    id<H2View> m_siteInfo;
+    NSMutableArray * m_siteLabels;
 
     NSMutableDictionary * m_selectedData;
     CGFloat m_max;
@@ -52,10 +57,41 @@
 {
     if ((self = [super init])) {
         self.drawer = self;
+        self.layout = self;
+
         m_curSite = [[Site alloc] init];
         m_siteSize = CGSizeMake(5, 5);
         m_matrixFrame = CGRectMake(0, 0, 800, 800);
         [self addClickHandler:[H2EventHandler handlerWithTarget:self selector:@selector(handleClick:)]];
+
+        m_rowTracker = [H2ViewImpl container];
+        m_rowTracker.backgroundColor = [H2Color clearColor];
+        m_rowTracker.borderColor = [H2Color whiteColor];
+        m_rowTracker.borderWidth = 1;
+        m_rowTracker.hidden = YES;
+        [self addSubview:m_rowTracker];
+
+        m_colTracker = [H2ViewImpl container];
+        m_colTracker.backgroundColor = [H2Color clearColor];
+        m_colTracker.borderColor = [H2Color whiteColor];
+        m_colTracker.borderWidth = 1;
+        m_colTracker.hidden = YES;
+        [self addSubview:m_colTracker];
+
+        m_siteInfo = [H2ViewImpl container];
+        m_siteInfo.backgroundColor = [H2Color darkGrayColor];
+        m_siteInfo.cornerRadius = 6;
+        m_siteInfo.hidden = YES;
+        [self addSubview:m_siteInfo];
+
+        m_siteLabels = [[NSMutableArray alloc] init];
+        for (NSInteger i = 0; i < 7; ++i) {
+            id<H2Label> l = [H2ViewImpl label];
+            l.textColor = [H2Color whiteColor];
+            l.fontSize = 14;
+            [m_siteInfo addSubview:l];
+            [m_siteLabels addObject:l];
+        }
     }
     return self;
 }
@@ -127,6 +163,43 @@
     [self updateSiteValues:site];
 }
 
+-(void)layoutSubviews
+{
+    H2Layout * l = [[H2Layout alloc] init];
+    CGRect bounds = self.bounds;
+    CGRect f = CGRectMake(0, 0, 128, 208);
+    m_siteInfo.frame = [l top:f.size.height right:f.size.width of:bounds marginx:40 y:40];
+    for (id<H2Label> label in m_siteLabels) {
+        label.frame = [l topCentered:CGSizeMake(f.size.width - 20, 26) of:f margin:4];
+        f = l.leftover;
+    }
+}
+
+-(CGRect)frameForSite:(Site *)site
+{
+    CGRect siteRect = CGRectMake(m_matrixFrame.origin.x, m_matrixFrame.origin.y, m_siteSize.width, m_siteSize.height);
+    siteRect.origin.y += (site.L - m_minLength) * m_siteSize.width;
+    siteRect.origin.x += site.site * m_siteSize.height;
+    return siteRect;
+}
+
+-(CGRect)frameForRow:(Site *)site
+{
+    CGRect siteRect = CGRectMake(m_matrixFrame.origin.x, m_matrixFrame.origin.y, m_siteSize.width, m_siteSize.height);
+    siteRect.origin.y += (site.L - m_minLength) * m_siteSize.width;
+    siteRect.size.width = (1 + site.L) * m_siteSize.width;
+    return siteRect;
+}
+
+-(CGRect)frameForColumn:(Site *)site
+{
+    CGRect siteRect = CGRectMake(m_matrixFrame.origin.x, m_matrixFrame.origin.y, m_siteSize.width, m_siteSize.height);
+    siteRect.origin.y += MAX(0, (site.site - m_minLength)) * m_siteSize.width;
+    siteRect.size.height = m_matrixFrame.origin.y + (m_matrixFrame.size.height - siteRect.origin.y);
+    siteRect.origin.x += site.site * m_siteSize.height;
+    return siteRect;
+}
+
 -(void)handleClick:(H2Event *)event
 {
     CGPoint loc = [event.context pointValue];
@@ -139,9 +212,14 @@
 -(void)drawRect:(CGRect)dirtyRect
 {
     CGRect bounds = self.bounds;
-    m_matrixFrame.size = CGSizeMake((m_selectedData.count + m_minLength) * m_siteSize.width, m_selectedData.count * m_siteSize.height);
-    m_matrixFrame.origin = CGPointMake((NSInteger)(0.5 * (bounds.size.width - m_matrixFrame.size.width)),
-                                       (NSInteger)(0.5 * (bounds.size.height - m_matrixFrame.size.height)));
+    CGRect matrixFrame;
+    matrixFrame.size = CGSizeMake((m_selectedData.count + m_minLength) * m_siteSize.width, m_selectedData.count * m_siteSize.height);
+    matrixFrame.origin = CGPointMake((NSInteger)(0.5 * (bounds.size.width - matrixFrame.size.width)),
+                                     (NSInteger)(0.5 * (bounds.size.height - matrixFrame.size.height)));
+    if (!CGRectEqualToRect(matrixFrame, m_matrixFrame)) {
+        m_matrixFrame = matrixFrame;
+        [self startTracking:self inRect:m_matrixFrame];
+    }
     NSGraphicsContext * gctx = [NSGraphicsContext currentContext];
     CGContextRef ctx = (CGContextRef)[gctx graphicsPort];
     CGRect siteRect = CGRectMake(m_matrixFrame.origin.x, m_matrixFrame.origin.y, m_siteSize.width, m_siteSize.height);
@@ -160,6 +238,43 @@
         siteRect.origin.x = m_matrixFrame.origin.x;
         siteRect.origin.y += m_siteSize.height;
     }
+}
+
+-(void)updateSiteInfo
+{
+    [m_siteLabels[0] setText:FMT(@"L: %d", (int)m_curSite.L)];
+    [m_siteLabels[1] setText:FMT(@"Site: %d", (int)m_curSite.site)];
+    [m_siteLabels[2] setText:FMT(@"Treated: %d", (int)m_curSite.treated)];
+    [m_siteLabels[3] setText:FMT(@"Untreated: %d", (int)m_curSite.untreated)];
+    [m_siteLabels[4] setText:FMT(@"beta: %0.6f", m_curSite.beta)];
+    [m_siteLabels[5] setText:FMT(@"theta: %0.6f", m_curSite.theta)];
+    [m_siteLabels[6] setText:FMT(@"rho: %0.6f", m_curSite.rho)];
+}
+
+-(void)mouseEnteredTrackingArea
+{
+}
+
+-(void)mouseTrackingMoved:(CGPoint)point
+{
+    [self updateSite:m_curSite withPoint:point];
+    if (!m_curSite.valid) {
+        m_rowTracker.hidden = m_colTracker.hidden = YES;
+        return;
+    }
+    m_rowTracker.frame = CGRectInset([self frameForRow:m_curSite], -1, -1);
+    m_colTracker.frame = CGRectInset([self frameForColumn:m_curSite], -1, -1);
+    m_rowTracker.hidden = NO;
+    m_colTracker.hidden = NO;
+    [self updateSiteInfo];
+    m_siteInfo.hidden = NO;
+}
+
+-(void)mouseExitedTrackingArea
+{
+    m_siteInfo.hidden = YES;
+    m_rowTracker.hidden = YES;
+    m_colTracker.hidden = YES;
 }
 
 @end
