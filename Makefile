@@ -69,7 +69,15 @@ jbpy-pkg:
 	@rm `find tmp/cjb -name "*.pyc"`
 	@cd tmp  &&  zip -r cjb.zip cjb
 	@mv tmp/cjb.zip pkg/cjb.zip
-	@echo "Make xcarchive of UIClient.app and export as Mac App to replace UIClient.zip."
+
+.PHONY: UIC-pkg
+UIC-pkg:
+	@mkdir -p tmp
+	@rm -rf tmp/UIClient.app ~/fw/trees/jbpy/UIClient/tmp/UIC.xcarchive
+	@cd ~/fw/trees/jbpy/UIClient && xcodebuild -scheme UIClient archive -archivePath tmp/UIC.xcarchive
+	@mv ~/fw/trees/jbpy/UIClient/tmp/UIC.xcarchive/Products/Applications/UIClient.app tmp/
+	@cd tmp && zip -r UIClient.zip UIClient.app
+	@mv tmp/UIClient.zip pkg/UIClient.zip
 
 
 # for some subset of tests:

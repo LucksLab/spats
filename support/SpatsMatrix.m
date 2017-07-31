@@ -35,6 +35,7 @@
     NSInteger m_viewId;
     NSMutableDictionary * m_profiles;
     NSInteger m_minLength;
+    NSInteger m_maxLength;
     CGSize m_siteSize;
     CGRect m_matrixFrame;
     Site * m_curSite;
@@ -43,6 +44,8 @@
     id<H2View> m_colTracker;
     id<H2View> m_siteInfo;
     NSMutableArray * m_siteLabels;
+    NSMutableArray * m_xLabels;
+    NSMutableArray * m_yLabels;
 
     NSMutableDictionary * m_selectedData;
     CGFloat m_max;
@@ -92,6 +95,7 @@
             [m_siteInfo addSubview:l];
             [m_siteLabels addObject:l];
         }
+
     }
     return self;
 }
@@ -108,6 +112,7 @@
         m_selectedData[key] = [p performSelector:prof_sel];
 #pragma clang diagnostic pop
     }
+    [self layoutSubviews];
     [self setNeedsDisplay];
 }
 
@@ -117,16 +122,45 @@
     m_viewId = [model[@"id"] integerValue];
     m_profiles = [[NSMutableDictionary alloc] init];
     m_minLength = 0;
+    m_maxLength = 0;
     for (NSArray * pair in model[@"d"]) {
         NSNumber * key = pair[0];
         if (0 == m_minLength  ||  [key integerValue] < m_minLength)
             m_minLength = [key integerValue];
+        if ([key integerValue] - 1 > m_maxLength)
+            m_maxLength = ([key integerValue] - 1);
         Profiles * p = [[Profiles alloc] init];
         p.treated = pair[1][@"t"];
         p.untreated = pair[1][@"u"];
         [p compute];
         m_profiles[key] = p;
     }
+
+    if (nil == m_xLabels) {
+        m_xLabels = [[NSMutableArray alloc] init];
+        for (NSInteger site = 0; site < m_maxLength; site += 10) {
+            id<H2Label> l = [H2ViewImpl label];
+            l.textColor = [H2Color blackColor];
+            l.text = (0 == site ? @"S = 0" : FMT(@"%d", (int)site));
+            l.alignment = NSTextAlignmentCenter;
+            l.fontSize = 10;
+            [self addSubview:l];
+            [m_xLabels addObject:l];
+        }
+        m_yLabels = [[NSMutableArray alloc] init];
+        for (NSInteger L = 0; L < m_maxLength; L += 10) {
+            if (L < m_minLength)
+                continue;
+            id<H2Label> l = [H2ViewImpl label];
+            l.textColor = [H2Color blackColor];
+            l.text = FMT(@"%@%d", (0 == m_yLabels.count ? @"L = " : @""), (int)L);
+            l.alignment = NSTextAlignmentRight;
+            l.fontSize = 10;
+            [self addSubview:l];
+            [m_yLabels addObject:l];
+        }
+    }
+
     [self matrix_plot:model];
 }
 
@@ -165,14 +199,43 @@
 
 -(void)layoutSubviews
 {
-    H2Layout * l = [[H2Layout alloc] init];
+    if (nil == m_selectedData)
+        return;
     CGRect bounds = self.bounds;
+    CGRect matrixFrame;
+    matrixFrame.size = CGSizeMake((m_selectedData.count + m_minLength) * m_siteSize.width, m_selectedData.count * m_siteSize.height);
+    matrixFrame.origin = CGPointMake((NSInteger)(0.5 * (bounds.size.width - matrixFrame.size.width)),
+                                     (NSInteger)(0.5 * (bounds.size.height - matrixFrame.size.height)));
+    if (!CGRectEqualToRect(matrixFrame, m_matrixFrame)) {
+        m_matrixFrame = matrixFrame;
+        [self startTracking:self inRect:m_matrixFrame];
+    }
+    H2Layout * l = [[H2Layout alloc] init];
     CGRect f = CGRectMake(0, 0, 128, 208);
     m_siteInfo.frame = [l top:f.size.height right:f.size.width of:bounds marginx:40 y:40];
     for (id<H2Label> label in m_siteLabels) {
         label.frame = [l topCentered:CGSizeMake(f.size.width - 20, 26) of:f margin:4];
         f = l.leftover;
     }
+    f = m_matrixFrame;
+    f.origin.y += (f.size.height + 4);
+    f.size.height = 12;
+    f.size.width = 26;
+    f.origin.x += (0.5 * (m_siteSize.width - f.size.width));
+    for (id<H2Label> label in m_xLabels) {
+        label.frame = f;
+        f.origin.x += 10 * m_siteSize.width;
+    }
+    f = m_matrixFrame;
+    f.origin.x -= 32;
+    f.size.width = 28;
+    f.size.height = 12;
+    f.origin.y += (0.5 * (m_siteSize.height - f.size.height));
+    for (id<H2Label> label in m_yLabels) {
+        label.frame = f;
+        f.origin.y += 10 * m_siteSize.height;
+    }
+
 }
 
 -(CGRect)frameForSite:(Site *)site
@@ -211,15 +274,8 @@
 
 -(void)drawRect:(CGRect)dirtyRect
 {
-    CGRect bounds = self.bounds;
-    CGRect matrixFrame;
-    matrixFrame.size = CGSizeMake((m_selectedData.count + m_minLength) * m_siteSize.width, m_selectedData.count * m_siteSize.height);
-    matrixFrame.origin = CGPointMake((NSInteger)(0.5 * (bounds.size.width - matrixFrame.size.width)),
-                                     (NSInteger)(0.5 * (bounds.size.height - matrixFrame.size.height)));
-    if (!CGRectEqualToRect(matrixFrame, m_matrixFrame)) {
-        m_matrixFrame = matrixFrame;
-        [self startTracking:self inRect:m_matrixFrame];
-    }
+    if (0 == m_matrixFrame.origin.x)
+        [self layoutSubviews];
     NSGraphicsContext * gctx = [NSGraphicsContext currentContext];
     CGContextRef ctx = (CGContextRef)[gctx graphicsPort];
     CGRect siteRect = CGRectMake(m_matrixFrame.origin.x, m_matrixFrame.origin.y, m_siteSize.width, m_siteSize.height);
