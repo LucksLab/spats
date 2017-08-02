@@ -11,17 +11,22 @@ private:
     Targets * m_targets;
     std::string m_adapter_b;
     int m_r1_length;
+    Fragment * m_linker;
     int m_allowed_errors;
     FragmentStorage * m_storage;
 
     void build();
+    void build_cotrans();
 
 public:
 
-    R1Lookup(Targets * targets, std::string adapter_b, int r1_length, int allowed_errors = 0):
-        m_targets(targets), m_adapter_b(adapter_b), m_r1_length(r1_length), m_allowed_errors(allowed_errors), m_storage(NULL)
+    R1Lookup(Targets * targets, std::string adapter_b, int r1_length, int allowed_errors = 0, Fragment * linker = NULL):
+        m_targets(targets), m_adapter_b(adapter_b), m_r1_length(r1_length), m_linker(linker), m_allowed_errors(allowed_errors), m_storage(NULL)
     {
-        build();
+        if (NULL == m_linker)
+            build();
+        else
+            build_cotrans();
     }
 
     ~R1Lookup()
@@ -57,6 +62,7 @@ public:
         delete [] m_targetStores;
     }
 
+    int r2_length() const { return m_r2_length; }
     void addTarget(Target * t);
     FragmentResult * find(Fragment * f, Target * t) const;
     void dump(void) const;

@@ -7,7 +7,13 @@
 
 #define FRAG_BUFFER_SIZE 40
 #define CQ_SIZE 512
-#define NUM_WORKERS 6
+#define NUM_WORKERS 8
+
+#if 0
+# define WORKER_TRACE(theStr) printf(theStr);
+#else
+# define WORKER_TRACE(theStr)
+#endif
 
 
 struct WorkItem

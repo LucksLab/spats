@@ -26,7 +26,7 @@ private:
     void reset();
 public:
     Fragment() { reset(); }
-    Fragment(const char * text, size_t length = -1) { this->parse(text, length = -1); }
+    Fragment(const char * text, size_t length = -1) { this->parse(text, length); }
     bool has_errors() const { return (0LL != m_errors); }
     int len() const { return m_length; }
     void parse(const char * text, size_t length = -1);

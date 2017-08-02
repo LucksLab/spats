@@ -42,15 +42,17 @@ class FragmentResult
 {
 public:
     Fragment m_fragment;
+    FragmentResult * m_next;
     Target * m_target;
     int m_site;
     int m_errors;
     int m_count;
+    int m_trim;
     FragmentResult() { }
-    FragmentResult(Target * target, const char * text, int length, int site, int errors = 0) :
-        m_target(target), m_fragment(text, length), m_site(site), m_errors(errors), m_count(0) { }
+    FragmentResult(Target * target, const char * text, int length, int site, int errors = 0, int trim = 0) :
+        m_target(target), m_fragment(text, length), m_site(site), m_errors(errors), m_count(0), m_trim(trim), m_next(NULL) { }
     FragmentResult(FragmentResult * other, int errors = -1) :
-        m_target(other->m_target), m_site(other->m_site), m_errors(-1 == errors ? other->m_errors : errors), m_count(0)
+        m_target(other->m_target), m_site(other->m_site), m_errors(-1 == errors ? other->m_errors : errors), m_count(0), m_next(NULL)
     {
         m_fragment.clone(&other->m_fragment);
     }

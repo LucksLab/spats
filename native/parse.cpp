@@ -125,7 +125,7 @@ fastq_parse_read_chunk:
                 cur_work_item = &cur_worker->items[cur_worker->end];
                 if (cur_work_item->ready) {
                     ++worker_full;
-                    //printf("!");
+                    WORKER_TRACE("!");
                 }
                 else {
                     break;
@@ -137,8 +137,7 @@ fastq_parse_read_chunk:
             memcpy(cur_work_item->r1chars, r1start, fragment_len);
             memcpy(cur_work_item->r2chars, r2start, fragment_len);
             cur_work_item->ready = true;
-            //printf("v");
-            //fflush(stdout);
+            WORKER_TRACE("v");
             //sleep(1);
 
             /* now skip to the beginning of the next fragment, 4 lines down */
@@ -164,7 +163,7 @@ fastq_parse_done:
     int wempty = 0;
     for (int i = 0; i < NUM_WORKERS; ++i)
         wempty += workers[i].empty_worker;
-    printf("\n%d wfull, %d empty\n", worker_full, wempty);
+    ATS_DEBUG("\n%d wfull, %d empty\n", worker_full, wempty);
 }
 
 
@@ -288,7 +287,7 @@ fastq_parse_read_chunk:
                         pthread_cond_signal(&cur_worker->cond);
                     }
                     pthread_mutex_unlock(&cur_worker->mutex);
-                    //printf("z");
+                    WORKER_TRACE("z");
                     usleep(10);
                 }
 #endif
@@ -298,7 +297,7 @@ fastq_parse_read_chunk:
                 //cur_work_item->r1chars = r1start;
                 //cur_work_item->r2chars = r2start;
                 cur_work_item->ready = true;
-                //printf("^");
+                WORKER_TRACE("^");
 
 #if 0
                 if (cq_empty) {
@@ -307,7 +306,7 @@ fastq_parse_read_chunk:
                         pthread_cond_signal(&cur_worker->cond);
                     }
                     pthread_mutex_unlock(&cur_worker->mutex);
-                    //printf("!");
+                    WORKER_TRACE("!");
                 }
 #endif
             }

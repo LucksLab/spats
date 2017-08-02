@@ -43,7 +43,38 @@ R1Lookup::build()
             }
         }
     }
-    printf("Lookup table: %d R1 entries...\n", m_storage->count());
+    ATS_DEBUG("Lookup table: %d R1 entries...\n", m_storage->count());
+    //m_storage->dump();
+}
+
+void
+R1Lookup::build_cotrans()
+{
+    int minimum_target_length = 3;
+    int linker_len = m_linker->len();
+    Target * target = m_targets->target(0);
+    int tlen = target->n();
+    int r1_match_len = m_r1_length - 4;
+    int target_left = r1_match_len - linker_len - minimum_target_length + 1;
+    int expected_size = tlen * target_left;
+    m_storage = new Lookup(expected_size, true);
+
+    for (int end = minimum_target_length; end < tlen + 1; ++end) {
+        std::string target_subseq(target->seq().substr(0, end));
+        Fragment f;
+        for (int i = 0; i < target_left; ++i) {
+            int tstart = i - (r1_match_len - linker_len);
+            if (tstart + end < 0)
+                continue;
+            std::string r1_rc_match(target_subseq.substr(end + tstart, 0 - tstart) + m_linker->string());
+            std::string r1_match(reverse_complement(r1_rc_match) + m_adapter_b.substr(0, i));
+            ATS_VERBOSE(" C %d/%d: %s", end, i, r1_match.c_str());
+            FragmentResult * fr = new FragmentResult(target, r1_match.c_str(), r1_match_len, end, 0, i);
+            m_storage->insert(fr);
+        }
+    }
+
+    ATS_DEBUG("Lookup table: %d R1 entries...\n", m_storage->count());
     //m_storage->dump();
 }
 

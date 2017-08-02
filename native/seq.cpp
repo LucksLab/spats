@@ -31,7 +31,7 @@ Fragment::parse(const char * text, size_t in_length)
 
     int frag_sel = 0;
     int frag_idx = 0;
-    uint64_t bits;
+    uint64_t bits = 0;
     uint64_t curWord = 0LL;
     uint64_t errors = 0LL;
     char ch = 0;
@@ -51,6 +51,7 @@ Fragment::parse(const char * text, size_t in_length)
             m_words[frag_sel] = curWord;
             ++frag_sel;
             frag_idx -= WORD_BITS;
+            curWord = 0;
         }
         ATS_ASSERT(frag_sel < sizeof(m_words));
         curWord += (bits << frag_idx);

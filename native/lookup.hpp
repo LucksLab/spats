@@ -13,12 +13,13 @@ private:
     int m_modulus;
     int m_listSize;
     int m_count;
+    bool m_allowDuplicates;
     FragmentResult ** m_table;
     void rebuild(int minSize);
 
 public:
-    Lookup(int expectedSize) :
-        m_expectedSize(expectedSize), m_table(NULL), m_count(0), m_listSize(0)
+    Lookup(int expectedSize, bool allowDuplicates = false) :
+        m_expectedSize(expectedSize), m_table(NULL), m_count(0), m_listSize(0), m_allowDuplicates(allowDuplicates)
     {
         rebuild(0);
     }

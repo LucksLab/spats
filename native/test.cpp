@@ -7,6 +7,8 @@
 #include "r1lookup.hpp"
 #include "r1tree.hpp"
 #include "seq.hpp"
+#include <map>
+
 
 
 void
@@ -161,6 +163,13 @@ int g_treated_sites[MAX_SITES] = { 0 };
 int g_untreated_sites[MAX_SITES] = { 0 };
 R1Lookup * g_r1l = NULL;
 R2Lookup * g_r2l = NULL;
+Fragment * g_linker = NULL;
+Target * g_target = NULL;
+std::map< int, std::map< int, std::map < int, int > > > g_counters;
+std::string g_adapter_t_rc;
+int g_cotrans_minimum_length = 20;
+pthread_mutex_t g_mutex;
+
 
 bool
 lookup_handler(Fragment * r1, Fragment * r2, const char * handle)
@@ -251,24 +260,231 @@ tpanel()
     //g_r1l->dump();
 }
 
+bool
+try_lookup_hit(FragmentResult * res, Fragment * r1, Fragment * r2, const char * handle)
+{
+    int linker_len = g_linker->len();
+    int pair_len = r2->len();
+    int L = res->m_site;
+    int trim = res->m_trim;
+    int site = -1;
+    std::string r2_seq(r2->string());
+    std::string tseq(g_target->seq());
+
+    if (0 == trim) {
+        int r2_match_len = g_r2l->r2_length();
+        Fragment r2f(r2_seq.c_str(), r2_match_len);
+        FragmentResult * r2_res = g_r2l->find(&r2f, g_target);
+        if (NULL != r2_res) {
+            site = r2_res->m_site;
+        }
+        else {
+            //pair.failure = Failures.nomatch
+            return false;
+        }
+    }
+    else {
+        site = L - (pair_len - linker_len - 4) + trim;
+    }
+
+    // now need to verify R2 contents
+    // R2: [target][linker][handle][adapter]
+
+    int target_match_len = std::min(pair_len, L - site);
+    if (target_match_len <= 0  ||  r2_seq.substr(0, target_match_len) != tseq.substr(site, target_match_len)) {
+        //pair.failure = Failures.match_errors
+        return false;
+    }
+
+    if (target_match_len < pair_len) {
+        int linker_match_len = std::min(linker_len, pair_len - target_match_len);
+        if (r2_seq.substr(target_match_len, linker_match_len) != g_linker->string().substr(0, linker_match_len)) {
+            //pair.failure = Failures.linker
+            return false;
+        }
+
+        if (trim > 0  &&  r2_seq.substr(r2_seq.length() - trim, trim) != g_adapter_t_rc.substr(0, trim)) {
+            //pair.failure = Failures.adapter_trim
+            return false;
+        }
+        if (pair_len - target_match_len - linker_len - 4 > trim) {
+            //pair.failure = Failures.adapter_trim
+            return false;
+        }
+    }
+
+    if (r1->has_errors() || r2->has_errors()) {
+        ++g_indeterminate;
+        return false;
+    }
+
+    int mask = mask_match(handle);
+    if (MASK_NO_MATCH == mask) {
+        ++g_mask_failure;
+        return false;
+    }
+
+    pthread_mutex_lock(&g_mutex);
+    {
+        g_counters[L][site][mask] += 1;
+    }
+    pthread_mutex_unlock(&g_mutex);
+
+    return true;
+}
+
+bool
+cotrans_lookup_handler(Fragment * r1, Fragment * r2, const char * handle)
+{
+    //printf("R1: %s\nR2: %s\nH: %s\n", r1->string().c_str(), r2->string().c_str(), handle);
+    ++g_total;
+    if (0 == g_total % 1000000) {
+        printf(".");
+        fflush(stdout);
+    }
+    //if (g_total > 500) {
+    //    printf("%s.%s / %s...\n", handle, r1->string().c_str(), r2->string().c_str());
+    //}
+    //    exit(-1);
+    //if (r1->has_errors() || r2->has_errors()) {
+    // ++g_indeterminate;
+    //    return true;
+    //}
+    FragmentResult * res = g_r1l->find(r1);
+    if (!res) {
+        //pair.failure = Failures.nomatch
+        return true;
+    }
+    if (res->m_site < g_cotrans_minimum_length) {
+        //pair.failure = Failures.cotrans_min
+        return true;
+    }
+    if (NULL != res->m_next) {
+        FragmentResult * cur = res;
+        while (cur != NULL) {
+            FragmentResult * other = res;
+            while (other != NULL) {
+                if (other != cur  &&  other->m_trim == cur->m_trim) {
+                    //pair.failure = Failures.multiple_R1
+                    return true;
+                }
+                other = other->m_next;
+            }
+            cur = cur->m_next;
+        }
+    }
+
+    while (NULL != res) {
+        if (try_lookup_hit(res, r1, r2, handle)) {
+            ++g_matched;
+            return true;
+        }
+        res = res->m_next;
+    }
+    return true;
+}
+
+
+class Case
+{
+public:
+    std::string id;
+    std::string handle;
+    Fragment r1;
+    Fragment r2;
+    int L;
+    int site;
+    Case(const char * _id, const char * _r1, const char * _r2, int _L, int _s) : id(_id), r1(&_r1[4]), r2(_r2), L(_L), site(_s), handle(_r1, 4) { }
+};
+
 void
 tcotrans()
 {
+    pthread_mutex_init(&g_mutex, NULL);
+    g_adapter_t_rc = reverse_complement("AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT");
     Targets t;
-    t.parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/F_wt.fa");
-    g_r1l = new R1Lookup(&t, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 32, 0);
-    g_r2l = new R2Lookup(36, 0);
+    t.parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/cotrans_single.fa");
+    g_target = t.target(0);
+    g_linker = new Fragment("CTGACTCGGGCACCAAGGAC", 20);
+    g_r1l = new R1Lookup(&t, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 36, 0, g_linker);
+    g_r2l = new R2Lookup(14, 0); // 14 = conservative guess for target->self_match_len; should not exceed pair_len - linker_len
     for (int i = 0; i < t.size(); ++i)
         g_r2l->addTarget(t.target(i));
-    fastq_parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
-                "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
-                &lookup_handler);
+#if 1
+    fastq_parse(
+#if 1
+        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
+        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq",
+#else
+        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/small_R1.fastq",
+        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/small_R2.fastq",
+#endif
+                &cotrans_lookup_handler);
     printf("%d matched, %d w/errors, %d indeterminate, %d mask failure, %d total\n", g_matched, g_matched_with_errors, g_indeterminate, g_mask_failure, g_total);
     for (int i = 0; i < MAX_SITES; ++i) {
         if (g_treated_sites[i] > 0 || g_untreated_sites[i] > 0)
             printf("  %d: %d / %d\n", i, g_treated_sites[i], g_untreated_sites[i]);
     }
-    //g_r1l->dump();
+    printf("{\n");
+    for (int mask = MASK_TREATED; mask <= MASK_UNTREATED; ++mask) {
+        printf("\"%s\" : {\n", mask == MASK_TREATED ? "RRRY" : "YYYR");
+        for (int L = g_cotrans_minimum_length; L < g_target->n() + 1; ++L) {
+            if (L > g_cotrans_minimum_length)
+                printf(",\n");
+            printf(" %d : [", L);
+            for (int site = 0; site <= L; ++site) {
+                printf(" %d%s", g_counters[L][site][mask], (L==site?"":","));
+            }
+            printf(" ]");
+        }
+        printf("}%s\n", mask == MASK_TREATED ? "," :"");
+    }
+    printf("}\n");
+#else
+    Case c("1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", 93, 68);
+    cotrans_lookup_handler(&c.r1, &c.r2, c.handle.c_str());
+
+    for (int mask = MASK_TREATED; mask <= MASK_UNTREATED; ++mask) {
+        for (int L = g_cotrans_minimum_length; L < g_target->n() + 1; ++L) {
+            for (int site = 0; site <= L; ++site) {
+                if (g_counters[L][site][mask]) {
+                    printf("%s / %d / %d \n", (MASK_TREATED == mask ? "RRRY" : "YYYR"), L, site);
+                    return;
+                }
+            }
+        }
+    }
+    printf("NO MATCH\n");
+#endif
+}
+
+int
+tcase(int argc, char ** argv)
+{
+    pthread_mutex_init(&g_mutex, NULL);
+    g_adapter_t_rc = reverse_complement("AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT");
+    Targets t;
+    t.parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/cotrans_single.fa");
+    g_target = t.target(0);
+    g_linker = new Fragment("CTGACTCGGGCACCAAGGAC", 20);
+    g_r1l = new R1Lookup(&t, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 36, 0, g_linker);
+    g_r2l = new R2Lookup(12, 0); // 12 = guess for target->self_match_len; should not exceed pair_len - linker_len - 4
+    for (int i = 0; i < t.size(); ++i)
+        g_r2l->addTarget(t.target(i));
+    Case c("", argv[1], argv[2], -1, -1);
+    cotrans_lookup_handler(&c.r1, &c.r2, c.handle.c_str());
+    for (int mask = MASK_TREATED; mask <= MASK_UNTREATED; ++mask) {
+        for (int L = g_cotrans_minimum_length; L < g_target->n() + 1; ++L) {
+            for (int site = 0; site <= L; ++site) {
+                if (g_counters[L][site][mask]) {
+                    printf("[ \"%s\", %d, %d ]\n", (MASK_TREATED == mask ? "RRRY" : "YYYR"), L, site);
+                    return 0;
+                }
+            }
+        }
+    }
+    printf("[ None, None, None ]\n");
+    return 1;
 }
 
 void
@@ -283,11 +499,12 @@ f(char ch)
 extern void thash();
 
 int
-main(void)
+main(int argc, char ** argv)
 {
+    //return tcase(argc, argv);
+    tcotrans();
     //thash();
     //f('A'); f('C'); f('G'); f('T'); f('\n'); f('\r');
-    tcotrans();
     //tpanel();
     //t5s();
     //tlookup();

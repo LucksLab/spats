@@ -12,4 +12,6 @@ tmp
 .DS_Store
 *.egg-info
 .idea
-
+native/test
+project.xcworkspace
+xcuserdata

@@ -38,16 +38,14 @@ worker_fn(void * arg)
             wi->r1chars[4] = 0;
             handler(&r1_frag, &r2_frag, wi->r1chars);
 
-            //printf("^");
-            //fflush(stdout);
+            WORKER_TRACE("^");
             wi->ready = false;
             w->start = (w->start + 1) % CQ_SIZE;
         }
         if (w->done)
             break;
-        //fflush(stdout);
         //sleep(1);
-        //printf("z");
+        WORKER_TRACE("z");
         ++w->empty_worker;
 
         usleep(50); // this is highly tune-able based on the work done in handler...

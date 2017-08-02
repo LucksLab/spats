@@ -57,9 +57,19 @@ Lookup::insert(FragmentResult * f)
     FragmentResult ** entry = &m_table[base];
     while (NULL != *entry  &&  idx < m_listSize) {
         if ((*entry)->m_fragment.equals(&f->m_fragment)) {
-            (*entry)->m_site = -1;
-            ATS_DEBUG("dropping dup...");
-            return false;
+            if (m_allowDuplicates) {
+                ATS_VERBOSE("tailing dup...");
+                FragmentResult * tail = *entry;
+                while (NULL != tail->m_next)
+                    tail = tail->m_next;
+                tail->m_next = f;
+                return true;
+            }
+            else {
+                (*entry)->m_site = -1;
+                ATS_DEBUG("dropping dup...");
+                return false;
+            }
         }
         ++idx;
         entry = &m_table[base + idx];
