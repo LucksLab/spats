@@ -317,10 +317,12 @@ class CotransTarget(BaseScene):
 
     def show_plot(self, L, site):
         add_counts = False
+        filname = None
         if self.plot_type == "row":
             profiles = self.profiles.profilesForTargetAndEnd(self.name, L)
             if self.data_type == "treated" or self.data_type == "untreated":
                 plot = self.count_plot(profiles, L)
+                filename = "counts_L{}".format(L)
             else:
                 data = getattr(profiles, self.data_type)
                 data = data[1:] # exclude 0
@@ -329,6 +331,7 @@ class CotransTarget(BaseScene):
                          "ylim" : [ 0, self.maxes[self.data_type] ],
                          "x_axis" : "Site",
                          "y_axis" : self.data_type }
+                filename = "{}_L{}".format(self.data_type, L)
                 add_counts = self.show_counts
         else:
             plot_axis = []
@@ -345,16 +348,18 @@ class CotransTarget(BaseScene):
                      "ylim" : [ 0, self.maxes[self.data_type] ],
                      "x_axis" : "Length",
                      "y_axis" : self.data_type }
+            filename = "{}_nt{}".format(self.data_type, site)
         if add_counts:
-            self.ui.plotter.submit_plots([plot, self.count_plot(profiles, L)])
+            self.ui.plotter.submit_plots([plot, self.count_plot(profiles, L)], filename)
         else:
-            self.ui.plotter.submit_plot(plot)
+            self.ui.plotter.submit_plot(plot, filename)
 
 
     def show_selected_plot(self):
         if not self.selected_values:
             return
         count_plots = []
+        filname = None
         if self.plot_type == "row":
             plot_data = []
             useAll = (self.data_type == "treated" or self.data_type == "untreated")
@@ -371,6 +376,7 @@ class CotransTarget(BaseScene):
                      "ylim" : [ 0, self.maxes[self.data_type] ],
                      "x_axis" : "Site",
                      "y_axis" : self.data_type }
+            filename = "{}_L{}".format(self.data_type, "_".join(map(str,self.selected_values)))
         else:
             plot_axis = { val : [] for val in self.selected_values }
             plot_data = { val : [] for val in self.selected_values }
@@ -387,7 +393,8 @@ class CotransTarget(BaseScene):
                      "ylim" : [ 0, self.maxes[self.data_type] ],
                      "x_axis" : "Length",
                      "y_axis" : self.data_type }
+            filename = "{}_nt{}".format(self.data_type, "_".join(map(str,self.selected_values)))
         if count_plots:
-            self.ui.plotter.submit_plots([plot] + count_plots)
+            self.ui.plotter.submit_plots([plot] + count_plots, filename)
         else:
-            self.ui.plotter.submit_plot(plot)
+            self.ui.plotter.submit_plot(plot, filename)

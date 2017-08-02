@@ -28,18 +28,21 @@ class Plotter(object):
         self.queue.put(None)
         self.worker.join()
 
-    def submit_plot(self, data):
-        self.queue.put([data])
+    def submit_plot(self, data, filename = ''):
+        self.queue.put([[data], filename])
 
-    def submit_plots(self, data):
-        self.queue.put(data)
+    def submit_plots(self, data, filename = ''):
+        self.queue.put([data, filename])
 
-    def _show_plot(self, fig):
+    def _show_plot(self, figinfo):
+        import matplotlib as mpl
         import matplotlib.pyplot as plt
 
         plt.figure(1)
 
         idx = 0
+        fig = figinfo[0]
+        filename = figinfo[1]
         n = len(fig)
         for res in fig:
 
@@ -65,5 +68,8 @@ class Plotter(object):
         def onclick(event):
             plt.close()
         cid = plt.gcf().canvas.mpl_connect('button_press_event', onclick)
+
+        if filename:
+            plt.gcf().canvas.get_default_filename = lambda: "spats_{}.png".format(filename)
 
         plt.show()
