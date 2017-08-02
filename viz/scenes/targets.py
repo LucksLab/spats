@@ -143,6 +143,7 @@ class CotransTarget(BaseScene):
         self.target_id = target[2]
         self.data_type = data_type
         self.plot_type = "row"
+        self.selected_values = None
         self.show_counts = True
         self.data_types = [ "treated", "untreated", "beta", "theta", "rho" ]
         for data_type in self.data_types:
@@ -173,7 +174,7 @@ class CotransTarget(BaseScene):
         self.sendViewMessage(dtv.textField, "hide")
         self.sendViewMessage(dtv.label, "setText", "max: {}".format(float(max_val)))
         self.sendViewMessage(self.matrix, "matrix_plot", { "plot" : data_type, "max" : max_val })
-        
+
     def makeDataTypeView(self, data_type):
         dtv = self.addView(View())
         dtv.button = dtv.addSubview(Button(target = getattr(self, data_type), text = data_type))
@@ -230,6 +231,10 @@ class CotransTarget(BaseScene):
     def handleViewMessage(self, scene, obj, message):
         if "site" == message.get("event"):
             self.show_plot(message["L"], message["site"])
+        elif "sel" == message.get("event"):
+            self.selected_values = sorted(message["data"])
+        elif "show_sel" == message.get("event"):
+            self.show_selected_plot()
         elif obj and isinstance(obj, Site):
             self.show_plot_site(obj)
         else:
@@ -243,6 +248,7 @@ class CotransTarget(BaseScene):
         self.plot_type = ("column" if self.plot_type == "row" else "row")
         button = self.buttonWithKey('togglePlotType')
         self.sendViewMessage(button, "setText", "Plot Type: {}".format(self.plot_type.capitalize()))
+        self.sendViewMessage(self.matrix, self.plot_type)
 
     def toggleCounts(self, message = None):
         self.show_counts = not self.show_counts
@@ -299,7 +305,7 @@ class CotransTarget(BaseScene):
                  "x_axis" : "Length",
                  "y_axis" : "% of stops" }
 
-    def count_plot(self, profiles, L, site):
+    def count_plot(self, profiles, L):
         return { "type" : "Treated/Untreated Counts, length = {}".format(L),
                  "data" : [ { "label" : "f+", "x" : range(L + 1), "y" : profiles.treated_counts, "m" : "r-" },
                             { "label" : "f-", "x" : range(L + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
@@ -314,7 +320,7 @@ class CotransTarget(BaseScene):
         if self.plot_type == "row":
             profiles = self.profiles.profilesForTargetAndEnd(self.name, L)
             if self.data_type == "treated" or self.data_type == "untreated":
-                plot = self.count_plot(profiles, L, site)
+                plot = self.count_plot(profiles, L)
             else:
                 data = getattr(profiles, self.data_type)
                 data = data[1:] # exclude 0
@@ -340,6 +346,48 @@ class CotransTarget(BaseScene):
                      "x_axis" : "Length",
                      "y_axis" : self.data_type }
         if add_counts:
-            self.ui.plotter.submit_plots([plot, self.count_plot(profiles, L, site)])
+            self.ui.plotter.submit_plots([plot, self.count_plot(profiles, L)])
+        else:
+            self.ui.plotter.submit_plot(plot)
+
+
+    def show_selected_plot(self):
+        if not self.selected_values:
+            return
+        count_plots = []
+        if self.plot_type == "row":
+            plot_data = []
+            useAll = (self.data_type == "treated" or self.data_type == "untreated")
+            for L in self.selected_values:
+                profiles = self.profiles.profilesForTargetAndEnd(self.name, L)
+                data = getattr(profiles, self.data_type)
+                if not useAll:
+                    data = data[1:] # exclude 0
+                plot_data.append({ "x" : range(0 if useAll else 1, L + 1), "y" : data, "m" : "-", "label" : "L={}".format(L) })
+                if len(count_plots) < 3:
+                    count_plots.append(self.count_plot(profiles, L))
+            plot = { "type" : "{}, length = {}".format(self.data_type, self.selected_values),
+                     "data" : plot_data,
+                     "ylim" : [ 0, self.maxes[self.data_type] ],
+                     "x_axis" : "Site",
+                     "y_axis" : self.data_type }
+        else:
+            plot_axis = { val : [] for val in self.selected_values }
+            plot_data = { val : [] for val in self.selected_values }
+            n = len(self.seq)
+            for site in self.selected_values:
+                for end in range(self.ui.spats.run.cotrans_minimum_length, n + 1):
+                    profiles = self.profiles.profilesForTargetAndEnd(self.name, end)
+                    data = getattr(profiles, self.data_type)
+                    if site <= end:
+                        plot_axis[site].append(end)
+                        plot_data[site].append(data[site])
+            plot = { "type" : "{}, NTs: {}".format(self.data_type, self.selected_values),
+                     "data" : [ { "x" : plot_axis[s], "y" : plot_data[s], "m" : "-", "label": "S={}".format(s) } for s in self.selected_values ],
+                     "ylim" : [ 0, self.maxes[self.data_type] ],
+                     "x_axis" : "Length",
+                     "y_axis" : self.data_type }
+        if count_plots:
+            self.ui.plotter.submit_plots([plot] + count_plots)
         else:
             self.ui.plotter.submit_plot(plot)

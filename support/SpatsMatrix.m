@@ -26,6 +26,14 @@
 @property(assign) CGFloat rho;
 -(void)reset;
 -(BOOL)valid;
+-(Site *)clone;
+@end
+
+
+@interface SelectionPart : NSObject
+-(id)initWithSite:(Site *)site;
+@property(readonly) Site * site;
+@property(readonly) id<H2View> view;
 @end
 
 
@@ -49,6 +57,9 @@
 
     NSMutableDictionary * m_selectedData;
     CGFloat m_max;
+
+    BOOL m_plotTypeRow;
+    NSMutableArray * m_selection;
 }
 
 @end
@@ -65,6 +76,7 @@
         m_curSite = [[Site alloc] init];
         m_siteSize = CGSizeMake(5, 5);
         m_matrixFrame = CGRectMake(0, 0, 800, 800);
+        m_plotTypeRow = YES;
         [self addClickHandler:[H2EventHandler handlerWithTarget:self selector:@selector(handleClick:)]];
 
         m_rowTracker = [H2ViewImpl container];
@@ -114,6 +126,18 @@
     }
     [self layoutSubviews];
     [self setNeedsDisplay];
+}
+
+-(void)row
+{
+    m_plotTypeRow = YES;
+    [self resetSelection];
+}
+
+-(void)column
+{
+    m_plotTypeRow = NO;
+    [self resetSelection];
 }
 
 -(void)updateWithModel:(NSDictionary *)model client:(UIClient *)client
@@ -269,7 +293,110 @@
     [self updateSite:m_curSite withPoint:loc];
     if (!m_curSite.valid)
         return;
-    [m_client sendMessage:@{ @"viewId" : @(m_viewId), @"event" : @"site", @"L" : @(m_curSite.L), @"site" : @(m_curSite.site) }];
+    H2KeyEvent * keyState = [self currentModifierKeyState];
+    if (keyState.shift  ||  keyState.command) {
+        [self handleSelectionClickAtSite:[m_curSite clone] withState:keyState];
+        return;
+    }
+    if (0 < m_selection.count)
+        [m_client sendMessage:@{ @"viewId" : @(m_viewId), @"event" : @"show_sel" }];
+    else
+        [m_client sendMessage:@{ @"viewId" : @(m_viewId), @"event" : @"site", @"L" : @(m_curSite.L), @"site" : @(m_curSite.site) }];
+}
+
+-(void)sendSelectionUpdate
+{
+    NSMutableArray * sites = [[NSMutableArray alloc] init];
+    for (SelectionPart * part in m_selection)
+        [sites addObject:@(m_plotTypeRow ? part.site.L : part.site.site)];
+    [m_client sendMessage:@{ @"viewId" : @(m_viewId), @"event" : @"sel", @"data" : sites }];
+}
+
+-(void)handleSelectionClickAtSite:(Site *)site withState:(H2KeyEvent *)keyState
+{
+    if (nil == m_selection)
+        m_selection = [[NSMutableArray alloc] init];
+    SelectionPart * last = [m_selection lastObject];
+    BOOL incldueIntermediates = (keyState.shift  &&  last != nil);
+    NSInteger curVal = (m_plotTypeRow ? site.L : site.site);
+    SelectionPart * removal = nil;
+    for (SelectionPart * part in m_selection) {
+        NSInteger val = (m_plotTypeRow ? part.site.L : part.site.site);
+        if (val == curVal) {
+            removal = part;
+            break;
+        }
+    }
+
+    SelectionPart * cur = removal;
+    if (nil == cur)
+        cur = [[SelectionPart alloc] initWithSite:site];
+    NSMutableArray * partsToChange = [[NSMutableArray alloc] init];
+    if (incldueIntermediates) {
+        NSInteger lastVal = (m_plotTypeRow ? last.site.L : last.site.site);
+        for (NSInteger s = MIN(curVal, lastVal); s <= MAX(curVal, lastVal); ++s) {
+            Site * i = [site clone];
+            if (m_plotTypeRow)
+                i.L = s;
+            else
+                i.site = s;
+            [partsToChange addObject:[[SelectionPart alloc] initWithSite:i]];
+        }
+    }
+    else {
+        [partsToChange addObject:cur];
+    }
+
+    if (removal) {
+
+        for (SelectionPart * p in partsToChange) {
+            NSInteger pVal = (m_plotTypeRow ? p.site.L : p.site.site);
+            for (SelectionPart * c in m_selection) {
+                NSInteger cVal = (m_plotTypeRow ? c.site.L : c.site.site);
+                if (cVal == pVal) {
+                    [c.view removeFromSuperview];
+                    [m_selection removeObject:c];
+                    break;
+                }
+            }
+        }
+
+    }
+    else {
+
+        for (SelectionPart * p in partsToChange) {
+            BOOL hasAlready = NO;
+            NSInteger pVal = (m_plotTypeRow ? p.site.L : p.site.site);
+            for (SelectionPart * c in m_selection) {
+                NSInteger cVal = (m_plotTypeRow ? c.site.L : c.site.site);
+                if (cVal == pVal) {
+                    hasAlready = YES;
+                    break;
+                }
+            }
+            if (!hasAlready) {
+                CGRect frame;
+                if (m_plotTypeRow)
+                    frame = [self frameForRow:p.site];
+                else
+                    frame = [self frameForColumn:p.site];
+                p.view.frame = frame;
+                [self addSubview:p.view];
+                [m_selection addObject:p];
+            }
+        }
+
+    }
+
+    [self sendSelectionUpdate];
+}
+
+-(void)resetSelection
+{
+    for (SelectionPart * part in m_selection)
+        [part.view removeFromSuperview];
+    m_selection = nil;
+    [self sendSelectionUpdate];
 }
 
 -(void)drawRect:(CGRect)dirtyRect
@@ -398,10 +525,39 @@
 {
     self.L = 0;
     self.site = -1;
+    self.treated = self.untreated = 0;
     self.beta = self.theta = self.rho = 0.0;
 }
 -(BOOL)valid
 {
     return (self.L > 0  &&  self.site >= 0);
 }
+-(Site *)clone
+{
+    Site * site = [[Site alloc] init];
+    site.site = self.site;
+    site.L = self.L;
+    site.treated = self.treated;
+    site.untreated = self.untreated;
+    site.beta = self.beta;
+    site.theta = self.theta;
+    site.rho = self.rho;
+    return site;
+}
+@end
+
+
+@implementation SelectionPart
+
+-(id)initWithSite:(Site *)site
+{
+    if ((self = [super init])) {
+        _site = site;
+        id<H2View> v = [H2ViewImpl container];
+        v.backgroundColor = [[H2Color selectionColor] colorWithAlphaComponent:0.7];
+        _view = v;
+    }
+    return self;
+}
+
 @end
