@@ -109,9 +109,9 @@ class TagProcessor(PairProcessor):
             index = start
             length = len(seq)
             while True:
-                print "  LU: {}".format(tags)
+                print("  LU: {}".format(tags))
                 lu_start, lu_len = self._longest_unmatched(seq, tags)
-                print "  {}, {}".format(lu_start, lu_len)
+                print("  {}, {}".format(lu_start, lu_len))
                 if lu_len < targets._minimum_length:
                     break
                 target, match_start, match_len, match_index = targets.find_partial(seq[lu_start:lu_start + lu_len])

@@ -83,13 +83,13 @@ class TestPairs(unittest.TestCase):
     def test_pairs(self):
         for case in cases:
             self.run_case(case)
-        print "Ran {} pair->site cases.".format(len(cases))
+        print("Ran {} pair->site cases.".format(len(cases)))
 
     def test_find_partial_weird_case(self):
         pair = Pair()
         pair.set_from_data("x", 'CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG', 'TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG')
         self.spats.process_pair(pair)
-        print "{} / {}".format(pair.site, pair.failure)
+        print("{} / {}".format(pair.site, pair.failure))
 
     def test_minimum_length(self):
         from spats_shape_seq import Spats

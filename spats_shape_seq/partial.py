@@ -65,8 +65,8 @@ class PartialFindProcessor(PairProcessor):
             if not target or isinstance(target, list):
                 # note that target may be None if pair.r1.match_len is less than the index word length
                 _debug("dropping pair due to multiple R1 match after adapter trim")
-                print "multiple R1 trim: " + pair.r1.original_seq
-                print [r1_match_trimmed, r1_adapter_match, r1_length_to_trim]
+                print("multiple R1 trim: " + pair.r1.original_seq)
+                print("{}".format([r1_match_trimmed, r1_adapter_match, r1_length_to_trim]))
                 pair.target = None
                 pair.failure = Failures.multiple_R1
                 self.counters.multiple_R1_match += pair.multiplicity
@@ -217,7 +217,7 @@ class CotransPartialFindProcessor(PairProcessor):
         if 1 != len(self._targets.targets):
             raise Exception("multiple cotrans targets?")
         if 0 != self._run.allowed_target_errors:
-            print "Warning: cotrans match w/errors NYI"
+            print("Warning: cotrans match w/errors NYI")
 
     def process_pair(self, pair):
 

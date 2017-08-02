@@ -160,7 +160,7 @@ class TestPairsPartial(unittest.TestCase):
         if self.run_compat:
             for case in v102_compat_cases:
                 self.run_case(case)
-        print "Ran {} pair->site cases.".format(len(cases))
+        print("Ran {} pair->site cases.".format(len(cases)))
 
 
 class TestPairsLookup(TestPairsPartial):

@@ -40,7 +40,7 @@ class RawPairScene(BaseScene):
                                    "r1" : self.pair.r1.original_seq,
                                    "r2" : self.pair.r2.original_seq },
                                  "/tmp/spats_test.json")
-        print "Dumped to /tmp/spats_test.json"
+        print("Dumped to /tmp/spats_test.json")
 
     def addNucView(self, nuc, bg):
         v = cjb.uif.views.Button(obj = nuc)
@@ -81,7 +81,7 @@ class RawPairScene(BaseScene):
                     v = self.addNucView(Nuc(tseq[idx], (part_name, idx, tag)), tcol)
                     if idx < match_index or idx >= match_index + tag[2]:
                         v.alpha = 0.5
-                        #print " set a=0.5, bg: {}".format(v.bg)
+                        #print(" set a=0.5, bg: {}".format(v.bg))
                     views.append(v)
                 self.parts[part_name + str(tindex)] = views
                 label = Label(tag[0])
@@ -120,7 +120,7 @@ class RawPairScene(BaseScene):
                 tstart = max(0, match_index - 4)
                 col = part_start + tag[1] - (match_index - tstart)
                 row_idx += 1
-                #print part_name + tag[0] + ": {} , {}".format(col, row_idx)
+                #print(part_name + tag[0] + ": {} , {}".format(col, row_idx))
                 grid.setLocation(col, row_idx)
                 grid.applyToViews(self.parts[part_name + str(tindex)])
 

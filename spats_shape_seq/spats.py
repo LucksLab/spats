@@ -265,13 +265,13 @@ class Spats(object):
                 assert(pair.has_site)
                 _debug("  ===> KEPT {}-{}".format(pair.left, pair.right))
         except:
-            print "**** Error processing pair: {} / {}".format(pair.r1.original_seq, pair.r2.original_seq)
+            print("**** Error processing pair: {} / {}".format(pair.r1.original_seq, pair.r2.original_seq))
             raise
 
 
     def _memory_db_from_pairs(self, data_r1_path, data_r2_path):
         if not self.run.quiet:
-            print "Parsing pair data..."
+            print("Parsing pair data...")
         start = time.time()
         db = PairDB()
         total_pairs = db.parse(data_r1_path, data_r2_path)
@@ -285,7 +285,7 @@ class Spats(object):
         if self.run.quiet:
             _debug(report)
         else:
-            print report
+            print(report)
         return db
 
 
@@ -335,7 +335,7 @@ class Spats(object):
             db_iter = pair_db.unique_pairs_with_counts_and_no_results(result_set_id, batch_size = batch_size)
         elif self.run._process_all_pairs:
             if not self.run.quiet:
-                print "Using all_pairs..."
+                print("Using all_pairs...")
             db_iter = pair_db.all_pairs(batch_size = batch_size)
         else:
             db_iter = pair_db.unique_pairs_with_counts(batch_size = batch_size)
@@ -355,7 +355,7 @@ class Spats(object):
         worker = SpatsWorker(self.run, self._processor, pair_db, result_set_id)
 
         if not self.run.quiet:
-            print "Processing pairs..."
+            print("Processing pairs...")
 
         worker.run(pair_iter)
 
@@ -366,24 +366,24 @@ class Spats(object):
     def _report_counts(self, delta = None):
         counters = self.counters
         total = counters.total_pairs
-        print "Successfully processed {} properly paired fragments:".format(counters.registered_pairs)
+        print("Successfully processed {} properly paired fragments:".format(counters.registered_pairs))
         warn_keys = [ "multiple_R1_match", ]
         countinfo = counters.counts_dict()
         for key in sorted(countinfo.keys(), key = lambda k : countinfo[k], reverse = True):
-            print "  {}{} : {} ({:.1f}%)".format("*** " if key in warn_keys else "", key, countinfo[key], 100.0 * (float(countinfo[key])/float(total)) if total else 0)
-        print "Masks:"
+            print("  {}{} : {} ({:.1f}%)".format("*** " if key in warn_keys else "", key, countinfo[key], 100.0 * (float(countinfo[key])/float(total)) if total else 0))
+        print("Masks:")
         for m in self._masks:
             kept, total = counters.mask_kept(m), counters.mask_total(m)
-            print "  {}: kept {}/{} ({:.1f}%)".format(m.chars, kept, total, (100.0 * float(kept)) / float(total) if total else 0)
+            print("  {}: kept {}/{} ({:.1f}%)".format(m.chars, kept, total, (100.0 * float(kept)) / float(total) if total else 0))
         if 1 < len(self._targets.targets):
-            print "Targets:"
+            print("Targets:")
             tmap = { t.name : counters.target_total(t) for t in self._targets.targets }
             total = counters.registered_pairs
             for tgt in sorted(self._targets.targets, key = lambda t : tmap[t.name], reverse = True):
                 if tmap[tgt.name] > 0:
-                    print "  {}: {} ({:.1f}%)".format(tgt.name, tmap[tgt.name], (100.0 * float(tmap[tgt.name])) / float(total) if total else 0)
+                    print("  {}: {} ({:.1f}%)".format(tgt.name, tmap[tgt.name], (100.0 * float(tmap[tgt.name])) / float(total) if total else 0))
         if delta:
-            print "Total time: ({:.1f}s)".format(delta)
+            print("Total time: ({:.1f}s)".format(delta))
 
     @property
     def counters(self):
@@ -471,10 +471,10 @@ class Spats(object):
 
         match_count, total = self.compare_results(other, verbose = verbose)
         if match_count == total:
-            print "Original results ({} algorithm) validated using {} algorithm, {} registered sites match.".format(original_algorithm, algorithm, match_count)
+            print("Original results ({} algorithm) validated using {} algorithm, {} registered sites match.".format(original_algorithm, algorithm, match_count))
             return True
         else:
-            print "Validation FAILURE: results ({} algorithm) only match {}/{} registered sites (when validated using {} algorithm).".format(original_algorithm, match_count, total, algorithm)
+            print("Validation FAILURE: results ({} algorithm) only match {}/{} registered sites (when validated using {} algorithm).".format(original_algorithm, match_count, total, algorithm))
             return False
 
         return 
@@ -505,5 +505,5 @@ class Spats(object):
             if their_counts.get(key, 0) == value:
                 match_count += 1
             elif verbose:
-                print "Mismatch {}:  {} != {}".format(key, value, their_counts.get(key, 0))
+                print("Mismatch {}:  {} != {}".format(key, value, their_counts.get(key, 0)))
         return match_count, total

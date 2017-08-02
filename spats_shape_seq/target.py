@@ -35,7 +35,7 @@ class Targets(object):
         self._minimum_length = min_length
         # disable this warning for now
         if False and min_length - self._index_word_length < 4:
-            print "Warning: minimum_length {} is not much longer than index length {}".format(min_len, word_len)
+            print("Warning: minimum_length {} is not much longer than index length {}".format(min_len, word_len))
 
     def index(self):
         index = {}
@@ -68,7 +68,7 @@ class Targets(object):
                     total_len = min_len + left + right
                     if not candidate[1] or total_len > candidate[1]:
                         candidate = (index, total_len, match_index)
-                        #print "C {} {} matches {}".format(target.name, candidate, match_target.name)
+                        #print("C {} {} matches {}".format(target.name, candidate, match_target.name))
                 index += 1
                 if index >= seq_len - max(min_len, candidate[1]):
                     break
@@ -93,7 +93,7 @@ class Targets(object):
                     total_len = min_len + left + right
                     if not candidate[1] or total_len > candidate[1]:
                         candidate = (index, total_len, match_index)
-                        #print "C {} {} matches {}".format(target.name, candidate, match_target.name)
+                        #print("C {} {} matches {}".format(target.name, candidate, match_target.name))
                 index += 1
                 if index >= seq_len - max(min_len, candidate[1]):
                     break
@@ -123,16 +123,16 @@ class Targets(object):
         if query_len < word_len:
             return candidate
         site_key = query[:word_len]
-        #print "  fpp query: " + query + " --> " + site_key
+        #print("  fpp query: " + query + " --> " + site_key)
         for target, index in self._index.get(site_key, []):
             left, right = longest_match(query, (0, word_len), target.seq, (index, word_len))
             total_len = left + right + word_len
-            #print "    extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
+            #print("    extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len))
             if total_len >= min_len:
                 if not candidate[2] or total_len > candidate[2]:
                     # keep it if it's the best match so far
                     candidate = [target, 0 - left, total_len, index - left]
-                    #print "C: {}".format(candidate)
+                    #print("C: {}".format(candidate))
                 elif total_len == candidate[2] and target != candidate[0]:
                     # need to keep track if multiple candidates have this same max length
                     if isinstance(candidate[0], list):
@@ -153,12 +153,12 @@ class Targets(object):
         # NOTE: it's important to check all sites, and all hits -- to find the longest match.
         for site in check_sites:
             site_key = query[site:site+word_len]
-            #print "CS: {}, {}".format(site, site_key)
+            #print("CS: {}, {}".format(site, site_key))
             for target, index in self._index.get(site_key, []):
-                #print "GOT: " + str(index) + " -- " + target.name
+                #print("GOT: " + str(index) + " -- " + target.name)
                 left, right = longest_match(query, (site, word_len), target.seq, (index, word_len))
                 total_len = left + right + word_len
-                #print "extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
+                #print("extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len))
                 if total_len >= min_len:
                     candidate = [target, site - left, total_len, index - left]
                     if candidate not in candidates:
@@ -188,19 +188,19 @@ class Targets(object):
         # NOTE: it's important to check all sites, and all hits -- to find the longest match.
         for site in check_sites:
             site_key = query[site:site+word_len]
-            #print "CS: {}, {}".format(site, site_key)
+            #print("CS: {}, {}".format(site, site_key))
             for target, index in self._index.get(site_key, []):
                 if force_target and target != force_target:
                     continue
-                #print "GOT: " + str(index) + " -- " + target.name
+                #print("GOT: " + str(index) + " -- " + target.name)
                 left, right = longest_match(query, (site, word_len), target.seq, (index, word_len))
                 total_len = left + right + word_len
-                #print "extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len)
+                #print("extends: <--{}, -->{} / {} ({})".format(left, right, total_len, min_len))
                 if total_len >= min_len:
                     if not candidate[2] or total_len > candidate[2]:
                         # keep it if it's the best match so far
                         candidate = [target, site - left, total_len, index - left]
-                        #print "C: {}".format(candidate)
+                        #print("C: {}".format(candidate))
                     elif total_len == candidate[2] and target != candidate[0]:
                         # need to keep track if multiple candidates have this same max length
                         if isinstance(candidate[0], list):
@@ -285,7 +285,7 @@ class Targets(object):
         # when R2 needs adapter trimming, R1 will determine that
         self_matches = self.longest_target_self_matches()
         #for tname in self_matches.keys():
-        #    print "{} : {}".format(tname, self_matches[tname])
+        #    print("{} : {}".format(tname, self_matches[tname]))
         r2_full_table = {}
         for target in self.targets:
             mlen = self_matches[target.name] + 1

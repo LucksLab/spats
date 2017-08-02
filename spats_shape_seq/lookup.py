@@ -54,9 +54,9 @@ class LookupProcessor(PairProcessor):
         targets.index()
         targets.build_lookups(self._run.adapter_b, length = self._run.pair_length)
         if not self._run.quiet:
-            print "Lookup table: {} R1 entries, {} R2 entries for {} targets.".format(len(targets.r1_lookup),
+            print("Lookup table: {} R1 entries, {} R2 entries for {} targets.".format(len(targets.r1_lookup),
                                                                                       sum(map(len, targets.r2_lookup.values())),
-                                                                                      len(targets.r2_lookup))
+                                                                                      len(targets.r2_lookup)))
 
     #@profile
     def process_pair(self, pair):
@@ -128,8 +128,8 @@ class CotransLookupProcessor(PairProcessor):
         self.r2_lookup = targets.r2_lookup[target.name]
         self.r2_match_len = len(self.r2_lookup.keys()[0])
         if not self._run.quiet:
-            print "Lookup table: {} R1 entries, {} R2 entries.".format(len(targets.r1_lookup),
-                                                                       sum(map(len, targets.r2_lookup.values())))
+            print("Lookup table: {} R1 entries, {} R2 entries.".format(len(targets.r1_lookup),
+                                                                       sum(map(len, targets.r2_lookup.values()))))
 
     #@profile
     def process_pair(self, pair):

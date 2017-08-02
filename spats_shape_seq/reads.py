@@ -79,14 +79,14 @@ class ReadsData(object):
            :param show_progress_every: default show a '.' for every 1 million pairs parsed. Set to 0 to disable output.
         """
         start = time.time()
-        print "Parsing to db..."
+        print("Parsing to db...")
         pair_db = self.pair_db
         if show_progress_every:
             pair_db.show_progress_every = show_progress_every
         pair_db.wipe()
         pair_db.add_targets_table(target_path)
         total = pair_db.parse(r1_path, r2_path, sample_size = sample_size)
-        print "Sampled {} records in {:.1f}s".format(total, time.time() - start)
+        print("Sampled {} records in {:.1f}s".format(total, time.time() - start))
 
     @property
     def pair_db(self):

@@ -14,7 +14,7 @@ class TestDatasets(unittest.TestCase):
         for case in cases:
             for alg in algorithms:
                 self.run_dataset(case, alg)
-        print "Ran {} datasets.".format(len(cases))
+        print("Ran {} datasets.".format(len(cases)))
 
     def run_dataset(self, case, algorithm):
         bp = "test/{}/".format(case)

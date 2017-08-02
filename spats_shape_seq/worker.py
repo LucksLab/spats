@@ -62,7 +62,7 @@ class SpatsWorker(object):
 
             self._pairs_done.put(processor.counters.count_data())
         except:
-            print "**** Worker exception, aborting..."
+            print("**** Worker exception, aborting...")
             raise
 
     def _createWorkers(self, num_workers):
@@ -71,7 +71,7 @@ class SpatsWorker(object):
             self._workers.append(worker)
             worker.start()
         if not self._run.quiet:
-            print "Created {} workers".format(num_workers)
+            print("Created {} workers".format(num_workers))
 
     def _joinWorkers(self):
         for w in self._workers:
@@ -168,7 +168,7 @@ class SpatsWorker(object):
             accumulated += accumulate_counts()
 
         if not self._run.quiet:
-            print "\nAggregating data..."
+            print("\nAggregating data...")
 
         self._joinWorkers()
 
@@ -239,7 +239,7 @@ class SpatsWorker(object):
                 more_pairs = False
 
         if not self._run.quiet:
-            print "\nAggregating data..."
+            print("\nAggregating data...")
 
         processor.counters.total_pairs = total
         if self._pair_db:

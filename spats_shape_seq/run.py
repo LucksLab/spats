@@ -167,5 +167,5 @@ class Run(object):
                 val = ast.literal_eval(val)
             except:
                 pass
-            #print "run set {} = {} ({})".format(key, val, val.__class__)
+            #print("run set {} = {} ({})".format(key, val, val.__class__))
             setattr(self, key, val)

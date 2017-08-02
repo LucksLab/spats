@@ -103,7 +103,7 @@ class TargetProfiles(object):
                 thetas[k] = math.log(1.0 - Ybit) - math.log(1.0 - Xbit)
                 running_c_sum -= math.log(1.0 - betas[k])
             except:
-                #print "domain error: {} / {} / {} / {}".format(X_k, treated_sum, Y_k, untreated_sum)
+                #print("domain error: {} / {} / {} / {}".format(X_k, treated_sum, Y_k, untreated_sum))
                 betas[k] = 0
                 thetas[k] = 0
 

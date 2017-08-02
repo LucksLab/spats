@@ -46,11 +46,11 @@ class BaseScene(cjb.uif.Scene):
                 self.showRelationship(obj)
             #...
             else:
-                print "App got message to " + str(obj) + ": " + str(message)
+                print("App got message to " + str(obj) + ": " + str(message))
         elif message.get('event') == 'key':
             self.handleKeyEvent(message["arg"])
         else:
-            print "App got general message: " + str(message)
+            print("App got general message: " + str(message))
 
     def handleKeyEvent(self, keyInfo):
         if keyInfo["t"] == "h" and 1 == len(keyInfo):
@@ -58,4 +58,4 @@ class BaseScene(cjb.uif.Scene):
         elif keyInfo["t"] == "b" and 1 == len(keyInfo):
             self.back()
         else:
-            print "Unhandled key: " + str(keyInfo)
+            print("Unhandled key: " + str(keyInfo))

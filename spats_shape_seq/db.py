@@ -18,9 +18,9 @@ class _ConnWrapper(object):
         res = self._conn.execute(query, args)
         delta = time.time() - start
         if delta > 1.0:
-            print "VERY SLOW [{:.1f}s]: ".format(delta) + query
+            print("VERY SLOW [{:.1f}s]: ".format(delta) + query)
         elif delta > 0.1:
-            print "SLOW [{:.01f}s]: ".format(delta) + query
+            print("SLOW [{:.01f}s]: ".format(delta) + query)
         return res
     def executemany(self, query, multiargs):
         return self._conn.executemany(query, multiargs)
@@ -71,7 +71,7 @@ class PairDB(object):
             num_pairs_left = parser.appx_number_of_pairs()
             num_sampled = 0
             read_chunk_size = 65536
-            print "Sampling {} out of ~{:.1f}M total pairs".format(sample_size, float(num_pairs_left)/1000000.0)
+            print("Sampling {} out of ~{:.1f}M total pairs".format(sample_size, float(num_pairs_left)/1000000.0))
             while True:
                 pairs, count = parser.read(read_chunk_size)
                 if not pairs:
@@ -93,7 +93,7 @@ class PairDB(object):
                         sys.stdout.flush()
         conn.commit()
         if show_progress_every:
-            print "."
+            print(".")
 
         return total
 
@@ -455,7 +455,7 @@ class PairDB(object):
     def add_v102_comparison(self, targets_path, output_path, cotrans = False):
         import sys
         from parse import reactivities_parse, SamParser
-        print "Creating index..."
+        print("Creating index...")
         self.index()
         self._wipe_v102()
         self._create_v102()
@@ -465,7 +465,7 @@ class PairDB(object):
         # create the targets table
         targets = self.add_targets_table(targets_path)
         
-        print "Parsing NOMASK*..."
+        print("Parsing NOMASK*...")
         # parse NOMASK to get the ID<->numeric_id map
         with FastFastqParser(os.path.join(output_path, 'NOMASK_1.fq'), os.path.join(output_path, 'NOMASK_2.fq')) as parser:
             while True:
@@ -484,7 +484,7 @@ class PairDB(object):
         check = self._fetch_one("SELECT COUNT(*) from v102")
         if check != total:
             raise Exception("some v102 pairs did not match? {} != {}".format(check, total))
-        print "\nParsed {} records from NOMASK_{{1,2}}.fq".format(total)
+        print("\nParsed {} records from NOMASK_{{1,2}}.fq".format(total))
 
         # now, parse sam to get the numeric_id->site,end map
         total = 0
@@ -506,9 +506,9 @@ class PairDB(object):
             mask_totals[mask] = mask_total
         conn.commit()
         conn.execute("CREATE INDEX IF NOT EXISTS v102_site_idx ON v102 (site)")
-        print "\nAdded {} records from *.sam:".format(total)
+        print("\nAdded {} records from *.sam:".format(total))
         for mask in masks:
-            print "  {}.sam: {}".format(mask, mask_totals[mask])
+            print("  {}.sam: {}".format(mask, mask_totals[mask]))
 
         # now, compare against reactivities.out to verify our counts
         if cotrans:
@@ -539,7 +539,7 @@ class PairDB(object):
             count += 1
         if not count:
             raise Exception("no sites found in reactivities.out?")
-        print "reactivities.out check pass ({} sites).".format(count)
+        print("reactivities.out check pass ({} sites).".format(count))
         self.add_v102_to_results()
 
     def add_v102_to_results(self):
