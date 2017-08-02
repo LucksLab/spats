@@ -56,6 +56,11 @@ viz: cjb bin/UIClient.app
 	@./bin/UIClient.app/Contents/MacOS/UIClient &
 	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
 
+.PHONY: clean
+clean:
+	@rm -rf cjb
+	@rm -rf bin/UIClient.app
+
 .PHONY: vizsrv
 vizsrv: cjb
 	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
