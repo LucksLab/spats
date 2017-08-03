@@ -452,12 +452,12 @@ tcotrans2()
 {
     Spats s(true);
     s.addTargets("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/cotrans_single.fa");
-    PairDB * pdb = new PairDB("/Users/jbrink/tmp/bar.spats");
-    s.m_writeback = true;
-    s.m_writeback_db = pdb;
-    pdb->start_worker();
+    //PairDB * pdb = new PairDB("/Users/jbrink/tmp/bar.spats");
+    //s.m_writeback = true;
+    //s.m_writeback_db = pdb;
+    //pdb->start_worker();
     s.run_fastq(
-#if 0
+#if 1
         "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
         "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq"
 #else
@@ -465,10 +465,10 @@ tcotrans2()
         "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/med_R2.fq"
 #endif
         );
-    pdb->commit_results();
-    printf("Counts: %s\n\n%s\n", s.counters()->count_json().c_str(), s.counters()->site_json(s.cotrans_minimum_length()).c_str());
+    //pdb->commit_results();
+    //printf("Counts: %s\n\n%s\n", s.counters()->count_json().c_str(), s.counters()->site_json(s.cotrans_minimum_length()).c_str());
     //printf("Counts: %s\n", s.counters()->count_json().c_str());
-    printf("NW: %d\n", pdb->num_written());
+    //printf("NW: %d\n", pdb->num_written());
 }
 
 void

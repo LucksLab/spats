@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <iostream>
 
-#if 1
+#if 0
 
 #define __FILENAME__ (strrchr(__FILE__,'/') ? strrchr(__FILE__,'/')+1 : __FILE__)
 #define ___ATS_ASSERT(cond,failureBlock) do { if (!(cond)) { failureBlock; assert(0); } } while (0)

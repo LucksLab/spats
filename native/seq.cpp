@@ -58,6 +58,7 @@ Fragment::parse(const char * text, size_t in_length)
         frag_idx += 2;
         SEQ_DEBUG("FS/FI: %d[%d] <- %c", frag_sel, frag_idx, text[idx]);
     }
+    m_errors = errors;
     m_words[frag_sel] = curWord;
 }
 

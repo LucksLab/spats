@@ -41,6 +41,8 @@ worker_fn(void * arg)
             //printf("%s  --  %s\n", r1_frag.string().c_str(), r2_frag.string().c_str());
             wi->r1chars[4] = 0;
             c.pair_id = wi->pair_id;
+            c.L = c.site = -1;
+            c.mask = MASK_NO_MATCH;
             if (spats)
                 spats->spats_handler(&r1_frag, &r2_frag, wi->r1chars, w->counters, &c);
             else
