@@ -12,6 +12,7 @@ worker_fn(void * arg)
     Fragment r1_frag;
     Fragment r2_frag;
     size_t fragment_len = 0;
+    Spats * spats = w->context->spats;
     pair_handler handler = w->context->handler;
 
     for (int i = 0; i < CQ_SIZE; ++i) {
@@ -36,7 +37,10 @@ worker_fn(void * arg)
             r2_frag.parse(wi->r2chars, fragment_len);
             //printf("%s  --  %s\n", r1_frag.string().c_str(), r2_frag.string().c_str());
             wi->r1chars[4] = 0;
-            handler(&r1_frag, &r2_frag, wi->r1chars);
+            if (spats)
+                spats->spats_handler(&r1_frag, &r2_frag, wi->r1chars, w->counters);
+            else
+                handler(&r1_frag, &r2_frag, wi->r1chars);
 
             WORKER_TRACE("^");
             wi->ready = false;

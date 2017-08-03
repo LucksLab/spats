@@ -3,11 +3,15 @@
 #define __SPATS_PARSE_HPP_INCLUDED__
 
 #include "seq.hpp"
+#include "spats.hpp"
 
 typedef bool (*pair_handler)(Fragment * r1, Fragment * r2, const char * handle);
 
 void
-fastq_parse(const char * r1_path, const char * r2_path, pair_handler handler);
+fastq_parse_handler(const char * r1_path, const char * r2_path, pair_handler handler);
+
+void
+fastq_parse_spats(const char * r1_path, const char * r2_path, Spats * spats);
 
 typedef bool (*target_handler)(const char * name, const char * seq);
 

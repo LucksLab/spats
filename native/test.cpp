@@ -221,9 +221,9 @@ t5s()
     g_r1l = new R1Lookup(&t, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 31, 0);
     g_r2l = new R2Lookup(35, 0);
     g_r2l->addTarget(t.target(0));
-    fastq_parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
-                "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
-                &lookup_handler);
+    fastq_parse_handler("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
+                        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
+                        &lookup_handler);
     for (int i = 0; i < MAX_SITES; ++i) {
         if (g_treated_sites[i] > 0 || g_untreated_sites[i] > 0)
             printf("  %d: %d / %d\n", i, g_treated_sites[i], g_untreated_sites[i]);
@@ -249,9 +249,9 @@ tpanel()
     g_r2l = new R2Lookup(35, 0);
     for (int i = 0; i < t.size(); ++i)
         g_r2l->addTarget(t.target(i));
-    fastq_parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/data/KEW1_S1_L001_R1_001.fastq",
-                "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/data/KEW1_S1_L001_R2_001.fastq",
-                &lookup_handler);
+    fastq_parse_handler("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/data/KEW1_S1_L001_R1_001.fastq",
+                        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/Shape_Seq_ligation/data/KEW1_S1_L001_R2_001.fastq",
+                        &lookup_handler);
     printf("%d matched, %d w/errors, %d indeterminate, %d mask failure, %d total\n", g_matched, g_matched_with_errors, g_indeterminate, g_mask_failure, g_total);
     for (int i = 0; i < MAX_SITES; ++i) {
         if (g_treated_sites[i] > 0 || g_untreated_sites[i] > 0)
@@ -385,18 +385,6 @@ cotrans_lookup_handler(Fragment * r1, Fragment * r2, const char * handle)
 }
 
 
-class Case
-{
-public:
-    std::string id;
-    std::string handle;
-    Fragment r1;
-    Fragment r2;
-    int L;
-    int site;
-    Case(const char * _id, const char * _r1, const char * _r2, int _L, int _s) : id(_id), r1(&_r1[4]), r2(_r2), L(_L), site(_s), handle(_r1, 4) { }
-};
-
 void
 tcotrans()
 {
@@ -411,7 +399,7 @@ tcotrans()
     for (int i = 0; i < t.size(); ++i)
         g_r2l->addTarget(t.target(i));
 #if 1
-    fastq_parse(
+    fastq_parse_handler(
 #if 1
         "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
         "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq",
@@ -458,33 +446,38 @@ tcotrans()
 #endif
 }
 
+void
+tcotrans2()
+{
+    Spats s(true);
+    s.addTargets("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/cotrans_single.fa");
+    s.run_fastq(
+#if 0
+        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
+        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq"
+#else
+        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/med_R1.fq",
+        "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/med_R2.fq"
+#endif
+        );
+    printf("Counts: %s\n\n%s\n", s.counters()->count_json().c_str(), s.counters()->site_json(s.cotrans_minimum_length()).c_str());
+}
+
 int
 tcase(int argc, char ** argv)
 {
-    pthread_mutex_init(&g_mutex, NULL);
-    g_adapter_t_rc = reverse_complement("AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT");
-    Targets t;
-    t.parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/cotrans_single.fa");
-    g_target = t.target(0);
-    g_linker = new Fragment("CTGACTCGGGCACCAAGGAC", 20);
-    g_r1l = new R1Lookup(&t, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 36, 0, g_linker);
-    g_r2l = new R2Lookup(12, 0); // 12 = guess for target->self_match_len; should not exceed pair_len - linker_len - 4
-    for (int i = 0; i < t.size(); ++i)
-        g_r2l->addTarget(t.target(i));
+    Spats s(true);
+    s.addTargets("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/cotrans_single.fa");
     Case c("", argv[1], argv[2], -1, -1);
-    cotrans_lookup_handler(&c.r1, &c.r2, c.handle.c_str());
-    for (int mask = MASK_TREATED; mask <= MASK_UNTREATED; ++mask) {
-        for (int L = g_cotrans_minimum_length; L < g_target->n() + 1; ++L) {
-            for (int site = 0; site <= L; ++site) {
-                if (g_counters[L][site][mask]) {
-                    printf("[ \"%s\", %d, %d ]\n", (MASK_TREATED == mask ? "RRRY" : "YYYR"), L, site);
-                    return 0;
-                }
-            }
-        }
+    s.run_case(&c);
+    if (MASK_NO_MATCH == c.mask  ||  c.L <= 0  ||  c.site < 0) {
+        printf("[ None, None, None ]\n");
+        return 1;
     }
-    printf("[ None, None, None ]\n");
-    return 1;
+    else {
+        printf("[ \"%s\", %d, %d ]\n", (MASK_TREATED == c.mask ? "RRRY" : "YYYR"), c.L, c.site);
+        return 0;
+    }
 }
 
 void
@@ -501,8 +494,8 @@ extern void thash();
 int
 main(int argc, char ** argv)
 {
-    //return tcase(argc, argv);
-    tcotrans();
+    return tcase(argc, argv);
+    //tcotrans2();
     //thash();
     //f('A'); f('C'); f('G'); f('T'); f('\n'); f('\r');
     //tpanel();

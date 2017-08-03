@@ -27,6 +27,7 @@ struct WorkItem
 struct WorkContext
 {
     pair_handler handler;
+    Spats * spats;
     size_t fragment_len;
 };
 
@@ -42,6 +43,7 @@ struct Worker
     int start;
     int end;
     int empty_worker;
+    Counters * counters;
 };
 
 void *

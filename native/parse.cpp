@@ -17,7 +17,7 @@
 
 
 void
-fastq_parse(const char * r1_path, const char * r2_path, pair_handler handler)
+fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler handler, Spats * spats)
 {
     FILE * r1 = fopen(r1_path, "rb");
     FILE * r2 = fopen(r2_path, "rb");
@@ -40,6 +40,7 @@ fastq_parse(const char * r1_path, const char * r2_path, pair_handler handler)
     bool first_pass = true;
     WorkContext context;
     context.handler = handler;
+    context.spats = spats;
     context.fragment_len = 0;
 
     Worker workers[NUM_WORKERS];
@@ -49,6 +50,10 @@ fastq_parse(const char * r1_path, const char * r2_path, pair_handler handler)
         w->context = &context;
         w->start = w->end = 0;
         w->items[0].ready = false;
+        if (spats)
+            w->counters = new Counters(spats->counters()->n - 1);
+        else
+            w->counters = NULL;
         pthread_mutex_init(&(w->mutex), NULL);
         pthread_cond_init(&(w->cond), NULL);
         pthread_create(&(w->thread), NULL, &worker_fn, (void *)w);
@@ -161,9 +166,24 @@ fastq_parse_done:
     fclose(r2);
 
     int wempty = 0;
-    for (int i = 0; i < NUM_WORKERS; ++i)
+    for (int i = 0; i < NUM_WORKERS; ++i) {
         wempty += workers[i].empty_worker;
+        if (spats)
+            spats->counters()->aggregate(workers[i].counters);
+    }
     ATS_DEBUG("\n%d wfull, %d empty\n", worker_full, wempty);
+}
+
+void
+fastq_parse_handler(const char * r1_path, const char * r2_path, pair_handler handler)
+{
+    fastq_parse_driver(r1_path, r2_path, handler, NULL);
+}
+
+void
+fastq_parse_spats(const char * r1_path, const char * r2_path, Spats * spats)
+{
+    fastq_parse_driver(r1_path, r2_path, NULL, spats);
 }
 
 
