@@ -5,7 +5,6 @@
 #include "pair.hpp"
 #include "parse.hpp"
 #include "r1lookup.hpp"
-#include "r1tree.hpp"
 #include "seq.hpp"
 #include <map>
 #include "db.hpp"
@@ -76,38 +75,6 @@ tlookup()
     tfs(&t);
 }
 
-void
-ttree()
-{
-    R1Tree t(10);
-    tfs(&t);
-}
-
-#if 0
-void
-tr1l()
-{
-    Target t(1, "5s", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC");
-    R1Lookup l(&t, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", 31, 1);
-    Fragment f("CAGGAACCACGGGCTCAGTAGATCGGAAGAG");
-    FragmentResult * fr = l.find(&f);
-    if (fr)
-        printf("FR site: %d [%d]\n", fr->m_site, fr->m_errors);
-    else
-        printf("not found\n");
-}
-
-void
-tf()
-{
-    Fragment f("CAGGAACCACGGGCTCAGTAGATCGGAAGAG", 31);
-    printf("%s\n", f.string().c_str());
-    f.del(0);
-    printf("%s\n", f.string().c_str());
-    f.insert(1, T_bits);
-    printf("%s\n", f.string().c_str());
-}
-#endif
 
 #define MASK_NO_MATCH 0
 #define MASK_TREATED 1

@@ -1,7 +1,6 @@
 
 #include "r1lookup.hpp"
 
-#include "r1tree.hpp"
 #include "lookup.hpp"
 #include "ats.hpp"
 

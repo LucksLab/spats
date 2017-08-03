@@ -22,3 +22,11 @@ debug: bin/test
 	lldb test
 
 all: bin/test bin/unittest bin/cotrans
+
+.PHONY: clean
+clean:
+	rm -rf obj *~
+
+.PHONY: clear
+clear: clean
+	rm -rf bin
