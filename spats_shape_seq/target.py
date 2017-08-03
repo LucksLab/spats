@@ -290,7 +290,7 @@ class Targets(object):
         for target in self.targets:
             mlen = self_matches[target.name] + 1
             if length < mlen:
-                raise Exception("R2 length not long enough for target self-match")
+                raise Exception("R2 length not long enough for target self-match ({} / {})".format(length, mlen))
             r2_table = {}
             r2_full_table[target.name] = r2_table
             tlen = target.n

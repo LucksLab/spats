@@ -14,7 +14,7 @@ worker_fn(void * arg)
     Fragment r2_frag;
     size_t fragment_len = 0;
     Spats * spats = w->context->spats;
-    PairDB * writeback = spats->writeback_db();
+    PairDB * writeback = spats ? spats->writeback_db() : NULL;
     pair_handler handler = w->context->handler;
     Case c;
 
@@ -43,13 +43,18 @@ worker_fn(void * arg)
             c.pair_id = wi->pair_id;
             c.L = c.site = -1;
             c.mask = MASK_NO_MATCH;
+            bool res = false;
             if (spats)
-                spats->spats_handler(&r1_frag, &r2_frag, wi->r1chars, w->counters, &c);
+                res = spats->spats_handler(&r1_frag, &r2_frag, wi->r1chars, w->counters, &c);
             else
-                handler(&r1_frag, &r2_frag, wi->r1chars);
+                res = handler(&r1_frag, &r2_frag, wi->r1chars);
             if (writeback) {
                 ATS_VERBOSE("W: %d (%p)\n", c.pair_id, wi);
                 writeback->submit_result(&c);
+            }
+            if (!res) {
+                w->done = true;
+                break;
             }
             WORKER_TRACE("^");
             wi->ready = false;

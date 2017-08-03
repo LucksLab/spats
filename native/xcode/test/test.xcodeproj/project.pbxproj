@@ -12,7 +12,6 @@
 		AD28D1631ED4F4880011F0DF /* seq.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD28D1551ED4F4880011F0DF /* seq.cpp */; };
 		AD28D1641ED4F4880011F0DF /* lookup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD28D1581ED4F4880011F0DF /* lookup.cpp */; };
 		AD28D1651ED4F4880011F0DF /* target.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD28D1591ED4F4880011F0DF /* target.cpp */; };
-		AD28D1661ED4F4880011F0DF /* r1tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD28D15C1ED4F4880011F0DF /* r1tree.cpp */; };
 		AD28D1671ED4F4880011F0DF /* parse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD28D15E1ED4F4880011F0DF /* parse.cpp */; };
 		ADAA444D1ED8A5C90028B600 /* hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ADAA444C1ED8A5C90028B600 /* hash.cpp */; };
 		ADAA44501ED9AAF20028B600 /* worker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ADAA444E1ED9AAF20028B600 /* worker.cpp */; };
@@ -44,8 +43,6 @@
 		AD28D1581ED4F4880011F0DF /* lookup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lookup.cpp; sourceTree = "<group>"; };
 		AD28D1591ED4F4880011F0DF /* target.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = target.cpp; sourceTree = "<group>"; };
 		AD28D15A1ED4F4880011F0DF /* lookup.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = lookup.hpp; sourceTree = "<group>"; };
-		AD28D15B1ED4F4880011F0DF /* r1tree.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = r1tree.hpp; sourceTree = "<group>"; };
-		AD28D15C1ED4F4880011F0DF /* r1tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = r1tree.cpp; sourceTree = "<group>"; };
 		AD28D15D1ED4F4880011F0DF /* ats.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ats.hpp; sourceTree = "<group>"; };
 		AD28D15E1ED4F4880011F0DF /* parse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = parse.cpp; sourceTree = "<group>"; };
 		AD28D15F1ED4F4880011F0DF /* parse.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = parse.hpp; sourceTree = "<group>"; };
@@ -115,8 +112,6 @@
 				AD28D1581ED4F4880011F0DF /* lookup.cpp */,
 				AD28D1591ED4F4880011F0DF /* target.cpp */,
 				AD28D15A1ED4F4880011F0DF /* lookup.hpp */,
-				AD28D15B1ED4F4880011F0DF /* r1tree.hpp */,
-				AD28D15C1ED4F4880011F0DF /* r1tree.cpp */,
 				AD28D15D1ED4F4880011F0DF /* ats.hpp */,
 				AD28D15E1ED4F4880011F0DF /* parse.cpp */,
 				AD28D15F1ED4F4880011F0DF /* parse.hpp */,
@@ -190,7 +185,6 @@
 				ADAA444D1ED8A5C90028B600 /* hash.cpp in Sources */,
 				AD28D1621ED4F4880011F0DF /* test.cpp in Sources */,
 				ADE2FD9D1F3327B40088F11E /* spats.cpp in Sources */,
-				AD28D1661ED4F4880011F0DF /* r1tree.cpp in Sources */,
 				ADE2FDA11F33395E0088F11E /* db.cpp in Sources */,
 				ADAA44501ED9AAF20028B600 /* worker.cpp in Sources */,
 				ADE2FD9E1F3327B40088F11E /* counters.cpp in Sources */,

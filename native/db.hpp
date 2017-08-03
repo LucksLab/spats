@@ -41,6 +41,9 @@ public:
     void store_run();
     void store_counters(Counters * c, int cotrans_min_length);
     void store_targets(Targets * t);
+    void parse_and_sample(const char * r1_path, const char * r2_path, int sample_size);
+    void close();
+    sqlite3 * handle() const { return m_handle; }
 };
 
 #endif // __SPATS_DB_HPP_INCLUDED__

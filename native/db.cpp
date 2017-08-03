@@ -1,8 +1,11 @@
 
 #include <unistd.h>
 #include <sys/time.h>
+#include <stdlib.h>
 
 #include "db.hpp"
+#include "parse.hpp"
+
 
 typedef struct
 {
@@ -116,8 +119,16 @@ PairDB::PairDB(const char * path) : m_path(path), m_worker_thread(NULL), m_head(
 
 PairDB::~PairDB()
 {
-    if (NULL != m_handle)
+    close();
+}
+
+void
+PairDB::close()
+{
+    if (NULL != m_handle) {
         sqlite3_close(m_handle);
+        m_handle = NULL;
+    }
 }
 
 int
@@ -279,3 +290,78 @@ PairDB::store_targets(Targets * targets)
     }
 }
 
+struct ParseInfo
+{
+    PairDB * db;
+    int appx_total;
+    int parsed;
+    int left_to_sample;
+    sqlite3_stmt * stmt;
+};
+
+ParseInfo * g_parsing_info = NULL;
+
+bool
+parse_db_handler(Fragment * r1, Fragment * r2, const char * handle)
+{
+    ParseInfo * pi = g_parsing_info;
+    ++pi->parsed;
+
+    long r = random();
+    if (pi->parsed >= pi->appx_total) {
+        if (pi->left_to_sample == 0)
+            return false;
+    }
+    else if (r % (pi->appx_total - pi->parsed) >= pi->left_to_sample) {
+        return true;
+    }
+
+    std::string str(handle);
+    str += r1->string();
+    int sqlErr = sqlite3_bind_text(pi->stmt, 1, str.c_str(), (int)str.length(), SQLITE_TRANSIENT); // SQLITE_STATIC?
+    if (sqlErr != SQLITE_OK)
+        return false;
+
+    str = r2->string();
+    sqlErr = sqlite3_bind_text(pi->stmt, 2, str.c_str(), (int)str.length(), SQLITE_TRANSIENT); // SQLITE_STATIC?
+    if (sqlErr != SQLITE_OK)
+        return false;
+
+    sqlErr = sqlite3_step(pi->stmt);
+    if (sqlErr != SQLITE_DONE)
+        return false;
+
+    sqlite3_reset(pi->stmt);
+
+    if (0 == --pi->left_to_sample)
+        return false;
+
+    return true;
+}
+
+void
+PairDB::parse_and_sample(const char * r1_path, const char * r2_path, int sample_size)
+{
+    SQL_LOCAL_VARS(m_handle);
+    SQL_EXEC("CREATE TABLE IF NOT EXISTS pair (r1 TEXT, r2 TEXT, identifier TEXT)");
+    SQL_EXEC("DELETE FROM pair");
+    SQL_EXEC("BEGIN");
+
+    srandomdev();
+
+    ParseInfo pi;
+    pi.db = this;
+    pi.appx_total = appx_number_of_fastq_pairs(r1_path);
+    pi.parsed = 0;
+    pi.left_to_sample = sample_size;
+
+    sqlErr = sqlite3_prepare_v2(m_handle, "INSERT INTO pair (identifier, r1, r2) VALUES ('', ?, ?)", -1, &pi.stmt, NULL);
+    ATS_THROW_IF(sqlErr != SQLITE_OK || NULL == pi.stmt);
+
+    ATS_ASSERT(NULL == g_parsing_info);
+    g_parsing_info = &pi;
+    fastq_parse_handler(r1_path, r2_path, &parse_db_handler);
+    g_parsing_info = NULL;
+
+    SQL_EXEC("COMMIT");
+}

@@ -13,6 +13,9 @@ fastq_parse_handler(const char * r1_path, const char * r2_path, pair_handler han
 void
 fastq_parse_spats(const char * r1_path, const char * r2_path, Spats * spats);
 
+int
+appx_number_of_fastq_pairs(const char * r1_path);
+
 typedef bool (*target_handler)(const char * name, const char * seq);
 
 void

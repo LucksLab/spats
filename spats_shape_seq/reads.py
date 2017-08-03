@@ -97,31 +97,6 @@ class ReadsData(object):
         return self._pair_db
 
 
-CFG_TEMPLATE = '''
-[server]
-host = 0.0.0.0
-port = 7865
-portfile = /tmp/uif.port
-
-[data]
-dbfile = {}
-result_set_name = tags
-
-[extra_tags]
-{}
-
-[colors]
-target = [ 1.0, 0.85, 0.7 ]
-adapter_t = [ 1.0, 0.5, 0.5 ]
-adapter_b = [ 0.5, 0.5, 1.0 ]
-linker_cotrans = [ 0.7, 0.9, 1.0 ]
-rrry = [ 0.2, 1.0, 0.1 ]
-yyyr = [ 0.2, 0.7, 0.1 ]
-error = [ 0.9, 0.1, 0.2 ]
-
-[run]
-{}
-'''
 
 
 class ReadsAnalyzer(object):
@@ -166,6 +141,7 @@ class ReadsAnalyzer(object):
         s = self._spats
         pair_db = self._pair_db
         s.loadTargets(pair_db)
+        s.run.pair_length = pair_db.pair_length()
         p = s._processor
         for target in pair_db.targets():
             p.addTagTarget(target[0], target[1])

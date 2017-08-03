@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <string.h>
 #include <fstream>
 #include <unistd.h>
 
@@ -52,7 +53,8 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
     context.fragment_len = 0;
 
     Worker workers[NUM_WORKERS];
-    for (int i = 0; i < NUM_WORKERS; ++i) {
+    int num_workers = (spats ? NUM_WORKERS : 1);
+    for (int i = 0; i < num_workers; ++i) {
         Worker * w = &workers[i];
         w->id = i;
         w->context = &context;
@@ -112,8 +114,10 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
         /* r1start, r2start now have null-terminated strings; process the line */
         while (true) {
             cur_worker = &workers[cur_worker_idx];
-            if (++cur_worker_idx >= NUM_WORKERS)
+            if (++cur_worker_idx >= num_workers)
                 cur_worker_idx = 0;
+            if (cur_worker->done)
+                goto fastq_parse_done;
             cur_work_item = &cur_worker->items[cur_worker->end];
             if (cur_work_item->ready) {
                 ++worker_full;
@@ -182,7 +186,7 @@ fastq_parse_done:
 
     int wempty = 0;
 #if !(BENCHMARK_PARSING_ONLY)
-    for (int i = 0; i < NUM_WORKERS; ++i) {
+    for (int i = 0; i < num_workers; ++i) {
         Worker * w = &workers[i];
         w->done = true;
         pthread_join(w->thread, NULL);
@@ -204,6 +208,23 @@ void
 fastq_parse_spats(const char * r1_path, const char * r2_path, Spats * spats)
 {
     fastq_parse_driver(r1_path, r2_path, NULL, spats);
+}
+
+int
+appx_number_of_fastq_pairs(const char * r1_path)
+{
+    FILE * r1 = fopen(r1_path, "rb");
+    char r1buf[MAX_LINE_SIZE + 1];
+    int nread = (int)fread(r1buf, 1, MAX_LINE_SIZE, r1);
+    fseek(r1, 0, SEEK_END);
+    long sz = ftell(r1);
+    fclose(r1);
+    if (0 == nread)
+        return 0;
+    char * fourthnl = strchr(strchr(strchr(strchr(r1buf, '\n') + 1, '\n') + 1, '\n') + 1, '\n') + 1;
+    // the +1 is since first records tend to be short, and we'd rather underestimate than overestimate
+    int frag_len = 1 + (int)(fourthnl - r1buf);
+    return (int)((float)(sz) / (float)(frag_len));
 }
 
 
