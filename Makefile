@@ -56,7 +56,7 @@ bin/UIClient.app: pkg/UIClient.zip
 	@touch bin/UIClient.app
 
 .PHONY: viz
-viz: cjb bin/UIClient.app
+viz: clean cjb bin/UIClient.app
 	@./bin/UIClient.app/Contents/MacOS/UIClient &
 	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
 
