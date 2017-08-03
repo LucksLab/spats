@@ -21,7 +21,7 @@ Fragment::reset()
 void
 Fragment::parse(const char * text, size_t in_length)
 {
-    int length = (-1 == in_length ? strlen(text) : in_length);
+    int length = (int)(-1 == in_length ? strlen(text) : in_length);
     SEQ_DEBUG("WL: %d, MTL: %d", length >> 2, length >> 3);
     ATS_ASSERT(length <= (sizeof(m_words) << 2));     /* 2 bits / nt  ==>  4nt / byte */
     ATS_ASSERT(length <= (sizeof(m_errors) << 3));    /* a bit per nt to flag as mistranscribed */
@@ -185,8 +185,8 @@ int
 Fragment::hamming_distance(Fragment * other) const
 {
     // TODO: deal with length > one word..
-    register uint64_t a = m_words[0] ^ other->m_words[0];
-    register uint64_t b = ((a & m1) | ((a & m2) >> 1));
+    uint64_t a = m_words[0] ^ other->m_words[0];
+    uint64_t b = ((a & m1) | ((a & m2) >> 1));
     return __builtin_popcountll(b);
 }
 

@@ -8,6 +8,7 @@
 #include "r1tree.hpp"
 #include "seq.hpp"
 #include <map>
+#include "db.hpp"
 
 
 
@@ -429,7 +430,7 @@ tcotrans()
     }
     printf("}\n");
 #else
-    Case c("1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", 93, 68);
+    Case c("1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC");
     cotrans_lookup_handler(&c.r1, &c.r2, c.handle.c_str());
 
     for (int mask = MASK_TREATED; mask <= MASK_UNTREATED; ++mask) {
@@ -451,6 +452,10 @@ tcotrans2()
 {
     Spats s(true);
     s.addTargets("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/cotrans_single.fa");
+    PairDB * pdb = new PairDB("/Users/jbrink/tmp/bar.spats");
+    s.m_writeback = true;
+    s.m_writeback_db = pdb;
+    pdb->start_worker();
     s.run_fastq(
 #if 0
         "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
@@ -460,6 +465,19 @@ tcotrans2()
         "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/med_R2.fq"
 #endif
         );
+    pdb->commit_results();
+    printf("Counts: %s\n\n%s\n", s.counters()->count_json().c_str(), s.counters()->site_json(s.cotrans_minimum_length()).c_str());
+    //printf("Counts: %s\n", s.counters()->count_json().c_str());
+    printf("NW: %d\n", pdb->num_written());
+}
+
+void
+tcotrans3()
+{
+    Spats s(true);
+    s.addTargets("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/cotrans_single.fa");
+    s.run_db("/Users/jbrink/tmp/foo.spats");
+    s.m_writeback = true;
     printf("Counts: %s\n\n%s\n", s.counters()->count_json().c_str(), s.counters()->site_json(s.cotrans_minimum_length()).c_str());
 }
 
@@ -468,7 +486,7 @@ tcase(int argc, char ** argv)
 {
     Spats s(true);
     s.addTargets("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/cotrans_single.fa");
-    Case c("", argv[1], argv[2], -1, -1);
+    Case c("", argv[1], argv[2]);
     s.run_case(&c);
     if (MASK_NO_MATCH == c.mask  ||  c.L <= 0  ||  c.site < 0) {
         printf("[ None, None, None ]\n");
@@ -491,10 +509,19 @@ f(char ch)
 
 extern void thash();
 
+void
+tdb()
+{
+    PairDB pdb("/Users/jbrink/tmp/foo.spats");
+    pdb.test();
+}
+
 int
 main(int argc, char ** argv)
 {
-    return tcase(argc, argv);
+    tcotrans2();
+    //tdb();
+    //return tcase(argc, argv);
     //tcotrans2();
     //thash();
     //f('A'); f('C'); f('G'); f('T'); f('\n'); f('\r');

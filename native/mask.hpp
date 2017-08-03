@@ -13,7 +13,8 @@
 
 // RRRY = treated
 // YYYR = untreated
-inline int
+inline 
+int
 match_mask(const char * handle)
 {
     bool treated = true;
@@ -41,5 +42,15 @@ match_mask(const char * handle)
     return (treated ? MASK_TREATED : (untreated ? MASK_UNTREATED : MASK_NO_MATCH));
 }
 
+inline
+const char *
+mask_chars(int mask)
+{
+    switch (mask) {
+    case MASK_TREATED: return "RRRY";
+    case MASK_UNTREATED: return "YYYR";
+    default: return "";
+    }
+}
 
 #endif // __SPATS_MASK_HPP_INCLUDED__

@@ -7,6 +7,10 @@
 #include "seq.hpp"
 #include "target.hpp"
 #include "counters.hpp"
+#include "mask.hpp"
+
+
+class PairDB;
 
 
 #define COUNT_INDEX_TOTAL         0
@@ -18,6 +22,7 @@
 class Case
 {
 public:
+    int pair_id;
     std::string id;
     std::string handle;
     Fragment r1;
@@ -25,12 +30,16 @@ public:
     int mask;
     int L;
     int site;
-    Case(const char * _id, const char * _r1, const char * _r2, int _L, int _s) : id(_id), r1(&_r1[4]), r2(_r2), L(_L), site(_s), handle(_r1, 4) { }
+    Case() : pair_id(0), mask(MASK_NO_MATCH), L(-1), site(-1) {}
+    Case(const char * _id, const char * _r1, const char * _r2) : id(_id), pair_id(0), r1(&_r1[4]), r2(_r2), handle(_r1, 4), L(-1), site(-1), mask(MASK_NO_MATCH)  { }
+    Case(int _id, const char * _r1, const char * _r2) : pair_id(_id), r1(&_r1[4]), r2(_r2), handle(_r1, 4), L(-1), site(-1), mask(MASK_NO_MATCH)  { }
+    bool valid() const { return (L > 0) && (site >= 0) && (mask != MASK_NO_MATCH); }
 };
 
 
 class Spats
 {
+public:
     bool m_cotrans;
 
     int m_pair_len;
@@ -46,6 +55,9 @@ class Spats
 
     Counters * m_counters;
 
+    bool m_writeback;
+    PairDB * m_writeback_db;
+
     void setup();
     bool try_lookup_hit(FragmentResult * res, Fragment * r1, Fragment * r2, const char * handle, Counters * counters, Case * caseinfo);
 
@@ -55,7 +67,7 @@ public: // internal use only
 public:
 
     Spats(bool cotrans = false) : m_cotrans(cotrans),  m_r1l(NULL), m_r2l(NULL), m_cotrans_target(NULL),
-          m_pair_len(36), m_cotrans_minimum_length(20), m_counters(NULL)
+          m_pair_len(36), m_cotrans_minimum_length(20), m_counters(NULL), m_writeback(false), m_writeback_db(NULL)
     {
         m_adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC";
         m_adapter_t_rc = reverse_complement("AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT");
@@ -70,8 +82,8 @@ public:
 
     void run_fastq(const char * r1_path, const char * r2_path);
     void run_case(Case * c);
-
     void run_db(const char * db_path);
+    PairDB * writeback_db() const { return (m_writeback ? m_writeback_db : NULL); }
 
     int cotrans_minimum_length() const { return m_cotrans_minimum_length; }
 

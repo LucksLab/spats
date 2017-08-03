@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <iostream>
 
-#if 0
+#if 1
 
 #define __FILENAME__ (strrchr(__FILE__,'/') ? strrchr(__FILE__,'/')+1 : __FILE__)
 #define ___ATS_ASSERT(cond,failureBlock) do { if (!(cond)) { failureBlock; assert(0); } } while (0)
@@ -26,7 +26,13 @@
 
 #define ATS_IGNORE(...)
 
+#define ATS_WARN ATS_PRINT
 #define ATS_DEBUG ATS_PRINT
 #define ATS_VERBOSE ATS_IGNORE
+
+#define ATS_THROW_IF(theCond) do { if (theCond) throw std::exception(); } while(0)
+#define ATS_RET_IF(theCond) do { if (theCond) { ATS_ASSERT_NOT_REACHED(); return; } } while(0)
+#define ATS_RETVAL_IF(theCond,theVal) do { if (theCond) { ATS_ASSERT_NOT_REACHED(); return (theVal); } } while(0)
+
 
 #endif // __SPATS_ATS_HPP_INCLUDED__

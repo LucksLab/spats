@@ -18,6 +18,8 @@
 		ADAA44501ED9AAF20028B600 /* worker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ADAA444E1ED9AAF20028B600 /* worker.cpp */; };
 		ADE2FD9D1F3327B40088F11E /* spats.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ADE2FD981F3327B40088F11E /* spats.cpp */; };
 		ADE2FD9E1F3327B40088F11E /* counters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ADE2FD9B1F3327B40088F11E /* counters.cpp */; };
+		ADE2FDA11F33395E0088F11E /* db.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ADE2FD9F1F33395E0088F11E /* db.cpp */; };
+		ADE2FDA31F3339840088F11E /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = ADE2FDA21F3339840088F11E /* libsqlite3.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -57,6 +59,9 @@
 		ADE2FD9A1F3327B40088F11E /* counters.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = counters.hpp; sourceTree = "<group>"; };
 		ADE2FD9B1F3327B40088F11E /* counters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = counters.cpp; sourceTree = "<group>"; };
 		ADE2FD9C1F3327B40088F11E /* mask.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = mask.hpp; sourceTree = "<group>"; };
+		ADE2FD9F1F33395E0088F11E /* db.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = db.cpp; sourceTree = "<group>"; };
+		ADE2FDA01F33395E0088F11E /* db.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = db.hpp; sourceTree = "<group>"; };
+		ADE2FDA21F3339840088F11E /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ADE2FDA31F3339840088F11E /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -73,6 +79,7 @@
 		AD7FD82B1ECE4CA8009FF542 = {
 			isa = PBXGroup;
 			children = (
+				ADE2FDA21F3339840088F11E /* libsqlite3.tbd */,
 				AD7FD8361ECE4CA8009FF542 /* test */,
 				AD7FD8351ECE4CA8009FF542 /* Products */,
 			);
@@ -89,6 +96,8 @@
 		AD7FD8361ECE4CA8009FF542 /* test */ = {
 			isa = PBXGroup;
 			children = (
+				ADE2FD9F1F33395E0088F11E /* db.cpp */,
+				ADE2FDA01F33395E0088F11E /* db.hpp */,
 				ADE2FD981F3327B40088F11E /* spats.cpp */,
 				ADE2FD991F3327B40088F11E /* spats.hpp */,
 				ADE2FD9A1F3327B40088F11E /* counters.hpp */,
@@ -182,6 +191,7 @@
 				AD28D1621ED4F4880011F0DF /* test.cpp in Sources */,
 				ADE2FD9D1F3327B40088F11E /* spats.cpp in Sources */,
 				AD28D1661ED4F4880011F0DF /* r1tree.cpp in Sources */,
+				ADE2FDA11F33395E0088F11E /* db.cpp in Sources */,
 				ADAA44501ED9AAF20028B600 /* worker.cpp in Sources */,
 				ADE2FD9E1F3327B40088F11E /* counters.cpp in Sources */,
 			);

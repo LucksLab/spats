@@ -4,15 +4,17 @@
 #include "spats.hpp"
 #include "parse.hpp"
 #include "mask.hpp"
+#include "db.hpp"
 
 
 
 bool
-Spats::spats_handler(Fragment * r1, Fragment * r2, const char * handle, Counters * counters,  Case * caseinfo)
+Spats::spats_handler(Fragment * r1, Fragment * r2, const char * handle, Counters * counters, Case * caseinfo)
 {
     //printf("R1: %s\nR2: %s\nH: %s\n", r1->string().c_str(), r2->string().c_str(), handle);
 
     INCR_COUNTER(counters,TOTAL);
+    ATS_VERBOSE("INCR: %d\n", caseinfo->pair_id);
 
     //if (0 == COUNTER(TOTAL) % 1000000) {
     //    printf(".");
@@ -160,7 +162,8 @@ Spats::run_fastq(const char * r1_path, const char * r2_path)
 void 
 Spats::run_db(const char * db_path)
 {
-    ATS_ASSERT_NOT_REACHED();
+    PairDB pdb(db_path);
+    pdb.run_cases(this);
 }
 
 void

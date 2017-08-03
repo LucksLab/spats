@@ -7,7 +7,7 @@
 
 #define FRAG_BUFFER_SIZE 40
 #define CQ_SIZE 512
-#define NUM_WORKERS 8
+#define NUM_WORKERS 6
 
 #if 0
 # define WORKER_TRACE(theStr) printf(theStr);
@@ -21,6 +21,7 @@ struct WorkItem
     bool ready;
     char r1chars[FRAG_BUFFER_SIZE];
     char r2chars[FRAG_BUFFER_SIZE];
+    int pair_id;
 };
 
 
@@ -43,6 +44,7 @@ struct Worker
     int start;
     int end;
     int empty_worker;
+    int count;
     Counters * counters;
 };
 

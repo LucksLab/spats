@@ -10,7 +10,7 @@ obj/%.o : %.cpp $(HEADERS)
 	g++ -c $(CFLAGS) -o $@ $<
 
 test: test.cpp $(OBJS)
-	g++ $(CFLAGS) -o $@ $^
+	g++ $(CFLAGS) -lsqlite3 -lpthread -o $@ $^
 
 debug: test
 	lldb test

@@ -253,7 +253,7 @@ pack_bits(Intlist * inputs, Fn * fn)
         hole.loc -= num_shifted_so_far;
         if (0 == hole.loc) {
             /* special case of simple right shift */
-            fn->addOp(new Shift(0, 0, hole.len));
+            fn->addOp(new Shift(0, 0, (int)hole.len));
         }
         else {
             /* op: ((val & highmask) >> hole.len) | (val & lowmask) */
@@ -262,7 +262,7 @@ pack_bits(Intlist * inputs, Fn * fn)
             //printf("  lm: %s, hm: %s\n", BSTR(lmask), BSTR(hmask));
             fn->addOp(new Mask(0, 1, hmask));
             fn->addOp(new Mask(0, 2, lmask));
-            fn->addOp(new Shift(1, 1, hole.len));
+            fn->addOp(new Shift(1, 1, (int)hole.len));
             fn->addOp(new Or(1, 2, 0));
         }
         num_shifted_so_far += hole.len;

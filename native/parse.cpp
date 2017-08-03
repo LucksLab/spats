@@ -25,7 +25,7 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
     char r1buf[BUFFER_SIZE + 1];
     char r2buf[BUFFER_SIZE + 1];
     r1buf[BUFFER_SIZE] = r2buf[BUFFER_SIZE] = 0;
-    size_t r1r2read;
+    size_t r1r2read = 0;
     int buf_idx = 0;
     char r1line[MAX_LINE_SIZE];
     char r2line[MAX_LINE_SIZE];
@@ -37,6 +37,7 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
 
     size_t skip = 0;
     size_t full_skip = 0;
+    size_t skip_padding = 0;
     bool first_pass = true;
     WorkContext context;
     context.handler = handler;
@@ -63,42 +64,63 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
     WorkItem * cur_work_item = NULL;
     int worker_full = 0;
     int fragment_len = 0;
+    int pair_idx = 0;
+    int wrap_len = 0;
 
 fastq_parse_read_chunk:
     {
+
+        if (wrap) {
+            wrap_len = (int)(r1r2read - buf_idx);
+            memcpy(r1line, &r1buf[buf_idx], wrap_len);
+            memcpy(r2line, &r2buf[buf_idx], wrap_len);
+        }
+
         r1r2read = fread(r1buf, 1, BUFFER_SIZE, r1);
         fread(r2buf, 1, BUFFER_SIZE, r2);
         if (r1r2read == 0)
             goto fastq_parse_done;
+        buf_idx = 0;
 
         if (first_pass)
         {
             char * lineid_end = strchr(r1buf, '\n');
-            context.fragment_len = fragment_len = strchr(&lineid_end[1], '\n') - lineid_end - 1;
+            context.fragment_len = fragment_len = (int)(strchr(&lineid_end[1], '\n') - lineid_end - 1);
             full_skip = (2) + (fragment_len + 1) + (lineid_end - r1buf - 2); // comment line, quality line, ID line
-            buf_idx = lineid_end - r1buf + 1;
+            skip_padding = full_skip + 2 * fragment_len;
+            buf_idx = (int)(lineid_end - r1buf + 1);
             first_pass = false;
+            r1start = &r1buf[buf_idx];
+            r2start = &r2buf[buf_idx];
         }
         else {
-            buf_idx = 0;
-        }
+            ATS_ASSERT(wrap);
 
-        r1start = &r1buf[buf_idx];
-        r2start = &r2buf[buf_idx];
+            buf_idx = (int)(skip - wrap_len);
+
+            // copy over plenty to be sure the next fragment is in the line buffer
+            memcpy(&r1line[wrap_len], r1buf, std::max(0, buf_idx) + (fragment_len << 1));
+            memcpy(&r2line[wrap_len], r2buf, std::max(0, buf_idx) + (fragment_len << 1));
+
+            r1end = r1start = &r1line[skip];
+            r2end = r2start = &r2line[skip];
+            goto fastq_parse_find_next_start;
+        }
 
     fastq_parse_parse_lines:
         {
+            /* at this point, r1start and r2start should be pointed at the beginning of the next fragment */
             skip = fragment_len;
-            if (wrap  ||  buf_idx + skip >= r1r2read)
-                skip = 0;
+            ATS_ASSERT((int)(buf_idx + skip + 8) < (int)r1r2read);
             r1end = r1start + skip; // hotpath opt: since we know structure of fastq, we know when there won't be \n
             r2end = r2start + skip;
             while (*r1end >= 0x10) ++r1end; // hotpath opt: \0, \r, \n are all < 0x10, all ascii are > 0x10
             buf_idx += (r1end - r1start + 1); // include the +1 at the end
-            r2end = &r2buf[buf_idx - 1];
+            r2end = r2start + (r1end - r1start);
 
             if (wrap)
             {
+#if 0
                 size_t r1x = strlen(r1line);
                 memcpy(&r1line[r1x], r1start, r1end - r1start);
                 memcpy(&r2line[r1x], r2start, r2end - r2start);
@@ -106,9 +128,12 @@ fastq_parse_read_chunk:
                 r2line[r1x + r2end - r2start] = 0;
                 r1start = &r1line[0];
                 r2start = &r2line[0];
+#endif
                 wrap = 0;
             }
-            else if (buf_idx >= r1r2read)
+            ATS_ASSERT((int)buf_idx < (int)r1r2read);
+#if 0
+            else if (buf_idx < r1r2read)
             {
                 /* need to wrap; +1 to get the null terminator */
                 memcpy(r1line, r1start, r1end - r1start + 1);
@@ -116,11 +141,10 @@ fastq_parse_read_chunk:
                 wrap = 1;
                 goto fastq_parse_read_chunk;
             }
-            else
-            {
-                *r1end = 0;
-                *r2end = 0;
-            }
+#endif
+
+            *r1end = 0;
+            *r2end = 0;
 
             /* r1start, r2start now have null-terminated strings; process the line */
             while (true) {
@@ -141,20 +165,30 @@ fastq_parse_read_chunk:
 
             memcpy(cur_work_item->r1chars, r1start, fragment_len);
             memcpy(cur_work_item->r2chars, r2start, fragment_len);
+            cur_work_item->pair_id = ++pair_idx;
+            ATS_VERBOSE("P: %d (%p) %20s / %20s\n", cur_work_item->pair_id, cur_work_item, cur_work_item->r1chars, cur_work_item->r2chars);
             cur_work_item->ready = true;
             WORKER_TRACE("v");
             //sleep(1);
 
             /* now skip to the beginning of the next fragment, 4 lines down */
             skip = full_skip;
-            if (!wrap  &&  buf_idx + skip < r1r2read) {
-                buf_idx += skip;
-                r1end = r1start = &r1buf[buf_idx];
-                while (*r1end >= 0x10) ++r1end;
-                buf_idx += (r1end - r1start + 1); // include the +1 at the end
-                r1start = r1end + 1;
-                r2start = &r2buf[buf_idx];
+            if (buf_idx + skip_padding >= r1r2read) {
+                wrap = 1;
+                goto fastq_parse_read_chunk;
             }
+
+            buf_idx += skip;
+            ATS_ASSERT(buf_idx >= 0);
+            r1end = r1start = &r1buf[buf_idx];
+            r2end = r2start = &r2buf[buf_idx];
+
+        fastq_parse_find_next_start:
+            while (*r1end >= 0x10) ++r1end;
+            skip = (r1end - r1start + 1); // include the +1 at the end
+            buf_idx += skip;
+            r1start += skip;
+            r2start += skip;
                 
             goto fastq_parse_parse_lines;
         }
@@ -167,11 +201,15 @@ fastq_parse_done:
 
     int wempty = 0;
     for (int i = 0; i < NUM_WORKERS; ++i) {
-        wempty += workers[i].empty_worker;
+        Worker * w = &workers[i];
+        w->done = true;
+        pthread_join(w->thread, NULL);
+        wempty += w->empty_worker;
         if (spats)
-            spats->counters()->aggregate(workers[i].counters);
+            spats->counters()->aggregate(w->counters);
     }
     ATS_DEBUG("\n%d wfull, %d empty\n", worker_full, wempty);
+    printf("pi: %d\n", pair_idx);
 }
 
 void
@@ -220,7 +258,7 @@ fastq_parse2(const char * r1_path, const char * r2_path, pair_handler handler)
         Worker * w = &workers[i];
         w->id = i;
         w->context = &context;
-        w->start = w->end = 0;
+        w->start = w->end = w->count = w->empty_worker = 0;
         w->items[0].ready = false;
         pthread_mutex_init(&(w->mutex), NULL);
         pthread_cond_init(&(w->cond), NULL);
@@ -246,7 +284,7 @@ fastq_parse_read_chunk:
             skips[2] = 0;
             skips[3] = context.fragment_len - 1;
             first_pass = false;
-            buf_idx = skips[0];
+            buf_idx = (int)skips[0];
             full_skip = skips[2] + skips[3] + skips[0] + 3;
         }
         else {

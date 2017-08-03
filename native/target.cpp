@@ -9,7 +9,7 @@ std::string
 reverse_complement(std::string seq)
 {
     char buffer[BUFFER_SIZE];
-    int len = seq.size();
+    int len = (int)seq.size();
     assert(len < BUFFER_SIZE);
     const char * cstr = seq.c_str();
     char ch = 0;

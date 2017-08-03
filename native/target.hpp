@@ -15,7 +15,7 @@ public:
     int identifier() const { return m_identifier; }
     const std::string& name() const { return m_name; }
     const std::string& seq() const { return m_seq; }
-    int n() const { return m_seq.size(); }
+    int n() const { return (int)m_seq.size(); }
     std::string subseq(int start, int length) const { return m_seq.substr(start, length); }
 };
 
