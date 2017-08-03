@@ -117,6 +117,9 @@ cases = [
 
     [ "jjb_3185000'", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCA", 27, 16 ],
     # adapter trim corner case (R2 requires a trim -- which now matches R1)
+
+    ['jjb_x', 'TTTGGTCCTTGGTGCCCGAGTCAGTAAAAAAATAGA', 'TCTATTTTTTTACTGACTCGGGCACCAAGGACCAAA', 83, 71 ],
+    # R2 has linker and RC of R1 handle, but no adapter
 ]
 
 v102_compat_cases = [
@@ -154,6 +157,11 @@ class TestPairsPartial(unittest.TestCase):
         return pair
 
     def test_pairs(self):
+        self.spats.run.pair_length = len(cases[0][1])
+        if not self.spats._processor.exists():
+            # just ignore the native test if it's not available
+            self.assertEqual("native", self.spats.run.algorithm)
+            return
         for case in cases:
             self.run_case(case)
         self.spats.run._p_v102_compat = True
@@ -168,3 +176,10 @@ class TestPairsLookup(TestPairsPartial):
     def setup_processor(self):
         self.run_compat = False
         self.spats.run.algorithm = "lookup"
+
+
+class TestPairsNative(TestPairsPartial):
+
+    def setup_processor(self):
+        self.run_compat = False
+        self.spats.run.algorithm = "native"

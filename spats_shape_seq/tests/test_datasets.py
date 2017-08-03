@@ -5,8 +5,8 @@ import unittest
 from spats_shape_seq import Spats
 from spats_shape_seq.db import PairDB
 
-cases = [ "5s" , "cotrans" ] #, "panel_RNAs" ]
-algorithms = [ "find_partial", "lookup"  ]
+cases = [ "5s", "cotrans" ] #, "panel_RNAs" ]
+algorithms = [ "find_partial", "lookup", "native" ]
 
 class TestDatasets(unittest.TestCase):
     
@@ -24,10 +24,17 @@ class TestDatasets(unittest.TestCase):
             db = PairDB(test_file)
             s = Spats()
             db.load_run(s.run)
+            if not s.run.cotrans and algorithm == "native":
+                return
             s.run.writeback_results = True
             s.run.result_set_name = "test"
             s.run.algorithm = algorithm
             s.run.quiet = True
+            s.loadTargets(db)
+            if not s._processor.exists():
+                # just ignore the native test if it's not available
+                self.assertEqual("native", algorithm)
+                return
             s.process_pair_db(db, batch_size = 1024) # small batch_size just to exercise multiprocessing code
             msg = None
             count = 0

@@ -15,4 +15,4 @@ tmp
 native/bin
 project.xcworkspace
 xcuserdata
-
+*.tmp

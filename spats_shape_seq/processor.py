@@ -39,6 +39,9 @@ class PairProcessor(object):
             print("Warning: not using optimized mask match.")
         self.prepare()
 
+    def exists(self):
+        return True
+
     @property
     def _adapter_t_rc(self):
         if not self.__adapter_t_rc:

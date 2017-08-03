@@ -463,7 +463,7 @@ def cotrans_debug():
     s = Spats()
     s.run.cotrans = True
     #s.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
-    s.run.algorithm = "find_partial"
+    #s.run.algorithm = "find_partial"
     #s.run._p_v102_compat = True
     s.run.minimum_target_match_length = 10
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
@@ -483,7 +483,7 @@ def cotrans_debug():
     #c = [ "16845404", "AAATGTCCTTGGTGCCCGAGTCAGACTGGTAGGAGT", "TCTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT", -1, -1 ]
     #c = [ "24102328", "AAGCGTCCTTGGTGCCCGAGTCAGGAGTCATAGATC", "ATGACTCCTGACTCGGGCACCAAGGACGCTTAGATC", 46, 39 ]
     #c = [ "51216106", "GGGTGTCCTTGGTGCCCGAGTCAGATTAGCTAAGCA", "AGCTAATCTGACTCGGGCACCAAGGACGCTGCTTAG", 41, 34 ]
-    #c = [ "1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", 93, 68 ]
+    c = [ "1116:19486:8968", "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", 93, 68 ]
     #c = [ "41823514", "GAATGTCCTTGGTGCCCGAGTCAGAACTCCAAGATC", "TGGAGTTCTGACTCGGGCACCAAGGACATTCAGATC", -1, -1 ]
     #c = [ "180", "AAGCTGTCCTTGGTGCCCGAGTCAGGAAAAGTTCTT", "TTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAA", 120, 75 ]
     #c = [ "67219", "GAGTGTCCTTGGTGCCCGAGTCAGTCGACAACTCCA", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", 134, 0 ]
@@ -497,7 +497,8 @@ def cotrans_debug():
     #c = [ "3185000", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCC", -1, -1 ]
     #c =     [ "jjb_3185000'", "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCA", None, None ]
     #c = ['1', 'TCTGAGATCGGAAGAGCACACGTCTGAACTCCAGT', 'CAGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGT', None, None]
-    c = ['24941', 'TCCAGTCCTTGGTGCCCGAGTCAGAGACTCCTACCA', 'TATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGC', -1, -1]
+    #c = ['24941', 'TCCAGTCCTTGGTGCCCGAGTCAGAGACTCCTACCA', 'TATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGC', -1, -1]
+    c = ['jjbn', 'TTTGGTCCTTGGTGCCCGAGTCAGTAAAAAAATAGA', 'TCTATTTTTTTACTGACTCGGGCACCAAGGACCAAA', 83, 71 ]
     pair.set_from_data(c[0], c[1], c[2])
     print "{}\n{} / {}".format(pair.identifier, pair.r1.original_seq, pair.r2.original_seq)
     s.process_pair(pair)
@@ -524,13 +525,13 @@ def prof_run():
     exit(0)
 
 def make_test_dataset():
-    bp = "/Users/jbrink/mos/tasks/1RwIBa/spats/test/5s/"
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/"
     from spats_shape_seq import Spats
     from spats_shape_seq.db import PairDB
     pair_db = PairDB(bp + "ds.spats")
-    pair_db.add_targets_table(bp + "5s.fa")
-    pair_db.parse(bp + "R1.fq", bp + "R2.fq")
-    s = Spats(cotrans = False)
+    pair_db.add_targets_table(bp + "../cotrans_single.fa")
+    pair_db.parse(bp + "med_R1.fq", bp + "med_R2.fq")
+    s = Spats(cotrans = True)
     s.run.num_workers = 1
     s.run.writeback_results = True
     s.run._process_all_pairs = True
@@ -538,7 +539,7 @@ def make_test_dataset():
     s.run.result_set_name = "test_validation"
     s.process_pair_db(pair_db)
     pair_db.store_run(s.run)
-
+    pair_db.store_counters('spats', s.counters)
 
 if __name__ == "__main__":
     import sys

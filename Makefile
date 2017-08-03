@@ -13,6 +13,7 @@ TEST_PKG = spats_shape_seq.tests
 .PHONY: unit
 unit :
 	nosetests spats_shape_seq
+	@if [ ! -f native/bin/unittest ] ; then echo "\n**Warning: native tests not executed.\n"; fi
 
 .PHONY: test
 test : unit
@@ -41,6 +42,9 @@ docs:
 showdocs: docs
 	@open doc/build/html/index.html
 
+.PHONY: native
+native:
+	@cd native  &&  make all
 
 cjb: pkg/cjb.zip
 	@unzip pkg/cjb.zip

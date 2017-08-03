@@ -4,6 +4,7 @@ import sys
 
 from lookup import LookupProcessor, CotransLookupProcessor
 from partial import PartialFindProcessor, CotransPartialFindProcessor
+from native import CotransNativeProcessor
 from tag import TagProcessor
 
 
@@ -141,7 +142,8 @@ class Run(object):
             "lookup" : LookupProcessor,
             "find_partial" : PartialFindProcessor,
             "cotrans_lookup" : CotransLookupProcessor,
-            "cotrans_find_partial" : CotransPartialFindProcessor
+            "cotrans_find_partial" : CotransPartialFindProcessor,
+            "cotrans_native" : CotransNativeProcessor,
         }
         return implementations[("cotrans_" if self.cotrans else "") + self.algorithm]
 

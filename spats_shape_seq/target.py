@@ -243,7 +243,7 @@ class Targets(object):
 
         # we only need to build R2 lookups for full sequences (excepting linker)
         # trim cases are just tested against R1
-        self._build_R2_lookup(pair_len - linker_len)
+        self._build_R2_lookup(pair_len - linker_len - 4)
 
 
     def build_lookups(self, adapter_b, length = None, end_only = True):
