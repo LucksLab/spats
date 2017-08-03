@@ -8,12 +8,21 @@
 #include "parse.hpp"
 #include "worker.hpp"
 
+
+/* as of 8/2017, when turning this on:
+ *  - timing is nearly identical (13.5s, whether parsing only or doing full data analysis)
+ *  - ~90% of the time in the parsing-only case is spent in fread
+ * so, i don't think it's likely to optimize much further... 
+ */
+#define BENCHMARK_PARSING_ONLY 0
+
+
+
+
 #define BUFFER_SIZE (1024 << 8)
 #define MAX_LINE_SIZE 1024
 
 #define FIND_EOL(cptr) do { if (*cptr == '\n' || *cptr == '\0') { break; } ++cptr; } while (1)
-
-
 
 
 void
@@ -53,9 +62,11 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
             w->counters = new Counters(spats->counters()->n - 1);
         else
             w->counters = NULL;
+#if !(BENCHMARK_PARSING_ONLY)
         pthread_mutex_init(&(w->mutex), NULL);
         pthread_cond_init(&(w->cond), NULL);
         pthread_create(&(w->thread), NULL, &worker_fn, (void *)w);
+#endif
     }
     Worker * cur_worker = NULL;
     int cur_worker_idx = 0;
@@ -97,6 +108,7 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
 
         ATS_ASSERT((int)buf_idx < (int)r1r2read);
 
+#if !(BENCHMARK_PARSING_ONLY)
         /* r1start, r2start now have null-terminated strings; process the line */
         while (true) {
             cur_worker = &workers[cur_worker_idx];
@@ -120,6 +132,7 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
         ATS_VERBOSE("P: %d (%p) %20s / %20s\n", cur_work_item->pair_id, cur_work_item, cur_work_item->r1chars, cur_work_item->r2chars);
         cur_work_item->ready = true;
         WORKER_TRACE("v");
+#endif
 
         /* now try to skip to the beginning of the next fragment, 4 lines down */
         skip = full_skip;
@@ -168,6 +181,7 @@ fastq_parse_done:
     fclose(r2);
 
     int wempty = 0;
+#if !(BENCHMARK_PARSING_ONLY)
     for (int i = 0; i < NUM_WORKERS; ++i) {
         Worker * w = &workers[i];
         w->done = true;
@@ -176,8 +190,8 @@ fastq_parse_done:
         if (spats)
             spats->counters()->aggregate(w->counters);
     }
+#endif
     ATS_DEBUG("\n%d wfull, %d empty\n", worker_full, wempty);
-    printf("pi: %d\n", pair_idx);
 }
 
 void

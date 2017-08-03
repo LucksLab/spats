@@ -114,6 +114,12 @@ PairDB::PairDB(const char * path) : m_path(path), m_worker_thread(NULL), m_head(
     memset(m_cases, 0, sizeof(m_cases));
 }
 
+PairDB::~PairDB()
+{
+    if (NULL != m_handle)
+        sqlite3_close(m_handle);
+}
+
 int
 test_dump_CB(void * param, int numColumns, char** colValues, char** colNames)
 {
@@ -154,7 +160,7 @@ PairDB::write_result(Case * c)
 {
     SQL_LOCAL_VARS(m_handle);
     zSql = sqlite3_mprintf("INSERT INTO result (set_id, pair_id, target, mask, site, end, multiplicity, failure) "
-                           "VALUES (1, ?, 1, ?, ?, ?, 1, ?)",
+                           "VALUES (1, %d, 1, %Q, %d, %d, 1, %Q)",
                            c->pair_id, mask_chars(c->mask), c->site, c->L, "");
     SQL_EXEC(zSql);
 }
@@ -187,7 +193,7 @@ PairDB::worker_fn()
         while (m_head != m_tail  &&  m_cases[m_head].pair_id > 0) {
             Case * c = &m_cases[m_head];
             zSql = sqlite3_mprintf("INSERT INTO result (set_id, pair_id, target, mask, site, end, multiplicity, failure) "
-                                   "VALUES (1, ?, 1, ?, ?, ?, 1, ?)",
+                                   "VALUES (1, %d, 1, %Q, %d, %d, 1, %Q)",
                                    c->pair_id, mask_chars(c->mask), c->site, c->L, "");
             SQL_EXEC(zSql);
             ++m_num_written;
@@ -229,3 +235,47 @@ PairDB::commit_results()
     m_working = false;
     pthread_join(m_worker_thread, NULL);
 }
+
+void
+PairDB::store_counters(Counters * c, int cotrans_min_length)
+{
+    SQL_LOCAL_VARS(m_handle);
+    SQL_EXEC("CREATE TABLE IF NOT EXISTS counter (run_key TEXT, dict_index INT, count_key TEXT, count INT)");
+    SQL_EXEC("CREATE INDEX IF NOT EXISTS counter_key_idx ON counter (run_key)");
+    SQL_EXEC("BEGIN");
+    char key[1024] = { 0 };
+    for (int mask = MASK_TREATED; mask <= MASK_UNTREATED; ++mask) {
+        for (int L = cotrans_min_length; L < c->n; ++L) {
+            for (int site = 0; site <= L; ++site) {
+                snprintf(key, 1023, "1:%s:%d:%d", mask_chars(mask), site, L);
+                zSql = sqlite3_mprintf("INSERT INTO counter VALUES ('spats', 1, %Q, %d)", key, c->site_count(mask, L, site));
+                SQL_EXEC(zSql);
+            }
+        }
+    }
+    SQL_EXEC("COMMIT");
+}
+
+void
+PairDB::store_run()
+{
+    SQL_LOCAL_VARS(m_handle);
+    SQL_EXEC("CREATE TABLE IF NOT EXISTS run_data (param_key TEXT, param_val TEXT)");
+    SQL_EXEC("DELETE FROM run_data");
+    SQL_EXEC("INSERT INTO run_data VALUES ('algorithm', 'native')");
+    SQL_EXEC("INSERT INTO run_data VALUES ('cotrans', 'True')");
+}
+
+void
+PairDB::store_targets(Targets * targets)
+{
+    SQL_LOCAL_VARS(m_handle);
+    SQL_EXEC("CREATE TABLE IF NOT EXISTS target (name TEXT, seq TEXT)");
+    SQL_EXEC("DELETE FROM target");
+    for (int i = 0; i < targets->size(); ++i) {
+        Target * t = targets->target(i);
+        zSql = sqlite3_mprintf("INSERT INTO target VALUES (%Q, %Q)", t->name().c_str(), t->seq().c_str());
+        SQL_EXEC(zSql);
+    }
+}
+

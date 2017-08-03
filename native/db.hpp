@@ -6,6 +6,9 @@
 #include <sqlite3.h>
 #include "ats.hpp"
 #include "spats.hpp"
+#include "counters.hpp"
+#include "target.hpp"
+
 
 #define CASE_QUEUE_LEN 0x10000
 
@@ -27,6 +30,7 @@ public: // internal use only
 
 public:
     PairDB(const char * path);
+    ~PairDB();
     void test();
     void run_cases(Spats * s);
     void write_result(Case * c);
@@ -34,6 +38,9 @@ public:
     void submit_result(Case * c);
     void commit_results();
     int num_written() const { return m_num_written; }
+    void store_run();
+    void store_counters(Counters * c, int cotrans_min_length);
+    void store_targets(Targets * t);
 };
 
 #endif // __SPATS_DB_HPP_INCLUDED__

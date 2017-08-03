@@ -76,6 +76,9 @@ public:
 
     ~Spats() { }
 
+    inline void process_pair_data(const char * r1_path, const char * r2_path) { this->run_fastq(r1_path, r2_path); }
+    void store(const char * path);
+
     Counters * counters() const { return m_counters; };
 
     void addTargets(const char * path);

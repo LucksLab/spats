@@ -182,3 +182,12 @@ Spats::addTargets(const char * path)
     if (m_cotrans)
         m_cotrans_target = m_targets.target(0);
 }
+
+void
+Spats::store(const char * path)
+{
+    PairDB * pdb = new PairDB(path);
+    pdb->store_counters(m_counters, m_cotrans_minimum_length);
+    pdb->store_run();
+    pdb->store_targets(&m_targets);
+}

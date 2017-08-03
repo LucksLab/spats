@@ -34,7 +34,7 @@ public:
     ~Counters() { delete [] counters; }
 
     inline void register_site(int mask, int L, int site) { ++counters[(mask == 2 ? n2 : 0) + (n * L) + site]; }
-
+    inline int site_count(int mask, int L, int site) { return counters[(mask == 2 ? n2 : 0) + (n * L) + site]; }
     void aggregate(Counters * other);
     std::string count_json();
     std::string site_json(int cotrans_min_length);
