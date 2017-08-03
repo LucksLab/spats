@@ -38,17 +38,6 @@ test_parse_fns(void)
 }
 
 void
-p2s(void)
-{
-    pairs_to_spin("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R1_001.fastq",
-                  "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/5S-2p1-18x/data/17571-AD1AW-KEW11-5S-2p1-18x-23FEB15-GGCTAC_S10_L001_R2_001.fastq",
-                  "/Users/jbrink/mos/tasks/1RwIBa/tmp/5s.spin");
-    //pairs_to_spin("/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
-    //              "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq",
-    //              "/Users/jbrink/mos/tasks/1RwIBa/tmp/cotrans.spin");
-}
-
-void
 lins(FragmentStorage * t, const char * s)
 {
     FragmentResult * fr = new FragmentResult();
@@ -466,7 +455,7 @@ tcotrans2()
 #endif
         );
     //pdb->commit_results();
-    //printf("Counts: %s\n\n%s\n", s.counters()->count_json().c_str(), s.counters()->site_json(s.cotrans_minimum_length()).c_str());
+    printf("Counts: %s\n\n%s\n", s.counters()->count_json().c_str(), s.counters()->site_json(s.cotrans_minimum_length()).c_str());
     //printf("Counts: %s\n", s.counters()->count_json().c_str());
     //printf("NW: %d\n", pdb->num_written());
 }
