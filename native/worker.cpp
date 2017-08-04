@@ -28,6 +28,8 @@ worker_fn(void * arg)
         usleep(10);
     }
 
+    WORKER_TRACE("WIN");
+
     while (true) {
         while (true) {
             WorkItem * wi = &w->items[w->start];

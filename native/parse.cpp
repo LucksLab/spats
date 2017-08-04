@@ -120,6 +120,8 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
             if (cur_work_item->ready) {
                 ++worker_full;
                 WORKER_TRACE("!");
+                if (1 == num_workers)
+                    usleep(50);
             }
             else {
                 break;

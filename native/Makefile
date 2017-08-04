@@ -10,6 +10,8 @@ OBJS := $(patsubst %.cpp, obj/%.o, $(SOURCES))
 #CFLAGS := -g
 CFLAGS := -Ofast
 
+.PRECIOUS: obj/%.o
+
 obj/%.o : %.cpp $(HEADERS)
 	@mkdir -p obj
 	g++ -c $(CFLAGS) -o $@ $<

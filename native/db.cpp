@@ -346,6 +346,8 @@ PairDB::parse_and_sample(const char * r1_path, const char * r2_path, int sample_
     SQL_EXEC("DELETE FROM pair");
     SQL_EXEC("BEGIN");
 
+    ATS_DEBUG("SS: %d\n", sample_size);
+
     portable_srandomdev();
 
     ParseInfo pi;
