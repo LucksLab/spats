@@ -1,5 +1,5 @@
 
-#import "spats.hpp"
+#include "spats.hpp"
 
 int
 main(int argc, char ** argv)
