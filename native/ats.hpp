@@ -5,6 +5,9 @@
 
 #include <assert.h>
 #include <iostream>
+#include <string.h>
+#include <stdio.h>
+
 
 #if 0
 
