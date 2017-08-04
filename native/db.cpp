@@ -1,7 +1,6 @@
 
 #include <unistd.h>
 #include <sys/time.h>
-#include <stdlib.h>
 
 #include "db.hpp"
 #include "parse.hpp"
@@ -103,7 +102,7 @@ _SM_cppWrappingFailOKCallback(void * param, int numColumns, char** colValues, ch
 }
 
 
-PairDB::PairDB(const char * path) : m_path(path), m_worker_thread(NULL), m_head(0), m_tail(0), m_num_written(0)
+PairDB::PairDB(const char * path) : m_path(path), m_worker_thread(0), m_head(0), m_tail(0), m_num_written(0)
 {
     int sqliteErr = SQLITE_OK;
     sqliteErr = sqlite3_open_v2(path,
@@ -187,7 +186,7 @@ db_worker_fn(void * arg)
 void
 PairDB::start_worker()
 {
-    if (NULL != m_worker_thread)
+    if (0 != m_worker_thread)
         return;
     pthread_mutex_init(&m_mutex, NULL);
     m_working = true;
