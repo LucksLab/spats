@@ -48,16 +48,19 @@ native:
 	@cd native  &&  make all
 
 cjb: pkg/cjb.zip
-	@unzip pkg/cjb.zip
+	@unzip -q pkg/cjb.zip
 
 bin/UIClient.app: pkg/UIClient.zip
 	@mkdir -p bin
 	@rm -rf bin/UIClient.app
-	@cd bin && unzip ../pkg/UIClient.zip
+	@cd bin && unzip -q ../pkg/UIClient.zip
 	@touch bin/UIClient.app
 
+.PHONY: vizprep
+vizprep: clean cjb bin/UIClient.app
+
 .PHONY: viz
-viz: clean cjb bin/UIClient.app
+viz: vizprep
 	@./bin/UIClient.app/Contents/MacOS/UIClient &
 	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
 
@@ -70,8 +73,8 @@ clean:
 vizsrv: cjb
 	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
 
-.PHONY: jbpy-pkg
-jbpy-pkg:
+.PHONY: cjb-pkg
+cjb-pkg:
 	@mkdir -p tmp
 	@rm -rf tmp/cjb
 	@cp -rf ~/fw/trees/jbpy/cjb tmp/

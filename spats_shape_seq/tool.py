@@ -1,10 +1,16 @@
 
 import ConfigParser
 import datetime
+import multiprocessing
 import os
 import subprocess
 import sys
 import time
+
+import spats_shape_seq
+from spats_shape_seq import Spats
+from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
+from viz.ui import SpatsViz
 
 
 class SpatsTool(object):
@@ -35,9 +41,11 @@ class SpatsTool(object):
                 cotrans = self.config['cotrans']
                 self.cotrans = False if (cotrans == 'False') else bool(cotrans)
 
+    def _spats_path(self):
+        return os.path.normpath(os.path.join(os.path.dirname(spats_shape_seq.__file__), ".."))
+
     def _native_tool(self, tool_name):
-        import spats_shape_seq
-        bin_path = os.path.join(os.path.dirname(spats_shape_seq.__file__), "../native/bin", tool_name)
+        bin_path = os.path.join(self._spats_path(), "native", "bin", tool_name)
         return bin_path if os.path.exists(bin_path) else None
 
     def _add_note(self, note):
@@ -70,8 +78,6 @@ class SpatsTool(object):
             outfile.write("\n")
                 
     def reads(self):
-
-        from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
 
         db_basename = 'reads.spats'
         db_name = os.path.join(self.path, db_basename)
@@ -108,11 +114,11 @@ class SpatsTool(object):
 
         else:
             self._add_note("using python cotrans processor")
-            from spats_shape_seq import Spats
             spats = Spats(cotrans = self.cotrans)
             spats.addTargets(self.config['target'])
             spats.process_pair_data(self.config['r1'], self.config['r2'])
             spats.store(run_name)
+        self._add_note("wrote output to {}".format(run_basename))
 
     def validate(self):
         run_basename = 'run.spats'
@@ -120,7 +126,6 @@ class SpatsTool(object):
         if not os.path.exists(run_name):
             print("Missing: {}".format(run_basename))
             return
-        from spats_shape_seq import Spats
         spats = Spats()
         spats.load(run_name)
         if spats.validate_results(self.config['r1'], self.config['r2']):
@@ -133,10 +138,34 @@ class SpatsTool(object):
         if sys.platform != "darwin":
             print("Invalid platform for viz UI: {}".format(sys.platform))
             return
-        import spats_shape_seq
-        base_path = os.path.join(os.path.dirname(spats_shape_seq.__file__), "..")
-        subprocess.check_call(["make", "viz"], cwd = base_path)
-        
+        subprocess.check_call(["make", "vizprep"], cwd = self._spats_path())
+        def viz_handler():
+            sv = SpatsViz()
+            sv.stop_on_disconnect = True
+            sv.start()
+            sv.waitFor()
+        def uiclient_handler():
+            bin_path = os.path.join(self._spats_path(), "bin", "UIClient.app", "Contents", "MacOS", "UIClient")
+            try:
+                subprocess.call([bin_path], cwd = self._spats_path())
+            except KeyboardInterrupt:
+                pass
+        viz_worker = multiprocessing.Process(target = viz_handler, args = [])
+        viz_worker.start()
+        uiclient_worker = multiprocessing.Process(target = uiclient_handler, args = [])
+        time.sleep(0.1)
+        uiclient_worker.start()
+        try:
+            while viz_worker.is_alive() and uiclient_worker.is_alive():
+                viz_worker.join(0.1)
+                uiclient_worker.join(0.1)
+        except KeyboardInterrupt:
+            pass
+        if viz_worker.is_alive():
+            viz_worker.join()
+        if uiclient_worker.is_alive():
+            uiclient_worker.terminate()
+
         
         
 
