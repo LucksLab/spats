@@ -60,9 +60,8 @@ bin/UIClient.app: pkg/UIClient.zip
 vizprep: clean cjb bin/UIClient.app
 
 .PHONY: viz
-viz: vizprep
-	@./bin/UIClient.app/Contents/MacOS/UIClient &
-	@PYTHONPATH=. python ${TOOLS_DIR}/runviz.py
+viz:
+	@PYTHONPATH=. python ${PKG_NAME}/tool.py viz
 
 .PHONY: clean
 clean:
