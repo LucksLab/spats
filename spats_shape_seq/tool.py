@@ -16,11 +16,14 @@ from viz.ui import SpatsViz
 class SpatsTool(object):
 
     def __init__(self, path):
-        self.no_config_required_commands = [ "viz" ]
         self.path = path or os.getcwd()
         self.config = None
         self.cotrans = False
-        self.skip_log = False
+        self._skip_log = False
+        self._no_config_required_commands = [ "viz" ]
+        self._temp_files = []
+        self._r1 = None
+        self._r2 = None
         self._parse_config()
 
     def _parse_config(self):
@@ -52,13 +55,36 @@ class SpatsTool(object):
         self._notes.append(note)
         print(":{}".format(note))
 
-    def run(self, command):
+    def _load_r1_r2(self, ret_r1):
+        def decomp(rx):
+            base, ext = os.path.splitext(rx)
+            if ext.lower() == '.gz':
+                self._add_note("decompressing {}".format(rx))
+                out = base + ".tmp"
+                subprocess.check_call("gzip -d -c {} > {}".format(rx, out), cwd = self.path, shell = True)
+                self._temp_files.append(out)
+                return out
+            return rx
+        self._r1, self._r2 = decomp(self.config['r1']), decomp(self.config['r2'])
+        return self._r1 if ret_r1 else self._r2
 
-        if not self.config and command not in self.no_config_required_commands:
+    @property
+    def r1(self):
+        return self._r1 or self._load_r1_r2(True)
+
+    @property
+    def r2(self):
+        return self._r2 or self._load_r1_r2(False)
+
+
+    def _run(self, command):
+
+        if not self.config and command not in self._no_config_required_commands:
             print("Missing spats.config")
             return
 
         self._notes = []
+
         start = time.time()
         hdlr = getattr(self, command, None)
         if not hdlr:
@@ -66,8 +92,13 @@ class SpatsTool(object):
             return
         hdlr()
         delta = time.time() - start
-        if not self.skip_log:
+
+        if not self._skip_log:
             self._log(command, delta)
+
+        for f in self._temp_files:
+            if os.path.exists(f):
+                os.remove(f)
 
     def _log(self, command, delta):
         stamp = datetime.datetime.now().strftime('%Y/%m/%d %H:%M')
@@ -88,12 +119,12 @@ class SpatsTool(object):
         native_tool = self._native_tool('reads')
         if native_tool:
             self._add_note("using native reads")
-            subprocess.check_call([native_tool, self.config['target'], self.config['r1'], self.config['r2'], db_name], cwd = self.path)
+            subprocess.check_call([native_tool, self.config['target'], self.r1, self.r2, db_name], cwd = self.path)
 
         data = ReadsData('reads.spats')
         if not native_tool:
             self._add_note("using python reads")
-            data.parse(self.config['target'], self.config['r1'], self.config['r2'])
+            data.parse(self.config['target'], self.r1, self.r2)
 
         analyzer = ReadsAnalyzer(data, cotrans = self.cotrans)
         analyzer.process_tags()
@@ -110,13 +141,13 @@ class SpatsTool(object):
         native_tool = self._native_tool('cotrans')
         if self.cotrans and native_tool:
             self._add_note("using native cotrans processor")
-            subprocess.check_call([native_tool, self.config['target'], self.config['r1'], self.config['r2'], run_name], cwd = self.path)
+            subprocess.check_call([native_tool, self.config['target'], self.r1, self.r2, run_name], cwd = self.path)
 
         else:
             self._add_note("using python cotrans processor")
             spats = Spats(cotrans = self.cotrans)
             spats.addTargets(self.config['target'])
-            spats.process_pair_data(self.config['r1'], self.config['r2'])
+            spats.process_pair_data(self.r1, self.r2)
             spats.store(run_name)
         self._add_note("wrote output to {}".format(run_basename))
 
@@ -128,13 +159,13 @@ class SpatsTool(object):
             return
         spats = Spats()
         spats.load(run_name)
-        if spats.validate_results(self.config['r1'], self.config['r2']):
+        if spats.validate_results(self.r1, self.r2):
             self._add_note("Validation pass")
         else:
             self._add_note("Validation FAILURE")
 
     def viz(self):
-        self.skip_log = True
+        self._skip_log = True
         if sys.platform != "darwin":
             print("Invalid platform for viz UI: {}".format(sys.platform))
             return
@@ -170,7 +201,7 @@ class SpatsTool(object):
         
 
 def run(command, path = None):
-    SpatsTool(path).run(command)
+    SpatsTool(path)._run(command)
 
 
 if __name__ == '__main__':
