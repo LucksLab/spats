@@ -245,3 +245,14 @@ fasta_parse(const char * fasta_path, target_handler handler)
             handler(name.c_str(), line.c_str());
     }
 }
+
+
+void
+portable_srandomdev()
+{
+    FILE * random_file = fopen("/dev/random", "r");
+    char random_seed = getc(random_file);
+    unsigned int seed = (getc(random_file) << 24) + (getc(random_file) << 16) + (getc(random_file) << 8) + getc(random_file);
+    srandom(random_seed);
+    fclose(random_file);
+}

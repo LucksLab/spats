@@ -21,5 +21,8 @@ typedef bool (*target_handler)(const char * name, const char * seq);
 void
 fasta_parse(const char * fasta_path, target_handler handler);
 
+void
+portable_srandomdev();
+
 
 #endif  // __SPATS_PARSE_HPP_INCLUDED__

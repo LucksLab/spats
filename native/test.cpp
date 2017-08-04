@@ -475,6 +475,8 @@ tdb()
 int
 main(int argc, char ** argv)
 {
+    portable_srandomdev();
+    printf("%u\n", (unsigned int)random());
     //tcotrans2();
     //tdb();
     //return tcase(argc, argv);
