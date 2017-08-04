@@ -156,7 +156,7 @@ class ReadsAnalyzer(object):
         for tag, handler in self._plugins.iteritems():
             p.addTagPlugin(tag, handler)
 
-        s.process_pair_db(pair_db)
+        s.process_pair_db(pair_db, batch_size = 10000)
         self.result_set_id = pair_db.result_set_id_for_name(s.run.result_set_name)
         pair_db.count_tags(self.result_set_id)
         pair_db.store_run(s.run)

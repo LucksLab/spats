@@ -477,7 +477,6 @@ class Spats(object):
             print("Validation FAILURE: results ({} algorithm) only match {}/{} registered sites (when validated using {} algorithm).".format(original_algorithm, match_count, total, algorithm))
             return False
 
-        return 
 
     def compare_results(self, other_spats, verbose = False):
         """Used to compare the results of the current run against another

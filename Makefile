@@ -6,13 +6,14 @@ none :
 
 PYENV = PYTHONPATH=.
 TOOLS_DIR = tools
-TEST_PKG = spats_shape_seq.tests
+PKG_NAME = spats_shape_seq
+TEST_PKG = ${PKG_NAME}.tests
 
 # unit tests
 
 .PHONY: unit
 unit :
-	nosetests spats_shape_seq
+	nosetests ${PKG_NAME}
 	@if [ ! -f native/bin/unittest ] ; then echo "\n**Warning: native tests not executed.\n"; fi
 
 .PHONY: test
@@ -23,16 +24,16 @@ pip_dist: unit
 	@read -p "Submit new release, version ${VERSION}? " ANS; if [ "$$ANS" == "y" ]; then echo "Submitting..."; else echo "Aborted."; exit 1; fi
 	@rm -rf build dist
 	python setup.py sdist
-	twine upload dist/spats_shape_seq-${VERSION}.tar.gz
+	twine upload dist/${PKG_NAME}-${VERSION}.tar.gz
 
 local_install:
-	@(pip show -q spats_shape_seq && sudo pip uninstall -y -q spats_shape_seq) || echo
+	@(pip show -q ${PKG_NAME} && sudo pip uninstall -y -q ${PKG_NAME}) || echo
 	@rm -rf build dist
 	@python setup.py sdist
-	@sudo pip install dist/spats_shape_seq-${VERSION}.tar.gz
+	@sudo pip install dist/${PKG_NAME}-${VERSION}.tar.gz
 
 local_uninstall:
-	@sudo pip uninstall -y -q spats_shape_seq
+	@sudo pip uninstall -y -q ${PKG_NAME}
 
 .PHONY: docs
 docs:
