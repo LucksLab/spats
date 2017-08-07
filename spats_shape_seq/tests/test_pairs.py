@@ -109,6 +109,15 @@ class TestPairs(unittest.TestCase):
         self.run_case(case)
 
 
+# run all the same tests with a targets file that has 'U' instead of 'T'
+class TestPairsWithU(TestPairs):
+
+    def setUp(self):
+        from spats_shape_seq import Spats
+        self.spats = Spats()
+        self.spats.addTargets("test/5s/5su.fa")
+
+
 class TestPanelPairs(unittest.TestCase):
 
     def setUp(self):

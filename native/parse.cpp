@@ -239,10 +239,14 @@ fasta_parse(const char * fasta_path, target_handler handler)
             break;
         if (0 == line.size())
             continue;
-        if ('>' == line.at(0))
+        if ('>' == line.at(0)) {
             name = line.substr(1);
-        else
+        }
+        else {
+            std::transform(line.begin(), line.end(), line.begin(), ::toupper);
+            std::replace(line.begin(), line.end(), 'U', 'T');
             handler(name.c_str(), line.c_str());
+        }
     }
 }
 
