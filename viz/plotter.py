@@ -65,9 +65,9 @@ class Plotter(object):
             plt.xlabel(res["x_axis"])
             plt.ylabel(res["y_axis"])
 
-        def onclick(event):
-            plt.close()
-        cid = plt.gcf().canvas.mpl_connect('button_press_event', onclick)
+        #def onclick(event):
+        #    plt.close()
+        #cid = plt.gcf().canvas.mpl_connect('button_press_event', onclick)
 
         if filename:
             plt.gcf().canvas.get_default_filename = lambda: "spats_{}.png".format(filename)
