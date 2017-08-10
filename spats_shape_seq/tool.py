@@ -10,7 +10,6 @@ import time
 import spats_shape_seq
 from spats_shape_seq import Spats
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
-from viz.ui import SpatsViz
 
 
 class SpatsTool(object):
@@ -20,7 +19,7 @@ class SpatsTool(object):
         self.config = None
         self.cotrans = False
         self._skip_log = False
-        self._no_config_required_commands = [ "viz" ]
+        self._no_config_required_commands = [ "viz", "help" ]
         self._temp_files = []
         self._r1 = None
         self._r2 = None
@@ -109,6 +108,8 @@ class SpatsTool(object):
             outfile.write("\n")
                 
     def reads(self):
+        """Perform reads analysis on the r1/r2 fragment pairs, for use with the visualization tool.
+        """
 
         db_basename = 'reads.spats'
         db_name = os.path.join(self.path, db_basename)
@@ -131,6 +132,8 @@ class SpatsTool(object):
         self._add_note("tags processed to {}".format(db_basename))
 
     def process(self):
+        """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
+        """
 
         run_basename = 'run.spats'
         run_name = os.path.join(self.path, run_basename)
@@ -152,6 +155,9 @@ class SpatsTool(object):
         self._add_note("wrote output to {}".format(run_basename))
 
     def validate(self):
+        """Validate the results of a previous 'process' run against a second (slower) algorithm.
+        """
+
         run_basename = 'run.spats'
         run_name = os.path.join(self.path, run_basename)
         if not os.path.exists(run_name):
@@ -165,12 +171,16 @@ class SpatsTool(object):
             self._add_note("Validation FAILURE")
 
     def viz(self):
+        """Launch the visualization tool UI.
+        """
+
         self._skip_log = True
         if sys.platform != "darwin":
             print("Invalid platform for viz UI: {}".format(sys.platform))
             return
         subprocess.check_call(["make", "vizprep"], cwd = self._spats_path())
         def viz_handler():
+            from viz.ui import SpatsViz
             sv = SpatsViz()
             sv.stop_on_disconnect = True
             sv.start()
@@ -197,8 +207,22 @@ class SpatsTool(object):
         if uiclient_worker.is_alive():
             uiclient_worker.terminate()
 
-        
-        
+    def help(self):
+        """Display available commands.
+        """
+
+        self._skip_log = True
+        print("\nspats_tool commands:\n")
+        for key in sorted(SpatsTool.__dict__.keys()):
+            if key.startswith('_'):
+                continue
+            value = getattr(SpatsTool, key)
+            if value.__doc__:
+                print("  {}:  {}".format(key, value.__doc__.rstrip()))
+        print("\nData commands require 'spats.config' to be present in the current working directory,")
+        print("which requires a [spats] section header and should at least specify the 'target', 'r1',")
+        print("and 'r2' configuration keys.\n")
+
 
 def run(command, path = None):
     SpatsTool(path)._run(command)
