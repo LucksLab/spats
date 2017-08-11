@@ -64,7 +64,7 @@ class Plotter(object):
         #cid = plt.gcf().canvas.mpl_connect('button_press_event', onclick)
 
         if filename:
-            plt.gcf().canvas.get_default_filename = lambda: "spats_{}.png".format(filename)
+            plt.gcf().canvas.get_default_filename = lambda: "{}.png".format(filename)
 
         plt.show()
 

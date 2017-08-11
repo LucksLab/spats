@@ -349,6 +349,7 @@ class CotransTarget(BaseScene):
                      "x_axis" : "Length",
                      "y_axis" : self.data_type }
             filename = "{}_nt{}".format(self.data_type, site)
+        filename = "{}_{}".format(self.name, filename)
         if add_counts:
             self.ui.plotter.submit_plots([plot, self.count_plot(profiles, L)], filename)
         else:
