@@ -1,38 +1,28 @@
 
-import multiprocessing
+import json
+import os
+import tempfile
+import subprocess
+import sys
+
+import spats_shape_seq
+
 
 class Plotter(object):
 
     def __init__(self):
-        self.queue = multiprocessing.Queue()
-        self.running = True
-        self.fork()
-
-    def fork(self):
-        self.worker = multiprocessing.Process(target = self.handle_plots, args = [])
-        self.worker.start()
-
-    def handle_plots(self):
-        try:
-            while self.running:
-                res = self.queue.get()
-                if res:
-                    worker = multiprocessing.Process(target = self._show_plot, args = (res,))
-                    worker.start()
-                else:
-                    self.running = False
-        except KeyboardInterrupt:
-            pass
+        self._spats_path = os.path.normpath(os.path.join(os.path.dirname(spats_shape_seq.__file__), ".."))
 
     def stop(self):
-        self.queue.put(None)
-        self.worker.join()
+        pass
 
     def submit_plot(self, data, filename = ''):
-        self.queue.put([[data], filename])
+        self.submit_plots([data], filename)
 
     def submit_plots(self, data, filename = ''):
-        self.queue.put([data, filename])
+        temp_file = tempfile.NamedTemporaryFile(delete = False)
+        temp_file.write(json.dumps([data, filename]))
+        subprocess.Popen(["python", "viz/plotter.py", temp_file.name], cwd = self._spats_path)
 
     def _show_plot(self, figinfo):
         import matplotlib as mpl
@@ -73,3 +63,10 @@ class Plotter(object):
             plt.gcf().canvas.get_default_filename = lambda: "spats_{}.png".format(filename)
 
         plt.show()
+
+def show_plot(data_file):
+    plot_data = json.loads(open(data_file, 'rb').read())
+    Plotter()._show_plot(plot_data)
+
+if __name__ == '__main__':
+    show_plot(sys.argv[1])
