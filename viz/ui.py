@@ -21,7 +21,10 @@ class SpatsViz(cjb.uif.UIServer):
     def __init__(self):
         self.last_path = "/tmp/viz.info"
         self.db_name = "<No file loaded>"
-        self.all_config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))
+        try:
+            self.all_config = cjb.util.cfg.parse(os.path.expanduser("~/.spats_viz"))
+        except:
+            self.all_config = {}
         self.config = self.all_config.get("server", {})
         cjb.uif.UIServer.__init__(self, self.config.get("host", "0.0.0.0"), int(self.config.get("port", 17862)), self.config.get("portfile", "/tmp/uif.port"))
         self.colors = viz.colorize.Colorize(self.all_config.get("colors"))
