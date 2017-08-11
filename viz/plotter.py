@@ -12,9 +12,12 @@ class Plotter(object):
 
     def __init__(self):
         self._spats_path = os.path.normpath(os.path.join(os.path.dirname(spats_shape_seq.__file__), ".."))
+        self.processes = []
 
     def stop(self):
-        pass
+        for proc in self.processes:
+            if proc.returncode is None:
+                proc.kill()
 
     def submit_plot(self, data, filename = ''):
         self.submit_plots([data], filename)
@@ -22,7 +25,8 @@ class Plotter(object):
     def submit_plots(self, data, filename = ''):
         temp_file = tempfile.NamedTemporaryFile(delete = False)
         temp_file.write(json.dumps([data, filename]))
-        subprocess.Popen(["python", "viz/plotter.py", temp_file.name], cwd = self._spats_path)
+        proc = subprocess.Popen(["python", "viz/plotter.py", temp_file.name], cwd = self._spats_path)
+        self.processes.append(proc)
 
     def _show_plot(self, figinfo):
         import matplotlib as mpl
