@@ -7,9 +7,10 @@ SPATS Documentation
 ===================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: See also:
 
+   tool
    advanced
    reference
 
@@ -20,14 +21,18 @@ Overview
 See the `SPATS Homepage <http://luckslab.github.io/spats/>`_ for
 general information.
 
-.. automodule:: spats_shape_seq
+Install SPATS using ``pip``:
 
+.. code-block:: bash
 
-Reads Analyzer
-==============
+    $ pip install spats_shape_seq
 
-.. automodule:: spats_shape_seq.reads
+We recommend using ``spats_tool`` to get started with spats. See the
+`documentation <tool.html>`_ or use:
 
+.. code-block:: bash
+
+    $ spats_tool help
 
 
 Indices and tables
