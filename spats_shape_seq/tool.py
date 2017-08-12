@@ -21,6 +21,7 @@ class SpatsTool(object):
         self._skip_log = False
         self._no_config_required_commands = [ "viz", "help" ]
         self._temp_files = []
+        self._sentinels = []
         self._r1 = None
         self._r2 = None
         self._parse_config()
@@ -62,6 +63,7 @@ class SpatsTool(object):
                 out = os.path.join(self.path, base + ".tmp")
                 subprocess.check_call("gzip -d -c {} > {}".format(rx, out), cwd = self.path, shell = True)
                 self._temp_files.append(out)
+                self._sentinel("decompress {}".format('R1' if ret_r1 else 'R2'))
                 return out
             return rx
         self._r1, self._r2 = decomp(self.config['r1']), decomp(self.config['r2'])
@@ -84,13 +86,13 @@ class SpatsTool(object):
 
         self._notes = []
 
-        start = time.time()
+        self.start = time.time()
         hdlr = getattr(self, command, None)
         if not hdlr:
             print("Invalid command: {}".format(command))
             return
         hdlr()
-        delta = time.time() - start
+        delta = time.time() - self.start
 
         if not self._skip_log:
             self._log(command, delta)
@@ -99,12 +101,21 @@ class SpatsTool(object):
             if os.path.exists(f):
                 os.remove(f)
 
+    def _sentinel(self, label):
+        now = time.time() - self.start
+        self._sentinels.append([label, now])
+        print(":{} @ {:.2f}s".format(label, now))
+
     def _log(self, command, delta):
         stamp = datetime.datetime.now().strftime('%Y/%m/%d %H:%M')
         with open(os.path.join(self.path, 'spats.log'), 'ab') as outfile:
-            outfile.write("{} : {}, {}s\n".format(stamp, command, int(delta)))
+            outfile.write("{} : {}, {:.2f}s\n".format(stamp, command, delta))
             for note in self._notes:
                 outfile.write("   - {}\n".format(note))
+            if self._sentinels:
+                outfile.write("   - timing:\n")
+                for sentinel in self._sentinels:
+                    outfile.write("     - {} @ {:.2f}s\n".format(sentinel[0], sentinel[1]))
             outfile.write("\n")
                 
     def reads(self):
@@ -131,7 +142,7 @@ class SpatsTool(object):
         analyzer.process_tags()
         self._add_note("tags processed to {}".format(db_basename))
 
-    def process(self):
+    def run(self):
         """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
         """
 
