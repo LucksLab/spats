@@ -21,7 +21,6 @@ class SpatsTool(object):
         self._skip_log = False
         self._no_config_required_commands = [ "viz", "help" ]
         self._temp_files = []
-        self._sentinels = []
         self._r1 = None
         self._r2 = None
         self._parse_config()
@@ -92,7 +91,7 @@ class SpatsTool(object):
             print("Invalid command: {}".format(command))
             return
         hdlr()
-        delta = time.time() - self.start
+        delta = self._sentinel("{} complete".format(command))
 
         if not self._skip_log:
             self._log(command, delta)
@@ -102,9 +101,9 @@ class SpatsTool(object):
                 os.remove(f)
 
     def _sentinel(self, label):
-        now = time.time() - self.start
-        self._sentinels.append([label, now])
-        print(":{} @ {:.2f}s".format(label, now))
+        delta = time.time() - self.start
+        self._add_note("{} @ {:.2f}s".format(label, delta))
+        return delta
 
     def _log(self, command, delta):
         stamp = datetime.datetime.now().strftime('%Y/%m/%d %H:%M')
@@ -112,10 +111,6 @@ class SpatsTool(object):
             outfile.write("{} : {}, {:.2f}s\n".format(stamp, command, delta))
             for note in self._notes:
                 outfile.write("   - {}\n".format(note))
-            if self._sentinels:
-                outfile.write("   - timing:\n")
-                for sentinel in self._sentinels:
-                    outfile.write("     - {} @ {:.2f}s\n".format(sentinel[0], sentinel[1]))
             outfile.write("\n")
                 
     def reads(self):
