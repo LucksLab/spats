@@ -489,9 +489,8 @@ class Spats(object):
         :param verbose: set to `True` for detailed output of mismatched sites.
 
         :return: `(match_count, total)` : `match_count` indicates the
-        number of sites matched, `total` indicates total number of
-        sites.
-
+           number of sites matched, `total` indicates total number of
+           sites.
         """
 
         our_counts = self.counters.registered_dict()

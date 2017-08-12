@@ -115,7 +115,7 @@ class TestPairsWithU(TestPairs):
     def setUp(self):
         from spats_shape_seq import Spats
         self.spats = Spats()
-        self.spats.addTargets("test/5s/5su.fa")
+        self.spats.addTargets("test/5su/5su.fa")
 
 
 class TestPanelPairs(unittest.TestCase):

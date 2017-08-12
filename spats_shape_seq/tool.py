@@ -56,10 +56,10 @@ class SpatsTool(object):
 
     def _load_r1_r2(self, ret_r1):
         def decomp(rx):
-            base, ext = os.path.splitext(rx)
+            base, ext = os.path.splitext(os.path.basename(rx))
             if ext.lower() == '.gz':
                 self._add_note("decompressing {}".format(rx))
-                out = base + ".tmp"
+                out = os.path.join(self.path, base + ".tmp")
                 subprocess.check_call("gzip -d -c {} > {}".format(rx, out), cwd = self.path, shell = True)
                 self._temp_files.append(out)
                 return out
@@ -147,6 +147,8 @@ class SpatsTool(object):
             subprocess.check_call([native_tool, self.config['target'], self.r1, self.r2, run_name], cwd = self.path)
 
         else:
+            if native_tool:
+                self._add_note("skipping native tool due to non-cotrans run")
             self._add_note("using python cotrans processor")
             spats = Spats(cotrans = self.cotrans)
             spats.addTargets(self.config['target'])
