@@ -243,6 +243,8 @@ class CotransTarget(BaseScene):
     def change_plot(self, data_type):
         self.data_type = data_type
         self.sendViewMessage(self.matrix, "matrix_plot", { "plot" : data_type, "max" : self.maxes[data_type] })
+        self.sendViewMessage(self.type_label, "setText", "Query: {}".format(self.data_type))
+
 
     def togglePlotType(self, message = None):
         self.plot_type = ("column" if self.plot_type == "row" else "row")
