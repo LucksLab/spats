@@ -91,9 +91,9 @@ class SpatsTool(object):
             print("Invalid command: {}".format(command))
             return
         hdlr()
-        delta = self._sentinel("{} complete".format(command))
 
         if not self._skip_log:
+            delta = self._sentinel("{} complete".format(command))
             self._log(command, delta)
 
         for f in self._temp_files:

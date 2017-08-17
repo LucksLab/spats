@@ -30,10 +30,7 @@ class Targets(BaseScene):
 
     def handleViewMessage(self, scene, obj, message):
         if obj and 3 == len(obj):
-            if self.ui.spats.run.cotrans:
-                self.ui.pushScene(CotransTarget(self.ui, obj))
-            else:
-                self.ui.pushScene(Target(self.ui, obj))
+            self.ui.pushScene(CotransTarget(self.ui, obj))
         else:
             BaseScene.handleViewMessage(self, scene, obj, message)
 
@@ -63,81 +60,10 @@ class Site(object):
         return self.treated_count + self.untreated_count
 
 
-class Target(BaseScene):
-
-    def __init__(self, ui, target):
-        self.name = target[0]
-        self.seq = target[1]
-        self.target_id = target[2]
-        self.scroller = None
-        BaseScene.__init__(self, ui, self.__class__.__name__)
-
-    def addSiteView(self, site):
-        v = cjb.uif.views.View(obj = site)
-        v.site_label = v.addSubview(Label(str(site.site), fontSize = 11))
-        v.site_label.alignment = "right"
-        v.nuc_label = v.addSubview(Label(site.nuc, fontSize = 11, bg = [ 1.0, 0.85, 0.7 ]))
-        v.bar = v.addSubview(cjb.uif.views.View())
-        v.bar.bg = [ 0.8, 0.6, 1.0 ]
-        v.treated_label = v.addSubview(Label(str(site.treated_count), fontSize = 11))
-        v.untreated_label = v.addSubview(Label(str(site.untreated_count), fontSize = 11))
-        v.target = lambda msg : self.handleViewMessage(None, site, msg)
-        v.click = 1
-        self.addView(v)
-        return v
-
-    def build(self):
-        BaseScene.build(self)
-        n = len(self.seq)
-        total = 0
-        treated = [0] * (n+1)
-        untreated = [0] * (n+1)
-        masks = self.ui.spats.run.masks
-        counters = self.ui.spats.counters
-        self.siteViews = []
-        for s in range(n + 1):
-            site = Site(self.target_id,
-                        s,
-                        n,
-                        self.seq[s - 1] if s else "*",
-                        counters.site_count(self.target_id, masks[0], n, s),
-                        counters.site_count(self.target_id, masks[1], n, s))
-            v = self.addSiteView(site)
-            self.siteViews.append(v)
-            total += site.untreated_count
-            total += site.treated_count
-        self.total = total
-
-    def layoutSite(self, view):
-        grid = Grid(frame = view.frame.bounds(), itemSize = Size(10, 16), columns = 60, rows = 1)
-        view.site_label.frame = grid.frame(0, 3)
-        view.nuc_label.frame = grid.frame(5)
-        f = grid.frame(6, 20)
-        # sqrt(sqrt(x)) for rescaling
-        factor = math.sqrt(math.sqrt((float(view.obj.total) / float(self.total))))
-        f.update(origin = f.origin, w = int(factor * float(f.size.width)), h = f.size.height)
-        view.bar.frame = f
-        view.treated_label.frame = grid.frame(40, 8)
-        view.untreated_label.frame = grid.frame(50, 8)
-
-    def layout(self, view):
-        BaseScene.layout(self, view)
-        cur = view.frame.centeredSubrect(w = 600, h = view.frame.size.h - 100)
-        self.scroller = layoutInScroller(self.siteViews, cur, Size(600, 14), 2, self.scroller)
-        for v in self.siteViews:
-            self.layoutSite(v)
-        return view
-
-    def handleViewMessage(self, scene, obj, message):
-        if obj and isinstance(obj, Site):
-            self.ui.pushScene(Matches(self.ui, None, site = obj))
-        else:
-            BaseScene.handleViewMessage(self, scene, obj, message)
-        
-
 class CotransTarget(BaseScene):
 
     def __init__(self, ui, target, data_type = "treated"):
+        self.cotrans = ui.spats.run.cotrans
         self.name = target[0]
         self.seq = target[1]
         self.target_id = target[2]

@@ -7,6 +7,7 @@ class Profiles(object):
     def __init__(self, targets, run, counters):
         self._targets = targets
         self._counters = counters
+        self._cotrans = run.cotrans
         masks = run.masks
         profiles = {}
         for target in self._targets.targets:
@@ -29,7 +30,10 @@ class Profiles(object):
         return self._profiles[target_name]
 
     def profilesForTargetAndEnd(self, target_name, end):
-        return self._profiles["{}_{}".format(target_name, end)]
+        if self._cotrans:
+            return self._profiles["{}_{}".format(target_name, end)]
+        else:
+            return self._profiles[target_name]
 
     def compute(self):
         for profile in self._profiles.values():
@@ -42,7 +46,10 @@ class Profiles(object):
                 self.profilesForTarget(target).write(outfile)
 
     def cotrans_data(self):
-        return [ (int(key.split('_')[-1]), prof.data()) for key, prof in self._profiles.iteritems() ]
+        if self._cotrans:
+            return [ (int(key.split('_')[-1]), prof.data()) for key, prof in self._profiles.iteritems() ]
+        else:
+            return [ (len(prof.data()["t"]) - 1, prof.data()) for key, prof in self._profiles.iteritems() ]
 
     def data_range(self, data_type):
         vmin = None
