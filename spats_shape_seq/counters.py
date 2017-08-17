@@ -67,6 +67,9 @@ class Counters(object):
         c = self._registered
         return [ c.get("{}:{}:{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
 
+    def site_count(self, target_id, mask, end, site):
+        return self._registered.get("{}:{}:{}:{}".format(target_id, mask, site, end), 0)
+
     def load_from_db_data(self, data):
         c = self._registered
         for r in data:

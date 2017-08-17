@@ -88,20 +88,20 @@ class Target(BaseScene):
 
     def build(self):
         BaseScene.build(self)
-        sitemap = { "{}_{}".format(s[0], s[2]) : s[3] for s in self.ui.db.result_sites(self.ui.result_set_id, self.target_id) }
         n = len(self.seq)
         total = 0
         treated = [0] * (n+1)
         untreated = [0] * (n+1)
         masks = self.ui.spats.run.masks
+        counters = self.ui.spats.counters
         self.siteViews = []
         for s in range(n + 1):
             site = Site(self.target_id,
                         s,
                         n,
                         self.seq[s - 1] if s else "*",
-                        sitemap.get("{}_{}".format(masks[0], s), 0),
-                        sitemap.get("{}_{}".format(masks[1], s), 0))
+                        counters.site_count(self.target_id, masks[0], n, s),
+                        counters.site_count(self.target_id, masks[1], n, s))
             v = self.addSiteView(site)
             self.siteViews.append(v)
             total += site.untreated_count
