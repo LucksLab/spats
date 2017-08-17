@@ -59,6 +59,8 @@ class Plotter(object):
             plt.xlabel(res["x_axis"])
             plt.ylabel(res["y_axis"])
 
+        plt.gcf().set_tight_layout(True)
+
         #def onclick(event):
         #    plt.close()
         #cid = plt.gcf().canvas.mpl_connect('button_press_event', onclick)
