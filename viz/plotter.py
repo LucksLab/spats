@@ -25,7 +25,10 @@ class Plotter(object):
     def submit_plots(self, data, filename = ''):
         temp_file = tempfile.NamedTemporaryFile(delete = False)
         temp_file.write(json.dumps([data, filename]))
-        proc = subprocess.Popen(["python", "viz/plotter.py", temp_file.name], cwd = self._spats_path)
+        # /usr/bin/python is force the native interpreter for mac
+        # easy hack to avoid https://trello.com/c/azoPpIn3/135-viz-bug-cannot-change-filename-of-row-column-plot-file
+        # (caused by anaconda, xref https://stackoverflow.com/questions/3692928/why-doesnt-the-save-button-work-on-a-matplotlib-plot )
+        proc = subprocess.Popen(["/usr/bin/python", "viz/plotter.py", temp_file.name], cwd = self._spats_path)
         self.processes.append(proc)
 
     def _show_plot(self, figinfo):
