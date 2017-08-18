@@ -224,21 +224,23 @@ class CotransTarget(BaseScene):
             u = sum(profiles.untreated)
             untreated.append(u)
             untreated_sum += u
-        treated = map(lambda x: (float(x) / treated_sum), treated)
-        untreated = map(lambda x: (float(x) / untreated_sum), untreated)
         return { "type" : "Total Treated/Untreated Counts",
-                 "data" : [ { "label" : "f+ ({})".format(int(treated_sum)), "x" : range(min_length, n + 1), "y" : treated, "m" : "r-" },
-                            { "label" : "f- ({})".format(int(untreated_sum)), "x" : range(min_length, n + 1), "y" : untreated, "m" : "b-" } ],
+                 "data" : [ { "label" : "f+", "x" : range(min_length, n + 1), "y" : treated, "m" : "r-" },
+                            { "label" : "f-", "x" : range(min_length, n + 1), "y" : untreated, "m" : "b-" } ],
                  "xlim" : [ min_length, n + 1],
                  "x_axis" : "Length",
-                 "y_axis" : "% of stops" }
+                 "y_axis" : "# of stops" }
 
     def count_plot(self, profiles, L):
+        treated_sum = sum(profiles.treated_counts)
+        untreated_sum = sum(profiles.untreated_counts)
+        treated_pcts = map(lambda x: (float(x) / float(treated_sum)), profiles.treated_counts)
+        untreated_pcts = map(lambda x: (float(x) / float(untreated_sum)), profiles.untreated_counts)
         return { "type" : "Treated/Untreated Counts, length = {}".format(L),
-                 "data" : [ { "label" : "f+", "x" : range(L + 1), "y" : profiles.treated_counts, "m" : "r-" },
-                            { "label" : "f-", "x" : range(L + 1), "y" : profiles.untreated_counts, "m" : "b-" } ],
+                 "data" : [ { "label" : "f+ ({})".format(int(treated_sum)), "x" : range(L + 1), "y" : treated_pcts, "m" : "r-" },
+                            { "label" : "f- ({})".format(int(untreated_sum)), "x" : range(L + 1), "y" : untreated_pcts, "m" : "b-" } ],
                  "x_axis" : "Site",
-                 "y_axis" : "# of stops" }
+                 "y_axis" : "% of stops" }
 
     def show_plot_site(self, site):
         self.show_plot(site.end, site.site)
