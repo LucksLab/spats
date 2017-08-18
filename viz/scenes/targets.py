@@ -227,8 +227,8 @@ class CotransTarget(BaseScene):
         treated = map(lambda x: (float(x) / treated_sum), treated)
         untreated = map(lambda x: (float(x) / untreated_sum), untreated)
         return { "type" : "Total Treated/Untreated Counts",
-                 "data" : [ { "label" : "f+", "x" : range(min_length, n + 1), "y" : treated, "m" : "r-" },
-                            { "label" : "f-", "x" : range(min_length, n + 1), "y" : untreated, "m" : "b-" } ],
+                 "data" : [ { "label" : "f+ ({})".format(int(treated_sum)), "x" : range(min_length, n + 1), "y" : treated, "m" : "r-" },
+                            { "label" : "f- ({})".format(int(untreated_sum)), "x" : range(min_length, n + 1), "y" : untreated, "m" : "b-" } ],
                  "xlim" : [ min_length, n + 1],
                  "x_axis" : "Length",
                  "y_axis" : "% of stops" }
