@@ -225,8 +225,8 @@ class CotransTarget(BaseScene):
             untreated.append(u)
             untreated_sum += u
         return { "type" : "Total Treated/Untreated Counts",
-                 "data" : [ { "label" : "f+", "x" : range(min_length, n + 1), "y" : treated, "m" : "-", "cmap" : "jet_1" },
-                            { "label" : "f-", "x" : range(min_length, n + 1), "y" : untreated, "m" : "-", "cmap" : "jet_0" } ],
+                 "data" : [ { "label" : "f+", "x" : range(min_length, n + 1), "y" : treated, "m" : "r-" },
+                            { "label" : "f-", "x" : range(min_length, n + 1), "y" : untreated, "m" : "b-" } ],
                  "xlim" : [ min_length, n + 1],
                  "x_axis" : "Length",
                  "y_axis" : "# of stops" }
@@ -237,8 +237,8 @@ class CotransTarget(BaseScene):
         treated_pcts = map(lambda x: (float(x) / float(treated_sum)), profiles.treated_counts)
         untreated_pcts = map(lambda x: (float(x) / float(untreated_sum)), profiles.untreated_counts)
         return { "type" : "Treated/Untreated Counts, length = {}".format(L),
-                 "data" : [ { "label" : "f+ ({})".format(int(treated_sum)), "x" : range(L + 1), "y" : treated_pcts, "m" : "-", "cmap" : "jet_1" },
-                            { "label" : "f- ({})".format(int(untreated_sum)), "x" : range(L + 1), "y" : untreated_pcts, "m" : "-", "cmap" : "jet_0" } ],
+                 "data" : [ { "label" : "f+ ({})".format(int(treated_sum)), "x" : range(L + 1), "y" : treated_pcts, "m" : "r-" },
+                            { "label" : "f- ({})".format(int(untreated_sum)), "x" : range(L + 1), "y" : untreated_pcts, "m" : "b-" } ],
                  "x_axis" : "Site",
                  "y_axis" : "% of stops" }
 
