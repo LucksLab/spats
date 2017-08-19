@@ -47,7 +47,12 @@ class Plotter(object):
             plt.subplot(int("{}1{}".format(n, idx)))
 
             for plot in res["data"]:
-                plt.plot(plot["x"], plot["y"], plot["m"])
+                if "cmap" in plot:
+                    name, val = plot["cmap"].split('_')
+                    cmap = mpl.cm.ScalarMappable(norm = mpl.colors.Normalize(vmin = 0.0, vmax = 1.0), cmap = plt.get_cmap(name))
+                    plt.plot(plot["x"], plot["y"], plot["m"], color = cmap.to_rgba(float(val)))
+                else:
+                    plt.plot(plot["x"], plot["y"], plot["m"])
 
             if "xlim" in res:
                 plt.xlim(res["xlim"])
