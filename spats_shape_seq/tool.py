@@ -19,7 +19,7 @@ class SpatsTool(object):
         self.config = None
         self.cotrans = False
         self._skip_log = False
-        self._no_config_required_commands = [ "viz", "help" ]
+        self._no_config_required_commands = [ "viz", "help", "doc" ]
         self._temp_files = []
         self._r1 = None
         self._r2 = None
@@ -214,6 +214,13 @@ class SpatsTool(object):
             viz_worker.join()
         if uiclient_worker.is_alive():
             uiclient_worker.terminate()
+
+    def doc(self):
+        """Show the spats documentation.
+        """
+
+        self._skip_log = True
+        subprocess.check_call(["make", "showdocs"], cwd = self._spats_path())
 
     def help(self):
         """Display available commands.
