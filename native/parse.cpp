@@ -1,6 +1,7 @@
 
 #include <fstream>
 #include <unistd.h>
+#include <algorithm>
 
 #include "ats.hpp"
 #include "seq.hpp"
