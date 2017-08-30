@@ -78,8 +78,9 @@ class SpatsTool(object):
         return self._r2 or self._load_r1_r2(False)
 
 
-    def _run(self, command):
+    def _run(self, args):
 
+        command = args[0]
         if not self.config and command not in self._no_config_required_commands:
             print("Missing spats.config")
             return
@@ -242,9 +243,9 @@ class SpatsTool(object):
         print("and 'r2' configuration keys.\n")
 
 
-def run(command, path = None):
-    SpatsTool(path)._run(command)
+def run(args, path = None):
+    SpatsTool(path)._run(args)
 
 
 if __name__ == '__main__':
-    run(sys.argv[1])
+    run(sys.argv[1:])

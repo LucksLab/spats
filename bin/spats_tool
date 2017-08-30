@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+import spats_shape_seq.tool
+import sys
+spats_shape_seq.tool.run(sys.argv[1:])
