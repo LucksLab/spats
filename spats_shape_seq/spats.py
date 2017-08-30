@@ -189,6 +189,9 @@ from worker import SpatsWorker
 
 class Spats(object):
     """The main SPATS driver.
+
+       :param cotrans: pass `True` for cotrans-style experiments.
+
     """
 
     def __init__(self, cotrans = False):

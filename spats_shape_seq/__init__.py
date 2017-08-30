@@ -3,7 +3,7 @@
 .. code-block:: python
 
     from spats_shape_seq import Spats
-    spats = Spats(cotrans = True)
+    spats = Spats()
 
 Then, configure the run, if desired, based on the :class:`.run.Run`:
 
@@ -69,6 +69,7 @@ def run_spats(target_path, r1_path, r2_path, output_path, cotrans = False):
     :param r1_path: path to the R1 input data FASTQ file
     :param r2_path: path to the R2 input data FASTQ file
     :param output_path: path to write resulting reactivities
+    :param cotrans: pass `True` for cotrans-style experiments.
 
     """
 

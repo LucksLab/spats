@@ -24,7 +24,7 @@ is gathered for non-matching pairs:
 
 .. code-block:: python
 
-    analyzer = ReadsAnalyzer(data, cotrans = True)
+    analyzer = ReadsAnalyzer(data)
 
 Configure the run, if desired, based on the :class:`.run.Run`; for
 example, to change the linker from the default for a cotrans
@@ -101,6 +101,7 @@ class ReadsAnalyzer(object):
     """Performs the analysis/tagging required for the reads analysis.
 
        :param reads_data: the :class:`.ReadsData` with the input data.
+       :param cotrans: pass `True` for cotrans-style experiments.
     """
 
     def __init__(self, reads_data, cotrans = False):
