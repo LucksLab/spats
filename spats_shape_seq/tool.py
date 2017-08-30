@@ -1,5 +1,6 @@
 
 import ConfigParser
+import csv
 import datetime
 import multiprocessing
 import os
@@ -20,7 +21,7 @@ class SpatsTool(object):
         self.cotrans = False
         self._skip_log = False
         self._no_config_required_commands = [ "viz", "help", "doc" ]
-        self._private_commands = [ "doc", "reads", "viz" ]
+        self._private_commands = [ "doc", "viz" ]
         self._temp_files = []
         self._r1 = None
         self._r2 = None
@@ -81,6 +82,7 @@ class SpatsTool(object):
     def _run(self, args):
 
         command = args[0]
+        self._command_args = args[1:]
         if not self.config and command not in self._no_config_required_commands:
             print("Missing spats.config")
             return
@@ -92,9 +94,14 @@ class SpatsTool(object):
         if not hdlr or (command in self._private_commands and spats_shape_seq._PUBLIC_RELEASE):
             print("Invalid command: {}".format(command))
             return
-        hdlr()
+        try:
+            hdlr()
+            failure = False
+        except Exception, e:
+            print("** Command {} failed. ({})".format(command, e))
+            failure = True
 
-        if not self._skip_log:
+        if not failure and not self._skip_log:
             delta = self._sentinel("{} complete".format(command))
             self._log(command, delta)
 
@@ -119,10 +126,9 @@ class SpatsTool(object):
         """Perform reads analysis on the r1/r2 fragment pairs, for use with the visualization tool.
         """
 
-        db_basename = 'reads.spats'
-        db_name = os.path.join(self.path, db_basename)
+        db_name = self._reads_file()
         if os.path.exists(db_name):
-            self._add_note("** removing previous {}".format(db_basename))
+            self._add_note("** removing previous reads file")
             os.remove(db_name)
 
         native_tool = self._native_tool('reads')
@@ -130,7 +136,7 @@ class SpatsTool(object):
             self._add_note("using native reads")
             subprocess.check_call([native_tool, self.config['target'], self.r1, self.r2, db_name], cwd = self.path)
 
-        data = ReadsData('reads.spats')
+        data = ReadsData(db_name)
         if not native_tool:
             self._add_note("using python reads")
             data.parse(self.config['target'], self.r1, self.r2)
@@ -142,11 +148,9 @@ class SpatsTool(object):
     def run(self):
         """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
         """
-
-        run_basename = 'run.spats'
-        run_name = os.path.join(self.path, run_basename)
+        run_name = self._run_file()
         if os.path.exists(run_name):
-            self._add_note("** removing previous {}".format(run_basename))
+            self._add_note("** removing previous run file")
             os.remove(run_name)
 
         native_tool = self._native_tool('cotrans')
@@ -164,15 +168,23 @@ class SpatsTool(object):
             spats.store(run_name)
         self._add_note("wrote output to {}".format(run_basename))
 
+    def _spats_file(self, base_name):
+        return os.path.join(self.path, '{}.spats'.format(base_name))
+
+    def _run_file(self):
+        return self._spats_file('run')
+
+    def _reads_file(self):
+        return self._spats_file('reads')
+
     def validate(self):
         """Validate the results of a previous 'process' run against a second (slower) algorithm.
         """
 
-        run_basename = 'run.spats'
-        run_name = os.path.join(self.path, run_basename)
+        run_name = self._run_file()
         if not os.path.exists(run_name):
-            print("Missing: {}".format(run_basename))
-            return
+            raise Exception("Run must be performed before validating")
+
         spats = Spats()
         spats.load(run_name)
         if spats.validate_results(self.r1, self.r2):
@@ -186,8 +198,8 @@ class SpatsTool(object):
 
         self._skip_log = True
         if sys.platform != "darwin":
-            print("Invalid platform for viz UI: {}".format(sys.platform))
-            return
+            raise Exception("Invalid platform for viz UI: {}".format(sys.platform))
+
         subprocess.check_call(["make", "vizprep"], cwd = self._spats_path())
         def viz_handler():
             from viz.ui import SpatsViz
@@ -217,6 +229,47 @@ class SpatsTool(object):
         if uiclient_worker.is_alive():
             uiclient_worker.terminate()
 
+    def dump(self):
+        """Dump data. Provide 'reads' or 'run' as an argument to dump the
+        indicated type of data.
+        """
+        self._skip_log = True
+        if not self._command_args:
+            raise Exception("Dump requires a type (either 'reads' or 'run').")
+
+        dump_type = self._command_args[0]
+        handler = getattr(self, "_dump_" + dump_type, None)
+        if not handler:
+            raise Exception("Invalid dump type: {}".format(dump_type))
+
+        output_path = handler()
+        self._add_note("{} data dumped to {}".format(dump_type, output_path))
+
+    def _dump_reads(self):
+        reads_name = self._reads_file()
+        if not os.path.exists(reads_name):
+            raise Exception("Reads must be run before attempting dump")
+        data = ReadsData(reads_name)
+        db = data.pair_db
+        counts = db.tag_counts(1)
+        total = float(db.count()) / 100.0
+        keys = sorted(counts.keys(), key = lambda x : counts[x], reverse = True)
+        data = [ [ key, float(counts[key])/total, counts[key] ] for key in keys ]
+        output_path = os.path.join(self.path, 'reads.csv')
+        self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], data)
+        return output_path
+
+    def _dump_run(self):
+        pass
+
+    def _write_csv(self, output_path, headers, data):
+        with open(output_path, 'wb') as out_file:
+            writer = csv.writer(out_file)
+            if headers:
+                writer.writerow(headers)
+            for row in data:
+                writer.writerow(row)
+
     def doc(self):
         """Show the spats documentation.
         """
@@ -241,6 +294,7 @@ class SpatsTool(object):
         print("\nData commands require 'spats.config' to be present in the current working directory,")
         print("which requires a [spats] section header and should at least specify the 'target', 'r1',")
         print("and 'r2' configuration keys.\n")
+
 
 
 def run(args, path = None):
