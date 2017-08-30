@@ -236,14 +236,11 @@ class SpatsTool(object):
         self._skip_log = True
         if not self._command_args:
             raise Exception("Dump requires a type (either 'reads' or 'run').")
-
         dump_type = self._command_args[0]
         handler = getattr(self, "_dump_" + dump_type, None)
         if not handler:
             raise Exception("Invalid dump type: {}".format(dump_type))
-
-        output_path = handler()
-        self._add_note("{} data dumped to {}".format(dump_type, output_path))
+        handler()
 
     def _dump_reads(self):
         reads_name = self._reads_file()
@@ -257,10 +254,32 @@ class SpatsTool(object):
         data = [ [ key, float(counts[key])/total, counts[key] ] for key in keys ]
         output_path = os.path.join(self.path, 'reads.csv')
         self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], data)
-        return output_path
 
     def _dump_run(self):
-        pass
+        run_name = self._run_file()
+        if not os.path.exists(run_name):
+            raise Exception("Run must be run before attempting dump")
+
+        spats = Spats()
+        spats.load(run_name)
+        profiles = spats.compute_profiles()
+        tseq = spats.targets.targets[0].seq
+
+        if self.cotrans:
+            headers = [ "L", "site", "nt", "f+", "f-", "beta", "theta", "rho" ]
+            data = []
+            for key in profiles.cotrans_keys():
+                end = int(key.split('_')[-1])
+                prof = profiles._profiles[key]
+                for i in range(end + 1):
+                    data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i] ])
+        else:
+            headers = [ "target", "site", "f+", "f-", "beta", "theta", "rho" ]
+            print "non-cot"
+        output_path = os.path.join(self.path, 'run.csv')
+        self._write_csv(output_path, headers, data)
+        return output_path
+
 
     def _write_csv(self, output_path, headers, data):
         with open(output_path, 'wb') as out_file:
@@ -269,6 +288,7 @@ class SpatsTool(object):
                 writer.writerow(headers)
             for row in data:
                 writer.writerow(row)
+        self._add_note("Data dumped to {}".format(os.path.basename(output_path)))
 
     def doc(self):
         """Show the spats documentation.

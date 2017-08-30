@@ -51,6 +51,9 @@ class Profiles(object):
         else:
             return [ (len(prof.data()["t"]) - 1, prof.data()) for key, prof in self._profiles.iteritems() ]
 
+    def cotrans_keys(self):
+        return sorted(self._profiles.keys(), key = lambda x : int(x.split('_')[-1]))
+
     def data_range(self, data_type):
         vmin = None
         vmax = None
