@@ -15,7 +15,7 @@ target file you use for analysis (single target only -- without linker
     data.parse('~/path/to/target.fa', '~/path/to/data/R1.fastq', '~/path/to/data/R2.fastq')
 
 Note that, by default, this only parses a sample of 100k of the R1/R2
-pairs. This should be sufficient for visualizing the reads, and is
+pairs. This should be sufficient for analyzing the reads, and is
 required for reasonable performance of the interactive UI.
 
 Once you have the data parsed, it needs to be analyzed (tagged); this
@@ -40,8 +40,7 @@ Then, perform the analysis:
 
     analyzer.process_tags()
 
-Once that completes, your reads data will be ready for use with the
-visualization tool.
+Once that completes, your reads data will be ready for analysis.
 
 """
 
@@ -72,9 +71,8 @@ class ReadsData(object):
 
            :param r2_path: Path to R2 reads file, must be in FASTQ format.
 
-           :param sample_size: the number of samples to use for visualization. Samples will be (more or less) uniformly
-                               randomly selected from the population of pairs. The default is typically a good number; if the visualizer is running
-                               too slowly, reducing the sample size will help. Increasing this number will decrease visualizer performance.
+           :param sample_size: the number of samples to use for analysis. Samples will be (more or less) uniformly
+                               randomly selected from the population of pairs.
 
            :param show_progress_every: default show a '.' for every 1 million pairs parsed. Set to 0 to disable output.
         """
@@ -100,8 +98,7 @@ class ReadsData(object):
 
 
 class ReadsAnalyzer(object):
-    """Performs the analysis/tagging required for the reads analyzer
-       visualization tool.
+    """Performs the analysis/tagging required for the reads analysis.
 
        :param reads_data: the :class:`.ReadsData` with the input data.
     """
@@ -136,7 +133,7 @@ class ReadsAnalyzer(object):
         self._plugins[tag] = handler
 
     def process_tags(self):
-        """Processes the tags in the input data for the visualization tool.
+        """Processes the tags in the input data for analysis.
         """
         s = self._spats
         pair_db = self._pair_db

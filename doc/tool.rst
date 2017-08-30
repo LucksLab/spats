@@ -26,14 +26,13 @@ target and input files. Here's a sample:
 .. code-block:: text
 
     [spats]
-    cotrans = True
-    target = /projects/b1044/.../targets/F_wt_single.fa
-    r1 = /projects/b1044/.../EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq.gz
-    r2 = /projects/b1044/.../EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq.gz
+    target = /path/to/data/my_target.fa
+    r1 = /path/to/data/experiment_data_R1.fastq.gz
+    r2 = /path/to/data/experiment_data_R2.fastq.gz
 
-The ``cotrans``, ``target``, ``r1``, and ``r2`` parameters are
-required for most tools. Specify whether this is a cotrans experiment
-or not (use ``True`` or ``False``), and provide the paths to the
+The ``target``, ``r1``, and ``r2`` parameters are
+required for most tools. If this is a cotrans experiment,
+set ``cotrans = True``; then provide the paths to the
 target/R1/R2 files. Note that you can use ``.gz`` files for r1/r2, in
 which case they will be decompressed on the fly, and cleaned up after
 the run completes.
@@ -133,13 +132,14 @@ Any mismatches will result in an error, and should be reported as a
 bug!
 
 
-Miscellaneous
--------------
+..
+   Miscellaneous
+   -------------
 
-Other commands:
+   Other commands:
 
-- ``spats_tool viz``: used to launch the visualization tool UI (Mac only)
+   - ``spats_tool viz``: used to launch the visualization tool UI (Mac only)
 
-- ``spats_tool help``: used to show usage help
+   - ``spats_tool help``: used to show usage help
 
 
