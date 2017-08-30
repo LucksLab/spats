@@ -1,4 +1,5 @@
 
+import ast
 import ConfigParser
 import csv
 import datetime
@@ -43,7 +44,7 @@ class SpatsTool(object):
             self.config = config['spats']
             if 'cotrans' in self.config:
                 cotrans = self.config['cotrans']
-                self.cotrans = False if (cotrans == 'False') else bool(cotrans)
+                self.cotrans = bool(ast.literal_eval(cotrans))
 
     def _spats_path(self):
         return os.path.normpath(os.path.join(os.path.dirname(spats_shape_seq.__file__), ".."))
@@ -80,6 +81,9 @@ class SpatsTool(object):
 
 
     def _run(self, args):
+        if not args:
+            print("Command required. Try 'spats_tool help'.")
+            return
 
         command = args[0]
         self._command_args = args[1:]
@@ -142,8 +146,9 @@ class SpatsTool(object):
             data.parse(self.config['target'], self.r1, self.r2)
 
         analyzer = ReadsAnalyzer(data, cotrans = self.cotrans)
+        self._update_run_config(analyzer.run)
         analyzer.process_tags()
-        self._add_note("tags processed to {}".format(db_basename))
+        self._add_note("tags processed to {}".format(os.path.basename(db_name)))
 
     def run(self):
         """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
@@ -161,12 +166,27 @@ class SpatsTool(object):
         else:
             if native_tool:
                 self._add_note("skipping native tool due to non-cotrans run")
-            self._add_note("using python cotrans processor")
+            self._add_note("using python processor")
             spats = Spats(cotrans = self.cotrans)
+            self._update_run_config(spats.run)
             spats.addTargets(self.config['target'])
             spats.process_pair_data(self.r1, self.r2)
             spats.store(run_name)
-        self._add_note("wrote output to {}".format(run_basename))
+        self._add_note("wrote output to {}".format(os.path.basename(run_name)))
+
+    def _update_run_config(self, run):
+        for key, value in self.config.iteritems():
+            if key in [ "r1", "r2", "target", "cotrans" ]:
+                continue
+            if hasattr(run, key):
+                try:
+                    val = ast.literal_eval(value)
+                except:
+                    val = value
+                setattr(run, key, val)
+                self._add_note("config set {} = {}".format(key, val))
+            else:
+                self._add_note("warning: unknown config {}".format(key))
 
     def _spats_file(self, base_name):
         return os.path.join(self.path, '{}.spats'.format(base_name))
@@ -309,7 +329,7 @@ class SpatsTool(object):
         """
 
         self._skip_log = True
-        print("\nspats_tool commands:\n")
+        print("\nspats_tool v{}\nCommands:\n".format(spats_shape_seq._VERSION))
         for key in sorted(SpatsTool.__dict__.keys()):
             if key.startswith('_'):
                 continue

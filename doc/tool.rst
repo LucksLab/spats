@@ -37,6 +37,11 @@ target/R1/R2 files. Note that you can use ``.gz`` files for r1/r2, in
 which case they will be decompressed on the fly, and cleaned up after
 the run completes.
 
+If you wish to set any configuration for the SPATS run or reads
+analysis (see below), you can set parameters according to the
+:class:`.run.Run` documentation; for example,
+``minimum_target_match_length = 12``.
+
 The ``spats_tool`` command must be run in the experiment directory you
 created with the ``spats.config`` file.
 
