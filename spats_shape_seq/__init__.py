@@ -55,6 +55,12 @@ This can be later loaded using the :meth:`.spats.Spats.load` method.
 from spats import Spats
 
 
+_VERSION = "1.9.3"
+_PRODUCTION = False
+_PUBLIC_RELEASE = False
+version = _VERSION + (" Public" if _PUBLIC_RELEASE else " Private") + (" Production" if _PRODUCTION else " Beta")
+
+
 def run_spats(target_path, r1_path, r2_path, output_path, cotrans = False):
     """Convenience function for a common-case SPATS run that doesn't
        require any non-default configuration.

@@ -19,7 +19,23 @@ unit :
 .PHONY: test
 test : unit
 
-VERSION = $(shell grep version= setup.py | sed -e 's/.*="\(.*\)",.*/\1/g')
+VERSION = $(shell python -c 'import spats_shape_seq; print spats_shape_seq._VERSION')
+IS_PRODUCTION = $(shell python -c 'import spats_shape_seq; print "1" if spats_shape_seq._PRODUCTION else "0"')
+IS_PUBLIC_RELEASE = $(shell python -c 'import spats_shape_seq; print "1" if spats_shape_seq._PUBLIC_RELEASE else "0"')
+.PHONY: show_ver
+show_ver:
+	@echo -n Version: ${VERSION}
+ifeq ($(IS_PUBLIC_RELEASE), 1)
+	@echo -n \ Public
+else
+	@echo -n \ Private
+endif
+ifeq ($(IS_PRODUCTION), 1)
+	@echo \ Production
+else
+	@echo \ Beta
+endif
+
 pip_dist: unit
 	@read -p "Submit new release, version ${VERSION}? " ANS; if [ "$$ANS" == "y" ]; then echo "Submitting..."; else echo "Aborted."; exit 1; fi
 	@rm -rf build dist

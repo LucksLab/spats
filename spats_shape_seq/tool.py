@@ -20,6 +20,7 @@ class SpatsTool(object):
         self.cotrans = False
         self._skip_log = False
         self._no_config_required_commands = [ "viz", "help", "doc" ]
+        self._private_commands = [ "doc", "reads", "viz" ]
         self._temp_files = []
         self._r1 = None
         self._r2 = None
@@ -87,7 +88,7 @@ class SpatsTool(object):
 
         self.start = time.time()
         hdlr = getattr(self, command, None)
-        if not hdlr:
+        if not hdlr or (command in self._private_commands and spats_shape_seq._PUBLIC_RELEASE):
             print("Invalid command: {}".format(command))
             return
         hdlr()
@@ -230,6 +231,8 @@ class SpatsTool(object):
         print("\nspats_tool commands:\n")
         for key in sorted(SpatsTool.__dict__.keys()):
             if key.startswith('_'):
+                continue
+            if key in self._private_commands and spats_shape_seq._PUBLIC_RELEASE:
                 continue
             value = getattr(SpatsTool, key)
             if value.__doc__:

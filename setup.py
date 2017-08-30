@@ -1,4 +1,5 @@
 from setuptools import setup
+from spats_shape_seq import _PRODUCTION, _VERSION, _PUBLIC_RELEASE
 
 
 DESCRIPTION = 'The Spats package implements a read mapping and reactivity analysis pipeline for calculating SHAPE-Seq reactivities from an input set of next-generation reads.'
@@ -11,12 +12,15 @@ Spats is provided under the OSI-approved Boost License.
 http://luckslab.github.io/spats/
 '''
 
+if not _PUBLIC_RELEASE:
+    raise Exception('Attempt to release with spats_shape_seq._PUBLIC_RELEASE = {}'.format(_PUBLIC_RELEASE))
+
 setup(name='spats_shape_seq',
-      version="1.9.2",
+      version=_VERSION + ('' if _PRODUCTION else ' BETA'),
       description=DESCRIPTION,
       long_description=README,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: ' + ('5 - Production/Stable' if _PRODUCTION else '4 - Beta'),
           'License :: OSI Approved :: Boost Software License 1.0 (BSL-1.0)',
           'Programming Language :: Python :: 2.7',
       ],
