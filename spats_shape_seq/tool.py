@@ -263,19 +263,23 @@ class SpatsTool(object):
         spats = Spats()
         spats.load(run_name)
         profiles = spats.compute_profiles()
-        tseq = spats.targets.targets[0].seq
+        headers = [ "L", "site", "nt", "f+", "f-", "beta", "theta", "rho" ]
+        data = []
 
         if self.cotrans:
-            headers = [ "L", "site", "nt", "f+", "f-", "beta", "theta", "rho" ]
-            data = []
+            tseq = spats.targets.targets[0].seq
             for key in profiles.cotrans_keys():
                 end = int(key.split('_')[-1])
                 prof = profiles._profiles[key]
                 for i in range(end + 1):
                     data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i] ])
         else:
-            headers = [ "target", "site", "f+", "f-", "beta", "theta", "rho" ]
-            print "non-cot"
+            for tgt in spats.targets.targets:
+                tseq = tgt.seq
+                end = len(tgt.seq)
+                prof = profiles.profilesForTarget(tgt)
+                for i in range(end + 1):
+                    data.append([ tgt.name, end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i] ])
         output_path = os.path.join(self.path, 'run.csv')
         self._write_csv(output_path, headers, data)
         return output_path
