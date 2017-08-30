@@ -132,6 +132,17 @@ Any mismatches will result in an error, and should be reported as a
 bug!
 
 
+spats_tool dump
+-------------------
+
+The ``dump`` command is used to access the raw data and dump it to
+CSV. Requires a dump type -- options:
+
+- ``spats_tool dump reads``: dumps the tags data for the reads analysis to ``reads.csv``
+
+- ``spats_tool dump run``: dumps the treated/untreated count, beta, theta, and rho values from the run analysis to ``run.csv``
+
+
 ..
    Miscellaneous
    -------------
