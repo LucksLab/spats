@@ -283,7 +283,7 @@ class SpatsTool(object):
                 prof = profiles.profilesForTarget(tgt)
                 data = []
                 for i in range(end + 1):
-                    data.append([ tgt.name, end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i] ])
+                    data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i] ])
                 output_path = os.path.join(self.path, '{}.csv'.format(tgt.name))
                 self._write_csv(output_path, headers, data)
 
