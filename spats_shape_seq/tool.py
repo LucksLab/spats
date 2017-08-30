@@ -80,6 +80,9 @@ class SpatsTool(object):
 
 
     def _run(self, args):
+        if not args:
+            print("Command required. Try 'spats_tool help'.")
+            return
 
         command = args[0]
         self._command_args = args[1:]
@@ -309,7 +312,7 @@ class SpatsTool(object):
         """
 
         self._skip_log = True
-        print("\nspats_tool commands:\n")
+        print("\nspats_tool v{}\nCommands:\n".format(spats_shape_seq._VERSION))
         for key in sorted(SpatsTool.__dict__.keys()):
             if key.startswith('_'):
                 continue
