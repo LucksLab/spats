@@ -8,6 +8,7 @@ class Profiles(object):
         self._targets = targets
         self._counters = counters
         self._cotrans = run.cotrans
+        self._run = run
         masks = run.masks
         profiles = {}
         for target in self._targets.targets:
@@ -109,8 +110,11 @@ class TargetProfiles(object):
             try:
                 Xbit = (X_k / treated_sum)
                 Ybit = (Y_k / untreated_sum)
-                betas[k] = max(0, (Xbit - Ybit) / (1 - Ybit))
+                betas[k] = (Xbit - Ybit) / (1 - Ybit)
                 thetas[k] = math.log(1.0 - Ybit) - math.log(1.0 - Xbit)
+                if not self._run.allow_negative_values:
+                    betas[k] = max(0.0, betas[k])
+                    thetas[k] = max(0.0, thetas[k])
                 running_c_sum -= math.log(1.0 - betas[k])
             except:
                 #print("domain error: {} / {} / {} / {}".format(X_k, treated_sum, Y_k, untreated_sum))

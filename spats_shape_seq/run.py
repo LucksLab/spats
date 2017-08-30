@@ -118,6 +118,11 @@ class Run(object):
         #: Default ``lookup``, set to ``find_partial`` to use the partial find algorithm.
         self.algorithm = "lookup"
 
+        #: Default ``False``, set to ``True`` to allow beta, theta,
+        #: and rho values to be negative (otherwise, negative values are
+        #: set to ``0.0``).
+        self.allow_negative_values = False
+
 
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
