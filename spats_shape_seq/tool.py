@@ -63,7 +63,7 @@ class SpatsTool(object):
             if ext.lower() == '.gz':
                 self._add_note("decompressing {}".format(rx))
                 out = os.path.join(self.path, base + ".tmp")
-                subprocess.check_call("gzip -d -c {} > {}".format(rx, out), cwd = self.path, shell = True)
+                subprocess.check_call('gzip -d -c "{}" > "{}"'.format(rx, out), cwd = self.path, shell = True)
                 self._temp_files.append(out)
                 self._sentinel("decompress {}".format('R1' if ret_r1 else 'R2'))
                 return out
