@@ -15,11 +15,11 @@ class Profiles(object):
             n = len(target.seq)
             if run.cotrans:
                 for end in range(run.cotrans_minimum_length, n + 1):
-                    profiles["{}_{}".format(target.name, end)] = TargetProfiles(target,
+                    profiles["{}_{}".format(target.name, end)] = TargetProfiles(self, target,
                                                                                 counters.mask_counts(target, masks[0], end),
                                                                                 counters.mask_counts(target, masks[1], end))
             else:
-                profiles[target.name] = TargetProfiles(target,
+                profiles[target.name] = TargetProfiles(self, target,
                                                        counters.mask_counts(target, masks[0], n),
                                                        counters.mask_counts(target, masks[1], n))
         self._profiles = profiles
@@ -67,7 +67,8 @@ class Profiles(object):
 
 class TargetProfiles(object):
 
-    def __init__(self, target, treated_counts, untreated_counts):
+    def __init__(self, owner, target, treated_counts, untreated_counts):
+        self.owner = owner
         self._target = target
         self.treated_counts = treated_counts
         self.untreated_counts = untreated_counts
@@ -112,7 +113,7 @@ class TargetProfiles(object):
                 Ybit = (Y_k / untreated_sum)
                 betas[k] = (Xbit - Ybit) / (1 - Ybit)
                 thetas[k] = math.log(1.0 - Ybit) - math.log(1.0 - Xbit)
-                if not self._run.allow_negative_values:
+                if not self.owner._run.allow_negative_values:
                     betas[k] = max(0.0, betas[k])
                     thetas[k] = max(0.0, thetas[k])
                 running_c_sum -= math.log(1.0 - betas[k])

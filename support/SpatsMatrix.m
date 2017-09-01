@@ -61,6 +61,7 @@
 
     BOOL m_plotTypeRow;
     NSMutableArray * m_selection;
+    BOOL m_showNull;
 }
 
 @end
@@ -78,6 +79,7 @@
         m_siteSize = CGSizeMake(5, 5);
         m_matrixFrame = CGRectMake(0, 0, 800, 800);
         m_plotTypeRow = YES;
+        m_showNull = NO;
         [self addClickHandler:[H2EventHandler handlerWithTarget:self selector:@selector(handleClick:)]];
 
         m_rowTracker = [H2ViewImpl container];
@@ -127,6 +129,18 @@
 #pragma clang diagnostic pop
     }
     [self layoutSubviews];
+    [self setNeedsDisplay];
+}
+
+-(void)show_null
+{
+    m_showNull = YES;
+    [self setNeedsDisplay];
+}
+
+-(void)hide_null
+{
+    m_showNull = NO;
     [self setNeedsDisplay];
 }
 
@@ -430,9 +444,19 @@ get_cmap(NSString * map_name);
         NSArray * data = m_selectedData[@(L)];
         if (nil == data)
             break;
+        Profiles * prof = m_profiles[@(L)];
         for (NSInteger s = 0; s <= L; ++s) {
             CGFloat f = MIN(MAX(0.0, [data[s] floatValue] / m_max), 1.0);
-            CGColorRef col = cmap(f);
+            CGColorRef col = NULL;
+            if (m_showNull) {
+                if ([data[s] floatValue] < 0)
+                    col = CGColorCreateGenericRGB(1.0, 0.0, 0.0, 1.0);
+                else if (![@"treated" isEqual:m_plotType]  &&  ![@"untreated" isEqual:m_plotType]  &&
+                         0 == [prof.treated[s] integerValue]  &&  0 == [prof.untreated[s] integerValue])
+                    col = CGColorCreateGenericRGB(1.0, 1.0, 1.0, 1.0);
+            }
+            if (NULL == col)
+                col = cmap(f);
             CGContextSetFillColorWithColor(ctx, col);
             CGContextFillRect(ctx, siteRect);
             CGColorRelease(col);
