@@ -537,7 +537,7 @@ get_cmap(NSString * map_name);
             CGFloat Xbit = (X_k / treated_sum);
             CGFloat Ybit = (Y_k / untreated_sum);
             if (Ybit != 1.0) {
-                beta = MAX(0.0, (Xbit - Ybit) / (1.0 - Ybit));
+                beta = (Xbit - Ybit) / (1.0 - Ybit);
                 theta = log(1.0 - Ybit) - log(1.0 - Xbit);
             }
             running_c_sum -= log(1.0 - beta);
