@@ -49,7 +49,6 @@ class SpatsTool(object):
                 cotrans = self.config['cotrans']
                 self.cotrans = bool(ast.literal_eval(cotrans))
         self.metadata = config.get('metadata', {})
-        self.metadata['date'] = self.metadata.get('date', datetime.datetime.now().strftime('%Y/%m/%d'))
 
     def _spats_path(self):
         return os.path.normpath(os.path.join(os.path.dirname(spats_shape_seq.__file__), ".."))
@@ -158,6 +157,8 @@ class SpatsTool(object):
     def pre(self):
         """Process the pre-sequence data file.
         """
+        if 'preseq' not in self.config:
+            raise Exception("Missing 'preseq' file in spats.config")
         pre_name = self._pre_file()
         if os.path.exists(pre_name):
             self._add_note("** removing previous preseq file")

@@ -1,5 +1,6 @@
 
 import base64
+import datetime
 import IPython.display as Idp
 import nbformat as nbf
 import os
@@ -53,6 +54,9 @@ class Notebook(object):
     def save(self, path = None):
         nbf.write(self._nb, open(path or self.path, 'w'), _NBF_VERSION)
 
+    def _stamp(self, dateOnly = False):
+        return datetime.datetime.now().strftime('%Y/%m/%d' if dateOnly else '%Y/%m/%d %H:%M')
+
     def is_empty(self):
         return not(bool(self._nb.cells))
 
@@ -66,13 +70,14 @@ class Notebook(object):
 
     def add_metadata(self, metadata):
         metadata = { k : metadata.get(k, "") for k in _metadata_template_keys }
+        metadata['date'] = metadata.get('date', self._stamp(True))
         return self.add_md_cell(metadata_template.format(**metadata))
 
     def add_initializer(self):
         return self.add_code_cell(initializer_code_template)
 
     def add_preseq(self):
-        return self.add_md_cell(preseq_md_template).add_code_cell(preseq_code_template)
+        return self.add_md_cell(preseq_md_template.format(self._stamp())).add_code_cell(preseq_code_template)
 
 
 
@@ -120,6 +125,7 @@ import matplotlib.pyplot as plt
 preseq_md_template = """
 Pre-Sequencing
 --------------
+{}
 """
 
 preseq_code_template = """
