@@ -93,7 +93,7 @@ class Notebook(object):
 
 
 ##########################################################
-## templates
+## notebook templates
 ##########################################################
 
 
@@ -127,10 +127,10 @@ Lot Numbers:
 _metadata_template_keys = [ 'name', 'date', 'author', 'buffer', 'temp', 'salt', 'probe', 'adapter', 'enzyme', 'reagent' ]
 
 initializer_code_template = """
-%load_ext rpy2.ipython
 from spats_shape_seq.nb import *
 import matplotlib.pyplot as plt
 %matplotlib inline
+%load_ext rpy2.ipython
 """
 
 preseq_md_template = """
