@@ -11,6 +11,7 @@ import sys
 import time
 
 import spats_shape_seq
+import spats_shape_seq.nbutil as nbutil
 from spats_shape_seq import Spats
 from spats_shape_seq.parse import abif_parse
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
@@ -47,6 +48,8 @@ class SpatsTool(object):
             if 'cotrans' in self.config:
                 cotrans = self.config['cotrans']
                 self.cotrans = bool(ast.literal_eval(cotrans))
+        self.metadata = config.get('metadata', {})
+        self.metadata['date'] = self.metadata.get('date', datetime.datetime.now().strftime('%Y/%m/%d'))
 
     def _spats_path(self):
         return os.path.normpath(os.path.join(os.path.dirname(spats_shape_seq.__file__), ".."))
@@ -159,9 +162,10 @@ class SpatsTool(object):
         if os.path.exists(pre_name):
             self._add_note("** removing previous preseq file")
             os.remove(pre_name)
-        preseq_data = abif_parse(self.config['preseq'])
+        preseq_data = abif_parse(self.config['preseq'], fields = [ 'DATA2', 'DATA3', 'DATA105' ])
         open(pre_name, 'wb').write(json.dumps(preseq_data))
         self._add_note("pre-sequencing data processed to {}".format(os.path.basename(pre_name)))
+        self._notebook().add_preseq().save()
 
     def run(self):
         """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
@@ -212,6 +216,13 @@ class SpatsTool(object):
 
     def _reads_file(self):
         return self._spats_file('reads')
+
+    def _notebook(self):
+        nb = nbutil.Notebook(os.path.join(self.path, 'spats.ipynb'))
+        if nb.is_empty():
+            nb.add_metadata(self.metadata)
+            nb.add_initializer()
+        return nb
 
     def validate(self):
         """Validate the results of a previous 'process' run against a second (slower) algorithm.

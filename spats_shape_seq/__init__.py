@@ -78,3 +78,15 @@ def run_spats(target_path, r1_path, r2_path, output_path, cotrans = False):
     spats.process_pair_data(r1_path, r2_path)
     spats.compute_profiles()
     spats.write_reactivities(output_path)
+
+
+
+# jupyter extension support
+
+def _jupyter_server_extension_paths():
+    return [{
+        "module": "spats_shape_seq"
+    }]
+
+def load_jupyter_server_extension(nbapp):
+    pass

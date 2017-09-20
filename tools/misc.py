@@ -550,6 +550,13 @@ def tabif():
     for i in range(len(fields)):
         print "m1[{}] = {}".format(i, m1(data[i]))
 
+def tnb():
+    from spats_shape_seq.nbutil import Notebook
+    nb = Notebook('test_out.ipynb')
+    if nb.is_empty():
+        nb.add_code_cell("a = [1,2,3,4]*2\nb = [x for x in reversed(a)]\nb")
+    nb.save(nb.path)
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()
