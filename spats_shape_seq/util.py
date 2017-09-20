@@ -30,3 +30,17 @@ def string_match_errors(substr, target_str, max_errors = None):
             if max_errors and len(errors) >= max_errors:
                 return errors
     return errors
+
+
+class Colors(object):
+
+    def __init__(self):
+        self.green = [0,1,0]
+        self.black = [0,0,0]
+        self.cyan = [0,1,1]
+        self.red = [1,0,0]
+        self.blue = [0,0,1]
+
+# to allow setting of arbitrary dot properties
+class SimpleObject(object):
+    pass

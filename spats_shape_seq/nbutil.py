@@ -55,7 +55,7 @@ class Notebook(object):
         nbf.write(self._nb, open(path or self.path, 'w'), _NBF_VERSION)
 
     def _stamp(self, dateOnly = False):
-        return datetime.datetime.now().strftime('%Y/%m/%d' if dateOnly else '%Y/%m/%d %H:%M')
+        return datetime.datetime.now().strftime('%Y/%m/%d' if dateOnly else '%Y/%m/%d %I:%M%p')
 
     def is_empty(self):
         return not(bool(self._nb.cells))
@@ -78,6 +78,15 @@ class Notebook(object):
 
     def add_preseq(self):
         return self.add_md_cell(preseq_md_template.format(self._stamp())).add_code_cell(preseq_code_template)
+
+    def add_spats_run(self, cotrans):
+        nb = self.add_md_cell(spats_run_md_template.format(self._stamp()))
+        if cotrans:
+            nb.add_code_cell(cotrans_counts_template)
+            nb.add_code_cell(cotrans_c_value_template)
+        else:
+            pass
+        return nb
 
 
 
@@ -129,14 +138,43 @@ Pre-Sequencing
 """
 
 preseq_code_template = """
-pre_data = nb_load_pre_data()
-pre_colors = [ [0,1,0], [0,0,0], [0,1,1] ]
-x_values = range(len(pre_data[0]))
-for i in range(len(pre_data)):
-    plt.plot(x_values, pre_data[i], color = pre_colors[i % len(pre_colors)])
+pre_data = preseq_data()
+plt.plot(pre_data.x_axis, pre_data.treated, color = colors.green)
+plt.plot(pre_data.x_axis, pre_data.untreated, color = colors.black)
+plt.plot(pre_data.x_axis, pre_data.base, color = colors.cyan)
 plt.ylim([0, 30000])
 plt.gcf().set_size_inches(36, 8)
 plt.show()
-print "Treated (green) 1st moment: {}".format(first_moment(pre_data[0]))
-print "Untreated (black) 1st moment: {}".format(first_moment(pre_data[1]))
+print "Treated 1st moment: {}".format(first_moment(pre_data.treated))
+print "Untreated 1st moment: {}".format(first_moment(pre_data.untreated))
+"""
+
+spats_run_md_template = """
+SPATS Run
+--------------
+{}
+"""
+
+cotrans_counts_template = """
+run_data = spats_run_data()
+plt.plot(run_data.all_sites, run_data.total_treated_counts, color = colors.red)
+plt.plot(run_data.all_sites, run_data.total_untreated_counts, color = colors.blue)
+plt.title("Total Treated/Untreated Counts")
+plt.legend(["f+", "f-"])
+plt.xlabel("Length")
+plt.ylabel("# of Stops")
+plt.xlim([run_data.min_length, run_data.n + 1])
+plt.gcf().set_size_inches(36, 8)
+plt.show()
+"""
+
+cotrans_c_value_template = """
+run_data = spats_run_data()
+plt.plot(run_data.all_sites, run_data.c_values, color = colors.black)
+plt.title("c Values")
+plt.xlabel("Length")
+plt.ylabel("c")
+plt.xlim([run_data.min_length, run_data.n + 1])
+plt.gcf().set_size_inches(36, 8)
+plt.show()
 """

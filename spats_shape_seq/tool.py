@@ -191,6 +191,7 @@ class SpatsTool(object):
             spats.process_pair_data(self.r1, self.r2)
             spats.store(run_name)
         self._add_note("wrote output to {}".format(os.path.basename(run_name)))
+        self._notebook().add_spats_run(self.cotrans).save()
 
     def _update_run_config(self, run):
         for key, value in self.config.iteritems():
