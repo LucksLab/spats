@@ -418,7 +418,7 @@ cotrans = True
 # Experiment name
 #name = 
 
-# Author / Experimenter
+# Author / Experimenter (initials)
 #author = 
 
 # Date: this will be filled in automatically (today's date/time) unless explicitly provided.
