@@ -1,5 +1,8 @@
 
+import datetime
 import os
+import struct
+from sys import version_info
 
 
 # not currently used in spats, but potentially useful for tools
@@ -277,3 +280,159 @@ def reactivities_parse(path):
                 break
             sites.append(line.split('\t'))
     return sites
+
+
+
+##################################
+# abif parsing modified from http://github.com/bow/abifpy
+##################################
+
+
+# dictionary for unpacking tag values
+_BYTEFMT = {
+            1: 'b',     # byte
+            2: 's',     # char
+            3: 'H',     # word
+            4: 'h',     # short
+            5: 'i',     # long
+            6: '2i',    # rational, legacy unsupported
+            7: 'f',     # float
+            8: 'd',     # double
+            10: 'h2B',  # date
+            11: '4B',   # time
+            12: '2i2b', # thumb
+            13: 'B',    # bool
+            14: '2h',   # point, legacy unsupported
+            15: '4h',   # rect, legacy unsupported
+            16: '2i',   # vPoint, legacy unsupported
+            17: '4i',   # vRect, legacy unsupported
+            18: 's',    # pString
+            19: 's',    # cString
+            20: '2i',   # Tag, legacy unsupported
+           }
+
+# header structure
+_HEADFMT = '>4sH4sI2H3I'
+
+# directory data structure
+_DIRFMT = '>4sI2H4I'
+
+def py3_get_string(byte):
+    if version_info[0] < 3:
+        return byte
+    else:
+        return byte.decode()
+
+def py3_get_byte(string):
+    if version_info[0] < 3:
+        return string
+    else:
+        return string.encode()
+
+class _Trace(object):
+
+    def __init__(self, in_file, fields):
+        self._fields = fields
+        self._handle = open(in_file, 'rb')
+        try:
+            self._handle.seek(0)
+            if not self._handle.read(4) == py3_get_byte('ABIF'):
+                raise IOError('Input is not a valid trace file')
+        except IOError:
+            self._handle = None
+            raise
+        else:
+            # header data structure:
+            # file type, file, version, tag name, tag number, element type code,
+            # element size, number of elements, data size, data offset, handle,
+            # file type, file version
+            self.data = {}
+            self.tags = {}
+            self._handle.seek(0)
+            header = struct.unpack(_HEADFMT, 
+                                   self._handle.read(struct.calcsize(_HEADFMT)))
+            self.version = header[1]
+
+            for entry in self._parse_header(header):
+                key = entry.tag_name + str(entry.tag_num)
+                #print "KEY: " + str(key) + " -- " + str(entry.data_size)
+                self.tags[key] = entry
+                if key in self._fields:
+                    self.data[key] = self.get_data(key)
+
+    def _parse_header(self, header):
+        # header structure:
+        # file signature, file version, tag name, tag number, 
+        # element type code, element size, number of elements
+        # data size, data offset, handle
+        head_elem_size = header[5]
+        head_elem_num = header[6]
+        head_offset = header[8]
+        index = 0
+        while index < head_elem_num:
+            start = head_offset + index * head_elem_size
+            # added directory offset to tuple
+            # to handle directories with data size <= 4 bytes
+            self._handle.seek(start)
+            dir_entry =  struct.unpack(_DIRFMT, self._handle.read(struct.calcsize(_DIRFMT))) + (start,)
+            index += 1
+            yield _TraceDir(dir_entry, self._handle)
+
+    def get_data(self, key):
+        return self.tags[key].tag_data
+
+
+class _TraceDir(object):
+    def __init__(self, tag_entry, handle):
+        self.tag_name = py3_get_string(tag_entry[0])
+        self.tag_num = tag_entry[1]
+        self.elem_code = tag_entry[2]
+        self.elem_size = tag_entry[3]
+        self.elem_num = tag_entry[4]
+        self.data_size = tag_entry[5]
+        self.data_offset = tag_entry[6]
+        self.data_handle = tag_entry[7]
+        self.tag_offset = tag_entry[8]
+
+        # if data size is <= 4 bytes, data is stored inside the directory
+        # so offset needs to be changed
+        if self.data_size <= 4:
+            self.data_offset = self.tag_offset + 20
+
+        self.tag_data = self._unpack(handle)
+
+    def _unpack(self, handle):
+
+        if self.elem_code in _BYTEFMT:
+            # because ">1s" unpacks differently from ">s"
+            num = '' if self.elem_num == 1 else str(self.elem_num)
+            fmt = "{0}{1}{2}".format('>', num, _BYTEFMT[self.elem_code])
+            start = self.data_offset
+
+            handle.seek(start)
+            data = struct.unpack(fmt, handle.read(struct.calcsize(fmt)))
+
+            if self.elem_code not in [10, 11] and len(data) == 1:
+                data = data[0]
+
+            if self.elem_code == 2:
+                return py3_get_string(data)
+            elif self.elem_code == 10:
+                return datetime.date(*data)
+            elif self.elem_code == 11:
+                return datetime.time(*data)
+            elif self.elem_code == 13:
+                return bool(data)
+            elif self.elem_code == 18:
+                return py3_get_string(data[1:])
+            elif self.elem_code == 19:
+                return py3_get_string(data[:-1])
+            else:
+                return data
+        else:
+            return None
+
+# return list of data values associated with each passed-in field
+def abif_parse(filename, fields = [ 'DATA1', 'DATA2', 'DATA3', 'DATA4', 'DATA105' ]):
+    t = _Trace(filename, fields)
+    return [ t.data[x] for x in fields ]

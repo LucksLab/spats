@@ -541,6 +541,15 @@ def make_test_dataset():
     pair_db.store_run(s.run)
     pair_db.store_counters('spats', s.counters)
 
+def tabif():
+    from spats_shape_seq.parse import abif_parse
+    fields = [ 'DATA2', 'DATA3', 'DATA105' ]
+    data = abif_parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/abif/abifpy/PDC.ab1", fields)
+    def m1(data):
+        return sum([(i + 1) * data[i] for i in range(len(data))])/sum(data)
+    for i in range(len(fields)):
+        print "m1[{}] = {}".format(i, m1(data[i]))
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()
