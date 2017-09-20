@@ -3,6 +3,7 @@ import ast
 import ConfigParser
 import csv
 import datetime
+import json
 import multiprocessing
 import os
 import subprocess
@@ -11,6 +12,7 @@ import time
 
 import spats_shape_seq
 from spats_shape_seq import Spats
+from spats_shape_seq.parse import abif_parse
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
 
 
@@ -150,6 +152,17 @@ class SpatsTool(object):
         analyzer.process_tags()
         self._add_note("tags processed to {}".format(os.path.basename(db_name)))
 
+    def pre(self):
+        """Process the pre-sequence data file.
+        """
+        pre_name = self._pre_file()
+        if os.path.exists(pre_name):
+            self._add_note("** removing previous preseq file")
+            os.remove(pre_name)
+        preseq_data = abif_parse(self.config['preseq'])
+        open(pre_name, 'wb').write(json.dumps(preseq_data))
+        self._add_note("pre-sequencing data processed to {}".format(os.path.basename(pre_name)))
+
     def run(self):
         """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
         """
@@ -190,6 +203,9 @@ class SpatsTool(object):
 
     def _spats_file(self, base_name):
         return os.path.join(self.path, '{}.spats'.format(base_name))
+
+    def _pre_file(self):
+        return self._spats_file('pre')
 
     def _run_file(self):
         return self._spats_file('run')
