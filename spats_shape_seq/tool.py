@@ -25,7 +25,7 @@ class SpatsTool(object):
         self.cotrans = False
         self._skip_log = False
         self._no_config_required_commands = [ "viz", "help", "doc" ]
-        self._private_commands = [ "doc", "viz" ]
+        self._private_commands = [ "doc", "nb", "viz" ]
         self._temp_files = []
         self._r1 = None
         self._r2 = None
@@ -238,6 +238,18 @@ class SpatsTool(object):
             self._add_note("Validation pass")
         else:
             self._add_note("Validation FAILURE")
+
+    def nb(self):
+        """Launch the Jupyter notebook.
+        """
+        self._skip_log = True
+        try:
+            process = subprocess.Popen(["jupyter", "notebook", "-y", "spats.ipynb"], cwd = self.path)
+            process.wait()
+        except KeyboardInterrupt:
+            process.terminate()
+            time.sleep(0.4)
+            process.wait()
 
     def viz(self):
         """Launch the visualization tool UI.
