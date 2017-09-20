@@ -24,7 +24,7 @@ class SpatsTool(object):
         self.config = None
         self.cotrans = False
         self._skip_log = False
-        self._no_config_required_commands = [ "viz", "help", "doc" ]
+        self._no_config_required_commands = [ "doc", "help", "init", "viz" ]
         self._private_commands = [ "doc", "nb", "viz" ]
         self._temp_files = []
         self._r1 = None
@@ -129,7 +129,18 @@ class SpatsTool(object):
             for note in self._notes:
                 outfile.write("   - {}\n".format(note))
             outfile.write("\n")
-                
+
+    def init(self):
+        """Set up a spats_tool folder.
+        """
+        self._skip_log = True
+        config_path = os.path.join(self.path, "spats.config")
+        if not os.path.exists(config_path):
+            open(config_path, 'wb').write(_spats_config_template)
+            self._add_note("Created default spats.config, please edit before running tools.")
+        else:
+            self._add_note("** spats.config already exists, not overwriting!")
+
     def reads(self):
         """Perform reads analysis on the r1/r2 fragment pairs, for use with the visualization tool.
         """
@@ -384,6 +395,48 @@ class SpatsTool(object):
         print("and 'r2' configuration keys.\n")
 
 
+_spats_config_template = """
+[spats]
+
+# set to True/False depending on whether this is a cotrans experiment
+cotrans = True
+
+# Required for pre-sequencing tool: the path to the ABIF (.fsa) file.
+#preseq = 
+
+# Required for SPATS runs and reads analysis: the path to the targets FASTA file.
+#target = 
+
+# Required for SPATS runs and reads analysis: the paths to the R1/R2 data files.
+#r1 = 
+#r2 = 
+
+
+# Known metadata. Recommended to provide all applicable fields.
+[metadata]
+
+# Experiment name
+#name = 
+
+# Author / Experimenter
+#author = 
+
+# Date: this will be filled in automatically (today's date/time) unless explicitly provided.
+#date = 
+
+# Folding conditions:
+#buffer = 
+#temperature = 
+#salt = 
+
+#probe = 
+
+# Lot numbers:
+#adapter = 
+#enzyme = 
+#reagent = 
+
+"""
 
 def run(args, path = None):
     SpatsTool(path)._run(args)

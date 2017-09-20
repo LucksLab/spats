@@ -69,9 +69,11 @@ class Notebook(object):
         return self
 
     def add_metadata(self, metadata):
-        metadata = { k : metadata.get(k, "") for k in _metadata_template_keys }
-        metadata['date'] = metadata.get('date', self._stamp(True))
-        return self.add_md_cell(metadata_template.format(**metadata))
+        metadata['date'] = metadata.get('date') or self._stamp(True)
+        filled_metadata = { k : metadata.get(k, "").strip() for k in _metadata_template_keys }
+        self.add_md_cell(metadata_template.format(**filled_metadata))
+        self._nb.metadata['spats_info'] = metadata
+        return self
 
     def add_initializer(self):
         return self.add_code_cell(initializer_code_template)
