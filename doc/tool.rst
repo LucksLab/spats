@@ -17,19 +17,27 @@ As an example, we'll create a folder for a new "testing" experiment:
 
     $ mkdir testing_jjb_2017_08_10
     $ cd testing_jjb_2017_08_10
+    $ spats_tool init
 
 The tool works using a ``spats.config`` file, which is a text file
 that provides the information required for the various tool
-functions. The primary information is about the locations of the
-target and input files. Here's a sample:
+functions. ``spats_tool init`` will create a default config file, 
+be sure to edit it after it's created. The rest of the information is
+about the locations of the target and input files. Here's a sample:
 
 .. code-block:: text
 
     [spats]
-    target = /path/to/data/my_target.fa
+    preseq = my_preseq_file.fsa
+    target = my_target.fa
     r1 = /path/to/data/experiment_data_R1.fastq.gz
     r2 = /path/to/data/experiment_data_R2.fastq.gz
+    cotrans = True
+    
+    [metadata]
+    ...
 
+The ``preseq`` parameter is required for the ``pre`` tool.
 The ``target``, ``r1``, and ``r2`` parameters are
 required for most tools. If this is a cotrans experiment,
 set ``cotrans = True``; then provide the paths to the
@@ -44,6 +52,54 @@ analysis (see below), you can set parameters according to the
 
 The ``spats_tool`` command must be run in the experiment directory you
 created with the ``spats.config`` file.
+
+
+spats_tool pre
+--------------
+
+The first command you may wish to run is ``pre``, which takes the
+information from a ``*.fsa`` (ABIF) file and creates a plot.
+
+.. code-block:: bash
+
+    $ spats_tool pre
+    :pre-sequencing data processed to pre.spats
+    :pre complete @ 0.02s
+
+This extracts the data and stores it a format from which it can be
+easily inspected and plotted.
+
+
+spats_tool nb
+-------------
+
+To see plots and perform further analyses on any data, run
+``spats_tool nb``. This brings up a Jupyter Notebook, which is
+automatically updated after any analysis runs. For example, after
+``spats_tool pre``, a plot of the presequencing data will be added to
+the notebook.
+
+The first cell in the notebook contains experiment metadata.
+
+By default, the code require to create plots is hidden. To show the
+code, click on the ``In [ ]:`` prompt above a given plot or
+output. From there, you can edit the code to change plot styling or
+parameters. Click the "Run" button at the top of the page to re-run a
+cell after making changes.
+
+Note that you can copy, edit, delete, and rearrange cells. To create a
+new cell, hit the "+" button. By default, cells are code cells; they
+can also be markdown, to change this use the dropdown menu to the
+right of the "Run" button. For example, you may wish to create a new
+markdown cell to write down notes about the experiment.
+
+You may wish to edit the look and feel of the plots. Plots are created
+using ``matplotlib``. (Support for plots in ``R`` is coming soon.) You
+may wish to consult the `tutorial
+<https://matplotlib.org/users/pyplot_tutorial.html>`_, the `cheat sheet
+<https://s3.amazonaws.com/assets.datacamp.com/blog_assets/Python_Matplotlib_Cheat_Sheet.pdf>`_,
+or the `documentation <https://matplotlib.org/contents.html>`_.
+
 
 spats_tool run
 --------------

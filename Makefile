@@ -51,7 +51,7 @@ pip_dist: release_check unit
 	twine upload dist/${PKG_NAME}-${VERSION}.tar.gz
 
 .PHONY: local_install
-local_install:
+local_install: local_uninstall
 	@(pip show -q ${PKG_NAME} && sudo pip uninstall -y -q ${PKG_NAME}) || echo
 	@rm -rf build dist
 	@python setup.py sdist
@@ -59,7 +59,7 @@ local_install:
 
 .PHONY: local_uninstall
 local_uninstall:
-	@sudo pip uninstall -y -q ${PKG_NAME}
+	@sudo pip uninstall -y -q ${PKG_NAME}  ||  echo "Not previously installed."
 
 .PHONY: docs
 docs:

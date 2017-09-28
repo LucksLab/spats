@@ -257,6 +257,10 @@ class SpatsTool(object):
         """
         self._skip_log = True
         try:
+            ext_out = subprocess.check_output(["jupyter", "nbextension", "list"])
+            if "spats_shape_seq/main" not in ext_out:
+                subprocess.check_call(["jupyter", "nbextension", "install", "--py", "spats_shape_seq"])
+                subprocess.check_call(["jupyter", "nbextension", "enable", "--py", "spats_shape_seq"])
             process = subprocess.Popen(["jupyter", "notebook", "-y", "spats.ipynb"], cwd = self.path)
             process.wait()
         except KeyboardInterrupt:
