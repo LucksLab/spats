@@ -88,5 +88,11 @@ def _jupyter_server_extension_paths():
         "module": "spats_shape_seq"
     }]
 
+def _jupyter_nbextension_paths():
+    return [ { "section" : "notebook",
+               "src" : "static",
+               "dest" : "spats_shape_seq",
+               "require" : "spats_shape_seq/main" } ]
+
 def load_jupyter_server_extension(nbapp):
     pass
