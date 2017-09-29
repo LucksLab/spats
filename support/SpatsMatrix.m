@@ -526,6 +526,23 @@ get_cmap(NSString * map_name);
     CGFloat treated_sum = 0.0;
     CGFloat untreated_sum = 0.0;
     CGFloat running_c_sum = 0.0;
+
+    /* NOTE: there is an index discrepancy here between indices
+       used in the code, and the indices used in the Aviran paper
+       where these formulae are derived: the indices are
+       reversed. so, where in the paper the formula uses
+       \sum_{i=k}^{n+1}, in the code we use \sum_{i=0}^{k+1}, and
+       this is intentional.
+
+       for reference, here is the comment from the original SPATS code:
+         // TargetProfile tracks an RNA of length n. arrays have n+1 entries, 
+         // with index 1 corresponding to the 5'-most base, and index n 
+         // corresponding to the 3'-most base.  Index 0 stores information about 
+         // unmodified RNAs, where RT has fallen off the 5' end of the 
+         // strand.  This convention differs from the paper, where we refer to 
+         // the 5'-most base as index n, and the 3'-most base as index 1.
+    */
+
     for (NSInteger k = 0; k < n; ++k) {
         CGFloat X_k = [treated[k] floatValue];
         CGFloat Y_k = [untreated[k] floatValue];
