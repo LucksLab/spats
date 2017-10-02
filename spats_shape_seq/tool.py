@@ -6,6 +6,7 @@ import datetime
 import json
 import multiprocessing
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -50,8 +51,11 @@ class SpatsTool(object):
                 self.cotrans = bool(ast.literal_eval(cotrans))
         self.metadata = config.get('metadata', {})
 
+    def _module_path(self):
+        return os.path.dirname(spats_shape_seq.__file__)
+
     def _spats_path(self):
-        return os.path.normpath(os.path.join(os.path.dirname(spats_shape_seq.__file__), ".."))
+        return os.path.normpath(os.path.join(self._module_path(), ".."))
 
     def _native_tool(self, tool_name):
         bin_path = os.path.join(self._spats_path(), "native", "bin", tool_name)
@@ -252,15 +256,35 @@ class SpatsTool(object):
         else:
             self._add_note("Validation FAILURE")
 
+    def _install_nbextensions(self):
+        ext_out = subprocess.check_output(["jupyter", "nbextension", "list"])
+        if "spats_shape_seq/main" not in ext_out:
+            subprocess.check_call(["jupyter", "nbextension", "install", "--py", "spats_shape_seq"])
+            subprocess.check_call(["jupyter", "nbextension", "enable", "--py", "spats_shape_seq"])
+
+    def _install_matplotlib_styles(self):
+        import matplotlib as mpl
+        conf_dir = mpl.get_configdir()
+        if not os.path.exists(conf_dir):
+            os.mkdir(conf_dir)
+        style_dir = os.path.join(conf_dir, 'stylelib')
+        if not os.path.exists(style_dir):
+            os.mkdir(style_dir)
+        static_path = os.path.join(self._module_path(), 'static', 'styles')
+        for style in os.listdir(static_path):
+            target_path = os.path.join(style_dir, style)
+            if not os.path.exists(target_path):
+                shutil.copyfile(os.path.join(static_path, style), target_path)
+
     def nb(self):
         """Launch the Jupyter notebook.
         """
         self._skip_log = True
+
+        self._install_nbextensions()
+        self._install_matplotlib_styles()
+
         try:
-            ext_out = subprocess.check_output(["jupyter", "nbextension", "list"])
-            if "spats_shape_seq/main" not in ext_out:
-                subprocess.check_call(["jupyter", "nbextension", "install", "--py", "spats_shape_seq"])
-                subprocess.check_call(["jupyter", "nbextension", "enable", "--py", "spats_shape_seq"])
             process = subprocess.Popen(["jupyter", "notebook", "-y", "spats.ipynb"], cwd = self.path)
             process.wait()
         except KeyboardInterrupt:

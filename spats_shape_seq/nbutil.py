@@ -141,11 +141,18 @@ Pre-Sequencing
 
 preseq_code_template = """
 pre_data = preseq_data()
-plt.plot(pre_data.x_axis, pre_data.treated, color = colors.green)
-plt.plot(pre_data.x_axis, pre_data.untreated, color = colors.black)
-plt.plot(pre_data.x_axis, pre_data.base, color = colors.cyan)
-plt.ylim([0, 30000])
+default_ylim = pre_data.max_val
+default_xlim = max(pre_data.x_axis)
+plt.ylim([0, default_ylim]) #Change y-axis here
+plt.xlim([0, default_xlim]) #Change x-axis here
+plt.style.use('fsa')
+plt.plot(pre_data.x_axis, pre_data.treated, color = colors.green, label = '(+)')
+plt.plot(pre_data.x_axis, pre_data.untreated, color = colors.black, label = '(-)')
+plt.plot(pre_data.x_axis, pre_data.base, color = colors.cyan, label = 'Standard')
+plt.xlabel('Elution Time (pixel)')
+plt.ylabel('Intensity (AU)')
 plt.gcf().set_size_inches(36, 8)
+plt.legend()
 plt.show()
 print "Treated 1st moment: {}".format(first_moment(pre_data.treated))
 print "Untreated 1st moment: {}".format(first_moment(pre_data.untreated))

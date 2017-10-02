@@ -21,6 +21,7 @@ def preseq_data():
     res.treated = vals[0]
     res.untreated = vals[1]
     res.base = vals[2]
+    res.max_val = max(map(max, vals))
     return res
 
 

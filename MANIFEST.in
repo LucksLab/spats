@@ -1,1 +1,2 @@
 include spats_shape_seq/static/main.js
+include spats_shape_seq/static/styles/fsa.mplstyle
