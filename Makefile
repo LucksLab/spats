@@ -59,6 +59,7 @@ local_install: local_uninstall
 
 .PHONY: local_uninstall
 local_uninstall:
+	@jupyter nbextension uninstall --user --py spats_shape_seq || echo ""
 	@sudo pip uninstall -y -q ${PKG_NAME}  ||  echo "Not previously installed."
 
 .PHONY: docs

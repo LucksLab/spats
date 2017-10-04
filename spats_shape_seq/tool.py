@@ -257,10 +257,10 @@ class SpatsTool(object):
             self._add_note("Validation FAILURE")
 
     def _install_nbextensions(self):
-        ext_out = subprocess.check_output(["jupyter", "nbextension", "list"])
+        ext_out = subprocess.check_output(["jupyter", "nbextension", "list", "--user"])
         if "spats_shape_seq/main" not in ext_out:
-            subprocess.check_call(["jupyter", "nbextension", "install", "--py", "spats_shape_seq"])
-            subprocess.check_call(["jupyter", "nbextension", "enable", "--py", "spats_shape_seq"])
+            subprocess.check_call(["jupyter", "nbextension", "install", "--user", "--py", "spats_shape_seq"])
+            subprocess.check_call(["jupyter", "nbextension", "enable",  "--user", "--py", "spats_shape_seq"])
 
     def _install_jupyter_browser_fix(self):
         jup_conf_path = os.path.expanduser('~/.jupyter/jupyter_notebook_config.py')
