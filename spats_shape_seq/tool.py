@@ -262,6 +262,18 @@ class SpatsTool(object):
             subprocess.check_call(["jupyter", "nbextension", "install", "--py", "spats_shape_seq"])
             subprocess.check_call(["jupyter", "nbextension", "enable", "--py", "spats_shape_seq"])
 
+    def _install_jupyter_browser_fix(self):
+        jup_conf_path = os.path.expanduser('~/.jupyter/jupyter_notebook_config.py')
+        jup_conf_line = "c.NotebookApp.browser = u'Safari'\n"
+        if os.path.exists(jup_conf_path):
+            jup_conf = open(jup_conf_path, 'rb').read()
+            if 'c.NotebookApp.browser' in jup_conf:
+                return
+            jup_conf += "\n" + jup_conf_line
+        else:
+            jup_conf = jup_conf_line
+        open(jup_conf_path, 'wb').write(jup_conf)
+
     def _install_matplotlib_styles(self):
         import matplotlib as mpl
         conf_dir = mpl.get_configdir()
@@ -283,6 +295,7 @@ class SpatsTool(object):
 
         self._install_nbextensions()
         self._install_matplotlib_styles()
+        self._install_jupyter_browser_fix()
 
         try:
             process = subprocess.Popen(["jupyter", "notebook", "-y", "spats.ipynb"], cwd = self.path)
