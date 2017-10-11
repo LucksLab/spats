@@ -86,6 +86,8 @@ class Notebook(object):
         if cotrans:
             nb.add_code_cell(cotrans_counts_template)
             nb.add_code_cell(cotrans_c_value_template)
+            nb.add_code_cell(cotrans_row_plot_template)
+            nb.add_code_cell(cotrans_column_plot_template)
         else:
             pass
         return nb
@@ -184,6 +186,44 @@ plt.title("c Values")
 plt.xlabel("Length")
 plt.ylabel("c")
 plt.xlim([run_data.min_length, run_data.n + 1])
+plt.gcf().set_size_inches(36, 8)
+plt.show()
+"""
+
+cotrans_row_plot_template = """
+run_data = spats_run_data()
+end_length = 114
+row_data = run_data.row(end_length)
+
+plt.plot(row_data.x_axis, row_data.rho, color = colors.black)
+plt.xlim([0, run_data.n + 1])
+plt.ylim(0, 4.0)
+plt.title("rho, length = {}".format(end_length))
+plt.xlabel("Site")
+plt.ylabel("rho")
+plt.gcf().set_size_inches(36, 8)
+plt.show()
+
+plt.plot(row_data.x_axis, normalize(row_data.treated), color = colors.red)
+plt.plot(row_data.x_axis, normalize(row_data.untreated), color = colors.blue)
+plt.xlim([0, run_data.n + 1])
+plt.title("Treated/Untreated Counts, length = {}".format(end_length))
+plt.legend(["f+", "f-"])
+plt.xlabel("Site")
+plt.ylabel("% of Stops")
+plt.gcf().set_size_inches(36, 8)
+plt.show()
+"""
+
+cotrans_column_plot_template = """
+run_data = spats_run_data()
+site = 22
+col_data = run_data.column(site)
+plt.plot(col_data.x_axis, col_data.rho, color = colors.black)
+plt.xlim([run_data.min_length, run_data.n + 1])
+plt.title("NT {}, rho".format(site))
+plt.xlabel("Length")
+plt.ylabel("rho")
 plt.gcf().set_size_inches(36, 8)
 plt.show()
 """

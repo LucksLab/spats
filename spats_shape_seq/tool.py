@@ -264,7 +264,7 @@ class SpatsTool(object):
 
     def _install_jupyter_browser_fix(self):
         jup_conf_path = os.path.expanduser('~/.jupyter/jupyter_notebook_config.py')
-        jup_conf_line = "c.NotebookApp.browser = u'Safari'\n"
+        jup_conf_line = "c.NotebookApp.browser = u'open %s'\n"
         if os.path.exists(jup_conf_path):
             jup_conf = open(jup_conf_path, 'rb').read()
             if 'c.NotebookApp.browser' in jup_conf:

@@ -13,6 +13,10 @@ colors = _spats_util.Colors()
 def first_moment(data):
     return sum([(i + 1) * data[i] for i in range(len(data))])/sum(data)
 
+def normalize(data):
+    s = float(sum(data))
+    return map(lambda x : float(x) / s, data)
+
 def preseq_data():
     import json
     vals = json.loads(open('pre.spats', 'rb').read())
@@ -102,6 +106,26 @@ class _SpatsRunData(object):
     @property
     def c_values(self):
         return [ self._profile_for_end(end).c for end in self.all_sites ]
+
+    def row(self, end):
+        res = self._profile_for_end(end)
+        res.x_axis = range(end + 1)
+        return res
+
+    def column(self, site):
+        res = _spats_util.SimpleObject()
+        res.x_axis = []
+        plots = [ "treated", "untreated", "beta", "theta", "rho" ]
+        for plot_type in plots:
+            setattr(res, plot_type, [])
+        for end in range(self.min_length, self.n + 1):
+            if site <= end:
+                profiles = self._profile_for_end(end)
+                res.x_axis.append(end)
+                for plot_type in plots:
+                    data = getattr(profiles, plot_type)
+                    getattr(res, plot_type).append(data[site])
+        return res
 
 def spats_run_data():
     return _SpatsRunData()
