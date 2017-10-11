@@ -192,16 +192,20 @@ class SpatsTool(object):
             os.remove(run_name)
 
         native_tool = self._native_tool('cotrans')
-        if self.cotrans and native_tool:
+        if native_tool and not self.cotrans:
+            self._add_note("skipping native tool due to non-cotrans run")
+            native_tool = None
+
+        spats = Spats(cotrans = self.cotrans)
+        if native_tool and self._update_run_config(spats.run):
+            self._add_note("skipping native tool due to custom config")
+            native_tool = None
+
+        if native_tool:
             self._add_note("using native cotrans processor")
             subprocess.check_call([native_tool, self.config['target'], self.r1, self.r2, run_name], cwd = self.path)
-
         else:
-            if native_tool:
-                self._add_note("skipping native tool due to non-cotrans run")
             self._add_note("using python processor")
-            spats = Spats(cotrans = self.cotrans)
-            self._update_run_config(spats.run)
             spats.addTargets(self.config['target'])
             spats.process_pair_data(self.r1, self.r2)
             spats.store(run_name)
@@ -209,8 +213,9 @@ class SpatsTool(object):
         self._notebook().add_spats_run(self.cotrans).save()
 
     def _update_run_config(self, run):
+        custom_config = False
         for key, value in self.config.iteritems():
-            if key in [ "r1", "r2", "target", "cotrans" ]:
+            if key in [ "r1", "r2", "preseq", "target", "cotrans" ]:
                 continue
             if hasattr(run, key):
                 try:
@@ -219,8 +224,10 @@ class SpatsTool(object):
                     val = value
                 setattr(run, key, val)
                 self._add_note("config set {} = {}".format(key, val))
+                custom_config = True
             else:
                 self._add_note("warning: unknown config {}".format(key))
+        return custom_config
 
     def _spats_file(self, base_name):
         return os.path.join(self.path, '{}.spats'.format(base_name))
