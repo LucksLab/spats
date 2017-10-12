@@ -197,7 +197,7 @@ plt.show()
 """
 
 cotrans_matrix_template = """
-matrix_data = cotrans_matrix_data('rho')
+matrix_data = cotrans_matrix_data('rho', max_val = 4.0)
 plt.style.use('fsa')
 plt.matshow(matrix_data)
 plt.gcf().set_size_inches(24, 24)

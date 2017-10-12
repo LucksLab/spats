@@ -132,14 +132,16 @@ class _SpatsRunData(object):
 def spats_run_data():
     return _SpatsRunData()
 
-def cotrans_matrix_data(data_type):
+def cotrans_matrix_data(data_type, max_val = 0):
     run_data = _SpatsRunData()
     n = run_data.n
     min_length = run_data.min_length
-    rows = []
+    rows = [ [0] * (n + 1) for x in range(0, min_length) ]
     for end in range(min_length, n + 1):
         prof = run_data._profile_for_end(end)
         row = getattr(prof, data_type)
+        if max_val > 0:
+            row = [ min(x, max_val) for x in row ]
         row = row + ([0] * (n + 1 - len(row)))
         rows.append(row)
     return rows
