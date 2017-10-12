@@ -132,6 +132,17 @@ class _SpatsRunData(object):
 def spats_run_data():
     return _SpatsRunData()
 
-def cotrans_matrix(data_type, max_val, flags):
+def cotrans_matrix_data(data_type):
     run_data = _SpatsRunData()
+    n = run_data.n
+    min_length = run_data.min_length
+    rows = []
+    for end in range(min_length, n + 1):
+        prof = run_data._profile_for_end(end)
+        row = getattr(prof, data_type)
+        row = row + ([0] * (n + 1 - len(row)))
+        rows.append(row)
+    return rows
+
+def cotrans_matrix(data, max_val = 0, flags = False):
     _nbutil.create_html_cell(_matrix.matrix_html(run_data.min_length, run_data.n, run_data.spats._profiles))

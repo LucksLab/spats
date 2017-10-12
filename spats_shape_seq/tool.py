@@ -183,6 +183,9 @@ class SpatsTool(object):
         self._add_note("pre-sequencing data processed to {}".format(os.path.basename(pre_name)))
         self._notebook().add_preseq().save()
 
+    def run2(self):
+        self._notebook().add_spats_run(self.cotrans).save()
+
     def run(self):
         """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
         """

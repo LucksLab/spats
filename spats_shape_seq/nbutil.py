@@ -86,7 +86,7 @@ class Notebook(object):
         if cotrans:
             nb.add_code_cell(cotrans_counts_template)
             nb.add_code_cell(cotrans_c_value_template)
-            #nb.add_code_cell(cotrans_matrix_template)
+            nb.add_code_cell(cotrans_matrix_template)
             nb.add_code_cell(cotrans_row_plot_template)
             nb.add_code_cell(cotrans_column_plot_template)
         else:
@@ -197,6 +197,14 @@ plt.show()
 """
 
 cotrans_matrix_template = """
+matrix_data = cotrans_matrix_data('rho')
+plt.style.use('fsa')
+plt.matshow(matrix_data)
+plt.gcf().set_size_inches(24, 24)
+plt.show()
+"""
+
+cotrans_matrix_template_html = """
 cotrans_matrix(data_type = 'rho', max_val = 4.0, flags = False)
 """
 
