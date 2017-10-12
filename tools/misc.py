@@ -557,6 +557,10 @@ def tnb():
         nb.add_code_cell("a = [1,2,3,4]*2\nb = [x for x in reversed(a)]\nb")
     nb.save(nb.path)
 
+def tm():
+    from spats_shape_seq.matrix import matrix_html
+    print matrix_html(20, 131, None)
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()

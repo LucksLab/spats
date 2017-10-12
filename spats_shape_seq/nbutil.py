@@ -86,6 +86,7 @@ class Notebook(object):
         if cotrans:
             nb.add_code_cell(cotrans_counts_template)
             nb.add_code_cell(cotrans_c_value_template)
+            #nb.add_code_cell(cotrans_matrix_template)
             nb.add_code_cell(cotrans_row_plot_template)
             nb.add_code_cell(cotrans_column_plot_template)
         else:
@@ -168,26 +169,35 @@ SPATS Run
 
 cotrans_counts_template = """
 run_data = spats_run_data()
-plt.plot(run_data.all_sites, run_data.total_treated_counts, color = colors.red)
-plt.plot(run_data.all_sites, run_data.total_untreated_counts, color = colors.blue)
+plt.style.use('fsa')
+plt.xlim([run_data.min_length, run_data.n + 1]) # Change x-axis here
+plt.plot(run_data.all_sites, run_data.total_treated_counts, color = colors.red, label = '(+)')
+plt.plot(run_data.all_sites, run_data.total_untreated_counts, color = colors.blue, label = '(-)')
 plt.title("Total Treated/Untreated Counts")
-plt.legend(["f+", "f-"])
-plt.xlabel("Length")
+plt.xlabel("RNA Length")
 plt.ylabel("# of Stops")
-plt.xlim([run_data.min_length, run_data.n + 1])
+plt.legend()
 plt.gcf().set_size_inches(36, 8)
 plt.show()
 """
 
 cotrans_c_value_template = """
 run_data = spats_run_data()
-plt.plot(run_data.all_sites, run_data.c_values, color = colors.black)
+plt.style.use('fsa')
+plt.xlim([run_data.min_length, run_data.n + 1]) #Change x-axis here
+plt.plot(run_data.all_sites, run_data.c_values, color = colors.black, label = "c")
+plt.plot(run_data.all_sites, [0.4 for i in run_data.all_sites], color = colors.red, label = "Recommended Cutoff")
+ax = plt.gca(); ax.yaxis.grid(True)
 plt.title("c Values")
-plt.xlabel("Length")
+plt.xlabel("RNA Length")
 plt.ylabel("c")
-plt.xlim([run_data.min_length, run_data.n + 1])
+plt.legend()
 plt.gcf().set_size_inches(36, 8)
 plt.show()
+"""
+
+cotrans_matrix_template = """
+cotrans_matrix(data_type = 'rho', max_val = 4.0, flags = False)
 """
 
 cotrans_row_plot_template = """
@@ -195,6 +205,7 @@ run_data = spats_run_data()
 end_length = 114
 row_data = run_data.row(end_length)
 
+plt.style.use('fsa')
 plt.plot(row_data.x_axis, row_data.rho, color = colors.black)
 plt.xlim([0, run_data.n + 1])
 plt.ylim(0, 4.0)
@@ -204,6 +215,7 @@ plt.ylabel("rho")
 plt.gcf().set_size_inches(36, 8)
 plt.show()
 
+plt.style.use('fsa')
 plt.plot(row_data.x_axis, normalize(row_data.treated), color = colors.red)
 plt.plot(row_data.x_axis, normalize(row_data.untreated), color = colors.blue)
 plt.xlim([0, run_data.n + 1])
@@ -219,6 +231,7 @@ cotrans_column_plot_template = """
 run_data = spats_run_data()
 site = 22
 col_data = run_data.column(site)
+plt.style.use('fsa')
 plt.plot(col_data.x_axis, col_data.rho, color = colors.black)
 plt.xlim([run_data.min_length, run_data.n + 1])
 plt.title("NT {}, rho".format(site))

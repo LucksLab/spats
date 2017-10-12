@@ -3,10 +3,11 @@
 # meant to be leaded into the global notebook namespace, e.g.:
 #  from spats_shape_seq.nb import *
 
-import nbutil as _nbutil
 import spats_shape_seq as _spats
-import spats_shape_seq.db as _spats_db
-import spats_shape_seq.util as _spats_util
+import db as _spats_db
+import matrix as _matrix
+import nbutil as _nbutil
+import util as _spats_util
 
 colors = _spats_util.Colors()
 
@@ -57,6 +58,7 @@ class _SpatsRunData(object):
         db = _spats_db.PairDB('run.spats')
         s = _spats.Spats()
         db.load_run(s.run)
+        s.run.quiet = True
         s.loadTargets(db)
         if db.has_counters():
             db.load_counters("spats", s.counters)
@@ -129,3 +131,7 @@ class _SpatsRunData(object):
 
 def spats_run_data():
     return _SpatsRunData()
+
+def cotrans_matrix(data_type, max_val, flags):
+    run_data = _SpatsRunData()
+    _nbutil.create_html_cell(_matrix.matrix_html(run_data.min_length, run_data.n, run_data.spats._profiles))
