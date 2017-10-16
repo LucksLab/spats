@@ -82,16 +82,20 @@ class Notebook(object):
         return self.add_md_cell(preseq_md_template.format(self._stamp())).add_code_cell(preseq_code_template)
 
     def add_spats_run(self, cotrans):
-        nb = self.add_md_cell(spats_run_md_template.format(self._stamp()))
+        self.add_md_cell(spats_run_md_template.format(self._stamp()))
         if cotrans:
-            nb.add_code_cell(cotrans_counts_template)
-            nb.add_code_cell(cotrans_c_value_template)
-            nb.add_code_cell(cotrans_matrix_template)
-            nb.add_code_cell(cotrans_row_plot_template)
-            nb.add_code_cell(cotrans_column_plot_template)
+            self.add_code_cell(cotrans_counts_template)
+            self.add_code_cell(cotrans_c_value_template)
+            self.add_code_cell(cotrans_matrix_treated_template)
+            self.add_code_cell(cotrans_matrix_untreated_template)
+            self.add_md_cell(cotrans_reactivity_matrix_md_template)
+            self.add_code_cell(cotrans_reactivity_matrix_template)
+            self.add_md_cell(cotrans_reactivity_analysis_md_template)
+            self.add_code_cell(cotrans_reactivity_analysis_template)
+            self.add_code_cell(cotrans_reactivity_analysis_2_template)
         else:
             pass
-        return nb
+        return self
 
 
 
@@ -196,11 +200,61 @@ plt.gcf().set_size_inches(36, 8)
 plt.show()
 """
 
-cotrans_matrix_template = """
-matrix_data = cotrans_matrix_data('rho', max_val = 4.0)
-plt.style.use('fsa')
+cotrans_matrix_treated_template = """
+matrix_data = cotrans_matrix_data('treated_counts', max_val = 5000)
+plt.style.use('fsa') #Todo - change to be a custom matrix style to remove large fonts
+plt.matshow(matrix_data,cmap='jet')
+ax = plt.gca()
+ax.grid(color='grey',linestyle='-',linewidth='0.5')
+ax.xaxis.set_ticks_position('bottom')
+plt.xlabel("Nucleotide (nt)")
+plt.ylabel("RNA Length (nt)")
+cbar = plt.colorbar(fraction=0.046, pad=0.04)
+cbar.set_label('Counts')
+plt.title('Treated Channel Counts')
+plt.gcf().set_size_inches(12, 12)
+plt.show()
+"""
+
+cotrans_matrix_untreated_template = """
+matrix_data = cotrans_matrix_data('untreated_counts', max_val = 5000)
+plt.style.use('fsa') #Todo - change to be a custom matrix style to remove large fonts
+plt.matshow(matrix_data,cmap='jet')
+ax = plt.gca()
+ax.grid(color='grey',linestyle='-',linewidth='0.5')
+ax.xaxis.set_ticks_position('bottom')
+plt.xlabel("Nucleotide (nt)")
+plt.ylabel("RNA Length (nt)")
+cbar = plt.colorbar(fraction=0.046, pad=0.04)
+cbar.set_label('Counts')
+plt.title('Untreated Channel Counts')
+plt.gcf().set_size_inches(12, 12)
+plt.show()
+"""
+
+cotrans_reactivity_matrix_md_template = """
+Reactivity Matrix
+------
+
+Comments:
+
+ - XXX
+"""
+
+cotrans_reactivity_matrix_template = """
+reactivity_type = 'beta' #Can be 'rho', 'beta', 'theta'
+matrix_data = cotrans_matrix_data(reactivity_type, max_val = 0.025) #Suggested max_val: beta = 0.025, rho = 4
+#Todo - interface that allows to get subsets of the matrix from cotrans_matrix_data (to create subset plots)
+plt.style.use('fsa') #Todo - change to be a custom matrix style to remove large fonts
 plt.matshow(matrix_data)
-plt.gcf().set_size_inches(24, 24)
+ax = plt.gca()
+ax.grid(color='grey',linestyle='-',linewidth='0.5')
+ax.xaxis.set_ticks_position('bottom')
+plt.xlabel("Nucleotide (nt)")
+plt.ylabel("RNA Length (nt)")
+cbar = plt.colorbar(fraction=0.046, pad=0.04)
+cbar.set_label(reactivity_type)
+plt.gcf().set_size_inches(12, 12)
 plt.show()
 """
 
@@ -208,43 +262,79 @@ cotrans_matrix_template_html = """
 cotrans_matrix(data_type = 'rho', max_val = 4.0, flags = False)
 """
 
-cotrans_row_plot_template = """
-run_data = spats_run_data()
-end_length = 114
-row_data = run_data.row(end_length)
+cotrans_reactivity_analysis_md_template = """
+Reactivity Analysis
+------
 
+Comments:
+
+ - XXX
+"""
+
+cotrans_reactivity_analysis_template = """
+run_data = spats_run_data()
+reactivity_type = 'beta' #Can be 'rho', 'beta', 'theta'
+end_lengths = [99,115]
+row_data = [run_data.row(end_length) for end_length in end_lengths]
 plt.style.use('fsa')
-plt.plot(row_data.x_axis, row_data.rho, color = colors.black)
-plt.xlim([0, run_data.n + 1])
-plt.ylim(0, 4.0)
-plt.title("rho, length = {}".format(end_length))
-plt.xlabel("Site")
-plt.ylabel("rho")
+
+#Reactivity bar plots
+xmax = 0
+ymax = 0
+bar_width = 1./float(len(end_lengths))
+for i in range(len(row_data)):
+    row = row_data[i]
+    xmax = max(row.x_axis)
+    ymax = max(ymax,max(row.beta))
+    plt.bar([x + i*bar_width for x in row.x_axis], 
+            row.beta, 
+            bar_width,
+            label=end_lengths[i]) #TODO - interface that allows y-data to be reatrieved by using the reactivity_type variable
+#Todo - set xticks better with minor at each position
+plt.xlim([0, xmax])
+plt.ylim(0, ymax)
+plt.title(reactivity_type+", length = {}".format(end_lengths))
+plt.xlabel("Nucleotide Position (nt)")
+plt.ylabel(reactivity_type)
+plt.legend()
 plt.gcf().set_size_inches(36, 8)
 plt.show()
 
+#Individual +/- fragment distribution plots
 plt.style.use('fsa')
-plt.plot(row_data.x_axis, normalize(row_data.treated), color = colors.red)
-plt.plot(row_data.x_axis, normalize(row_data.untreated), color = colors.blue)
+f, sub_axes = plt.subplots(len(row_data), sharex=True, sharey=True)
+sub_axes[0].set_title("Treated/Untreated Fragment Distribution, length = {}".format(end_lengths))
+for i in range(len(row_data)):
+    row = row_data[i]
+    sub_axes[i].plot(row.x_axis, normalize(row.treated), color = colors.red, label = 'f+')
+    sub_axes[i].plot(row.x_axis, normalize(row.untreated), color = colors.blue, label = 'f-')
+    sub_axes[i].set_ylabel("%")
 plt.xlim([0, run_data.n + 1])
-plt.title("Treated/Untreated Counts, length = {}".format(end_length))
-plt.legend(["f+", "f-"])
-plt.xlabel("Site")
-plt.ylabel("% of Stops")
-plt.gcf().set_size_inches(36, 8)
+plt.legend()
+f.set_size_inches(36, 2*len(row_data))
+f.subplots_adjust(hspace=0)
+plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False) #mashing plots together
+plt.xlabel("Nucleotide Position(nt)")
 plt.show()
 """
 
-cotrans_column_plot_template = """
+cotrans_reactivity_analysis_2_template = """
 run_data = spats_run_data()
-site = 22
-col_data = run_data.column(site)
+reactivity_type = 'beta' #Can be 'rho', 'beta', 'theta'
+sites = [22,30,45]
+col_data = [run_data.column(site) for site in sites]
 plt.style.use('fsa')
-plt.plot(col_data.x_axis, col_data.rho, color = colors.black)
+ymax = 0
+for i in range(len(col_data)):
+    col = col_data[i]
+    xmax = max(col.x_axis)
+    ymax = max(ymax,max(col.beta))
+    plt.plot(col.x_axis, col.beta,label=sites[i]) #TODO - interface that allows y-data to be reatrieved by using the reactivity_type variable
 plt.xlim([run_data.min_length, run_data.n + 1])
-plt.title("NT {}, rho".format(site))
-plt.xlabel("Length")
-plt.ylabel("rho")
+plt.title("Reactivity Traces (Beta) {} ".format(sites)) #Todo - change beta label based on reactivity_type
+plt.xlabel("RNA Length (nt)")
+plt.ylabel(reactivity_type)
+plt.legend()
 plt.gcf().set_size_inches(36, 8)
 plt.show()
 """
