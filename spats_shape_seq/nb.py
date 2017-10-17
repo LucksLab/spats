@@ -102,6 +102,14 @@ class _SpatsRunData(object):
         return self._total_counts("untreated")
 
     @property
+    def total_treated_muts(self):
+        return self._total_counts("treated_muts")
+
+    @property
+    def total_untreated_muts(self):
+        return self._total_counts("untreated_muts")
+
+    @property
     def all_sites(self):
         return range(self.min_length, self.n + 1)
 
