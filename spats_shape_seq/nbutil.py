@@ -1,11 +1,8 @@
 
 import base64
 import datetime
-import IPython.display as Idp
 import nbformat as nbf
 import os
-
-from IPython.utils.py3compat import str_to_bytes, bytes_to_str
 
 
 ##########################################################
@@ -19,14 +16,22 @@ var code = IPython.notebook.insert_cell_{}('code');
 code.set_text(atob('{}'));
 {}
 """
+
+def _load_ipython():
+    import IPython.display as Idp
+    from IPython.utils.py3compat import str_to_bytes, bytes_to_str
+
 def create_code_cell(code, execute = True, where = 'below'):
+    _load_ipython()
     encoded_code = bytes_to_str(base64.b64encode(str_to_bytes(code)))
     Idp.display(Idp.Javascript(_insert_code_cell_template.format(where, encoded_code, "code.execute();" if execute else "")))
 
 def create_html_cell(html):
+    _load_ipython()
     Idp.display(Idp.HTML(html))
 
 def create_json_cell(json_dict):
+    _load_ipython()
     Idp.display(Idp.JSON(json_dict))
 
 
