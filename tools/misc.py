@@ -561,6 +561,67 @@ def tm():
     from spats_shape_seq.matrix import matrix_html
     print matrix_html(20, 131, None)
 
+def tmut():
+    from spats_shape_seq import Spats
+    from spats_shape_seq.db import PairDB
+
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/mut/"
+
+    pair_db = PairDB(bp + "ds2.spats")
+    if True:
+        print "Parsing to db..."
+        pair_db.wipe()
+        pair_db.add_targets_table(bp + "mut_single.fa")
+        pair_db.parse(bp + "mut_20k_R1.fastq", bp + "mut_20k_R2.fastq")
+
+    spats = Spats(cotrans = True)
+    spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    spats.run.count_mutations = True
+    spats.run.algorithm = "find_partial"
+    spats.run.allowed_target_errors = 1
+    spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
+    spats.run._process_all_pairs = True
+    spats.run.writeback_results = True
+    spats.run.num_workers = 1
+    spats.run.result_set_name = "mut"
+
+    spats.process_pair_db(pair_db)
+    pair_db.store_run(spats.run)
+    pair_db.store_counters('spats', spats.counters)
+    #for key, value in spats.counters._registered.iteritems():
+    #    if ":M" in key:
+    #        print "{}: {}".format(key, value)
+
+def tmut_case():
+    from spats_shape_seq import Spats
+    from spats_shape_seq.db import PairDB
+
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/mut/"
+
+    spats = Spats(cotrans = True)
+    spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    spats.run.count_mutations = True
+    spats.run.algorithm = "find_partial"
+    spats.run.allowed_target_errors = 1
+    spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
+    spats.run._process_all_pairs = True
+    spats.run.writeback_results = True
+    spats.run.num_workers = 1
+    spats.run.result_set_name = "mut"
+    spats.addTargets(bp + "mut_single.fa")
+
+    from spats_shape_seq.pair import Pair
+    pair = Pair()
+    pair.set_from_data('x', 
+                       'GAATGTCCTTGGTGCCCGAGTCAGTCCTTGGTGCCCGAGTCAGTCCTTGGTTCCCGAGTCACTCCTTTGTTCCCC',
+                       'AGGACTGACTCGGGCACCAAGGACTTTCTCGTTCACCTATTTCTTTCTCTTCCCCCTTTTTCTTTCTCTTTCTCC')
+    spats.process_pair(pair)
+    if pair.has_site:
+        print "{}: {} / {}".format(pair.target.name, pair.site, pair.end)
+    else:
+        print "FAIL: {}".format(pair.failure)
+    
+
 if __name__ == "__main__":
     import sys
     globals()[sys.argv[1]]()

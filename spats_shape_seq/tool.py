@@ -183,7 +183,7 @@ class SpatsTool(object):
         self._add_note("pre-sequencing data processed to {}".format(os.path.basename(pre_name)))
         self._notebook().add_preseq().save()
 
-    def run2(self):
+    def _run_plots(self):
         self._notebook().add_spats_run(self.cotrans).save()
 
     def run(self):
@@ -200,7 +200,7 @@ class SpatsTool(object):
             native_tool = None
 
         spats = Spats(cotrans = self.cotrans)
-        if native_tool and self._update_run_config(spats.run):
+        if self._update_run_config(spats.run) and native_tool:
             self._add_note("skipping native tool due to custom config")
             native_tool = None
 

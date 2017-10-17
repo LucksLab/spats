@@ -372,4 +372,6 @@ class CotransPartialFindProcessor(PairProcessor):
                 return
 
         pair.site = pair.left
+        if run.count_mutations:
+            pair.check_mutations()
         self.counters.register_count(pair)

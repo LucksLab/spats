@@ -17,6 +17,7 @@ class Pair(object):
         self.multiplicity = 1
         self.tags = None
         self._end = -1
+        self.mutations = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()
@@ -39,6 +40,14 @@ class Pair(object):
     def set_mask(self, mask):
         self.mask = mask
         self.r1._ltrim = 4
+
+    def check_mutations(self):
+        mutations = set()
+        for seq in [ self.r1, self.r2 ]:
+            for err_index in seq.match_errors:
+                mutations.add(seq.match_index + err_index)
+        if mutations:
+            self.mutations = list(mutations)
 
     @property
     def matched(self):

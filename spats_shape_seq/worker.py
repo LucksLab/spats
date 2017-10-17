@@ -204,7 +204,13 @@ class SpatsWorker(object):
                     results = []
                     for lines in pair_info:
                         pair.set_from_data('', str(lines[1]), str(lines[2]), lines[0])
-                        processor.process_pair(pair)
+
+                        try:
+                            processor.process_pair(pair)
+                        except:
+                            print("**** Error processing pair: {} / {}".format(pair.r1.original_seq, pair.r2.original_seq))
+                            raise
+
                         total += pair.multiplicity
                         if writeback:
                             if tagged:

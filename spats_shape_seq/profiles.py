@@ -9,6 +9,7 @@ class Profiles(object):
         self._counters = counters
         self._cotrans = run.cotrans
         self._run = run
+        count_muts = run.count_mutations
         masks = run.masks
         profiles = {}
         for target in self._targets.targets:
@@ -17,11 +18,15 @@ class Profiles(object):
                 for end in range(run.cotrans_minimum_length, n + 1):
                     profiles["{}_{}".format(target.name, end)] = TargetProfiles(self, target,
                                                                                 counters.mask_counts(target, masks[0], end),
-                                                                                counters.mask_counts(target, masks[1], end))
+                                                                                counters.mask_counts(target, masks[1], end),
+                                                                                counters.mask_muts(target, masks[0], end) if count_muts else None,
+                                                                                counters.mask_muts(target, masks[1], end) if count_muts else None)
             else:
                 profiles[target.name] = TargetProfiles(self, target,
                                                        counters.mask_counts(target, masks[0], n),
-                                                       counters.mask_counts(target, masks[1], n))
+                                                       counters.mask_counts(target, masks[1], n),
+                                                       counters.mask_muts(target, masks[0], n) if count_muts else None,
+                                                       counters.mask_muts(target, masks[1], n) if count_muts else None)
         self._profiles = profiles
 
     def profilesForTarget(self, target):
@@ -67,11 +72,13 @@ class Profiles(object):
 
 class TargetProfiles(object):
 
-    def __init__(self, owner, target, treated_counts, untreated_counts):
+    def __init__(self, owner, target, treated_counts, untreated_counts, treated_muts, untreated_muts):
         self.owner = owner
         self._target = target
         self.treated_counts = treated_counts
         self.untreated_counts = untreated_counts
+        self.treated_muts = treated_muts
+        self.untreated_muts = untreated_muts
 
     @property
     def treated(self):

@@ -45,6 +45,12 @@ class Run(object):
         #: determine an appropriate value.
         self.minimum_target_match_length = 10
 
+        #: Defaults to ``False``. If set to ``True``, will count both
+        #: stops and muations, and incorporate the mutation information
+        #: into the reactivity profile computations. Note that setting
+        #: this will force ``allowed_target_errors`` to be ``1``.
+        self.count_mutations = False
+
         #: Defaults to ``0``, set higher to require a minimal amount of
         #: adapter in order to do trimming. Generally not necessary since
         #: a positive match in the target is required before trimming.
