@@ -234,16 +234,31 @@ class Targets(object):
                 tstart = i - (r1_match_len - linker_len)
                 if tstart + end < 0:
                     continue
-                r1_rc_match = target_subseq[tstart:] + linker
+                target_bit = target_subseq[tstart:]
+                r1_rc_match = target_bit + linker
                 r1_match = reverse_complement(r1_rc_match) + adapter_b[:i]
                 entries = r1_table.get(r1_match, [])
-                entries.append( (target, end, i) ) # target, end, amount of adapter to trim
+                entries.append( (target, end, i, []) ) # target, end, amount of adapter to trim, mutations
                 r1_table[r1_match] = entries
+
+                if run.count_mutations:
+                    bit_len = len(target_bit)
+                    for toggle_idx in range(bit_len):
+                        for nt in [ 'A', 'C', 'G', 'T' ]:
+                            if target_bit[toggle_idx] == nt:
+                                continue
+                            mutated_bit = target_bit[:toggle_idx] + nt + target_bit[toggle_idx + 1:]
+                            mutated_rc_match = mutated_bit + linker
+                            mutated_match = reverse_complement(mutated_rc_match) + adapter_b[:i]
+                            entries = r1_table.get(mutated_match, [])
+                            entries.append( (target, end, i, [end - (bit_len - toggle_idx - 1)]) )
+                            r1_table[mutated_match] = entries
+
         self.r1_lookup = r1_table
 
         # we only need to build R2 lookups for full sequences (excepting linker)
         # trim cases are just tested against R1
-        self._build_R2_lookup(pair_len - linker_len - 4)
+        self._build_R2_lookup(pair_len - linker_len - 4, run.count_mutations)
 
 
     def build_lookups(self, adapter_b, length = None, end_only = True):
@@ -280,7 +295,7 @@ class Targets(object):
                 _warn("!! No R1 match candidates for {}".format(target.name))
         self.r1_lookup = r1_table
 
-    def _build_R2_lookup(self, length = 35):
+    def _build_R2_lookup(self, length = 35, mutations = False):
         # for the R2 table, we only care about R2's that are in the sequence
         # when R2 needs adapter trimming, R1 will determine that
         self_matches = self.longest_target_self_matches()
@@ -288,7 +303,7 @@ class Targets(object):
         #    print("{} : {}".format(tname, self_matches[tname]))
         r2_full_table = {}
         for target in self.targets:
-            mlen = self_matches[target.name] + 1
+            mlen = length if mutations else self_matches[target.name] + 1
             if length < mlen:
                 raise Exception("R2 length not long enough for target self-match ({} / {})".format(length, mlen))
             r2_table = {}
@@ -299,5 +314,17 @@ class Targets(object):
                 r2_candidate = tgt_seq[i:i+mlen]
                 if r2_table.get(r2_candidate):
                     raise Exception("indeterminate R2 candidate {} in target?".format(r2_candidate))
-                r2_table[r2_candidate] = i
+                r2_table[r2_candidate] = (i, [])
+
+                if mutations:
+                    bit_len = len(r2_candidate)
+                    for toggle_idx in range(bit_len):
+                        for nt in [ 'A', 'C', 'G', 'T' ]:
+                            if r2_candidate[toggle_idx] == nt:
+                                continue
+                            mutated_bit = r2_candidate[:toggle_idx] + nt + r2_candidate[toggle_idx + 1:]
+                            if r2_table.get(mutated_bit):
+                                raise Exception("indeterminate R2 candidate {} in target?".format(mutated_bit))
+                            r2_table[mutated_bit] = (i, [ i + toggle_idx ])
+
         self.r2_lookup = r2_full_table

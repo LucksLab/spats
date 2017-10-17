@@ -79,7 +79,7 @@ class LookupProcessor(PairProcessor):
             r2_key = pair.r2.original_seq[:r2_match_len]
             r2_res = lookup.get(r2_key)
             if r2_res is not None:
-                match_site = r2_res
+                match_site = r2_res[0]
             else:
                 pair.failure = Failures.nomatch
                 return
@@ -166,12 +166,14 @@ class CotransLookupProcessor(PairProcessor):
         L = r1_res[1]
         trim = r1_res[2]
         site = -1
+        r2_mutations = []
 
         if 0 == trim:
             r2_match_len = self.r2_match_len
             r2_res = self.r2_lookup.get(r2_seq[:r2_match_len])
             if r2_res is not None:
-                site = r2_res
+                site = r2_res[0]
+                r2_mutations = r2_res[1]
             else:
                 pair.failure = Failures.nomatch
                 return
@@ -205,4 +207,6 @@ class CotransLookupProcessor(PairProcessor):
         pair.end = L
         pair.target = target
         pair.site = site
+        if r2_mutations or r1_res[3]:
+            pair.mutations = list(set(r2_mutations + r1_res[3]))
         self.counters.register_count(pair)

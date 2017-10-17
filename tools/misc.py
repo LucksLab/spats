@@ -577,7 +577,8 @@ def tmut():
     spats = Spats(cotrans = True)
     spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
     spats.run.count_mutations = True
-    spats.run.algorithm = "find_partial"
+    #spats.run.algorithm = "find_partial"
+    spats.run.algorithm = "lookup"
     spats.run.allowed_target_errors = 1
     spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
     spats.run._process_all_pairs = True

@@ -216,8 +216,8 @@ class CotransPartialFindProcessor(PairProcessor):
         self._targets.index()
         if 1 != len(self._targets.targets):
             raise Exception("multiple cotrans targets?")
-        if 0 != self._run.allowed_target_errors:
-            print("Warning: cotrans match w/errors NYI")
+        if 0 != self._run.allowed_adapter_errors:
+            print("Warning: cotrans match w/adapter errors NYI")
 
     def process_pair(self, pair):
 
