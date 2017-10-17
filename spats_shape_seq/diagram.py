@@ -13,7 +13,7 @@ def sp(n, bit = " "):
 class Diagram(object):
 
     def __init__(self, pair, run):
-        self.target = pair.target or _Target('???', '?' * 100)
+        self.target = pair.target or _Target('???', '?' * 100, 0)
         self.pair = pair
         self.run = run
         self.prefix_len = 8

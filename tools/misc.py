@@ -326,9 +326,9 @@ def rdiff_func(db_path, rs1_name, rs2_name, diag_spats = None):
             rlist.append(r)
         for reason, rlist in reasons.iteritems():
             for r in rlist[:min(len(rlist), 10)]:
-                print "  {}:{} ({}) -- {}:{} ({})   ({}: {} / {})".format(r[3] or 'x', r[4], r[5] or "OK",
-                                                                          r[6] or 'x', r[7], r[8] or "OK",
-                                                                          r[0], r[1], r[2])
+                print "  {}:{} s{} ({}) -- {}:{} s{} ({})   ({}: {} / {})".format(r[3] or 'x', r[4], r[5], r[6] or "OK",
+                                                                                  r[7] or 'x', r[8], r[9], r[10] or "OK",
+                                                                                  r[0], r[1], r[2])
             if len(rlist) > 0:
                 print "... {} total.".format(len(rlist))
             if diag_spats:
@@ -583,7 +583,8 @@ def tmut():
         pair_db.add_targets_table(bp + "mut_single.fa")
         pair_db.parse(bp + "mut_20k_R1.fastq", bp + "mut_20k_R2.fastq")
 
-    for alg in [ "lookup", "find_partial" ]:
+    spatss = []
+    for alg in [ "find_partial", "lookup" ]:
         spats = Spats(cotrans = True)
         spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
         spats.run.count_mutations = True
@@ -598,8 +599,9 @@ def tmut():
         spats.process_pair_db(pair_db)
         pair_db.store_run(spats.run)
         pair_db.store_counters(spats.run.result_set_name, spats.counters)
+        spatss.append(spats)
 
-    rdiff_func(bp + "ds_cmp.spats", "mut_find_partial", "mut_lookup", diag_spats = spats)
+    rdiff_func(bp + "ds_cmp.spats", "mut_find_partial", "mut_lookup", diag_spats = spatss[0])
 
     #for key, value in spats.counters._registered.iteritems():
     #    if ":M" in key:
@@ -615,7 +617,7 @@ def tmut_case():
     spats = Spats(cotrans = True)
     spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
     spats.run.count_mutations = True
-    spats.run.algorithm = "lookup"
+    spats.run.algorithm = "find_partial" #lookup"
     spats.run.allowed_target_errors = 1
     spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
     spats.run._process_all_pairs = True
@@ -629,7 +631,8 @@ def tmut_case():
     #c = [ 'GAATGTCCTTGGTGCCCGAGTCAGTCCTTGGTGCCCGAGTCAGTCCTTGGTTCCCGAGTCACTCCTTTGTTCCCC', 'AGGACTGACTCGGGCACCAAGGACTTTCTCGTTCACCTATTTCTTTCTCTTCCCCCTTTTTCTTTCTCTTTCTCC' ]
     #c = [ 'GAGCGTCCTTGGTGCCCGAGTCAGATGCCGACCCGGGTGGGGGCCCTGCCAGCTACATCCCGGCACACGCGTCAT', 'TAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCG' ]
     #c = [ 'GAATGTCCTTGGTGCCCGAGTCAGGACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAAC', 'ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCA' ]
-    c = [ 'AGGCGTCCTTGGTGCCCGAGTCAGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGG', 'ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCT' ]
+    #c = [ 'AGGCGTCCTTGGTGCCCGAGTCAGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGG', 'ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCT' ]
+    c = [ 'TTCAGTCCTTGGTGCCCGAGTCAGCCAGCTACATCCCGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGA', 'AGGTCAGATCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCTGACTCGGGCACCAA' ]
     pair.set_from_data('x', c[0], c[1])
     spats.process_pair(pair)
     if pair.has_site:

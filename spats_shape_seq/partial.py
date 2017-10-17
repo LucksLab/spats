@@ -301,7 +301,7 @@ class CotransPartialFindProcessor(PairProcessor):
             linker_start = pair.r1.match_index + (lindex - pair.r1.match_start)
             check_len = 0
             if pair.r2.match_index + (r2_len - pair.r2.match_start) > linker_start:
-                linker_in_r2_idx = linker_start - pair.r2.match_index
+                linker_in_r2_idx = linker_start - pair.r2.match_index + pair.r2.match_start
                 linker_check = r2_seq[linker_in_r2_idx:]
                 pair.r2.linker_errors = string_match_errors(linker_check, linker)
                 if len(pair.r2.linker_errors) > run.allowed_adapter_errors:
