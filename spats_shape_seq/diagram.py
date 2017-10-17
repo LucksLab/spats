@@ -1,7 +1,6 @@
 
 import string
 
-from config import spats_config
 from target import _Target
 from util import reverse_complement
 
@@ -13,9 +12,10 @@ def sp(n, bit = " "):
 
 class Diagram(object):
 
-    def __init__(self, pair):
+    def __init__(self, pair, run):
         self.target = pair.target or _Target('???', '?' * 100)
         self.pair = pair
+        self.run = run
         self.prefix_len = 8
         self.bars = []
         self.max_len = 0
@@ -190,14 +190,14 @@ class Diagram(object):
         if self.pair.r2.match_errors or self.pair.r2.adapter_errors:
             self._make_part_errors(self.pair.r2)
         if self.pair.r2.trimmed:
-            self._make_adapter_line(self.pair.r2, reverse_complement(spats_config.adapter_t), "RC(adapter_t)")
+            self._make_adapter_line(self.pair.r2, reverse_complement(self.run.adapter_t), "RC(adapter_t)")
 
         r1_bars = self._make_part(self.pair.r1)
         self.bars.append(r1_bars)
         if self.pair.r1.match_errors or self.pair.r1.adapter_errors:
             self._make_part_errors(self.pair.r1)
         if self.pair.r1.trimmed:
-            self._make_adapter_line(self.pair.r1, spats_config.adapter_b, "adapter_b")
+            self._make_adapter_line(self.pair.r1, self.run.adapter_b, "adapter_b")
 
         if self.pair.mask and self.pair.r1.matched:
             self._add_line("")
@@ -223,5 +223,5 @@ class Diagram(object):
 
         return "\n".join(self.lines)
 
-def diagram(pair):
-    return Diagram(pair).make()
+def diagram(pair, run):
+    return Diagram(pair, run).make()

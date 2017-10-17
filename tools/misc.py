@@ -288,10 +288,12 @@ def addv102():
     db.add_v102_comparison(targets_path, out_path)
 
 def rdiff():
-    db_path = sys.argv[2]
-    rs1_name = sys.argv[3]
-    rs2_name = sys.argv[4]
+    rdiff_func(sys.argv[2], sys.argv[3], sys.argv[4])
+
+def rdiff_func(db_path, rs1_name, rs2_name, diag_spats = None):
     from spats_shape_seq.db import PairDB
+    from spats_shape_seq.diagram import diagram
+    from spats_shape_seq.pair import Pair
     db = PairDB(db_path)
     n1 = db.num_results(rs1_name)
     n2 = db.num_results(rs2_name)
@@ -329,6 +331,12 @@ def rdiff():
                                                                           r[0], r[1], r[2])
             if len(rlist) > 0:
                 print "... {} total.".format(len(rlist))
+            if diag_spats:
+                pair = Pair()
+                pair.set_from_data(str(r[0]), str(r[1]), str(r[2]))
+                diag_spats.process_pair(pair)
+                print diagram(pair, diag_spats.run)
+
     print "{} total diffs.".format(sum(map(len, all_lists)))
 
 def test_tags():
@@ -564,34 +572,39 @@ def tm():
 def tmut():
     from spats_shape_seq import Spats
     from spats_shape_seq.db import PairDB
+    from spats_shape_seq.diagram import diagram
 
     bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/mut/"
 
-    pair_db = PairDB(bp + "ds2.spats")
+    pair_db = PairDB(bp + "ds_cmp.spats")
     if True:
         print "Parsing to db..."
         pair_db.wipe()
         pair_db.add_targets_table(bp + "mut_single.fa")
         pair_db.parse(bp + "mut_20k_R1.fastq", bp + "mut_20k_R2.fastq")
 
-    spats = Spats(cotrans = True)
-    spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
-    spats.run.count_mutations = True
-    #spats.run.algorithm = "find_partial"
-    spats.run.algorithm = "lookup"
-    spats.run.allowed_target_errors = 1
-    spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
-    spats.run._process_all_pairs = True
-    spats.run.writeback_results = True
-    spats.run.num_workers = 1
-    spats.run.result_set_name = "mut"
+    for alg in [ "lookup", "find_partial" ]:
+        spats = Spats(cotrans = True)
+        spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+        spats.run.count_mutations = True
+        spats.run.algorithm = alg
+        spats.run.allowed_target_errors = 1
+        spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
+        spats.run._process_all_pairs = True
+        spats.run.writeback_results = True
+        spats.run.num_workers = 1
+        spats.run.result_set_name = "mut_" + alg
 
-    spats.process_pair_db(pair_db)
-    pair_db.store_run(spats.run)
-    pair_db.store_counters('spats', spats.counters)
+        spats.process_pair_db(pair_db)
+        pair_db.store_run(spats.run)
+        pair_db.store_counters(spats.run.result_set_name, spats.counters)
+
+    rdiff_func(bp + "ds_cmp.spats", "mut_find_partial", "mut_lookup", diag_spats = spats)
+
     #for key, value in spats.counters._registered.iteritems():
     #    if ":M" in key:
     #        print "{}: {}".format(key, value)
+
 
 def tmut_case():
     from spats_shape_seq import Spats
@@ -602,7 +615,7 @@ def tmut_case():
     spats = Spats(cotrans = True)
     spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
     spats.run.count_mutations = True
-    spats.run.algorithm = "find_partial"
+    spats.run.algorithm = "lookup"
     spats.run.allowed_target_errors = 1
     spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
     spats.run._process_all_pairs = True
@@ -615,7 +628,8 @@ def tmut_case():
     pair = Pair()
     #c = [ 'GAATGTCCTTGGTGCCCGAGTCAGTCCTTGGTGCCCGAGTCAGTCCTTGGTTCCCGAGTCACTCCTTTGTTCCCC', 'AGGACTGACTCGGGCACCAAGGACTTTCTCGTTCACCTATTTCTTTCTCTTCCCCCTTTTTCTTTCTCTTTCTCC' ]
     #c = [ 'GAGCGTCCTTGGTGCCCGAGTCAGATGCCGACCCGGGTGGGGGCCCTGCCAGCTACATCCCGGCACACGCGTCAT', 'TAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCG' ]
-    c = [ 'GAATGTCCTTGGTGCCCGAGTCAGGACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAAC', 'ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCA' ]
+    #c = [ 'GAATGTCCTTGGTGCCCGAGTCAGGACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAAC', 'ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCA' ]
+    c = [ 'AGGCGTCCTTGGTGCCCGAGTCAGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGG', 'ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCT' ]
     pair.set_from_data('x', c[0], c[1])
     spats.process_pair(pair)
     if pair.has_site:

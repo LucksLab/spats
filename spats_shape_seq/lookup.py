@@ -45,7 +45,7 @@
 #
 
 from processor import PairProcessor, Failures
-from util import _warn, _debug, reverse_complement
+from util import _warn, _debug, reverse_complement, string_match_errors
 
 class LookupProcessor(PairProcessor):
 
@@ -157,7 +157,8 @@ class CotransLookupProcessor(PairProcessor):
     #@profile
     def _try_lookup_hit(self, pair, r1_res):
 
-        linker = self._run.cotrans_linker
+        run = self._run
+        linker = run.cotrans_linker
         linker_len = len(linker)
         r2_seq = pair.r2.original_seq
         pair_len = pair.r2.original_len
@@ -184,7 +185,10 @@ class CotransLookupProcessor(PairProcessor):
         # R2: [target][linker][handle][adapter]
 
         target_match_len = min(pair_len, L - site)
-        if target_match_len <= 0  or  r2_seq[:target_match_len] != tseq[site:site + target_match_len]:
+        if target_match_len > 0:
+            pair.r2.match_errors = string_match_errors(r2_seq[:target_match_len], tseq[site:site + target_match_len])
+            r2_mutations = map(lambda x : x + site, pair.r2.match_errors)
+        if target_match_len <= 0  or  len(pair.r2.match_errors) > run.allowed_target_errors:
             pair.failure = Failures.match_errors
             return
 
