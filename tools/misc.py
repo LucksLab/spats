@@ -636,7 +636,7 @@ def tmut_case():
     pair.set_from_data('x', c[0], c[1])
     spats.process_pair(pair)
     if pair.has_site:
-        print "{}: {} / {}".format(pair.target.name, pair.site, pair.end)
+        print "{}: {} / {} {}".format(pair.target.name, pair.site, pair.end, pair.mutations)
     else:
         print "FAIL: {}".format(pair.failure)
     
