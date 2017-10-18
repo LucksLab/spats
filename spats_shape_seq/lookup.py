@@ -210,6 +210,7 @@ class CotransLookupProcessor(PairProcessor):
             return
 
         pair.r1.match_index = L - (pair_len - linker_len - 4) + trim
+        pair.r1._rtrim = trim
         pair.r2.match_index = site
         pair.r2.match_len = target_match_len
         if not pair.check_overlap():
