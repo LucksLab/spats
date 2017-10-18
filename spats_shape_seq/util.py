@@ -40,6 +40,7 @@ def string_find_errors(substr, target_str, max_errors = 0):
     first_half = substr[:half_sublen]
     second_half = substr[half_sublen:]
 
+    candidates = []
     index = 0
     while True:
         index = target_str.find(first_half, index)
@@ -47,7 +48,7 @@ def string_find_errors(substr, target_str, max_errors = 0):
             break
         errors = string_match_errors(second_half, target_str[index + len(first_half):], max_errors + 1)
         if len(errors) <= max_errors:
-            return index
+            candidates.append(index)
         index = index + 1
 
     index = 0
@@ -57,10 +58,10 @@ def string_find_errors(substr, target_str, max_errors = 0):
             break
         errors = string_match_errors(first_half, target_str[index - len(first_half):], max_errors + 1)
         if len(errors) <= max_errors:
-            return index - len(first_half)
+            candidates.append(index - len(first_half))
         index = index + 1
 
-    return -1
+    return sorted(list(set(candidates)))
 
 class Colors(object):
 
