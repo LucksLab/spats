@@ -54,11 +54,12 @@ def string_find_errors(substr, target_str, max_errors = 0):
     index = 0
     while True:
         index = target_str.find(second_half, index)
-        if -1 == index or index - len(first_half) < 0:
+        if -1 == index:
             break
-        errors = string_match_errors(first_half, target_str[index - len(first_half):], max_errors + 1)
-        if len(errors) <= max_errors:
-            candidates.append(index - len(first_half))
+        if index - len(first_half) >= 0:
+            errors = string_match_errors(first_half, target_str[index - len(first_half):], max_errors + 1)
+            if len(errors) <= max_errors:
+                candidates.append(index - len(first_half))
         index = index + 1
 
     return sorted(list(set(candidates)))

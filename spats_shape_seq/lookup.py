@@ -217,9 +217,13 @@ class CotransLookupProcessor(PairProcessor):
             pair.failure = Failures.r1_r2_overlap
             return
 
+        if r2_mutations or r1_res[3]:
+            pair.mutations = list(set(r2_mutations + r1_res[3]))
+            if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
+                pair.failure = Failures.match_errors
+                return
+
         pair.end = L
         pair.target = target
         pair.site = site
-        if r2_mutations or r1_res[3]:
-            pair.mutations = list(set(r2_mutations + r1_res[3]))
         self.counters.register_count(pair)
