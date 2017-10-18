@@ -213,7 +213,11 @@ class Targets(object):
         # for cotrans experiments, R1 includes a linker and is relatively restricted
         # store RC in table so that we can directly lookup R1[4:]
 
-        minimum_target_length = 3 # TODO: run config?
+        # TODO: this could be set to run.minimum_target_match_length, but given that there's linker
+        # involved, it makes sense to assume that a match including linker will hit that minimum.
+        # so for this we can include very small bits of the actual target.
+        minimum_target_length = 3
+
         linker = run.cotrans_linker
         linker_len = len(linker)
         r1_table = {}
@@ -251,7 +255,7 @@ class Targets(object):
                             mutated_rc_match = mutated_bit + linker
                             mutated_match = reverse_complement(mutated_rc_match) + adapter_b[:i]
                             entries = r1_table.get(mutated_match, [])
-                            entries.append( (target, end, i, [end - (bit_len - toggle_idx - 1)]) )
+                            entries.append( (target, end, i, [end - (bit_len - toggle_idx)]) )
                             r1_table[mutated_match] = entries
 
         self.r1_lookup = r1_table

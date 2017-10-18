@@ -31,6 +31,36 @@ def string_match_errors(substr, target_str, max_errors = None):
                 return errors
     return errors
 
+def string_find_errors(substr, target_str, max_errors = 0):
+
+    if max_errors > 1:
+        raise Exception("fast(-ish) max_errors > 1 NYI")
+
+    half_sublen = (len(substr) >> 1)
+    first_half = substr[:half_sublen]
+    second_half = substr[half_sublen:]
+
+    index = 0
+    while True:
+        index = target_str.find(first_half, index)
+        if -1 == index or index + len(substr) > len(target_str):
+            break
+        errors = string_match_errors(second_half, target_str[index + len(first_half)], max_errors + 1)
+        if len(errors) <= max_errors:
+            return index
+        index = index + 1
+
+    index = 0
+    while True:
+        index = target_str.find(second_half, index)
+        if -1 == index or index - len(first_half) < 0:
+            break
+        errors = string_match_errors(first_half, target_str[index - len(first_half)], max_errors + 1)
+        if len(errors) <= max_errors:
+            return index - len(first_half)
+        index = index + 1
+
+    return -1
 
 class Colors(object):
 

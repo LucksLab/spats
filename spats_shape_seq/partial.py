@@ -1,6 +1,6 @@
 
 from processor import PairProcessor, Failures
-from util import _warn, _debug, string_match_errors
+from util import _warn, _debug, string_match_errors, string_find_errors
 
 
 class PartialFindProcessor(PairProcessor):
@@ -270,8 +270,9 @@ class CotransPartialFindProcessor(PairProcessor):
             target_match_len = l2index
             target_match = r2_seq[:l2index]
 
-            # TODO: w/match errors
             index = tseq.find(target_match)
+            if -1 == index and run.allowed_target_errors > 0:
+                index = string_find_errors(target_match, tseq, run.allowed_target_errors)
             if -1 == index:
                 pair.failure = Failures.nomatch
                 return
