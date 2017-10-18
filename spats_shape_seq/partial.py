@@ -372,6 +372,10 @@ class CotransPartialFindProcessor(PairProcessor):
                 self.counters.match_errors += pair.multiplicity
                 return
 
+        if not pair.check_overlap():
+            pair.failure = Failures.r1_r2_overlap
+            return
+
         pair.site = pair.left
         if run.count_mutations:
             pair.check_mutations()

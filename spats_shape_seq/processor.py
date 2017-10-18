@@ -14,6 +14,7 @@ class Failures(object):
     match_errors = "match errors failure"
     right_edge = "R1 right edge failure"
     cotrans_min = "cotrans minimum"
+    r1_r2_overlap = "R1/R2 disagree on overlap"
 
     @staticmethod
     def all_failures():

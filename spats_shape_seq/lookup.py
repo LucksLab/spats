@@ -209,6 +209,13 @@ class CotransLookupProcessor(PairProcessor):
         if not self._check_indeterminate(pair):
             return
 
+        pair.r1.match_index = L - (pair_len - linker_len - 4) + trim
+        pair.r2.match_index = site
+        pair.r2.match_len = target_match_len
+        if not pair.check_overlap():
+            pair.failure = Failures.r1_r2_overlap
+            return
+
         pair.end = L
         pair.target = target
         pair.site = site

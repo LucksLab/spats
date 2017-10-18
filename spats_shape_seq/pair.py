@@ -50,6 +50,17 @@ class Pair(object):
         if mutations:
             self.mutations = list(mutations)
 
+    def check_overlap(self):
+        # note: in the case that overlaps disagree, we may decide it one way or the other via quality
+        # xref https://trello.com/c/35mBHvPA/197-stop-map-r1-r2-disagree-case
+        r2_match_len = self.r2.match_len
+        overlap_index = self.r1.match_index
+        overlap_len = self.r2.match_index + r2_match_len - overlap_index
+        if overlap_len > 0:
+            if self.r1.reverse_complement[:overlap_len] != self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]:
+                return False
+        return True
+
     @property
     def matched(self):
         return (self.target and self.r1.match_len and self.r2.match_len)
