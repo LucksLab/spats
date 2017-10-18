@@ -270,18 +270,13 @@ class CotransPartialFindProcessor(PairProcessor):
             target_match_len = l2index
             target_match = r2_seq[:l2index]
 
-            index = tseq.find(target_match)
-            if -1 == index and run.allowed_target_errors > 0:
-                indices = string_find_errors(target_match, tseq, run.allowed_target_errors)
-                if 2 == len(indices):
-                    pair.failure = Failures.multiple_R1
-                    return
-                elif 1 == len(indices):
-                    index = indices[0]
-            if -1 == index:
+            indices = string_find_errors(target_match, tseq, run.allowed_target_errors)
+            if 0 == len(indices):
                 pair.failure = Failures.nomatch
                 return
-            if -1 != tseq.find(target_match, index + 1):
+            elif 1 == len(indices):
+                index = indices[0]
+            else:
                 pair.failure = Failures.multiple_R1
                 return
 

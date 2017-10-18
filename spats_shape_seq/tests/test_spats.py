@@ -2,7 +2,7 @@
 import unittest
 
 
-from spats_shape_seq.util import reverse_complement, string_match_errors
+from spats_shape_seq.util import reverse_complement, string_find_errors, string_match_errors
 from spats_shape_seq.mask import longest_match
 
 class TestUtils(unittest.TestCase):
@@ -23,4 +23,5 @@ class TestUtils(unittest.TestCase):
         self.assertEqual("CGTCCAA", reverse_complement("TTGGACG"))
         self.assertEqual("CAACAGAGCCCCCGAT", reverse_complement("ATCGGGGGCTCTGTTG"))
         self.assertEqual("GATNC", reverse_complement("GNATC"))
-
+    def test_string_find(self):
+        self.assertEqual([75, 76, 77, 78, 115], string_find_errors("TTTT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACTCCTACCAGTATCACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC", 0))
