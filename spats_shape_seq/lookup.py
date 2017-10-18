@@ -187,7 +187,8 @@ class CotransLookupProcessor(PairProcessor):
         target_match_len = min(pair_len, L - site)
         if target_match_len > 0:
             pair.r2.match_errors = string_match_errors(r2_seq[:target_match_len], tseq[site:site + target_match_len])
-            r2_mutations = map(lambda x : x + site, pair.r2.match_errors)
+            #+1 for M_j indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention
+            r2_mutations = map(lambda x : x + site + 1, pair.r2.match_errors)
         if target_match_len <= 0  or  len(pair.r2.match_errors) > run.allowed_target_errors:
             pair.failure = Failures.match_errors
             return

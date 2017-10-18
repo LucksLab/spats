@@ -255,7 +255,7 @@ class Targets(object):
                             mutated_rc_match = mutated_bit + linker
                             mutated_match = reverse_complement(mutated_rc_match) + adapter_b[:i]
                             entries = r1_table.get(mutated_match, [])
-                            entries.append( (target, end, i, [end - (bit_len - toggle_idx)]) )
+                            entries.append( (target, end, i, [end - (bit_len - toggle_idx) + 1]) )
                             r1_table[mutated_match] = entries
 
         self.r1_lookup = r1_table
@@ -329,6 +329,6 @@ class Targets(object):
                             mutated_bit = r2_candidate[:toggle_idx] + nt + r2_candidate[toggle_idx + 1:]
                             if r2_table.get(mutated_bit):
                                 raise Exception("indeterminate R2 candidate {} in target?".format(mutated_bit))
-                            r2_table[mutated_bit] = (i, [ i + toggle_idx ])
+                            r2_table[mutated_bit] = (i, [ i + toggle_idx + 1 ])
 
         self.r2_lookup = r2_full_table

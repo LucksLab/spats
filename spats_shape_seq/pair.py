@@ -45,7 +45,8 @@ class Pair(object):
         mutations = set()
         for seq in [ self.r1, self.r2 ]:
             for err_index in seq.match_errors:
-                mutations.add(seq.match_index + err_index)
+                # +1 for M_j indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention
+                mutations.add(seq.match_index + err_index + 1)
         if mutations:
             self.mutations = list(mutations)
 
