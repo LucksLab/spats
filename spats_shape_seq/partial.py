@@ -358,6 +358,10 @@ class CotransPartialFindProcessor(PairProcessor):
             pair.failure = Failures.right_edge
             return
 
+        if pair.r1.match_len + linker_len != pair.r1.seq_len:
+            pair.failure = Failures.extra_r1
+            return
+
         pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement[:pair.r1.match_len], tseq[pair.r1.match_index:])
         pair.r2.match_errors = string_match_errors(pair.r2.subsequence[:pair.r2.match_len], tseq[pair.r2.match_index:])
         if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
