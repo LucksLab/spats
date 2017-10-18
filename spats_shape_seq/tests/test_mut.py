@@ -21,7 +21,8 @@ cases = [
 
     [ 'x5', 'GAATGTCCTTGGTGCCCGAGTCAGTCCTTGGTGCCCGAGTCAGTCCTTGGTTCCCGAGTCACTCCTTTGTTCCCC', 'AGGACTGACTCGGGCACCAAGGACTTTCTCGTTCACCTATTTCTTTCTCTTCCCCCTTTTTCTTTCTCTTTCTCC', None, None, [] ],
 
-    # this one is slightly ambiguous due to mutation at the site. we count it as stop only, not a mutation (even though there technically is one)
+    # this one is slightly ambiguous due to mutation at the site. the code reports it the same as the rest for consistency, 
+    # but it's counted separately in counters for further analysis
     # xref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case
     ['18112', 'AAATGTCCTTGGTGCCCGAGTCAGATCTGCCTTAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGA', 'TAAGGCAGATCTGACTCGGGCACCAAGGACATTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCG', 78, 68, [69] ],
 
