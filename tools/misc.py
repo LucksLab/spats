@@ -307,9 +307,9 @@ def rdiff_func(db_path, rs1_name, rs2_name, diag_spats = None):
     differences = []
     for r in db.differing_results(rs1_name, rs2_name):
         if r[4] == -1:
-            assert(r[7] != -1)
+            assert(r[9] != -1)
             theirs_only.append(r)
-        elif r[7] == -1:
+        elif r[9] == -1:
             ours_only.append(r)
         else:
             differences.append(r)
@@ -317,7 +317,7 @@ def rdiff_func(db_path, rs1_name, rs2_name, diag_spats = None):
     for l in all_lists:
         reasons = {}
         for r in l:
-            key = r[5] or r[8]
+            key = r[7] or r[12]
             assert(key)
             rlist = reasons.get(key)
             if not rlist:
@@ -326,9 +326,9 @@ def rdiff_func(db_path, rs1_name, rs2_name, diag_spats = None):
             rlist.append(r)
         for reason, rlist in reasons.iteritems():
             for r in rlist[:min(len(rlist), 10)]:
-                print "  {}:{} s{} ({}) -- {}:{} s{} ({})   ({}: {} / {})".format(r[3] or 'x', r[4], r[5], r[6] or "OK",
-                                                                                  r[7] or 'x', r[8], r[9], r[10] or "OK",
-                                                                                  r[0], r[1], r[2])
+                print "  {}:{} s{}m{} ({}) -- {}:{} s{}m{} ({})   ({}: {} / {})".format(r[3] or 'x', r[4], r[5], r[6], r[7] or "OK",
+                                                                                        r[8] or 'x', r[9], r[10], r[11], r[12] or "OK",
+                                                                                        r[0], r[1], r[2])
             if len(rlist) > 0:
                 print "... {} total.".format(len(rlist))
             if diag_spats:
@@ -581,7 +581,7 @@ def tmut():
         print "Parsing to db..."
         pair_db.wipe()
         pair_db.add_targets_table(bp + "mut_single.fa")
-        pair_db.parse(bp + "mut_20k_R1.fastq", bp + "mut_20k_R2.fastq")
+        pair_db.parse(bp + "mut_200k_R1.fastq", bp + "mut_200k_R2.fastq")
 
     spatss = []
     for alg in [ "find_partial", "lookup" ]:

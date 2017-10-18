@@ -18,6 +18,19 @@ class SpatsWorker(object):
         self._result_set_id = result_set_id
         self._workers = []
 
+    def _make_result(self, ident, pair, tagged = False):
+        res = [ ident,
+                pair.target.rowid if pair.target else None,
+                pair.mask.chars if pair.mask else None,
+                pair.site if pair.has_site else -1,
+                pair.end if pair.has_site else -1,
+                pair.mutations[0] if pair.mutations else -1,
+                pair.multiplicity,
+                pair.failure ]
+        if tagged:
+            res.append(pair.tags)
+        return res
+
     def _worker(self, worker_id):
         try:
             processor = self._processor
@@ -35,23 +48,7 @@ class SpatsWorker(object):
                     pair.set_from_data('', str(lines[1]), str(lines[2]), lines[0])
                     processor.process_pair(pair)
                     if writeback:
-                        if tagged:
-                            results.append((lines[3],
-                                            pair.target.rowid if pair.target else None,
-                                            pair.mask.chars if pair.mask else None,
-                                            pair.site if pair.has_site else -1,
-                                            pair.end if pair.has_site else -1,
-                                            pair.multiplicity,
-                                            pair.failure,
-                                            pair.tags))
-                        else:
-                            results.append((lines[3],
-                                            pair.target.rowid if pair.target else None,
-                                            pair.mask.chars if pair.mask else None,
-                                            pair.site if pair.has_site else -1,
-                                            pair.end if pair.has_site else -1,
-                                            pair.multiplicity,
-                                            pair.failure))
+                        results.append(self._make_result(lines[3], pair, tagged))
 
                 if writeback:
                     self._results.put(results)
@@ -213,31 +210,18 @@ class SpatsWorker(object):
 
                         total += pair.multiplicity
                         if writeback:
-                            if tagged:
-                                results.append((lines[3],
-                                                pair.target.rowid if pair.target else None,
-                                                pair.mask.chars if pair.mask else None,
-                                                pair.site if pair.has_site else -1,
-                                                pair.end if pair.has_site else -1,
-                                                pair.multiplicity,
-                                                pair.failure,
-                                                pair.tags))
-                            else:
-                                results.append((lines[3],
-                                                pair.target.rowid if pair.target else None,
-                                                pair.mask.chars if pair.mask else None,
-                                                pair.site if pair.has_site else -1,
-                                                pair.end if pair.has_site else -1,
-                                                pair.multiplicity,
-                                                pair.failure))
+                            results.append(self._make_result(lines[3], pair, tagged))
+
                     if not quiet:
                         sys.stdout.write('v')
                         sys.stdout.flush()
+
                     if results:
                         pair_db.add_results(self._result_set_id, results)
                         if not quiet:
                             sys.stdout.write('.')
                             sys.stdout.flush()
+
                     if run_limit and total > run_limit:
                         raise StopIteration()
 
