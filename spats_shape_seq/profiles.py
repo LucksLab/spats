@@ -167,8 +167,8 @@ class TargetProfiles(object):
 
         treated_counts = self.treated_counts
         untreated_counts = self.untreated_counts
-        treated_muts = self.treated_counts
-        untreated_muts = self.untreated_counts
+        treated_muts = self.treated_muts
+        untreated_muts = self.untreated_muts
         n = len(treated_counts) - 1
         r_stop = [ 0 for x in range(n+1) ]
         r_mut = [ 0 for x in range(n+1) ]
@@ -184,8 +184,8 @@ class TargetProfiles(object):
         for j in range(n):
             X_j_t = float(treated_counts[j])   # X_j^+
             X_j_u = float(untreated_counts[j]) # X_j^-
-            M_j_t = float(treated_counts[j])   # M_j^+
-            M_j_u = float(untreated_counts[j]) # M_j^-
+            M_j_t = float(treated_muts[j])     # M_j^+
+            M_j_u = float(untreated_muts[j])   # M_j^-
             depth_t += X_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + i)]))
             depth_u += X_j_u  #running sum equivalent to: depth_u = float(sum(untreated_counts[:(j + 1)]))
             try:
