@@ -325,9 +325,9 @@ def rdiff_func(db_path, rs1_name, rs2_name, diag_spats = None):
             rlist.append(r)
         for reason, rlist in reasons.iteritems():
             for r in rlist[:min(len(rlist), 10)]:
-                print "  {}:{} s{}m{} ({}) -- {}:{} s{}m{} ({})   ({}: {} / {})".format(r[3] or 'x', r[4], r[5], r[6], r[7] or "OK",
-                                                                                        r[8] or 'x', r[9], r[10], r[11], r[12] or "OK",
-                                                                                        r[0], r[1], r[2])
+                print "  {}:{} s{}m{} ({}) -- {}:{} s{}m{} ({})   ([ '{}', '{}', '{}', {}, {}, [ {} ] ])".format(r[3] or 'x', r[4], r[5], r[6], r[7] or "OK",
+                                                                                                                 r[8] or 'x', r[9], r[10], r[11], r[12] or "OK",
+                                                                                                                 r[0], r[1], r[2], r[4], r[5], "" if -1 == r[6] else r[6] )
             if len(rlist) > 0:
                 print "... {} total.".format(len(rlist))
             if diag_spats:
@@ -573,18 +573,18 @@ def tmut():
     from spats_shape_seq.db import PairDB
     from spats_shape_seq.diagram import diagram
 
-    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/mut/"
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/mutsl/"
 
     pair_db = PairDB(bp + "ds_cmp.spats")
     if True:
         print "Parsing to db..."
         pair_db.wipe()
         pair_db.add_targets_table(bp + "mut_single.fa")
-        pair_db.parse(bp + "mut_400k_R1.fastq", bp + "mut_400k_R2.fastq")
+        pair_db.parse(bp + "mut_1k_R1.fastq", bp + "mut_1k_R2.fastq")
 
     spatss = []
     for alg in [ "find_partial", "lookup" ]:
-        spats = Spats(cotrans = True)
+        spats = Spats(cotrans = False)
         spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
         spats.run.count_mutations = True
         spats.run.algorithm = alg
@@ -611,12 +611,12 @@ def tmut_case():
     from spats_shape_seq import Spats
     from spats_shape_seq.db import PairDB
 
-    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/mut/"
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/mutsl/"
 
-    spats = Spats(cotrans = True)
+    spats = Spats(cotrans = False)
     spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
     spats.run.count_mutations = True
-    spats.run.algorithm = "find_partial"
+    spats.run.algorithm = "lookup" #find_partial"
     spats.run.allowed_target_errors = 1
     spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
     spats.run._process_all_pairs = True
@@ -637,8 +637,9 @@ def tmut_case():
     #c = [ 'CTCAGTCCTTGGTGCCCGAGTCAGTGAGCTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTC', 'AGCTCACTGACTCGGGCACCAAGGACTGAGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGG' ]
     #c = [ 'AAGCGTCCTTGGTGCCCGAGTCAGTGGAGGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCT', 'ACCTCCACTGACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTG' ]
     #c = [ 'TCCGGTCCTTGGTGCCCGAGTCAGATGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGT', 'ACATCTGACTCGGGCACCAAGGACCGGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTC' ]
-    c = [ 'TTTAAGTCCTTGGTGCCCGAGTCAGGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTA', 'TACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACCTGACTCGGGCACCAAGGACTTAAA' ]
-
+    #c = [ 'TTTAAGTCCTTGGTGCCCGAGTCAGGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTA', 'TACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACCTGACTCGGGCACCAAGGACTTAAA' ]
+    #c = [ 'TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA' ]
+    c = [ 'AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC' ]
     pair.set_from_data('x', c[0], c[1])
     spats.process_pair(pair)
     if pair.has_site:

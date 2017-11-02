@@ -297,7 +297,7 @@ class Targets(object):
                             if r1_candidate[toggle_idx] == nt:
                                 continue
                             mutated_bit = r1_candidate[:toggle_idx] + nt + r1_candidate[toggle_idx + 1:]
-                            mres = (res[0], res[1], res[2], tlen - (i - toggle_idx) + 1)
+                            mres = (res[0], res[1], res[2], [ tlen - toggle_idx ])
                             existing = r1_table.get(mutated_bit)
                             if existing:
                                 existing.append(mres)

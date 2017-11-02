@@ -84,10 +84,12 @@ class LookupProcessor(PairProcessor):
     def _try_lookup_hit(self, pair, r1_res):
 
         targets = self._targets
+        run = self._run
 
         site = -1
         target = r1_res[0]
         r2len = pair.r2.original_len
+        r2_mutations = []
         if r1_res[1] == None:
             lookup = targets.r2_lookup[target.name]
             r2_match_len = len(lookup.keys()[0])
@@ -103,34 +105,49 @@ class LookupProcessor(PairProcessor):
 
         # need to check R2 against expectation
         match_len = min(r2len, target.n - match_site)
-        if pair.r2.original_seq[:match_len] == target.seq[match_site:match_site + match_len]:
-            adapter_len = r2len - match_len - 4
-            if adapter_len <= 0 or self._adapter_t_rc[:adapter_len] == pair.r2.original_seq[-adapter_len:]:
-                site = match_site
-            else:
+        if match_len > 0:
+            pair.r2.match_errors = string_match_errors(pair.r2.original_seq[:match_len], target.seq[match_site:match_site + match_len])
+            #+1 for M_j indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention
+            r2_mutations = map(lambda x : x + match_site + 1, pair.r2.match_errors)
+        if match_len <= 0  or  len(pair.r2.match_errors) > run.allowed_target_errors:
+            pair.failure = Failures.match_errors
+            return
+
+        adapter_len = r2len - match_len - 4
+        if adapter_len > 0:
+            pair.r2.adapter_errors = string_match_errors(self._adapter_t_rc[:adapter_len], pair.r2.original_seq[-adapter_len:])
+            if len(pair.r2.adapter_errors) > run.allowed_adapter_errors:
                 pair.failure = Failures.adapter_trim
                 return
-        else:
-            pair.failure = Failures.nomatch
-            return
+        site = match_site
 
         # in rare cases, need to double-check what R1 should be based on R2
         if site != r1_res[1]:
             match_len = min(pair.r1.original_len - 4, target.n - match_site)
             adapter_len = pair.r1.original_len - match_len - 4
-            r1_match = reverse_complement(target.seq[-match_len:]) + self._run.adapter_b[:adapter_len]
-            if pair.r1.original_seq[4:] != r1_match:
-                pair.failure = Failures.mismatch
+            pair.r1.match_errors = string_match_errors(reverse_complement(target.seq[-match_len:]), pair.r1.original_seq[4:4+match_len])
+            if len(pair.r1.match_errors) > run.allowed_target_errors:
+                pair.failure = Failures.match_errors
                 return
+            if adapter_len > 0:
+                pair.r1.adapter_errors = string_match_errors(pair.r1.original_seq[-adapter_len:], self._run.adapter_b[:adapter_len])
+                if len(pair.r1.adapter_errors) > run.allowed_adapter_errors:
+                    pair.failure = Failures.adapter_trim
+                    return
 
         if not self._check_indeterminate(pair):
             return
+
+        if r2_mutations or r1_res[3]:
+            pair.mutations = list(set(r2_mutations + r1_res[3]))
+            if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
+                pair.failure = Failures.match_errors
+                return
 
         pair.target = target
         pair.site = site
         pair.end = target.n
         pair.failure = None
-
         self.counters.register_count(pair)
 
 

@@ -152,7 +152,7 @@ class TestPairsPartial(unittest.TestCase):
         pair = self.pair_for_case(case)
         self.spats.process_pair(pair)
         self.assertEqual(case[4], pair.site, "res={} != {} ({}, {})".format(pair.site, case[4], self.__class__.__name__, case[0]))
-        if pair.site:
+        if pair.site is not None:
             self.assertEqual(case[3], pair.end)
         return pair
 

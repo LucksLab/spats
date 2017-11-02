@@ -6,6 +6,15 @@ from spats_shape_seq.pair import Pair
 # [ id, r1, r2, end, site, muts ]
 cases = [
 
+    # basic test case
+    [ '89', 'TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA', 107, 0, [ 16 ] ],
+
+    [ '961', 'AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC', 107, 2, [ 96 ] ]
+]
+
+
+cotrans_cases = [
+
     # indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention
     [ 'x1', 'TTCAGTCCTTGGTGCCCGAGTCAGCCAGCTACATCCCGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGA', 'AGGTCAGATCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCTGACTCGGGCACCAA', 103, 44, [52] ],
 
@@ -50,16 +59,14 @@ class TestMutPairs(unittest.TestCase):
     
     def setUp(self):
         self.spats = Spats()
-        self.spats.run.cotrans = True
-        self.spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
         self.spats.run.count_mutations = True
         self.spats.run.allowed_target_errors = 1
         self.spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
         self.setup_processor()
-        self.spats.addTargets("test/mut/mut_single.fa")
 
     def setup_processor(self):
         self.spats.run.algorithm = "find_partial"
+        self.spats.addTargets("test/mut/mut_single.fa")
 
     def tearDown(self):
         self.spats = None
@@ -73,19 +80,38 @@ class TestMutPairs(unittest.TestCase):
         pair = self.pair_for_case(case)
         self.spats.process_pair(pair)
         self.assertEqual(case[4], pair.site, "res={} != {} ({}, {})".format(pair.site, case[4], self.__class__.__name__, case[0]))
-        if pair.site:
+        if pair.site is not None:
             self.assertEqual(case[3], pair.end)
             self.assertEqual(case[5], pair.mutations)
         return pair
 
     def test_pairs(self):
         self.spats.run.pair_length = len(cases[0][1])
-        for case in cases:
+        for case in (cotrans_cases if self.spats.run.cotrans else cases):
             self.run_case(case)
         print("Ran {} pair->site cases.".format(len(cases)))
 
 
 class TestMutPairsLookup(TestMutPairs):
-    
+
     def setup_processor(self):
         self.spats.run.algorithm = "lookup"
+        self.spats.addTargets("test/mut/mut_single.fa")
+
+
+class TestMutPairsCotrans(TestMutPairs):
+
+    def setup_processor(self):
+        self.spats.run.cotrans = True
+        self.spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+        self.spats.run.algorithm = "find_partial"
+        self.spats.addTargets("test/mut/mut_cotrans.fa")
+
+
+class TestMutPairsCotransLookup(TestMutPairs):
+
+    def setup_processor(self):
+        self.spats.run.cotrans = True
+        self.spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+        self.spats.run.algorithm = "lookup"
+        self.spats.addTargets("test/mut/mut_cotrans.fa")
