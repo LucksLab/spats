@@ -265,12 +265,12 @@ class Targets(object):
         self._build_R2_lookup(pair_len - linker_len - 4, run.count_mutations)
 
 
-    def build_lookups(self, adapter_b, length = None, end_only = True):
+    def build_lookups(self, run, length = None, end_only = True):
         use_length = length or 35
-        self._build_R1_lookup(adapter_b, use_length - 4, end_only)
-        self._build_R2_lookup(use_length)
+        self._build_R1_lookup(run.adapter_b, use_length - 4, end_only, run.count_mutations)
+        self._build_R2_lookup(use_length, run.count_mutations)
 
-    def _build_R1_lookup(self, adapter_b, length = 31, end_only = True):
+    def _build_R1_lookup(self, adapter_b, length = 31, end_only = True, mutations = False):
         # we can pre-build the set of all possible (error-free) R1, b/c:
         #  - R1 has to include the right-most nt
         #  - R1 can include some adapter-b off the end
@@ -284,19 +284,29 @@ class Targets(object):
             tcandidates = 0
             for i in range(1, length + 1):
                 r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
-                res = r1_table.get(r1_candidate)
-                if res:
-                    if target != res[0]:
-                        r1_table[r1_candidate] = (None, None)
-                    else:
-                        # in case of multiple match on same target, set to None to indicate it's up to R2
-                        r1_table[r1_candidate] = (target, None)
-                        tcandidates += 1
+                res = (target, None if i == length else tlen - i, length - i, []) # target, end, amount of adapter to trim, mutations
+                existing = r1_table.get(r1_candidate)
+                if existing:
+                    existing.append(res)
                 else:
-                    r1_table[r1_candidate] = (target, None if i == length else tlen - i)
-                    tcandidates += 1
+                    r1_table[r1_candidate] = [ res ]
+                tcandidates += 1
+                if mutations:
+                    for toggle_idx in range(i):
+                        for nt in [ 'A', 'C', 'G', 'T' ]:
+                            if r1_candidate[toggle_idx] == nt:
+                                continue
+                            mutated_bit = r1_candidate[:toggle_idx] + nt + r1_candidate[toggle_idx + 1:]
+                            mres = (res[0], res[1], res[2], tlen - (i - toggle_idx) + 1)
+                            existing = r1_table.get(mutated_bit)
+                            if existing:
+                                existing.append(mres)
+                            else:
+                                r1_table[mutated_bit] = [ mres ]
+
             if 0 == tcandidates:
                 _warn("!! No R1 match candidates for {}".format(target.name))
+
         self.r1_lookup = r1_table
 
     def _build_R2_lookup(self, length = 35, mutations = False):

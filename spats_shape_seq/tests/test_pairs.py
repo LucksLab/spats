@@ -77,7 +77,7 @@ class TestPairs(unittest.TestCase):
     def run_case(self, case):
         pair = self.pair_for_case(case)
         self.spats.process_pair(pair)
-        self.assertEqual(case[3], pair.site)
+        self.assertEqual(case[3], pair.site, "res={} != {} ({}, {})".format(pair.site, case[3], self.__class__.__name__, case[0]))
         return pair
 
     def test_pairs(self):

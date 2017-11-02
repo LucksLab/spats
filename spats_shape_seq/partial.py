@@ -139,6 +139,13 @@ class PartialFindProcessor(PairProcessor):
             self.counters.r1_not_on_right_edge += pair.multiplicity
             return
 
+        if self._run.count_mutations:
+            pair.check_mutations()
+            if pair.mutations and len(pair.mutations) > self._run.allowed_target_errors:
+                pair.failure = Failures.match_errors
+                self.counters.match_errors += pair.multiplicity
+                return
+
         pair.site = pair.site or pair.left
         self.counters.register_count(pair)
 

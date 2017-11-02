@@ -200,28 +200,27 @@ def show_failure_types():
                 print summary
 
 def diag_case():
-    from spats_shape_seq import Spats, spats_config
+    from spats_shape_seq import Spats
     from spats_shape_seq.pair import Pair
     from spats_shape_seq.tests.test_pairs import cases
-    from diagram import diagram
-    spats_config.minimum_target_match_length = 8
+    from spats_shape_seq.diagram import diagram
+    #spats_config.minimum_target_match_length = 8
     spats = Spats()
-    spats.addMasks('RRRY', 'YYYR')
     spats.addTargets("test/5s/5s.fa")
-    spats_config.debug = True
+    spats.run.debug = True
     spats._case_errors = False
     def run_case(case):
         pair = Pair()
         pair.set_from_data(case[0], case[1], case[2])
         spats.process_pair(pair)
-        print diagram(pair)
+        print diagram(pair, spats.run)
         if case[3] != pair.site:
             spats._case_errors = True
             print "******* mismatch: {} != {}".format(case[3], pair.site)
     for case in cases:
         if case[0].startswith("*"):
             run_case(case)
-    spats_config.debug = False
+    spats.run.debug = False
     if spats._case_errors:
         raise Exception("Case failed")
 

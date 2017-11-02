@@ -266,7 +266,7 @@ class Spats(object):
                 _debug(pair.failure)
             else:
                 assert(pair.has_site)
-                _debug("  ===> KEPT {}-{}".format(pair.left, pair.right))
+                _debug("  ===> KEPT {}-{}".format(pair.site, pair.end))
         except:
             print("**** Error processing pair: {} / {}".format(pair.r1.original_seq, pair.r2.original_seq))
             raise

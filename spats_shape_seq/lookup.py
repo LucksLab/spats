@@ -52,11 +52,12 @@ class LookupProcessor(PairProcessor):
     def prepare(self):
         targets = self._targets
         targets.index()
-        targets.build_lookups(self._run.adapter_b, length = self._run.pair_length)
+        targets.build_lookups(self._run, length = self._run.pair_length)
         if not self._run.quiet:
             print("Lookup table: {} R1 entries, {} R2 entries for {} targets.".format(len(targets.r1_lookup),
                                                                                       sum(map(len, targets.r2_lookup.values())),
                                                                                       len(targets.r2_lookup)))
+
 
     #@profile
     def process_pair(self, pair):
@@ -64,11 +65,25 @@ class LookupProcessor(PairProcessor):
         if not self._match_mask(pair):
             return
 
-        targets = self._targets
-        r1_res = targets.r1_lookup.get(pair.r1.original_seq[4:])
-        if not r1_res or not r1_res[0]:
+        r1_res = self._targets.r1_lookup.get(pair.r1.original_seq[4:])
+        if not r1_res:
             pair.failure = Failures.nomatch
             return
+
+        if len(r1_res) > 1:
+            for trim in [ h[2] for h in r1_res ]:
+                if len([ h[1] for h in r1_res if h[2] == trim]) > 1:
+                    pair.failure = Failures.multiple_R1
+                    return
+
+        for hit in r1_res:
+            self._try_lookup_hit(pair, hit)
+            if pair.has_site:
+                return
+
+    def _try_lookup_hit(self, pair, r1_res):
+
+        targets = self._targets
 
         site = -1
         target = r1_res[0]
@@ -114,6 +129,7 @@ class LookupProcessor(PairProcessor):
         pair.target = target
         pair.site = site
         pair.end = target.n
+        pair.failure = None
 
         self.counters.register_count(pair)
 
@@ -226,4 +242,5 @@ class CotransLookupProcessor(PairProcessor):
         pair.end = L
         pair.target = target
         pair.site = site
+        pair.failure = None
         self.counters.register_count(pair)
