@@ -268,7 +268,7 @@ class Targets(object):
     def build_lookups(self, run, length = None, end_only = True):
         use_length = length or 35
         self._build_R1_lookup(run.adapter_b, use_length - 4, end_only, run.count_mutations)
-        self._build_R2_lookup(use_length, run.count_mutations)
+        self._build_R2_lookup(use_length - 4, run.count_mutations)
 
     def _build_R1_lookup(self, adapter_b, length = 31, end_only = True, mutations = False):
         # we can pre-build the set of all possible (error-free) R1, b/c:
