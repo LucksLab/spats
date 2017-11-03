@@ -78,7 +78,7 @@ class Sequence(object):
 
     def match_to_seq(self, reverse_complement = False):
         if reverse_complement:
-            self.match_index -= (self._rtrim + self.match_start)
+            self.match_index -= (self.match_start - self._rtrim)
             self.match_start = self._rtrim
             self.match_len = self.seq_len
         else:
