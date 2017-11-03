@@ -324,7 +324,7 @@ class Targets(object):
             r2_full_table[target.name] = r2_table
             tlen = target.n
             tgt_seq = target.seq
-            for i in range(tlen - mlen):
+            for i in range(tlen - mlen + 1):
                 r2_candidate = tgt_seq[i:i+mlen]
                 if r2_table.get(r2_candidate):
                     raise Exception("indeterminate R2 candidate {} in target?".format(r2_candidate))
