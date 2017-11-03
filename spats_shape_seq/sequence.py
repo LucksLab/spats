@@ -68,18 +68,19 @@ class Sequence(object):
         self._rtrim = length
         if reverse_complement:
             delta = self._rtrim - self.match_start
-            if delta > 0:
-                _debug("trim reducing original match_len {} -> {}".format(self.match_len, self.match_len - delta))
-                self.match_len -= delta
-                self.match_start += delta
-                self.match_index += delta
-                return True
+            _debug("trim reducing original match_len {} -> {}".format(self.match_len, self.match_len - delta))
+            self.match_len -= delta
+            self.match_start += delta
+            self.match_index += delta
+            return True
         return False
 
     def match_to_seq(self, reverse_complement = False):
         if reverse_complement:
-            self.match_index -= (self.match_start - self._rtrim)
-            self.match_start = self._rtrim
+            if 0 == self._rtrim:
+                # we've already done this if we've trimmed
+                self.match_index -= self.match_start
+                self.match_start = self._rtrim
             self.match_len = self.seq_len
         else:
             self.match_index -= self.match_start

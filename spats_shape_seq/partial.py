@@ -58,7 +58,7 @@ class PartialFindProcessor(PairProcessor):
         if len(pair.r1.adapter_errors) > self._run.allowed_adapter_errors:
              return False
 
-        if r1_match_trimmed:
+        if r1_match_trimmed and len(self._targets.targets) > 1:
             # ok, we trimmed down our R1 due to adapters. need to see if that means the leftover matches
             # multiple targets; if so, need to reject this pair.
             target = pair.r1.find_in_targets(self._targets, reverse_complement = True, min_length_override = pair.r1.match_len)
@@ -106,29 +106,25 @@ class PartialFindProcessor(PairProcessor):
             # we're at the right and trimming went ok, cool
             self.counters.adapter_trimmed += pair.multiplicity
 
-        if pair.r2.match_len == pair.r2.seq_len  and  pair.r1.match_len == pair.r1.seq_len:
-            # everything that wasn't adapter trimmed was matched -- nothing to do
-            pass
-        else:
-            # set the match to be the rest of the (possibly trimmed) sequence, and count errors
-            pair.r1.match_to_seq(reverse_complement = True)
-            pair.r2.match_to_seq()
-            target_seq = pair.target.seq
-            r1_matcher = pair.r1.reverse_complement
-            pair.r1.match_errors = string_match_errors(r1_matcher, target_seq[pair.r1.match_index:])
-            pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
+        # set the match to be the rest of the (possibly trimmed) sequence, and count errors
+        pair.r1.match_to_seq(reverse_complement = True)
+        pair.r2.match_to_seq()
+        target_seq = pair.target.seq
+        r1_matcher = pair.r1.reverse_complement
+        pair.r1.match_errors = string_match_errors(r1_matcher, target_seq[pair.r1.match_index:])
+        pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
 
-            if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > self._run.allowed_target_errors:
-                if pair.r1.match_errors:
-                    _debug("R1 errors: {}".format(pair.r1.match_errors))
-                if pair.r2.match_errors:
-                    _debug("R2 errors: {}".format(pair.r2.match_errors))
-                if self._run._p_v102_compat and not (pair.r1.match_errors + [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]):
-                    _debug("** v102 compat, allowing")
-                else:
-                    pair.failure = Failures.match_errors
-                    self.counters.match_errors += pair.multiplicity
-                    return
+        if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > self._run.allowed_target_errors:
+            if pair.r1.match_errors:
+                _debug("R1 errors: {}".format(pair.r1.match_errors))
+            if pair.r2.match_errors:
+                _debug("R2 errors: {}".format(pair.r2.match_errors))
+            if self._run._p_v102_compat and not (pair.r1.match_errors + [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]):
+                _debug("** v102 compat, allowing")
+            else:
+                pair.failure = Failures.match_errors
+                self.counters.match_errors += pair.multiplicity
+                return
 
         n = pair.target.n
         assert(pair.matched and pair.left >= 0 and pair.left <= n)
