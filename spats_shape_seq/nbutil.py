@@ -99,7 +99,8 @@ class Notebook(object):
             self.add_code_cell(cotrans_reactivity_analysis_template)
             self.add_code_cell(cotrans_reactivity_analysis_2_template)
         else:
-            pass
+            self.add_code_cell(sl_counts_template)
+            self.add_code_cell(sl_reactivity_template)
         return self
 
 
@@ -290,15 +291,15 @@ bar_width = 1./float(len(end_lengths))
 for i in range(len(row_data)):
     row = row_data[i]
     xmax = max(row.x_axis)
-    ymax = max(ymax,max(row.beta))
+    ymax = max(ymax,max(getattr(row, reactivity_type)))
     plt.bar([x + i*bar_width for x in row.x_axis], 
-            row.beta, 
+            getattr(row, reactivity_type),
             bar_width,
-            label=end_lengths[i]) #TODO - interface that allows y-data to be reatrieved by using the reactivity_type variable
+            label=end_lengths[i])
 #Todo - set xticks better with minor at each position
 plt.xlim([0, xmax])
 plt.ylim(0, ymax)
-plt.title(reactivity_type+", length = {}".format(end_lengths))
+plt.title("{}, length = {}".format(reactivity_type, end_lengths))
 plt.xlabel("Nucleotide Position (nt)")
 plt.ylabel(reactivity_type)
 plt.legend()
@@ -333,11 +334,42 @@ ymax = 0
 for i in range(len(col_data)):
     col = col_data[i]
     xmax = max(col.x_axis)
-    ymax = max(ymax,max(col.beta))
-    plt.plot(col.x_axis, col.beta,label=sites[i]) #TODO - interface that allows y-data to be reatrieved by using the reactivity_type variable
+    ymax = max(ymax,max(getattr(col, reactivity_type)))
+    plt.plot(col.x_axis, getattr(col, reactivity_type),label=sites[i])
 plt.xlim([run_data.min_length, run_data.n + 1])
-plt.title("Reactivity Traces (Beta) {} ".format(sites)) #Todo - change beta label based on reactivity_type
+plt.title("Reactivity Traces ({}) {} ".format(reactivity_type, sites))
 plt.xlabel("RNA Length (nt)")
+plt.ylabel(reactivity_type)
+plt.legend()
+plt.gcf().set_size_inches(36, 8)
+plt.show()
+"""
+
+sl_counts_template = """
+run_data = spats_run_data()
+row = run_data.single_profile
+plt.style.use('fsa')
+plt.xlim([0, run_data.n + 1]) # Change x-axis here
+plt.plot(row.x_axis, row.treated, color = colors.red, label = 'f+')
+plt.plot(row.x_axis, row.untreated, color = colors.blue, label = 'f-')
+plt.title("Total Treated/Untreated Counts")
+plt.xlabel("Site")
+plt.ylabel("# of Stops")
+plt.legend()
+plt.gcf().set_size_inches(36, 8)
+plt.show()
+"""
+
+sl_reactivity_template = """
+run_data = spats_run_data()
+row = run_data.single_profile
+reactivity_type = 'beta' #Can be 'rho', 'beta', 'theta'
+reactivity = getattr(row, reactivity_type)
+plt.style.use('fsa')
+plt.xlim([0, run_data.n + 1])
+plt.ylim([0, max(reactivity)])
+plt.bar(row.x_axis, reactivity, 1, label=reactivity_type) 
+plt.xlabel("Nucleotide Position (nt)")
 plt.ylabel(reactivity_type)
 plt.legend()
 plt.gcf().set_size_inches(36, 8)

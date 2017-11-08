@@ -581,7 +581,7 @@ def tmut():
         print "Parsing to db..."
         pair_db.wipe()
         pair_db.add_targets_table(bp + "mut_single.fa")
-        fq_name = "mut_200k"
+        fq_name = "mut2"
         pair_db.parse(bp + fq_name + "_R1.fastq", bp + fq_name + "_R2.fastq")
 
     spatss = []

@@ -69,13 +69,24 @@ class _SpatsRunData(object):
     @property
     def cotrans(self):
         return self.spats.run.cotrans
+
     @property
-    def cotrans_target(self):
+    def single_target(self):
         return self.spats._targets.targets[0]
 
     @property
+    def cotrans_target(self):
+        return self.single_target
+
+    @property
     def n(self):
-        return self.cotrans_target.n
+        return self.single_target.n
+
+    @property
+    def single_profile(self):
+        res = self.spats._profiles.profilesForTarget(self.single_target)
+        res.x_axis = range(self.n + 1)
+        return res
 
     @property
     def min_length(self):
