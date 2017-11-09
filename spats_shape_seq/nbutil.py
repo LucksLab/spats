@@ -86,7 +86,7 @@ class Notebook(object):
     def add_preseq(self):
         return self.add_md_cell(preseq_md_template.format(self._stamp())).add_code_cell(preseq_code_template)
 
-    def add_spats_run(self, cotrans):
+    def add_spats_run(self, cotrans, mutations):
         self.add_md_cell(spats_run_md_template.format(self._stamp()))
         if cotrans:
             self.add_code_cell(cotrans_counts_template)
@@ -101,6 +101,10 @@ class Notebook(object):
         else:
             self.add_code_cell(sl_counts_template)
             self.add_code_cell(sl_reactivity_template)
+            if mutations:
+                self.add_code_cell(sl_muts_template)
+                self.add_code_cell(sl_muts_reactivity_template)
+                self.add_code_cell(sl_edge_muts_template)
         return self
 
 
@@ -371,6 +375,54 @@ plt.ylim([0, max(reactivity)])
 plt.bar(row.x_axis, reactivity, 1, label=reactivity_type) 
 plt.xlabel("Nucleotide Position (nt)")
 plt.ylabel(reactivity_type)
+plt.legend()
+plt.gcf().set_size_inches(36, 8)
+plt.show()
+"""
+
+sl_muts_template = """
+run_data = spats_run_data()
+row = run_data.single_profile
+plt.style.use('fsa')
+plt.xlim([0, run_data.n + 1]) # Change x-axis here
+#plt.plot(row.x_axis, row.treated_counts, color = "red", label = 's+')
+#plt.plot(row.x_axis, row.untreated_counts, color = "blue", label = 's-')
+plt.plot(row.x_axis, row.treated_muts, color = "orange", label = 'mut+')
+plt.plot(row.x_axis, row.untreated_muts, color = "purple", label = 'mut-')
+plt.title("Total Treated/Untreated Mutations")
+plt.xlabel("Site")
+plt.ylabel("# of Mutations")
+plt.legend()
+plt.gcf().set_size_inches(36, 8)
+plt.show()
+"""
+
+sl_muts_reactivity_template = """
+run_data = spats_run_data()
+row = run_data.single_profile
+reactivity_type = 'r_mut'
+reactivity = getattr(row, reactivity_type)
+plt.style.use('fsa')
+plt.xlim([0, run_data.n + 1])
+plt.ylim([0, max(reactivity)])
+plt.bar(row.x_axis, reactivity, 1, label=reactivity_type) 
+plt.xlabel("Nucleotide Position (nt)")
+plt.ylabel(reactivity_type)
+plt.legend()
+plt.gcf().set_size_inches(36, 8)
+plt.show()
+"""
+
+sl_edge_muts_template = """
+run_data = spats_run_data()
+row = run_data.single_profile
+plt.style.use('fsa')
+plt.xlim([0, run_data.n + 1]) # Change x-axis here
+plt.plot(row.x_axis, row.treated_edge_muts, color = "yellow", label = '+')
+plt.plot(row.x_axis, row.untreated_edge_muts, color = "cyan", label = '-')
+plt.title("Total Treated/Untreated Edge Mutations (mutation = site)")
+plt.xlabel("Site")
+plt.ylabel("# of Edge Mutations")
 plt.legend()
 plt.gcf().set_size_inches(36, 8)
 plt.show()

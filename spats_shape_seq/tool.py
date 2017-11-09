@@ -184,7 +184,7 @@ class SpatsTool(object):
         self._notebook().add_preseq().save()
 
     def _run_plots(self):
-        self._notebook().add_spats_run(self.cotrans).save()
+        self._notebook().add_spats_run(self.cotrans, True).save()
 
     def run(self):
         """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
@@ -213,7 +213,7 @@ class SpatsTool(object):
             spats.process_pair_data(self.r1, self.r2)
             spats.store(run_name)
         self._add_note("wrote output to {}".format(os.path.basename(run_name)))
-        self._notebook().add_spats_run(self.cotrans).save()
+        self._notebook().add_spats_run(self.cotrans, spats.run.count_mutations).save()
 
     def _update_run_config(self, run):
         custom_config = False

@@ -170,9 +170,8 @@ class TargetProfiles(object):
         treated_muts = self.treated_muts
         untreated_muts = self.untreated_muts
         n = len(treated_counts) - 1
-        r_stop = [ 0 for x in range(n+1) ]
+        mu = [ 0 for x in range(n+1) ]
         r_mut = [ 0 for x in range(n+1) ]
-        r_stop_mut = [ 0 for x in range(n+1) ]
         depth_t = 0.0    # keep a running sum
         depth_u = 0.0  # for both channels
 
@@ -182,27 +181,27 @@ class TargetProfiles(object):
         # \sum_{i=j}^{n+1}, in the code we use \sum_{i=0}^{j+1}, and
         # this is intentional.
         for j in range(n):
-            X_j_t = float(treated_counts[j])   # X_j^+
-            X_j_u = float(untreated_counts[j]) # X_j^-
-            M_j_t = float(treated_muts[j])     # M_j^+
-            M_j_u = float(untreated_muts[j])   # M_j^-
-            depth_t += X_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + i)]))
-            depth_u += X_j_u  #running sum equivalent to: depth_u = float(sum(untreated_counts[:(j + 1)]))
+            s_j_t = float(treated_counts[j])   # s_j^+
+            s_j_u = float(untreated_counts[j]) # s_j^-
+            mut_j_t = float(treated_muts[j])     # mut_j^+
+            mut_j_u = float(untreated_muts[j])   # mut_j^-
+            depth_t += s_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + i)]))
+            depth_u += s_j_u  #running sum equivalent to: depth_u = float(sum(untreated_counts[:(j + 1)]))
             try:
-                r_stop[j] = (X_j_t / depth_t) - (X_j_u / depth_u)
-                r_mut[j] = (M_j_t / depth_t) - (M_j_u / depth_u)
+                Tbit = (mut_j_t / depth_t)
+                Ubit = (mut_j_u / depth_u)
+                mu[j] = (Tbit - Ubit) / (1 - Ubit)
                 if not self.owner._run.allow_negative_values:
-                    r_stop[j] = max(0.0, r_stop[j])
-                    r_mut[j] = max(0.0, r_mut[j])
+                    mu[j] = max(0.0, mu[j])
             except:
-                #print("domain error: {} / {} / {} / {}".format(X_j_t, depth_t, Y_j_t, depth_u))
-                r_stop[j] = r_mut[j] = 0
+                #print("domain error: {} / {} / {} / {}".format(s_j_t, depth_t, s_j_u, depth_u))
+                mu[j] = 0.0
 
-            r_stop_mut[j] = r_stop[j] + r_mut[j]
+            r_mut[j] = self.betas[j] + mu[j]
 
-        self.r_stop = r_stop
+        self.mu = mu
         self.r_mut = r_mut
-        self.r_stop_mut = r_stop_mut
+
 
     def write(self, outfile):
         n = self._target.n
