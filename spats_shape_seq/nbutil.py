@@ -93,8 +93,13 @@ class Notebook(object):
             self.add_code_cell(cotrans_c_value_template)
             self.add_code_cell(cotrans_matrix_treated_template)
             self.add_code_cell(cotrans_matrix_untreated_template)
+            if mutations:
+                self.add_code_cell(cotrans_matrix_treated_muts_template)
+                self.add_code_cell(cotrans_matrix_untreated_muts_template)
             self.add_md_cell(cotrans_reactivity_matrix_md_template)
             self.add_code_cell(cotrans_reactivity_matrix_template)
+            if mutations:
+                self.add_code_cell(cotrans_reactivity_matrix_muts_template)
             self.add_md_cell(cotrans_reactivity_analysis_md_template)
             self.add_code_cell(cotrans_reactivity_analysis_template)
             self.add_code_cell(cotrans_reactivity_analysis_2_template)
@@ -242,6 +247,38 @@ plt.gcf().set_size_inches(12, 12)
 plt.show()
 """
 
+cotrans_matrix_treated_muts_template = """
+matrix_data = cotrans_matrix_data('treated_muts', max_val = 5000)
+plt.style.use('fsa') #Todo - change to be a custom matrix style to remove large fonts
+plt.matshow(matrix_data,cmap='jet')
+ax = plt.gca()
+ax.grid(color='grey',linestyle='-',linewidth='0.5')
+ax.xaxis.set_ticks_position('bottom')
+plt.xlabel("Nucleotide (nt)")
+plt.ylabel("RNA Length (nt)")
+cbar = plt.colorbar(fraction=0.046, pad=0.04)
+cbar.set_label('Counts')
+plt.title('Treated Channel Mutations')
+plt.gcf().set_size_inches(12, 12)
+plt.show()
+"""
+
+cotrans_matrix_untreated_muts_template = """
+matrix_data = cotrans_matrix_data('untreated_muts', max_val = 5000)
+plt.style.use('fsa') #Todo - change to be a custom matrix style to remove large fonts
+plt.matshow(matrix_data,cmap='jet')
+ax = plt.gca()
+ax.grid(color='grey',linestyle='-',linewidth='0.5')
+ax.xaxis.set_ticks_position('bottom')
+plt.xlabel("Nucleotide (nt)")
+plt.ylabel("RNA Length (nt)")
+cbar = plt.colorbar(fraction=0.046, pad=0.04)
+cbar.set_label('Counts')
+plt.title('Untreated Channel Mutations')
+plt.gcf().set_size_inches(12, 12)
+plt.show()
+"""
+
 cotrans_reactivity_matrix_md_template = """
 Reactivity Matrix
 ------
@@ -255,6 +292,22 @@ cotrans_reactivity_matrix_template = """
 reactivity_type = 'beta' #Can be 'rho', 'beta', 'theta'
 matrix_data = cotrans_matrix_data(reactivity_type, max_val = 0.025) #Suggested max_val: beta = 0.025, rho = 4
 #Todo - interface that allows to get subsets of the matrix from cotrans_matrix_data (to create subset plots)
+plt.style.use('fsa') #Todo - change to be a custom matrix style to remove large fonts
+plt.matshow(matrix_data)
+ax = plt.gca()
+ax.grid(color='grey',linestyle='-',linewidth='0.5')
+ax.xaxis.set_ticks_position('bottom')
+plt.xlabel("Nucleotide (nt)")
+plt.ylabel("RNA Length (nt)")
+cbar = plt.colorbar(fraction=0.046, pad=0.04)
+cbar.set_label(reactivity_type)
+plt.gcf().set_size_inches(12, 12)
+plt.show()
+"""
+
+cotrans_reactivity_matrix_muts_template = """
+reactivity_type = 'r' #Can be 'r', 'mu', 'beta', 'treated_mut', 'untreated_mut'
+matrix_data = cotrans_matrix_data(reactivity_type, max_val = 4) #Suggested max_val: beta = 0.025, rho = 4
 plt.style.use('fsa') #Todo - change to be a custom matrix style to remove large fonts
 plt.matshow(matrix_data)
 ax = plt.gca()
