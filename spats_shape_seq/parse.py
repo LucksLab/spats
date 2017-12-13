@@ -185,7 +185,7 @@ def fasta_parse(target_path):
             if seq:
                 seq = seq.upper().replace('U', 'T')
             if name and seq:
-                pairs.append((name, seq))
+                pairs.append((name.strip(), seq))
     return pairs
 
 
