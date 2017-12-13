@@ -268,8 +268,8 @@ class PairDB(object):
     def add_results_with_tags(self, result_set_id, results):
         # grab a new connection since this might be in a new process (due to multiprocessing)
         conn = self._get_connection()
-        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, multiplicity, failure, tag_mask)
-                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, mut, multiplicity, failure, tag_mask)
+                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
         rstmt_template = 'INSERT INTO result_tag (set_id, result_id, tag_id) VALUES ({}, {}, ?)'
         for res in results:
             cursor = conn.cursor()

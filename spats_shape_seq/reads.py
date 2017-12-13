@@ -109,7 +109,7 @@ class ReadsAnalyzer(object):
         self._pair_db = reads_data.pair_db
         s = Spats()
         s.run._p_use_tag_processor = True
-        s.run.cotrans = True
+        s.run.cotrans = cotrans
         s.run.writeback_results = True
         s.run.result_set_name = "tags"
         s.run.allow_indeterminate = True
