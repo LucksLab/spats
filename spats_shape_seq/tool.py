@@ -406,6 +406,22 @@ class SpatsTool(object):
                         data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i], prof.c ])
             output_path = os.path.join(self.path, '{}.csv'.format(tgt.name))
             self._write_csv(output_path, headers, data)
+            empty_cell = ''
+            if mutations:
+                keys = [ 'treated', 'untreated', 'treated_mut', 'untreated_mut', 'beta', 'mu', 'r' ]
+            else:
+                keys = [ 'treated', 'untreated', 'beta', 'theta', 'rho' ]
+            for key in keys:
+                ncols = len(profiles.cotrans_keys())
+                mat = []
+                for pkey in profiles.cotrans_keys():
+                    end = int(pkey.split('_')[-1])
+                    prof = profiles.profilesForTargetAndEnd(tgt.name, end)
+                    vals = getattr(prof, key)
+                    if len(vals) < ncols:
+                        vals += ([empty_cell] * (ncols - len(vals)))
+                    mat.append(vals)
+                self._write_csv('{}_{}_mat.csv'.format(tgt.name, key), None, mat)
         else:
             for tgt in spats.targets.targets:
                 tseq = tgt.seq

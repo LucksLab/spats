@@ -95,6 +95,14 @@ class TargetProfiles(object):
         return self.untreated_counts
 
     @property
+    def treated_mut(self):
+        return self.treated_muts
+
+    @property
+    def untreated_mut(self):
+        return self.untreated_muts
+
+    @property
     def beta(self):
         return self.betas
 
@@ -105,6 +113,10 @@ class TargetProfiles(object):
     @property
     def rho(self):
         return self.rhos
+
+    @property
+    def r(self):
+        return self.r_mut
 
     def compute(self):
         treated_counts = self.treated_counts
