@@ -38,6 +38,7 @@ class SpatsWorker(object):
                 self._pair_db.worker_id = worker_id
             writeback = bool(self._result_set_id)
             tagged = processor.uses_tags
+            use_quality = (self._run.count_mutations and self._run.mutations_require_quality_score)
             pair = Pair()
             while True:
                 pairs = self._pairs_to_do.get()
@@ -46,6 +47,9 @@ class SpatsWorker(object):
                 results = []
                 for lines in pairs:
                     pair.set_from_data('', str(lines[1]), str(lines[2]), lines[0])
+                    if use_quality:
+                        pair.r1.quality = str(lines[4])
+                        pair.r2.quality = str(lines[5])
                     processor.process_pair(pair)
                     if writeback:
                         results.append(self._make_result(lines[3], pair, tagged))

@@ -137,6 +137,7 @@ class PartialFindProcessor(PairProcessor):
 
         if self._run.count_mutations:
             pair.check_mutations()
+            self.counters.low_quality_muts += pair.check_mutation_quality(self._run.mutations_require_quality_score)
             if pair.mutations and len(pair.mutations) > self._run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 self.counters.match_errors += pair.multiplicity
@@ -385,6 +386,7 @@ class CotransPartialFindProcessor(PairProcessor):
 
         if run.count_mutations:
             pair.check_mutations()
+            self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
             if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 self.counters.match_errors += pair.multiplicity
