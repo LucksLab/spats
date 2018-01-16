@@ -81,6 +81,7 @@ class LookupProcessor(PairProcessor):
             if pair.has_site:
                 return
 
+    #@profile
     def _try_lookup_hit(self, pair, r1_res):
 
         targets = self._targets
@@ -92,7 +93,7 @@ class LookupProcessor(PairProcessor):
         r2_mutations = []
         if r1_res[1] == None:
             lookup = targets.r2_lookup[target.name]
-            r2_match_len = len(lookup.keys()[0])
+            r2_match_len = targets.r2_match_lengths[target.name]
             r2_key = pair.r2.original_seq[:r2_match_len]
             r2_res = lookup.get(r2_key)
             if r2_res is not None:
@@ -159,7 +160,7 @@ class CotransLookupProcessor(PairProcessor):
         targets.build_cotrans_lookups(self._run)
         target = targets.targets[0]
         self.r2_lookup = targets.r2_lookup[target.name]
-        self.r2_match_len = len(self.r2_lookup.keys()[0])
+        self.r2_match_len = targets.r2_match_lengths[target.name]
         if not self._run.quiet:
             print("Lookup table: {} R1 entries, {} R2 entries.".format(len(targets.r1_lookup),
                                                                        sum(map(len, targets.r2_lookup.values()))))

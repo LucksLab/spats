@@ -518,18 +518,19 @@ def cotrans_debug():
 def prof_run():
     from spats_shape_seq import Spats
     spats = Spats()
-    spats.run.cotrans = True
-    spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
-    spats.run.writeback_results = False
+    #spats.run.cotrans = True
+    #spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    #spats.run.writeback_results = False
     spats.run._process_all_pairs = True
     spats.run.skip_database = True
     spats.run.algorithm = "lookup"
-    #spats.run.num_workers = 1
+    spats.run.count_mutations = True
+    spats.run.num_workers = 1
 
-    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
-    spats.addTargets(bp + "cotrans_single.fa")
-    spats.process_pair_data(bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
-                            bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq")
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/pdc_muts/PDC_tweaked/PDC_09_001_6/"
+    spats.addTargets(bp + "target.fa")
+    spats.process_pair_data(bp + "2k_R1.fastq",
+                            bp + "2k_R2.fastq")
     exit(0)
 
 def make_test_dataset():

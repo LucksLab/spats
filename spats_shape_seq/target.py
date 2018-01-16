@@ -316,12 +316,14 @@ class Targets(object):
         #for tname in self_matches.keys():
         #    print("{} : {}".format(tname, self_matches[tname]))
         r2_full_table = {}
+        r2_match_lengths = {}
         for target in self.targets:
             mlen = length if mutations else self_matches[target.name] + 1
             if length < mlen:
                 raise Exception("R2 length not long enough for target self-match ({} / {})".format(length, mlen))
             r2_table = {}
             r2_full_table[target.name] = r2_table
+            r2_match_lengths[target.name] = mlen
             tlen = target.n
             tgt_seq = target.seq
             for i in range(tlen - mlen + 1):
@@ -342,3 +344,4 @@ class Targets(object):
                             r2_table[mutated_bit] = (i, [ i + toggle_idx + 1 ])
 
         self.r2_lookup = r2_full_table
+        self.r2_match_lengths = r2_match_lengths
