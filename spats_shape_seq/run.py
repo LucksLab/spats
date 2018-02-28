@@ -129,6 +129,12 @@ class Run(object):
         #: set to ``0.0``).
         self.allow_negative_values = False
 
+        #: Default ``False``, set to ``True`` to count and report information
+        #: on pairs that align left of the 5' end. the count for each
+        #: different prefix encountered will be reported. Setting this
+        #: will force the usage of the ``find_partial`` algorithm.
+        self.count_left_prefixes = False
+
 
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
@@ -142,7 +148,14 @@ class Run(object):
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
 
 
+    def apply_config_restrictions(self):
+        if self.count_mutations:
+            self.allowed_target_errors = 1
+        if self.count_left_prefixes:
+            self.algorithm = 'find_partial'
+
     def _get_processor_class(self):
+        self.apply_config_restrictions()
         if self._p_use_tag_processor:
             return TagProcessor
         else:

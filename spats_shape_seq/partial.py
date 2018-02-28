@@ -91,6 +91,9 @@ class PartialFindProcessor(PairProcessor):
         # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
         r2_start_in_target = pair.r2.match_index - pair.r2.match_start
         if r2_start_in_target < 0:
+            if self._run.count_left_prefixes:
+                prefix = pair.r2.original_seq[0:0 - r2_start_in_target]
+                self.counters.increment_key('prefix_{}'.format(prefix), pair.multiplicity)
             pair.failure = Failures.left_of_zero
             self.counters.left_of_target += pair.multiplicity
             return
@@ -350,6 +353,9 @@ class CotransPartialFindProcessor(PairProcessor):
             return
 
         if pair.left < 0:
+            if run.count_left_prefixes:
+                prefix = pair.r2.original_seq[0:0 - pair.left]
+                self.counters.increment_key('prefix_{}'.format(prefix), pair.multiplicity)
             pair.failure = Failures.left_of_zero
             return
 

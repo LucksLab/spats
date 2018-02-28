@@ -57,6 +57,9 @@ class Counters(object):
     def increment_mask(self, mask, multiplicity = 1):
         _dict_incr(self._counts, mask.chars + "_total", multiplicity)
 
+    def increment_key(self, counter_key, multiplicity = 1):
+        _dict_incr(self._counts, counter_key, multiplicity)
+
     def count_data(self):
         return (self._counts, self._registered)
 
