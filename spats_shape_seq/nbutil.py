@@ -83,8 +83,8 @@ class Notebook(object):
     def add_initializer(self):
         return self.add_code_cell(initializer_code_template)
 
-    def add_preseq(self):
-        return self.add_md_cell(preseq_md_template.format(self._stamp())).add_code_cell(preseq_code_template)
+    def add_preseq(self, key):
+        return self.add_md_cell(preseq_md_template.format(self._stamp())).add_code_cell(preseq_code_template.format(key))
 
     def add_spats_run(self, cotrans, mutations):
         self.add_md_cell(spats_run_md_template.format(self._stamp()))
@@ -162,7 +162,7 @@ Pre-Sequencing
 """
 
 preseq_code_template = """
-pre_data = preseq_data()
+pre_data = preseq_data('{}')
 default_ylim = pre_data.max_val
 default_xlim = max(pre_data.x_axis)
 plt.ylim([0, default_ylim]) #Change y-axis here
@@ -176,8 +176,8 @@ plt.ylabel('Intensity (AU)')
 plt.gcf().set_size_inches(36, 8)
 plt.legend()
 plt.show()
-print "Treated 1st moment: {}".format(first_moment(pre_data.treated))
-print "Untreated 1st moment: {}".format(first_moment(pre_data.untreated))
+print "Treated 1st moment: {{}}".format(first_moment(pre_data.treated))
+print "Untreated 1st moment: {{}}".format(first_moment(pre_data.untreated))
 """
 
 spats_run_md_template = """

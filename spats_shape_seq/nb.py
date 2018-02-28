@@ -18,9 +18,9 @@ def normalize(data):
     s = float(sum(data))
     return map(lambda x : float(x) / s, data)
 
-def preseq_data():
+def preseq_data(key):
     import json
-    vals = json.loads(open('pre.spats', 'rb').read())
+    vals = json.loads(open('pre_{}.spats'.format(key), 'rb').read())
     res = _spats_util.SimpleObject()
     res.x_axis = range(len(vals[0]))
     res.treated = vals[0]

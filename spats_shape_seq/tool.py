@@ -174,14 +174,17 @@ class SpatsTool(object):
         """
         if 'preseq' not in self.config:
             raise Exception("Missing 'preseq' file in spats.config")
-        pre_name = self._pre_file()
-        if os.path.exists(pre_name):
-            self._add_note("** removing previous preseq file")
-            os.remove(pre_name)
-        preseq_data = abif_parse(self.config['preseq'], fields = [ 'DATA2', 'DATA3', 'DATA105' ])
-        open(pre_name, 'wb').write(json.dumps(preseq_data))
-        self._add_note("pre-sequencing data processed to {}".format(os.path.basename(pre_name)))
-        self._notebook().add_preseq().save()
+        pre_files = [ f.strip() for f in self.config['preseq'].split(',') ]
+        for filename in pre_files:
+            key, _ = os.path.splitext(os.path.basename(filename))
+            pre_name = self._pre_file(key)
+            if os.path.exists(pre_name):
+                self._add_note("** removing previous preseq file")
+                os.remove(pre_name)
+            preseq_data = abif_parse(filename, fields = [ 'DATA2', 'DATA3', 'DATA105' ])
+            open(pre_name, 'wb').write(json.dumps(preseq_data))
+            self._add_note("pre-sequencing data processed to {}".format(os.path.basename(pre_name)))
+            self._notebook().add_preseq(key).save()
 
     def _run_plots(self):
         self._notebook().add_spats_run(self.cotrans, True).save()
@@ -235,8 +238,8 @@ class SpatsTool(object):
     def _spats_file(self, base_name):
         return os.path.join(self.path, '{}.spats'.format(base_name))
 
-    def _pre_file(self):
-        return self._spats_file('pre')
+    def _pre_file(self, key):
+        return self._spats_file('pre_{}'.format(key))
 
     def _run_file(self):
         return self._spats_file('run')
@@ -494,7 +497,7 @@ _spats_config_template = """
 # set to True/False depending on whether this is a cotrans experiment
 cotrans = True
 
-# Required for pre-sequencing tool: the path to the ABIF (.fsa) file.
+# Required for pre-sequencing tool: the path to the ABIF (.fsa) file. Can also be a comma-separated list for multiple files.
 #preseq = 
 
 # Required for SPATS runs and reads analysis: the path to the targets FASTA file.
