@@ -57,7 +57,7 @@ from spats import Spats
 
 _VERSION = "1.9.4"
 _PRODUCTION = True
-_PUBLIC_RELEASE = False
+_PUBLIC_RELEASE = True
 version = _VERSION + (" Public" if _PUBLIC_RELEASE else " Private") + (" Production" if _PRODUCTION else " Beta")
 
 
