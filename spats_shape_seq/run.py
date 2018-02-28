@@ -51,6 +51,14 @@ class Run(object):
         #: this will force ``allowed_target_errors`` to be ``1``.
         self.count_mutations = False
 
+
+        #: Defaults to ``None``. If set to a phred-score string, and
+        #: ``count_mutations`` is ``True``, then this will require the
+        #: quality score on any mutation to be greater than or equal
+        #: to the indicated phred score to be counted.
+        self.mutations_require_quality_score = None
+
+
         #: Defaults to ``0``, set higher to require a minimal amount of
         #: adapter in order to do trimming. Generally not necessary since
         #: a positive match in the target is required before trimming.

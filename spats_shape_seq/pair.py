@@ -50,6 +50,24 @@ class Pair(object):
         if mutations:
             self.mutations = list(mutations)
 
+    def check_mutation_quality(self, minimum_quality_score):
+        if not minimum_quality_score or not self.mutations:
+            return 0
+        removed = []
+        r1_start = self.r1.match_index
+        r2_start = self.r2.match_index
+        seq_len = self.r2.original_len
+        for mut in self.mutations:
+            if mut < r2_start + seq_len + 1:
+                q = self.r2.quality[mut - r2_start - 1]
+            else:
+                q = self.r1.quality[::-1][mut - r1_start - 1]
+            if q < minimum_quality_score:
+                removed.append(mut)
+        for mut in removed:
+            self.mutations.remove(mut)
+        return len(removed)
+
     def check_overlap(self):
         # note: in the case that overlaps disagree, we may decide it one way or the other via quality
         # xref https://trello.com/c/35mBHvPA/197-stop-map-r1-r2-disagree-case

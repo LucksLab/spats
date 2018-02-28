@@ -16,6 +16,7 @@ class Sequence(object):
         self._rtrim = 0
         self.adapter_errors = []
         self.match_errors = []
+        self.quality = None
 
     def set_seq(self, seq):
         self._reset(seq)
