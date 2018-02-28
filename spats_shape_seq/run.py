@@ -45,6 +45,20 @@ class Run(object):
         #: determine an appropriate value.
         self.minimum_target_match_length = 10
 
+        #: Defaults to ``False``. If set to ``True``, will count both
+        #: stops and muations, and incorporate the mutation information
+        #: into the reactivity profile computations. Note that setting
+        #: this will force ``allowed_target_errors`` to be ``1``.
+        self.count_mutations = False
+
+
+        #: Defaults to ``None``. If set to a phred-score string, and
+        #: ``count_mutations`` is ``True``, then this will require the
+        #: quality score on any mutation to be greater than or equal
+        #: to the indicated phred score to be counted.
+        self.mutations_require_quality_score = None
+
+
         #: Defaults to ``0``, set higher to require a minimal amount of
         #: adapter in order to do trimming. Generally not necessary since
         #: a positive match in the target is required before trimming.
@@ -118,6 +132,22 @@ class Run(object):
         #: Default ``lookup``, set to ``find_partial`` to use the partial find algorithm.
         self.algorithm = "lookup"
 
+        #: Default ``False``, set to ``True`` to allow beta, theta,
+        #: and rho values to be negative (otherwise, negative values are
+        #: set to ``0.0``).
+        self.allow_negative_values = False
+
+        #: Default ``False``, set to ``True`` to count and report information
+        #: on pairs that align left of the 5' end. the count for each
+        #: different prefix encountered will be reported. Setting this
+        #: will force the usage of the ``find_partial`` algorithm.
+        self.count_left_prefixes = False
+
+        #: Default ``False``, set to ``True`` to treat any read with a
+        #: 5' prefix as starting at site zero. Setting this
+        #: will force the usage of the ``count_left_prefixes`` option.
+        self.collapse_left_prefixes = False
+
 
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
@@ -131,7 +161,16 @@ class Run(object):
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
 
 
+    def apply_config_restrictions(self):
+        if self.count_mutations:
+            self.allowed_target_errors = 1
+        if self.collapse_left_prefixes:
+            self.count_left_prefixes = True
+        if self.count_left_prefixes:
+            self.algorithm = 'find_partial'
+
     def _get_processor_class(self):
+        self.apply_config_restrictions()
         if self._p_use_tag_processor:
             return TagProcessor
         else:

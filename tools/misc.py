@@ -200,28 +200,30 @@ def show_failure_types():
                 print summary
 
 def diag_case():
-    from spats_shape_seq import Spats, spats_config
+    from spats_shape_seq import Spats
     from spats_shape_seq.pair import Pair
     from spats_shape_seq.tests.test_pairs import cases
-    from diagram import diagram
-    spats_config.minimum_target_match_length = 8
+    #from spats_shape_seq.tests.test_pairs import prefix_cases as cases
+    from spats_shape_seq.diagram import diagram
+    #spats_config.minimum_target_match_length = 8
     spats = Spats()
-    spats.addMasks('RRRY', 'YYYR')
     spats.addTargets("test/5s/5s.fa")
-    spats_config.debug = True
+    spats.run.debug = True
+    spats.run.algorithm = "find_partial"
+    #spats.run.collapse_left_prefixes = True
     spats._case_errors = False
     def run_case(case):
         pair = Pair()
         pair.set_from_data(case[0], case[1], case[2])
         spats.process_pair(pair)
-        print diagram(pair)
+        print diagram(pair, spats.run)
         if case[3] != pair.site:
             spats._case_errors = True
             print "******* mismatch: {} != {}".format(case[3], pair.site)
     for case in cases:
         if case[0].startswith("*"):
             run_case(case)
-    spats_config.debug = False
+    spats.run.debug = False
     if spats._case_errors:
         raise Exception("Case failed")
 
@@ -288,10 +290,12 @@ def addv102():
     db.add_v102_comparison(targets_path, out_path)
 
 def rdiff():
-    db_path = sys.argv[2]
-    rs1_name = sys.argv[3]
-    rs2_name = sys.argv[4]
+    rdiff_func(sys.argv[2], sys.argv[3], sys.argv[4])
+
+def rdiff_func(db_path, rs1_name, rs2_name, diag_spats = None):
     from spats_shape_seq.db import PairDB
+    from spats_shape_seq.diagram import diagram
+    from spats_shape_seq.pair import Pair
     db = PairDB(db_path)
     n1 = db.num_results(rs1_name)
     n2 = db.num_results(rs2_name)
@@ -305,9 +309,9 @@ def rdiff():
     differences = []
     for r in db.differing_results(rs1_name, rs2_name):
         if r[4] == -1:
-            assert(r[7] != -1)
+            assert(r[9] != -1)
             theirs_only.append(r)
-        elif r[7] == -1:
+        elif r[9] == -1:
             ours_only.append(r)
         else:
             differences.append(r)
@@ -315,7 +319,7 @@ def rdiff():
     for l in all_lists:
         reasons = {}
         for r in l:
-            key = r[5] or r[8]
+            key = r[7] or r[12] or "different values"
             assert(key)
             rlist = reasons.get(key)
             if not rlist:
@@ -324,11 +328,17 @@ def rdiff():
             rlist.append(r)
         for reason, rlist in reasons.iteritems():
             for r in rlist[:min(len(rlist), 10)]:
-                print "  {}:{} ({}) -- {}:{} ({})   ({}: {} / {})".format(r[3] or 'x', r[4], r[5] or "OK",
-                                                                          r[6] or 'x', r[7], r[8] or "OK",
-                                                                          r[0], r[1], r[2])
+                print "  {}:{} s{}m{} ({}) -- {}:{} s{}m{} ({})   ([ '{}', '{}', '{}', {}, {}, [ {} ] ])".format(r[3] or 'x', r[4], r[5], r[6], r[7] or "OK",
+                                                                                                                 r[8] or 'x', r[9], r[10], r[11], r[12] or "OK",
+                                                                                                                 r[0], r[1], r[2], r[4], r[5], "" if -1 == r[6] else r[6] )
             if len(rlist) > 0:
                 print "... {} total.".format(len(rlist))
+            if diag_spats:
+                pair = Pair()
+                pair.set_from_data(str(r[0]), str(r[1]), str(r[2]))
+                diag_spats.process_pair(pair)
+                print diagram(pair, diag_spats.run)
+
     print "{} total diffs.".format(sum(map(len, all_lists)))
 
 def test_tags():
@@ -510,18 +520,19 @@ def cotrans_debug():
 def prof_run():
     from spats_shape_seq import Spats
     spats = Spats()
-    spats.run.cotrans = True
-    spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
-    spats.run.writeback_results = False
+    #spats.run.cotrans = True
+    #spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    #spats.run.writeback_results = False
     spats.run._process_all_pairs = True
     spats.run.skip_database = True
     spats.run.algorithm = "lookup"
-    #spats.run.num_workers = 1
+    spats.run.count_mutations = True
+    spats.run.num_workers = 1
 
-    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/"
-    spats.addTargets(bp + "cotrans_single.fa")
-    spats.process_pair_data(bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq",
-                            bp + "data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq")
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/pdc_muts/PDC_tweaked/PDC_09_001_6/"
+    spats.addTargets(bp + "target.fa")
+    spats.process_pair_data(bp + "2k_R1.fastq",
+                            bp + "2k_R2.fastq")
     exit(0)
 
 def make_test_dataset():
@@ -540,6 +551,116 @@ def make_test_dataset():
     s.process_pair_db(pair_db)
     pair_db.store_run(s.run)
     pair_db.store_counters('spats', s.counters)
+
+def tabif():
+    from spats_shape_seq.parse import abif_parse
+    fields = [ 'DATA2', 'DATA3', 'DATA105' ]
+    data = abif_parse("/Users/jbrink/mos/tasks/1RwIBa/tmp/abif/abifpy/PDC.ab1", fields)
+    def m1(data):
+        return sum([(i + 1) * data[i] for i in range(len(data))])/sum(data)
+    for i in range(len(fields)):
+        print "m1[{}] = {}".format(i, m1(data[i]))
+
+def tnb():
+    from spats_shape_seq.nbutil import Notebook
+    nb = Notebook('test_out.ipynb')
+    if nb.is_empty():
+        nb.add_code_cell("a = [1,2,3,4]*2\nb = [x for x in reversed(a)]\nb")
+    nb.save(nb.path)
+
+def tm():
+    from spats_shape_seq.matrix import matrix_html
+    print matrix_html(20, 131, None)
+
+def tmut():
+    from spats_shape_seq import Spats
+    from spats_shape_seq.db import PairDB
+    from spats_shape_seq.diagram import diagram
+
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/mutsl/"
+
+    pair_db = PairDB(bp + "ds_cmp.spats")
+    if True:
+        print "Parsing to db..."
+        pair_db.wipe()
+        pair_db.add_targets_table(bp + "mut_single.fa")
+        fq_name = "mut2"
+        pair_db.parse(bp + fq_name + "_R1.fastq", bp + fq_name + "_R2.fastq")
+
+    spatss = []
+    for alg in [ "find_partial", "lookup" ]:
+        spats = Spats(cotrans = False)
+        spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+        spats.run.count_mutations = True
+        spats.run.algorithm = alg
+        spats.run.allowed_target_errors = 1
+        spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
+        spats.run._process_all_pairs = True
+        spats.run.writeback_results = True
+        spats.run.num_workers = 1
+        spats.run.result_set_name = "mut_" + alg
+
+        spats.process_pair_db(pair_db)
+        pair_db.store_run(spats.run)
+        pair_db.store_counters(spats.run.result_set_name, spats.counters)
+        spatss.append(spats)
+
+    rdiff_func(bp + "ds_cmp.spats", "mut_find_partial", "mut_lookup", diag_spats = spatss[0])
+
+    #for key, value in spats.counters._registered.iteritems():
+    #    if ":M" in key:
+    #        print "{}: {}".format(key, value)
+
+
+def tmut_case():
+    from spats_shape_seq import Spats
+    from spats_shape_seq.db import PairDB
+    from spats_shape_seq.diagram import diagram
+
+    bp = "/Users/jbrink/mos/tasks/1RwIBa/tmp/mutsl/"
+
+    spats = Spats(cotrans = False)
+    spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+    spats.run.count_mutations = True
+    spats.run.algorithm = "find_partial"
+    spats.run.allowed_target_errors = 1
+    spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
+    spats.run._process_all_pairs = True
+    spats.run.writeback_results = True
+    spats.run.num_workers = 1
+    spats.run.result_set_name = "mut"
+    spats.addTargets(bp + "mut_single.fa")
+
+    from spats_shape_seq.pair import Pair
+    pair = Pair()
+
+    #c = [ 'GAATGTCCTTGGTGCCCGAGTCAGTCCTTGGTGCCCGAGTCAGTCCTTGGTTCCCGAGTCACTCCTTTGTTCCCC', 'AGGACTGACTCGGGCACCAAGGACTTTCTCGTTCACCTATTTCTTTCTCTTCCCCCTTTTTCTTTCTCTTTCTCC' ]
+    #c = [ 'GAGCGTCCTTGGTGCCCGAGTCAGATGCCGACCCGGGTGGGGGCCCTGCCAGCTACATCCCGGCACACGCGTCAT', 'TAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCG' ]
+    #c = [ 'GAATGTCCTTGGTGCCCGAGTCAGGACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAAC', 'ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCA' ]
+    #c = [ 'AGGCGTCCTTGGTGCCCGAGTCAGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGG', 'ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCT' ]
+    #c = [ 'TTCAGTCCTTGGTGCCCGAGTCAGCCAGCTACATCCCGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGA', 'AGGTCAGATCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCTGACTCGGGCACCAA' ]
+    #c = [ 'AAATGTCCTTGGTGCCCGAGTCAGATCTGCCTTAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGA', 'TAAGGCAGATCTGACTCGGGCACCAAGGACATTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCG' ]
+    #c = [ 'CTCAGTCCTTGGTGCCCGAGTCAGTGAGCTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTC', 'AGCTCACTGACTCGGGCACCAAGGACTGAGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGG' ]
+    #c = [ 'AAGCGTCCTTGGTGCCCGAGTCAGTGGAGGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCT', 'ACCTCCACTGACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTG' ]
+    #c = [ 'TCCGGTCCTTGGTGCCCGAGTCAGATGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGT', 'ACATCTGACTCGGGCACCAAGGACCGGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTC' ]
+    #c = [ 'TTTAAGTCCTTGGTGCCCGAGTCAGGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTA', 'TACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACCTGACTCGGGCACCAAGGACTTAAA' ]
+    #c = [ 'TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA' ]
+    #c = [ 'AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC' ]
+    #c = [ 'AAATCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'AATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGATT' ]
+    #c = [ 'TCCGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'ATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCGGA' ]
+    #c = [ 'TCCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCATTTGCTCATCATTAACCTCCTGAATCACTAT', 'GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA' ]
+    #c = [ 'GGGTCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTTAGATCGGAAGAGCACAC', 'AAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGACCCAGATCGGAAGAGCGTCG' ]
+    c = [ 'GAACCAACAAGAATTGGGACAACTCCAGTGAAAGGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAAGATCGGA', 'TCAGGAGGTTAATGATGAGCAAAGGAGAAGAACCTTTCACTGGAGTTGTCCCAATTCTTGTTGGTTCAGATCGGA' ]
+    #c = [ 'CCTACAACAAGAATTGGGACAACTCCAGTGAGAAGTTCTTCTCCTTTGCTCATCATTAAGATCGGAAGAGCACAC', 'TAATGATGAGCAAAGGAGAAGAACTTCTCACTGGAGTTGTCCCAATTCTTGTTGTAGGAGATCGGAAGAGCGTCG' ]
+    #c = [ 'CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCTTTAACCTCCTGAATCACTAA', 'TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA' ]
+    pair.set_from_data('x', c[0], c[1])
+    spats.process_pair(pair)
+    print diagram(pair, spats.run)
+    if pair.has_site:
+        print "{}: {} / {} {}".format(pair.target.name, pair.site, pair.end, pair.mutations)
+    else:
+        print "FAIL: {}".format(pair.failure)
+    
 
 if __name__ == "__main__":
     import sys

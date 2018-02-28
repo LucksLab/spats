@@ -30,7 +30,7 @@ class Colorize(cjb.uif.Filter):
 
     def filterView(self, view, scene):
         if not view.bg:
-            view.bg = [ 1.0, 1.0, 1.0 ]
+            view.bg = [ 0.9, 0.9, 0.9 ]
         for v in view.recursiveSubviews():
             color = None
             if v.bg and isinstance(v.bg, basestring):

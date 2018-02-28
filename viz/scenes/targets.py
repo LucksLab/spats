@@ -71,6 +71,7 @@ class CotransTarget(BaseScene):
         self.plot_type = "row"
         self.selected_values = None
         self.show_counts = True
+        self.show_null = False
         self.data_types = [ "treated", "untreated", "beta", "theta", "rho" ]
         for data_type in self.data_types:
             setattr(self, data_type, self.changer(data_type))
@@ -116,12 +117,14 @@ class CotransTarget(BaseScene):
 
     def build(self):
         BaseScene.build(self)
+        self.ui.spats.run.allow_negative_values = True
         self.profiles = self.ui.spats.compute_profiles()
         self.maxes = { dt : (4 if dt == "rho" else self.profiles.data_range(dt)[1]) for dt in self.data_types }
         self.data_type_views = [ self.makeDataTypeView(data_type) for data_type in self.data_types ]
-        self.targetButtons([self.togglePlotType, self.toggleCounts, self.totalCounts])
+        self.targetButtons([self.togglePlotType, self.toggleCounts, self.toggleNull, self.totalCounts])
         self.buttonWithKey('togglePlotType').text = "Plot Type: Row"
         self.buttonWithKey('toggleCounts').text = "Show f+/f-: On"
+        self.buttonWithKey('toggleNull').text = "Flags: Off"
         self.type_label = self.addView(cjb.uif.views.Label("Query: {}".format(self.data_type), fontSize = 16))
         if self.ui.has_tags:
             sitemap = { "{}:{}:{}:{}".format(self.target_id, s[0], s[2], s[1]) : s[3] for s in self.ui.db.result_sites(self.ui.result_set_id, self.target_id) }
@@ -138,8 +141,8 @@ class CotransTarget(BaseScene):
         cur = view.frame.centeredSubrect(w = 800, h = 600)
         self.matrix.frame = cur
         self.type_label.frame = view.frame.topLeftSubrect(w = 240, h = 24, margins = Size(40, 100))
-        grid = Grid(frame = view.frame.bottomCenteredSubrect(w = 600, h = 40, margin = 20), itemSize = Size(180, 40), columns = 3, rows = 1, spacing = Size(20, 0))
-        grid.applyToViews(map(self.buttonWithKey, [ 'togglePlotType', 'toggleCounts', 'totalCounts' ]))
+        grid = Grid(frame = view.frame.bottomCenteredSubrect(w = 600, h = 40, margin = 20), itemSize = Size(120, 40), columns = 4, rows = 1, spacing = Size(20, 0))
+        grid.applyToViews(map(self.buttonWithKey, [ 'togglePlotType', 'toggleCounts', 'toggleNull', 'totalCounts' ]))
         grid = Grid(frame = view.frame.leftCenteredSubrect(w = 120, h = 400, margin = 40), itemSize = Size(120, 70), columns = 1, rows = 5, spacing = Size(0, 10))
         grid.applyToViews(self.data_type_views)
         for dtv in self.data_type_views:
@@ -183,6 +186,12 @@ class CotransTarget(BaseScene):
         button = self.buttonWithKey('toggleCounts')
         self.sendViewMessage(button, "setText", "Show f+/f-: {}".format("On" if self.show_counts else "Off"))
 
+    def toggleNull(self, message = None):
+        self.show_null = not self.show_null
+        button = self.buttonWithKey('toggleNull')
+        self.sendViewMessage(button, "setText", "Flags: {}".format("On" if self.show_null else "Off"))
+        self.sendViewMessage(self.matrix, "show_null" if self.show_null else "hide_null")
+
     def totalCounts(self, message = None):
         self.ui.plotter.submit_plot(self.total_reads_plot())
 
@@ -203,6 +212,7 @@ class CotransTarget(BaseScene):
         elif "t" in keyInfo:
             handler = { "p" : self.togglePlotType,
                         "c" : self.toggleCounts,
+                        "f" : self.toggleNull,
                         "t" : self.totalCounts }.get(keyInfo["t"])
         if handler:
             handler()

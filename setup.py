@@ -12,9 +12,6 @@ Spats is provided under the OSI-approved Boost License.
 http://luckslab.github.io/spats/
 '''
 
-if not _PUBLIC_RELEASE:
-    raise Exception('Attempt to release with spats_shape_seq._PUBLIC_RELEASE = {}'.format(_PUBLIC_RELEASE))
-
 setup(name='spats_shape_seq',
       version=_VERSION,
       description=DESCRIPTION,

@@ -236,7 +236,7 @@ class PairDB(object):
 
     # results storing
     def _prepare_results(self):
-        self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, mask TEXT, site INT, end INT, multiplicity INT, failure TEXT, tag_mask INT)")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, mask TEXT, site INT, end INT, mut INT, multiplicity INT, failure TEXT, tag_mask INT)")
         self.conn.execute("DROP INDEX IF EXISTS pair_result_idx")
         self.conn.execute("DROP INDEX IF EXISTS result_site_idx")
         self.conn.execute("CREATE TABLE IF NOT EXISTS result_set (set_id TEXT)")
@@ -268,27 +268,27 @@ class PairDB(object):
     def add_results_with_tags(self, result_set_id, results):
         # grab a new connection since this might be in a new process (due to multiprocessing)
         conn = self._get_connection()
-        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, multiplicity, failure, tag_mask)
-                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, mut, multiplicity, failure, tag_mask)
+                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
         rstmt_template = 'INSERT INTO result_tag (set_id, result_id, tag_id) VALUES ({}, {}, ?)'
         for res in results:
             cursor = conn.cursor()
-            mask = sum([ 1 << t for t in res[7] ])
-            cursor.execute(stmt, [ res[i] if i < 7 else mask for i in range(8) ])
+            mask = sum([ 1 << t for t in res[-1] ])
+            cursor.execute(stmt, [ mask if i == len(res) - 1 else res[i] for i in range(len(res)) ])
             rstmt = rstmt_template.format(result_set_id, cursor.lastrowid)
-            cursor.executemany(rstmt, [ (t,) for t in res[7] ])
+            cursor.executemany(rstmt, [ (t,) for t in res[-1] ])
         conn.commit()
 
     # results a list of (rowid, target_name, site, mask, multiplicity, failure, [optional: tags])
     def add_results(self, result_set_id, results):
-        if len(results[0]) > 7:
+        if len(results[0]) == 9:
             self.add_results_with_tags(result_set_id, results)
             return
         # grab a new connection since this might be in a new process (due to multiprocessing)
         #print " --> Thd in AR {}".format(self.worker_id)
         conn = sqlite3.connect(self._dbpath)
-        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, multiplicity, failure)
-                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, mut, multiplicity, failure)
+                  VALUES ({}, ?, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
         cursor = conn.executemany(stmt, results)
         if cursor.rowcount != len(results):
             raise Exception("some results failed to add: {} / {}".format(cursor.rowcount, len(results)))
@@ -304,10 +304,10 @@ class PairDB(object):
     def differing_results(self, result_set_name_1, result_set_name_2):
         id1 = self.result_set_id_for_name(result_set_name_1)
         id2 = self.result_set_id_for_name(result_set_name_2)
-        return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.end, s1.site, s1.failure, s2.target, s2.end, s2.site, s2.failure
+        return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.end, s1.site, s1.mut, s1.failure, s2.target, s2.end, s2.site, s2.mut, s2.failure
                                     FROM result s1 JOIN result s2 ON s2.set_id=? AND s2.pair_id=s1.pair_id
                                     JOIN pair p ON p.rowid=s1.pair_id
-                                    WHERE s1.set_id=? AND (s1.site != s2.site OR s1.end != s2.end OR s1.target != s2.target) AND (s1.site != -1 OR s2.site != -1)''', (id2, id1))
+                                    WHERE s1.set_id=? AND (s1.site != s2.site OR s1.end != s2.end OR s1.target != s2.target OR s1.mut != s2.mut) AND (s1.site != -1 OR s2.site != -1)''', (id2, id1))
 
 
     def result_sites(self, result_set_id, target_id):

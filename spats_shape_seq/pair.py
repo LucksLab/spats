@@ -17,6 +17,7 @@ class Pair(object):
         self.multiplicity = 1
         self.tags = None
         self._end = -1
+        self.mutations = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()
@@ -39,6 +40,44 @@ class Pair(object):
     def set_mask(self, mask):
         self.mask = mask
         self.r1._ltrim = 4
+
+    def check_mutations(self):
+        mutations = set()
+        for seq in [ self.r1, self.r2 ]:
+            for err_index in seq.match_errors:
+                # +1 for M_j indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention
+                mutations.add(seq.match_index + err_index + 1)
+        if mutations:
+            self.mutations = list(mutations)
+
+    def check_mutation_quality(self, minimum_quality_score):
+        if not minimum_quality_score or not self.mutations:
+            return 0
+        removed = []
+        r1_start = self.r1.match_index
+        r2_start = self.r2.match_index
+        seq_len = self.r2.original_len
+        for mut in self.mutations:
+            if mut < r2_start + seq_len + 1:
+                q = self.r2.quality[mut - r2_start - 1]
+            else:
+                q = self.r1.quality[::-1][mut - r1_start - 1]
+            if q < minimum_quality_score:
+                removed.append(mut)
+        for mut in removed:
+            self.mutations.remove(mut)
+        return len(removed)
+
+    def check_overlap(self):
+        # note: in the case that overlaps disagree, we may decide it one way or the other via quality
+        # xref https://trello.com/c/35mBHvPA/197-stop-map-r1-r2-disagree-case
+        r2_match_len = self.r2.match_len
+        overlap_index = self.r1.match_index
+        overlap_len = self.r2.match_index + r2_match_len - overlap_index
+        if overlap_len > 0:
+            if self.r1.reverse_complement[:overlap_len] != self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]:
+                return False
+        return True
 
     @property
     def matched(self):

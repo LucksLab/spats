@@ -213,7 +213,11 @@ class Targets(object):
         # for cotrans experiments, R1 includes a linker and is relatively restricted
         # store RC in table so that we can directly lookup R1[4:]
 
-        minimum_target_length = 3 # TODO: run config?
+        # TODO: this could be set to run.minimum_target_match_length, but given that there's linker
+        # involved, it makes sense to assume that a match including linker will hit that minimum.
+        # so for this we can include very small bits of the actual target.
+        minimum_target_length = 3
+
         linker = run.cotrans_linker
         linker_len = len(linker)
         r1_table = {}
@@ -234,24 +238,39 @@ class Targets(object):
                 tstart = i - (r1_match_len - linker_len)
                 if tstart + end < 0:
                     continue
-                r1_rc_match = target_subseq[tstart:] + linker
+                target_bit = target_subseq[tstart:]
+                r1_rc_match = target_bit + linker
                 r1_match = reverse_complement(r1_rc_match) + adapter_b[:i]
                 entries = r1_table.get(r1_match, [])
-                entries.append( (target, end, i) ) # target, end, amount of adapter to trim
+                entries.append( (target, end, i, []) ) # target, end, amount of adapter to trim, mutations
                 r1_table[r1_match] = entries
+
+                if run.count_mutations:
+                    bit_len = len(target_bit)
+                    for toggle_idx in range(bit_len):
+                        for nt in [ 'A', 'C', 'G', 'T' ]:
+                            if target_bit[toggle_idx] == nt:
+                                continue
+                            mutated_bit = target_bit[:toggle_idx] + nt + target_bit[toggle_idx + 1:]
+                            mutated_rc_match = mutated_bit + linker
+                            mutated_match = reverse_complement(mutated_rc_match) + adapter_b[:i]
+                            entries = r1_table.get(mutated_match, [])
+                            entries.append( (target, end, i, [end - (bit_len - toggle_idx) + 1]) )
+                            r1_table[mutated_match] = entries
+
         self.r1_lookup = r1_table
 
         # we only need to build R2 lookups for full sequences (excepting linker)
         # trim cases are just tested against R1
-        self._build_R2_lookup(pair_len - linker_len - 4)
+        self._build_R2_lookup(pair_len - linker_len - 4, run.count_mutations)
 
 
-    def build_lookups(self, adapter_b, length = None, end_only = True):
+    def build_lookups(self, run, length = None, end_only = True):
         use_length = length or 35
-        self._build_R1_lookup(adapter_b, use_length - 4, end_only)
-        self._build_R2_lookup(use_length)
+        self._build_R1_lookup(run.adapter_b, use_length - 4, end_only, run.count_mutations)
+        self._build_R2_lookup(use_length - 4, run.count_mutations)
 
-    def _build_R1_lookup(self, adapter_b, length = 31, end_only = True):
+    def _build_R1_lookup(self, adapter_b, length = 31, end_only = True, mutations = False):
         # we can pre-build the set of all possible (error-free) R1, b/c:
         #  - R1 has to include the right-most nt
         #  - R1 can include some adapter-b off the end
@@ -265,39 +284,64 @@ class Targets(object):
             tcandidates = 0
             for i in range(1, length + 1):
                 r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
-                res = r1_table.get(r1_candidate)
-                if res:
-                    if target != res[0]:
-                        r1_table[r1_candidate] = (None, None)
-                    else:
-                        # in case of multiple match on same target, set to None to indicate it's up to R2
-                        r1_table[r1_candidate] = (target, None)
-                        tcandidates += 1
+                res = (target, None if i == length else tlen - i, length - i, []) # target, end, amount of adapter to trim, mutations
+                existing = r1_table.get(r1_candidate)
+                if existing:
+                    existing.append(res)
                 else:
-                    r1_table[r1_candidate] = (target, None if i == length else tlen - i)
-                    tcandidates += 1
+                    r1_table[r1_candidate] = [ res ]
+                tcandidates += 1
+                if mutations:
+                    for toggle_idx in range(i):
+                        for nt in [ 'A', 'C', 'G', 'T' ]:
+                            if r1_candidate[toggle_idx] == nt:
+                                continue
+                            mutated_bit = r1_candidate[:toggle_idx] + nt + r1_candidate[toggle_idx + 1:]
+                            mres = (res[0], res[1], res[2], [ tlen - toggle_idx ])
+                            existing = r1_table.get(mutated_bit)
+                            if existing:
+                                existing.append(mres)
+                            else:
+                                r1_table[mutated_bit] = [ mres ]
+
             if 0 == tcandidates:
                 _warn("!! No R1 match candidates for {}".format(target.name))
+
         self.r1_lookup = r1_table
 
-    def _build_R2_lookup(self, length = 35):
+    def _build_R2_lookup(self, length = 35, mutations = False):
         # for the R2 table, we only care about R2's that are in the sequence
         # when R2 needs adapter trimming, R1 will determine that
         self_matches = self.longest_target_self_matches()
         #for tname in self_matches.keys():
         #    print("{} : {}".format(tname, self_matches[tname]))
         r2_full_table = {}
+        r2_match_lengths = {}
         for target in self.targets:
-            mlen = self_matches[target.name] + 1
+            mlen = length if mutations else self_matches[target.name] + 1
             if length < mlen:
                 raise Exception("R2 length not long enough for target self-match ({} / {})".format(length, mlen))
             r2_table = {}
             r2_full_table[target.name] = r2_table
+            r2_match_lengths[target.name] = mlen
             tlen = target.n
             tgt_seq = target.seq
-            for i in range(tlen - mlen):
+            for i in range(tlen - mlen + 1):
                 r2_candidate = tgt_seq[i:i+mlen]
                 if r2_table.get(r2_candidate):
                     raise Exception("indeterminate R2 candidate {} in target?".format(r2_candidate))
-                r2_table[r2_candidate] = i
+                r2_table[r2_candidate] = (i, [])
+
+                if mutations:
+                    bit_len = len(r2_candidate)
+                    for toggle_idx in range(bit_len):
+                        for nt in [ 'A', 'C', 'G', 'T' ]:
+                            if r2_candidate[toggle_idx] == nt:
+                                continue
+                            mutated_bit = r2_candidate[:toggle_idx] + nt + r2_candidate[toggle_idx + 1:]
+                            if r2_table.get(mutated_bit):
+                                raise Exception("indeterminate R2 candidate {} in target?".format(mutated_bit))
+                            r2_table[mutated_bit] = (i, [ i + toggle_idx + 1 ])
+
         self.r2_lookup = r2_full_table
+        self.r2_match_lengths = r2_match_lengths

@@ -55,8 +55,8 @@ This can be later loaded using the :meth:`.spats.Spats.load` method.
 from spats import Spats
 
 
-_VERSION = "1.9.4"
-_PRODUCTION = False
+_VERSION = "1.9.5"
+_PRODUCTION = True
 _PUBLIC_RELEASE = True
 version = _VERSION + (" Public" if _PUBLIC_RELEASE else " Private") + (" Production" if _PRODUCTION else " Beta")
 
@@ -78,3 +78,21 @@ def run_spats(target_path, r1_path, r2_path, output_path, cotrans = False):
     spats.process_pair_data(r1_path, r2_path)
     spats.compute_profiles()
     spats.write_reactivities(output_path)
+
+
+
+# jupyter extension support
+
+def _jupyter_server_extension_paths():
+    return [{
+        "module": "spats_shape_seq"
+    }]
+
+def _jupyter_nbextension_paths():
+    return [ { "section" : "notebook",
+               "src" : "static",
+               "dest" : "spats_shape_seq",
+               "require" : "spats_shape_seq/main" } ]
+
+def load_jupyter_server_extension(nbapp):
+    pass

@@ -20,6 +20,7 @@ cases = [
     [ "1101:11920:1274", "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", None ], # similarly if you don't keep checking all sites
 
     ['jjb_1', 'TCTGAGATCGGAAGAGCACACGTCTGAACTCCAGT', 'CAGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGT', None ], # R1 is pure adapter, make sure it's rejected
+    ['10552', 'CTTAGTCCTTGGTGCCCGAGTCAGCAGATCGGAAG', 'TCTGACTCGGGCACCAAGGACTAAGAGATCGGAAG', None ],
 
     # various cases which differed with v102
     [ "1101:10582:1913", "AAACGTCCTTGGTGCCCGAGTCAGAGATCGAAGAG", "CTGACTCGGGCACCAAGGGCGTGTATATCGGAAGA", None ],
@@ -77,7 +78,7 @@ class TestPairs(unittest.TestCase):
     def run_case(self, case):
         pair = self.pair_for_case(case)
         self.spats.process_pair(pair)
-        self.assertEqual(case[3], pair.site)
+        self.assertEqual(case[3], pair.site, "res={} != {} ({}, {})".format(pair.site, case[3], self.__class__.__name__, case[0]))
         return pair
 
     def test_pairs(self):
@@ -137,3 +138,42 @@ class TestPanelPairs(unittest.TestCase):
         self.spats.process_pair(pair)
         self.assertEqual(None, pair.target)
         self.assertEqual(1, self.spats.counters.multiple_R1_match)
+
+
+prefix_cases = [
+    [ "p1", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", 0, '' ],
+    [ "*p2", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "TGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", 0, 'T' ],
+    [ "p3", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "TTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", 0, 'TT' ],
+    [ "p4", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "ACGTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCA", 0, 'ACGT' ],
+]
+
+class TestPrefixPairs(unittest.TestCase):
+
+    def setUp(self):
+        from spats_shape_seq import Spats
+        self.spats = Spats()
+        self.spats.run.collapse_left_prefixes = True
+        self.spats.addTargets("test/5s/5s.fa")
+
+    def tearDown(self):
+        self.spats = None
+
+    def pair_for_case(self, case):
+        pair = Pair()
+        pair.set_from_data(case[0], case[1], case[2])
+        return pair
+
+    def run_case(self, case):
+        pair = self.pair_for_case(case)
+        self.spats.counters.reset()
+        self.spats.process_pair(pair)
+        self.assertEqual(case[3], pair.site, "res={} != {} ({}, {})".format(pair.site, case[3], self.__class__.__name__, case[0]))
+        if case[4]:
+            self.assertEqual(1, getattr(self.spats.counters, 'prefix_' + case[4]), "prefix {} not counted ({})".format(case[4], case[0]))
+        return pair
+
+    def test_pairs(self):
+        for case in prefix_cases:
+            self.run_case(case)
+        print("Ran {} prefix test cases.".format(len(cases)))
+

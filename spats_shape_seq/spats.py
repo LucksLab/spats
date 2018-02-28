@@ -266,7 +266,7 @@ class Spats(object):
                 _debug(pair.failure)
             else:
                 assert(pair.has_site)
-                _debug("  ===> KEPT {}-{}".format(pair.left, pair.right))
+                _debug("  ===> KEPT {}-{}".format(pair.site, pair.end))
         except:
             print("**** Error processing pair: {} / {}".format(pair.r1.original_seq, pair.r2.original_seq))
             raise
@@ -307,10 +307,11 @@ class Spats(object):
         :param data_r1_path: path to R1 fragments
         :param data_r2_path: path to matching R2 fragments.
         """
-        if not self.run.skip_database:
+        use_quality = (self.run.count_mutations and self.run.mutations_require_quality_score)
+        if not self.run.skip_database and not use_quality:
             self.process_pair_db(self._memory_db_from_pairs(data_r1_path, data_r2_path))
         else:
-            with FastFastqParser(data_r1_path, data_r2_path) as parser:
+            with FastFastqParser(data_r1_path, data_r2_path, use_quality) as parser:
                 if not self.run.pair_length:
                     self.run.pair_length = parser.pair_length()
                 self._process_pair_iter(parser.iterator(batch_size = 131072))

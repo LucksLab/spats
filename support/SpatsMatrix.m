@@ -61,6 +61,7 @@
 
     BOOL m_plotTypeRow;
     NSMutableArray * m_selection;
+    BOOL m_showNull;
 }
 
 @end
@@ -78,6 +79,7 @@
         m_siteSize = CGSizeMake(5, 5);
         m_matrixFrame = CGRectMake(0, 0, 800, 800);
         m_plotTypeRow = YES;
+        m_showNull = NO;
         [self addClickHandler:[H2EventHandler handlerWithTarget:self selector:@selector(handleClick:)]];
 
         m_rowTracker = [H2ViewImpl container];
@@ -127,6 +129,18 @@
 #pragma clang diagnostic pop
     }
     [self layoutSubviews];
+    [self setNeedsDisplay];
+}
+
+-(void)show_null
+{
+    m_showNull = YES;
+    [self setNeedsDisplay];
+}
+
+-(void)hide_null
+{
+    m_showNull = NO;
     [self setNeedsDisplay];
 }
 
@@ -430,9 +444,19 @@ get_cmap(NSString * map_name);
         NSArray * data = m_selectedData[@(L)];
         if (nil == data)
             break;
+        Profiles * prof = m_profiles[@(L)];
         for (NSInteger s = 0; s <= L; ++s) {
             CGFloat f = MIN(MAX(0.0, [data[s] floatValue] / m_max), 1.0);
-            CGColorRef col = cmap(f);
+            CGColorRef col = NULL;
+            if (m_showNull) {
+                if ([data[s] floatValue] < 0)
+                    col = CGColorCreateGenericRGB(1.0, 0.0, 0.0, 1.0);
+                else if (![@"treated" isEqual:m_plotType]  &&  ![@"untreated" isEqual:m_plotType]  &&
+                         0 == [prof.treated[s] integerValue]  &&  0 == [prof.untreated[s] integerValue])
+                    col = CGColorCreateGenericRGB(1.0, 1.0, 1.0, 1.0);
+            }
+            if (NULL == col)
+                col = cmap(f);
             CGContextSetFillColorWithColor(ctx, col);
             CGContextFillRect(ctx, siteRect);
             CGColorRelease(col);
@@ -502,6 +526,23 @@ get_cmap(NSString * map_name);
     CGFloat treated_sum = 0.0;
     CGFloat untreated_sum = 0.0;
     CGFloat running_c_sum = 0.0;
+
+    /* NOTE: there is an index discrepancy here between indices
+       used in the code, and the indices used in the Aviran paper
+       where these formulae are derived: the indices are
+       reversed. so, where in the paper the formula uses
+       \sum_{i=k}^{n+1}, in the code we use \sum_{i=0}^{k+1}, and
+       this is intentional.
+
+       for reference, here is the comment from the original SPATS code:
+         // TargetProfile tracks an RNA of length n. arrays have n+1 entries, 
+         // with index 1 corresponding to the 5'-most base, and index n 
+         // corresponding to the 3'-most base.  Index 0 stores information about 
+         // unmodified RNAs, where RT has fallen off the 5' end of the 
+         // strand.  This convention differs from the paper, where we refer to 
+         // the 5'-most base as index n, and the 3'-most base as index 1.
+    */
+
     for (NSInteger k = 0; k < n; ++k) {
         CGFloat X_k = [treated[k] floatValue];
         CGFloat Y_k = [untreated[k] floatValue];
@@ -513,7 +554,7 @@ get_cmap(NSString * map_name);
             CGFloat Xbit = (X_k / treated_sum);
             CGFloat Ybit = (Y_k / untreated_sum);
             if (Ybit != 1.0) {
-                beta = MAX(0.0, (Xbit - Ybit) / (1.0 - Ybit));
+                beta = (Xbit - Ybit) / (1.0 - Ybit);
                 theta = log(1.0 - Ybit) - log(1.0 - Xbit);
             }
             running_c_sum -= log(1.0 - beta);

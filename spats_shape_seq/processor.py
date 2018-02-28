@@ -14,6 +14,8 @@ class Failures(object):
     match_errors = "match errors failure"
     right_edge = "R1 right edge failure"
     cotrans_min = "cotrans minimum"
+    r1_r2_overlap = "R1/R2 disagree on overlap"
+    extra_r1 = "extra bp in R1"
 
     @staticmethod
     def all_failures():
@@ -37,6 +39,7 @@ class PairProcessor(object):
         self._match_mask = self._match_mask_optimized if (run.masks[0] == 'RRRY' and run.masks[1] == 'YYYR') else self._match_mask_general
         if self._match_mask != self._match_mask_optimized:
             print("Warning: not using optimized mask match.")
+        run.apply_config_restrictions()
         self.prepare()
 
     def exists(self):

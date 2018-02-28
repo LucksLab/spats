@@ -36,20 +36,31 @@ else
 	@echo \ Beta
 endif
 
-pip_dist: unit
+.PHONY: release_check
+release_check:
+ifneq ($(IS_PUBLIC_RELEASE), 1)
+	@echo Attempt to release with spats_shape_seq._PUBLIC_RELEASE = False
+	@exit 1
+endif
+
+.PHONY: pip_dist
+pip_dist: release_check unit
 	@read -p "Submit new release, version ${VERSION}? " ANS; if [ "$$ANS" == "y" ]; then echo "Submitting..."; else echo "Aborted."; exit 1; fi
 	@rm -rf build dist
 	python setup.py sdist
 	twine upload dist/${PKG_NAME}-${VERSION}.tar.gz
 
-local_install:
+.PHONY: local_install
+local_install: local_uninstall
 	@(pip show -q ${PKG_NAME} && sudo pip uninstall -y -q ${PKG_NAME}) || echo
 	@rm -rf build dist
 	@python setup.py sdist
 	@sudo pip install dist/${PKG_NAME}-${VERSION}.tar.gz
 
+.PHONY: local_uninstall
 local_uninstall:
-	@sudo pip uninstall -y -q ${PKG_NAME}
+	@jupyter nbextension uninstall --user --py spats_shape_seq || echo ""
+	@sudo pip uninstall -y -q ${PKG_NAME}  ||  echo "Not previously installed."
 
 .PHONY: docs
 docs:
