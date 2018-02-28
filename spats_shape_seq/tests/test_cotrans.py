@@ -183,3 +183,44 @@ class TestPairsNative(TestPairsPartial):
     def setup_processor(self):
         self.run_compat = False
         self.spats.run.algorithm = "native"
+
+prefix_cases = [
+    [ "p1", "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", 132, 0, '' ],
+    [ "p2", "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "TTTATAGGCGATGGAGTTCGCCATAAACGCTGCTTA", 132, 0, 'T' ],
+    [ "p3", "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "TTTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT", 132, 0, 'TT' ],
+    [ "p4", "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "ACGTTTATAGGCGATGGAGTTCGCCATAAACGCTGC", 132, 0, 'ACGT' ],
+]
+
+class TestPrefixPairs(unittest.TestCase):
+
+    def setUp(self):
+        from spats_shape_seq import Spats
+        self.spats = Spats()
+        self.spats.run.cotrans = True
+        self.spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+        self.spats.run.collapse_left_prefixes = True
+        self.spats.addTargets("test/cotrans/cotrans_single.fa")
+
+    def tearDown(self):
+        self.spats = None
+
+    def pair_for_case(self, case):
+        pair = Pair()
+        pair.set_from_data(case[0], case[1], case[2])
+        return pair
+
+    def run_case(self, case):
+        pair = self.pair_for_case(case)
+        self.spats.counters.reset()
+        self.spats.process_pair(pair)
+        self.assertEqual(case[4], pair.site, "res={} != {} ({}, {})".format(pair.site, case[4], self.__class__.__name__, case[0]))
+        if pair.site is not None:
+            self.assertEqual(case[3], pair.end)
+        if case[5]:
+            self.assertEqual(1, getattr(self.spats.counters, 'prefix_' + case[5]), "prefix {} not counted ({})".format(case[5], case[0]))
+        return pair
+
+    def test_pairs(self):
+        for case in prefix_cases:
+            self.run_case(case)
+        print("Ran {} prefix test cases.".format(len(cases)))

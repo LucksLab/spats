@@ -142,9 +142,9 @@ class TestPanelPairs(unittest.TestCase):
 
 prefix_cases = [
     [ "p1", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", 0, '' ],
-    [ "*p2", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "TGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", None, 'T' ],
-    [ "p3", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "TTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", None, 'TT' ],
-    [ "p4", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "ACGTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCA", None, 'ACGT' ],
+    [ "*p2", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "TGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", 0, 'T' ],
+    [ "p3", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "TTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", 0, 'TT' ],
+    [ "p4", "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "ACGTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCA", 0, 'ACGT' ],
 ]
 
 class TestPrefixPairs(unittest.TestCase):
@@ -152,7 +152,7 @@ class TestPrefixPairs(unittest.TestCase):
     def setUp(self):
         from spats_shape_seq import Spats
         self.spats = Spats()
-        self.spats.run.count_left_prefixes = True
+        self.spats.run.collapse_left_prefixes = True
         self.spats.addTargets("test/5s/5s.fa")
 
     def tearDown(self):

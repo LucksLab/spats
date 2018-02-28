@@ -135,6 +135,11 @@ class Run(object):
         #: will force the usage of the ``find_partial`` algorithm.
         self.count_left_prefixes = False
 
+        #: Default ``False``, set to ``True`` to treat any read with a
+        #: 5' prefix as starting at site zero. Setting this
+        #: will force the usage of the ``count_left_prefixes`` option.
+        self.collapse_left_prefixes = False
+
 
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
@@ -151,6 +156,8 @@ class Run(object):
     def apply_config_restrictions(self):
         if self.count_mutations:
             self.allowed_target_errors = 1
+        if self.collapse_left_prefixes:
+            self.count_left_prefixes = True
         if self.count_left_prefixes:
             self.algorithm = 'find_partial'
 

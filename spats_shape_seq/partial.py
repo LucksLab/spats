@@ -88,15 +88,20 @@ class PartialFindProcessor(PairProcessor):
             pair.failure = Failures.nomatch
             return
 
+        run = self._run
+
         # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
         r2_start_in_target = pair.r2.match_index - pair.r2.match_start
         if r2_start_in_target < 0:
-            if self._run.count_left_prefixes:
+            self.counters.left_of_target += pair.multiplicity
+            if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - r2_start_in_target]
                 self.counters.increment_key('prefix_{}'.format(prefix), pair.multiplicity)
-            pair.failure = Failures.left_of_zero
-            self.counters.left_of_target += pair.multiplicity
-            return
+            if run.collapse_left_prefixes:
+                pair.r2._ltrim = 0 - r2_start_in_target
+            else:
+                pair.failure = Failures.left_of_zero
+                return
         elif r2_start_in_target + pair.r2.original_len <= pair.target.n:
             # we're in the middle -- no problem
             pass
@@ -117,12 +122,12 @@ class PartialFindProcessor(PairProcessor):
         pair.r1.match_errors = string_match_errors(r1_matcher, target_seq[pair.r1.match_index:])
         pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
 
-        if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > self._run.allowed_target_errors:
+        if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
             if pair.r1.match_errors:
                 _debug("R1 errors: {}".format(pair.r1.match_errors))
             if pair.r2.match_errors:
                 _debug("R2 errors: {}".format(pair.r2.match_errors))
-            if self._run._p_v102_compat and not (pair.r1.match_errors + [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]):
+            if run._p_v102_compat and not (pair.r1.match_errors + [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]):
                 _debug("** v102 compat, allowing")
             else:
                 pair.failure = Failures.match_errors
@@ -138,9 +143,9 @@ class PartialFindProcessor(PairProcessor):
             self.counters.r1_not_on_right_edge += pair.multiplicity
             return
 
-        if self._run.count_mutations:
+        if run.count_mutations:
             pair.check_mutations()
-            if pair.mutations and len(pair.mutations) > self._run.allowed_target_errors:
+            if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 self.counters.match_errors += pair.multiplicity
                 return
@@ -353,11 +358,16 @@ class CotransPartialFindProcessor(PairProcessor):
             return
 
         if pair.left < 0:
+            self.counters.left_of_target += pair.multiplicity
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - pair.left]
                 self.counters.increment_key('prefix_{}'.format(prefix), pair.multiplicity)
-            pair.failure = Failures.left_of_zero
-            return
+            if run.collapse_left_prefixes:
+                pair.r2._ltrim = 0 - pair.left
+                pair.r2.match_to_seq()
+            else:
+                pair.failure = Failures.left_of_zero
+                return
 
         if pair.right < run.cotrans_minimum_length:
             pair.failure = Failures.cotrans_min

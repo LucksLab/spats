@@ -203,12 +203,14 @@ def diag_case():
     from spats_shape_seq import Spats
     from spats_shape_seq.pair import Pair
     from spats_shape_seq.tests.test_pairs import cases
+    #from spats_shape_seq.tests.test_pairs import prefix_cases as cases
     from spats_shape_seq.diagram import diagram
     #spats_config.minimum_target_match_length = 8
     spats = Spats()
     spats.addTargets("test/5s/5s.fa")
     spats.run.debug = True
     spats.run.algorithm = "find_partial"
+    #spats.run.collapse_left_prefixes = True
     spats._case_errors = False
     def run_case(case):
         pair = Pair()

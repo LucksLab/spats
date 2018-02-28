@@ -83,7 +83,7 @@ class Sequence(object):
                 self.match_start = self._rtrim
             self.match_len = self.seq_len
         else:
-            self.match_index -= self.match_start
-            self.match_start = 0
-            self.match_len = self.seq_len
+            self.match_index -= (self.match_start - self._ltrim)
+            self.match_start = self._ltrim
+            self.match_len = self.seq_len - self._ltrim
         _debug(["M2S:", self.match_index, self.match_len, self.match_start, "-- ", self._rtrim])
