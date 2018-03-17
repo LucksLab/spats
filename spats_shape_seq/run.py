@@ -148,6 +148,12 @@ class Run(object):
         #: will force the usage of the ``count_left_prefixes`` option.
         self.collapse_left_prefixes = False
 
+        #: Default ``None``, which means collapse all prefixes. Set to
+        #: a list of comma-separated strings to only collapse prefixes
+        #: that appear in the list. Only applies with
+        #: ``collapse_left_prefixes`` is ``True``
+        self.collapse_only_prefixes = None
+
 
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
@@ -168,6 +174,8 @@ class Run(object):
             self.count_left_prefixes = True
         if self.count_left_prefixes:
             self.algorithm = 'find_partial'
+        if self.collapse_only_prefixes:
+            self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
 
     def _get_processor_class(self):
         self.apply_config_restrictions()

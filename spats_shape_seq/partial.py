@@ -97,7 +97,7 @@ class PartialFindProcessor(PairProcessor):
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - r2_start_in_target]
                 self.counters.register_prefix(prefix, pair)
-            if run.collapse_left_prefixes:
+            if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
                 pair.r2._ltrim = 0 - r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero
@@ -363,7 +363,7 @@ class CotransPartialFindProcessor(PairProcessor):
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - pair.left]
                 self.counters.register_prefix(prefix, pair)
-            if run.collapse_left_prefixes:
+            if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
                 pair.r2._ltrim = 0 - pair.left
                 pair.r2.match_to_seq()
             else:
