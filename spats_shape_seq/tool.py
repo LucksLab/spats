@@ -103,7 +103,7 @@ class SpatsTool(object):
 
         self.start = time.time()
         hdlr = getattr(self, command, None)
-        if not hdlr or (command in self._private_commands and spats_shape_seq._PUBLIC_RELEASE):
+        if not hdlr:
             print("Invalid command: {}".format(command))
             return
         try:
