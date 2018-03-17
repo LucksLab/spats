@@ -169,7 +169,7 @@ class TestPrefixPairs(unittest.TestCase):
         self.spats.process_pair(pair)
         self.assertEqual(case[3], pair.site, "res={} != {} ({}, {})".format(pair.site, case[3], self.__class__.__name__, case[0]))
         if case[4]:
-            self.assertEqual(1, getattr(self.spats.counters, 'prefix_' + case[4]), "prefix {} not counted ({})".format(case[4], case[0]))
+            self.assertEqual(1, getattr(self.spats.counters, 'prefix_RRRY_' + case[4]), "prefix {} not counted ({})".format(case[4], case[0]))
         return pair
 
     def test_pairs(self):

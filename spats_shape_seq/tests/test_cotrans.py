@@ -217,7 +217,7 @@ class TestPrefixPairs(unittest.TestCase):
         if pair.site is not None:
             self.assertEqual(case[3], pair.end)
         if case[5]:
-            self.assertEqual(1, getattr(self.spats.counters, 'prefix_' + case[5]), "prefix {} not counted ({})".format(case[5], case[0]))
+            self.assertEqual(1, getattr(self.spats.counters, 'prefix_RRRY_' + case[5]), "prefix {} not counted ({})".format(case[5], case[0]))
         return pair
 
     def test_pairs(self):
