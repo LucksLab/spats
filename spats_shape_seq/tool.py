@@ -26,7 +26,7 @@ class SpatsTool(object):
         self.cotrans = False
         self._skip_log = False
         self._no_config_required_commands = [ "doc", "help", "init", "viz" ]
-        self._private_commands = [ "doc", "nb", "viz" ]
+        self._private_commands = [ "viz" ]
         self._temp_files = []
         self._r1 = None
         self._r2 = None
@@ -470,7 +470,11 @@ class SpatsTool(object):
         """
 
         self._skip_log = True
-        subprocess.check_call(["make", "showdocs"], cwd = self._spats_path())
+        if spats_shape_seq._PUBLIC_RELEASE:
+            import webbrowser
+            webbrowser.open('http://spats.readthedocs.io/')
+        else:
+            subprocess.check_call(["make", "showdocs"], cwd = self._spats_path())
 
     def help(self):
         """Display available commands.
