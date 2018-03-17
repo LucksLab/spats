@@ -60,6 +60,9 @@ class Counters(object):
     def increment_key(self, counter_key, multiplicity = 1):
         _dict_incr(self._counts, counter_key, multiplicity)
 
+    def register_prefix(self, prefix, pair):
+        self.increment_key('prefix_{}_{}'.format(pair.mask.chars, prefix), pair.multiplicity)
+
     def count_data(self):
         return (self._counts, self._registered)
 

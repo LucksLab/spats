@@ -377,12 +377,12 @@ class SpatsTool(object):
         spats.load(run_name)
         countinfo = spats.counters.counts_dict()
         total = float(countinfo['total_pairs']) / 100.0
-        prefixes = []
-        for key in sorted([k for k in countinfo.keys() if k.startswith('prefix_')], key = lambda k : countinfo[k], reverse = True):
-            prefixes.append((key[7:], float(countinfo[key]) / total, countinfo[key]))
-
-        output_path = os.path.join(self.path, 'prefixes.csv')
-        self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
+        for mask in spats.run.masks:
+            prefixes = []
+            for key in sorted([k for k in countinfo.keys() if k.startswith('prefix_{}_'.format(mask))], key = lambda k : countinfo[k], reverse = True):
+                prefixes.append((key[12:], float(countinfo[key]) / total, countinfo[key]))
+            output_path = os.path.join(self.path, 'prefixes_{}.csv'.format(mask))
+            self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
 
     def _dump_reads(self):
         reads_name = self._reads_file()

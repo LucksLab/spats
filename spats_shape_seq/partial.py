@@ -96,7 +96,7 @@ class PartialFindProcessor(PairProcessor):
             self.counters.left_of_target += pair.multiplicity
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - r2_start_in_target]
-                self.counters.increment_key('prefix_{}'.format(prefix), pair.multiplicity)
+                self.counters.register_prefix(prefix, pair)
             if run.collapse_left_prefixes:
                 pair.r2._ltrim = 0 - r2_start_in_target
             else:
@@ -362,7 +362,7 @@ class CotransPartialFindProcessor(PairProcessor):
             self.counters.left_of_target += pair.multiplicity
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - pair.left]
-                self.counters.increment_key('prefix_{}'.format(prefix), pair.multiplicity)
+                self.counters.register_prefix(prefix, pair)
             if run.collapse_left_prefixes:
                 pair.r2._ltrim = 0 - pair.left
                 pair.r2.match_to_seq()
