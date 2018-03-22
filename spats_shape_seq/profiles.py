@@ -197,7 +197,7 @@ class TargetProfiles(object):
             s_j_u = float(untreated_counts[j]) # s_j^-
             mut_j_t = float(treated_muts[j])     # mut_j^+
             mut_j_u = float(untreated_muts[j])   # mut_j^-
-            depth_t += s_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + i)]))
+            depth_t += s_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + 1)]))
             depth_u += s_j_u  #running sum equivalent to: depth_u = float(sum(untreated_counts[:(j + 1)]))
             try:
                 Tbit = (mut_j_t / depth_t)
