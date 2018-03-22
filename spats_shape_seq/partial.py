@@ -152,7 +152,7 @@ class PartialFindProcessor(PairProcessor):
                 return
 
         pair.site = pair.site or pair.left
-        self.counters.register_count(pair)
+        self.counters.register_count(pair, run.count_edge_mutations)
 
 
 #
@@ -409,4 +409,4 @@ class CotransPartialFindProcessor(PairProcessor):
                 return
 
         pair.site = pair.left
-        self.counters.register_count(pair)
+        self.counters.register_count(pair, run.count_edge_mutations)

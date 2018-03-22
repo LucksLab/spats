@@ -38,13 +38,13 @@ class Counters(object):
     def _mut_edge_key(self, pair, mut):
         return "{}:{}:S{}M{}:{}".format(pair.target.rowid, pair.mask.chars, pair.site, mut, pair.end)
 
-    def register_count(self, pair):
+    def register_count(self, pair, count_edge_mutations = False):
         _dict_incr(self._registered, self._count_key(pair), pair.multiplicity)
         self.registered_pairs += pair.multiplicity
         _dict_incr(self._counts, pair.mask.chars + "_kept", pair.multiplicity)
         if pair.mutations:
             for mut in pair.mutations:
-                if pair.site == mut + 1:
+                if pair.site == mut + 1 and not count_edge_mutations:
                     # xref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case
                     # we don't want to count mutations that are at the site
                     # but we do want to track them separately for independent analysis

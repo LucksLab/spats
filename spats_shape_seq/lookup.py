@@ -154,7 +154,7 @@ class LookupProcessor(PairProcessor):
         pair.site = site
         pair.end = target.n
         pair.failure = None
-        self.counters.register_count(pair)
+        self.counters.register_count(pair, run.count_edge_mutations)
 
 
 class CotransLookupProcessor(PairProcessor):
@@ -267,4 +267,4 @@ class CotransLookupProcessor(PairProcessor):
         pair.target = target
         pair.site = site
         pair.failure = None
-        self.counters.register_count(pair)
+        self.counters.register_count(pair, run.count_edge_mutations)

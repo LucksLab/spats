@@ -45,18 +45,23 @@ class Run(object):
         #: determine an appropriate value.
         self.minimum_target_match_length = 10
 
+
         #: Defaults to ``False``. If set to ``True``, will count both
         #: stops and muations, and incorporate the mutation information
         #: into the reactivity profile computations. Note that setting
         #: this will force ``allowed_target_errors`` to be ``1``.
         self.count_mutations = False
 
-
         #: Defaults to ``None``. If set to a phred-score string, and
         #: ``count_mutations`` is ``True``, then this will require the
         #: quality score on any mutation to be greater than or equal
         #: to the indicated phred score to be counted.
         self.mutations_require_quality_score = None
+
+        #: Defaults to ``False``. If set to ``True``, will count
+        #: mutations that are at the site like any other mutation. In
+        #: the default behavior, edge mutations are not counted.
+        self.count_edge_mutations = False
 
 
         #: Defaults to ``0``, set higher to require a minimal amount of
