@@ -182,7 +182,7 @@ class Run(object):
         if self._p_use_tag_processor:
             self.count_mutations = False
         if self.count_mutations:
-            self.allowed_target_errors = 1
+            self.allowed_target_errors = max(self.allowed_target_errors, 1)
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
         if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1:

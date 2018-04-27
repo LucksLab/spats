@@ -116,6 +116,21 @@ cotrans_cases = [
 ]
 
 
+# [ id, r1, r2, end, site, muts ]
+multiple_mut_cases = [
+
+    [ '89-2', 'TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'GCACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA', 107, 0, [ 2, 16 ] ],
+
+    [ '89-3', 'TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'GTACTAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA', 107, 0, [ 2, 5, 16 ] ],
+
+    [ '89-4', 'TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'GTACTAGCAATACTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA', 107, 0, [ 2, 5, 12, 16 ] ],
+
+    [ '89-5', 'TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'GTACTAGCCATACTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA', 107, 0, [ 2, 5, 9, 12,16 ] ],
+
+    [ '89-6', 'TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT', 'GTATTAGCCATACTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA', None, None, None ],
+
+]
+
 class TestMutPairs(unittest.TestCase):
     
     def setUp(self):
@@ -150,14 +165,32 @@ class TestMutPairs(unittest.TestCase):
         self.assertEqual(case[4], pair.site, "res={} != {} ({}, {}, {})".format(pair.site, case[4], self.__class__.__name__, case[0], pair.failure))
         if pair.site is not None:
             self.assertEqual(case[3], pair.end)
-            self.assertEqual(case[5], pair.mutations)
+            self.assertEqual(case[5], sorted(pair.mutations))
         return pair
+
+    def cases(self):
+        return cotrans_cases if self.spats.run.cotrans else cases
 
     def test_pairs(self):
         self.spats.run.pair_length = len(cases[0][1])
-        for case in (cotrans_cases if self.spats.run.cotrans else cases):
+        for case in self.cases():
             self.run_case(case)
         print("Ran {} pair->site cases.".format(len(cases)))
+
+
+class TestMultipleMuts(TestMutPairs):
+
+    def setup_processor(self):
+        self.spats.run.algorithm = "find_partial"
+        self.spats.run.allowed_target_errors = 5
+        self.spats.addTargets("test/mut/mut_single.fa")
+
+    def cases(self):
+        return multiple_mut_cases
+
+    def test_pairs(self):
+        for case in multiple_mut_cases:
+            self.run_case(case)
 
 
 class TestMutPairsLookup(TestMutPairs):
