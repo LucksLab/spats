@@ -121,7 +121,7 @@ class TestMutPairs(unittest.TestCase):
     def setUp(self):
         self.spats = Spats()
         self.spats.run.count_mutations = True
-        self.spats.run.mutations_require_quality_score = '.'
+        self.spats.run.mutations_require_quality_score = ord('.')
         self.spats.run.allowed_target_errors = 1
         self.spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
         self.setup_processor()

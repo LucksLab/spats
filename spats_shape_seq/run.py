@@ -52,7 +52,7 @@ class Run(object):
         #: this will force ``allowed_target_errors`` to be ``1``.
         self.count_mutations = False
 
-        #: Defaults to ``None``. If set to a phred-score string, and
+        #: Defaults to ``None``. If set to a phred-score ascii integer value (33 - 75), and
         #: ``count_mutations`` is ``True``, then this will require the
         #: quality score on any mutation to be greater than or equal
         #: to the indicated phred score to be counted.
@@ -188,8 +188,13 @@ class Run(object):
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
 
+    def validate_config(self):
+        if self.mutations_require_quality_score and (self.mutations_require_quality_score < 33 or self.mutations_require_quality_score > 75):
+            raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
+
     def _get_processor_class(self):
         self.apply_config_restrictions()
+        self.validate_config()
         if self._p_use_tag_processor:
             return TagProcessor
         else:

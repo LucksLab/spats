@@ -60,11 +60,11 @@ class Pair(object):
         for mut in self.mutations:
             q1 = q2 = None
             if mut < r2_start + seq_len + 1:
-                q1 = self.r2.quality[mut - r2_start - 1]
+                q1 = ord(self.r2.quality[mut - r2_start - 1])
             if mut > r1_start:
-                q2 = self.r1.quality[::-1][mut - r1_start - 1]
+                q2 = ord(self.r1.quality[::-1][mut - r1_start - 1])
             # note: this assumes agreement. TODO: handle disagreement, xref check_overlap below
-            q = max(q1, q2) if q1 and q2 else q1 if q1 else q2
+            q = max(q1, q2) if (q1 and q2) else (q1 if q1 else q2)
             if q < minimum_quality_score:
                 removed.append(mut)
         for mut in removed:
