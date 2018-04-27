@@ -142,6 +142,10 @@ class PartialFindProcessor(PairProcessor):
             self.counters.r1_not_on_right_edge += pair.multiplicity
             return
 
+        if not pair.check_overlap():
+            pair.failure = Failures.r1_r2_overlap
+            return
+
         if run.count_mutations:
             pair.check_mutations()
             self.counters.low_quality_muts += pair.check_mutation_quality(self._run.mutations_require_quality_score)

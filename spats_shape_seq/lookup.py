@@ -139,12 +139,18 @@ class LookupProcessor(PairProcessor):
         if not self._check_indeterminate(pair):
             return
 
+        pair.r1.match_len = min(pair.r1.original_len - 4, target.n - match_site)
+        pair.r1.match_index = r1_res[1] or (target.n - pair.r1.match_len)
+        pair.r1._rtrim = r1_res[2]
+        pair.r2.match_index = site
+        pair.r2.match_len = match_len
+
+        if not pair.check_overlap():
+            pair.failure = Failures.r1_r2_overlap
+            return
+
         if r2_mutations or r1_res[3]:
             pair.mutations = list(set(r2_mutations + r1_res[3]))
-            pair.r1.match_len = pair.r1.original_len - 4
-            pair.r1.match_index = r1_res[1] or (target.n - pair.r1.match_len)
-            pair.r2.match_index = site
-            pair.r2.match_len = r2len
             self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
             if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors

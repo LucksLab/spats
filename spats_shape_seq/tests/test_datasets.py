@@ -5,6 +5,8 @@ import unittest
 
 from spats_shape_seq import Spats
 from spats_shape_seq.db import PairDB
+from spats_shape_seq.pair import Pair
+from spats_shape_seq.processor import Failures
 
 cases = [ "5s", "cotrans" ] #, "panel_RNAs" ]
 algorithms = [ "find_partial", "lookup", "native" ]
@@ -51,3 +53,44 @@ class TestDatasets(unittest.TestCase):
         
 
 
+overlap_cases = [
+    [ "o1", "GGGCGTCCTTGGTGCCCGAGTCAGAAGATCGGAAGA", "ACTGACTCGGGCACCAAGGACGCCCAGATCGGAAGA", None, Failures.r1_r2_overlap ],
+    [ "o2", "GGGCGTCCTTGGTGCCCGAGTCAGAAGATCGGAAGA", "TCTGACTCGGGCACCAAGGACGCCCAGATCGGAAGA", 116, None ],
+]
+
+class TestOverlap(unittest.TestCase):
+
+    def tearDown(self):
+        self.spats = None
+
+    def pair_for_case(self, case):
+        pair = Pair()
+        pair.set_from_data(case[0], case[1], case[2])
+        return pair
+
+    def run_case(self, case):
+        pair = self.pair_for_case(case)
+        print('running: {} / {}'.format(case[0], self.spats.run.algorithm))
+        self.spats.process_pair(pair)
+        self.assertEqual(case[3], pair.site, "site res={} != {} ({}, {}, {}, {})".format(pair.site, case[3], self.__class__.__name__, case[0], self.spats.run.algorithm, pair.failure))
+        self.assertEqual(case[4], pair.failure, "failure res={} != {} ({}, {}, {})".format(pair.failure, case[4], self.__class__.__name__, case[0], self.spats.run.algorithm))
+
+    def test_pairs(self):
+        for alg in algorithms:
+            if alg == 'native':
+                continue
+            self.run_algorithm(alg)
+
+    def run_algorithm(self, alg):
+        from spats_shape_seq import Spats
+        self.spats = Spats()
+        self.spats.run.algorithm = alg
+        self.spats.run.count_mutations = True
+        self.spats.run.allowed_target_errors = True
+        self.spats.addTargets("test/SRP/SRP.fa")
+        self.run_pairs()
+
+    def run_pairs(self):
+        for case in overlap_cases:
+            self.run_case(case)
+        print("Ran {} prefix test cases.".format(len(cases)))
