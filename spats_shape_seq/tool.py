@@ -220,10 +220,11 @@ class SpatsTool(object):
 
     def _update_run_config(self, run):
         custom_config = False
+        sentinel = '_-=*< sEnTiNeL >*-=_'
         for key, value in self.config.iteritems():
             if key in [ "r1", "r2", "preseq", "target", "cotrans" ]:
                 continue
-            if hasattr(run, key):
+            if sentinel != getattr(run, key, sentinel):
                 try:
                     val = ast.literal_eval(value)
                 except:
