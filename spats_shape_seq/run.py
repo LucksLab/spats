@@ -183,7 +183,7 @@ class Run(object):
             self.allowed_target_errors = 1
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
-        if self.count_left_prefixes:
+        if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1:
             self.algorithm = 'find_partial'
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
