@@ -93,4 +93,4 @@ class TestOverlap(unittest.TestCase):
     def run_pairs(self):
         for case in overlap_cases:
             self.run_case(case)
-        print("Ran {} prefix test cases.".format(len(cases)))
+        print("Ran {} overlap test cases.".format(len(cases)))

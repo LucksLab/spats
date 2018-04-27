@@ -165,7 +165,7 @@ class TestMutPairs(unittest.TestCase):
         self.assertEqual(case[4], pair.site, "res={} != {} ({}, {}, {})".format(pair.site, case[4], self.__class__.__name__, case[0], pair.failure))
         if pair.site is not None:
             self.assertEqual(case[3], pair.end)
-            self.assertEqual(case[5], sorted(pair.mutations))
+            self.assertEqual(case[5], sorted(pair.mutations) if pair.mutations else pair.mutations)
         return pair
 
     def cases(self):
