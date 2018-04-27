@@ -431,12 +431,15 @@ class SpatsTool(object):
             else:
                 keys = [ 'treated', 'untreated', 'beta', 'theta', 'rho' ]
             for key in keys:
-                ncols = len(profiles.cotrans_keys())
+                cotrans_keys = profiles.cotrans_keys()
+                ncols = 0
                 mat = []
-                for pkey in profiles.cotrans_keys():
+                for pkey in cotrans_keys:
                     end = int(pkey.split('_')[-1])
                     prof = profiles.profilesForTargetAndEnd(tgt.name, end)
                     vals = getattr(prof, key)
+                    if not ncols:
+                        ncols = len(cotrans_keys) + len(vals)
                     if len(vals) < ncols:
                         vals += ([empty_cell] * (ncols - len(vals)))
                     mat.append(vals)
