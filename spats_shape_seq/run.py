@@ -193,6 +193,8 @@ class Run(object):
     def validate_config(self):
         if self.mutations_require_quality_score and (self.mutations_require_quality_score < 33 or self.mutations_require_quality_score > 75):
             raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
+        if self.count_edge_mutations and (self.count_edge_mutations != 'stop_only' and self.count_edge_mutations != 'stop_and_mut'):
+            raise Exception('Invalid count_edge_mutations value: {}'.format(self.count_edge_mutations))
 
     def _get_processor_class(self):
         self.apply_config_restrictions()
