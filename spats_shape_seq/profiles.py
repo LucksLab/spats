@@ -52,8 +52,8 @@ class Profiles(object):
     def write(self, target_path):
         with open(target_path, 'wb') as outfile:
             outfile.write('sequence\trt_start\tfive_prime_offset\tnucleotide\ttreated_mods\tuntreated_mods\tbeta\ttheta\tc\n')
-            for target in self._targets.targets:
-                self.profilesForTarget(target).write(outfile)
+            for key in sorted(self._profiles.keys()):
+                self._profiles[key].write(outfile)
 
     def cotrans_data(self):
         if self._cotrans:
@@ -216,7 +216,7 @@ class TargetProfiles(object):
 
 
     def write(self, outfile):
-        n = self._target.n
+        n = len(self.treated_counts)
         format_str = "{name}\t{rt}\t".format(name = self._target.name, rt = n - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = self.c)
         for i in range(n):
             outfile.write(format_str.format(i = i,
