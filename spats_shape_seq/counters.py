@@ -4,7 +4,8 @@ def _dict_incr(d, key, m = 1):
 
 class Counters(object):
 
-    def __init__(self):
+    def __init__(self, run):
+        self._run = run
         self.reset()
 
     def reset(self):
@@ -38,21 +39,29 @@ class Counters(object):
     def _mut_edge_key(self, pair, mut):
         return "{}:{}:S{}M{}:{}".format(pair.target.rowid, pair.mask.chars, pair.site, mut, pair.end)
 
-    def register_count(self, pair, count_edge_mutations = False):
-        _dict_incr(self._registered, self._count_key(pair), pair.multiplicity)
-        self.registered_pairs += pair.multiplicity
-        _dict_incr(self._counts, pair.mask.chars + "_kept", pair.multiplicity)
+    def register_count(self, pair):
         if pair.mutations:
             for mut in pair.mutations:
-                if pair.site == mut + 1 and not count_edge_mutations:
+                if pair.site == mut + 1:
+                    # mutation on the edge
                     # xref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case
-                    # we don't want to count mutations that are at the site
-                    # but we do want to track them separately for independent analysis
-                    _dict_incr(self._registered, self._mut_edge_key(pair, mut), pair.multiplicity)
+                    count_muts = self._run.count_edge_mutations
+                    if count_muts == 'stop_and_mut':
+                        _dict_incr(self._registered, self._mut_key(pair, mut), pair.multiplicity)
+                        self.mutations += pair.multiplicity
+                        _dict_incr(self._counts, pair.mask.chars + "_mut", pair.multiplicity)
+                    elif count_muts == 'stop_only':
+                        pass
+                    else:
+                        # don't count this as a stop at all
+                        return
                 else:
                     _dict_incr(self._registered, self._mut_key(pair, mut), pair.multiplicity)
                     self.mutations += pair.multiplicity
                     _dict_incr(self._counts, pair.mask.chars + "_mut", pair.multiplicity)
+        _dict_incr(self._registered, self._count_key(pair), pair.multiplicity)
+        self.registered_pairs += pair.multiplicity
+        _dict_incr(self._counts, pair.mask.chars + "_kept", pair.multiplicity)
 
     def increment_mask(self, mask, multiplicity = 1):
         _dict_incr(self._counts, mask.chars + "_total", multiplicity)

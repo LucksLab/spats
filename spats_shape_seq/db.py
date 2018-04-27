@@ -5,7 +5,6 @@ import sqlite3
 import sys
 import time
 
-from counters import Counters
 from parse import FastFastqParser
 
 SHOW_SLOW_QUERIES = False

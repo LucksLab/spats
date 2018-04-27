@@ -35,7 +35,7 @@ class PairProcessor(object):
         self._masks = masks
         self.__adapter_t_rc = 0
         self.uses_tags = False
-        self.counters = Counters()
+        self.counters = Counters(self._run)
         self._match_mask = self._match_mask_optimized if (run.masks[0] == 'RRRY' and run.masks[1] == 'YYYR') else self._match_mask_general
         if self._match_mask != self._match_mask_optimized:
             print("Warning: not using optimized mask match.")

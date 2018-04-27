@@ -1,3 +1,4 @@
+import nose
 import os
 import shutil
 import unittest
@@ -13,6 +14,8 @@ class TestDatasets(unittest.TestCase):
     def test_datasets(self):
         for case in cases:
             for alg in algorithms:
+                if os.environ.get('SKIP_SLOW_TESTS') and alg == 'native':
+                    raise nose.SkipTest('skipping slow tests')
                 self.run_dataset(case, alg)
         print("Ran {} datasets.".format(len(cases)))
 

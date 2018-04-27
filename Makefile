@@ -19,6 +19,11 @@ unit :
 .PHONY: test
 test : unit
 
+.PHONY: fast_unit
+fast_unit :
+	SKIP_SLOW_TESTS=1 nosetests ${PKG_NAME}
+
+
 VERSION = $(shell python -c 'import spats_shape_seq; print spats_shape_seq._VERSION')
 IS_PRODUCTION = $(shell python -c 'import spats_shape_seq; print "1" if spats_shape_seq._PRODUCTION else "0"')
 IS_PUBLIC_RELEASE = $(shell python -c 'import spats_shape_seq; print "1" if spats_shape_seq._PUBLIC_RELEASE else "0"')

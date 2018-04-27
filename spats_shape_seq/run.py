@@ -58,10 +58,11 @@ class Run(object):
         #: to the indicated phred score to be counted.
         self.mutations_require_quality_score = None
 
-        #: Defaults to ``False``. If set to ``True``, will count
-        #: mutations that are at the site like any other mutation. In
-        #: the default behavior, edge mutations are not counted.
-        self.count_edge_mutations = False
+        #: Defaults to ``None``. If set to ``stop_and_mut``, will count
+        #: mutations that are at the site like any other mutation. If
+        #: set to ``stop_only``, will count the stop but no mutation. In
+        #: the default behavior, neither stops nor edge mutations are counted.
+        self.count_edge_mutations = None
 
 
         #: Defaults to ``0``, set higher to require a minimal amount of
