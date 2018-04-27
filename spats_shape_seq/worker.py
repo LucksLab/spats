@@ -51,6 +51,8 @@ class SpatsWorker(object):
                         pair.r1.quality = str(lines[4])
                         pair.r2.quality = str(lines[5])
                     processor.process_pair(pair)
+                    #if pair.failure:
+                    #    print('FAIL: {}'.format(pair.failure))
                     if writeback:
                         results.append(self._make_result(lines[3], pair, tagged))
 

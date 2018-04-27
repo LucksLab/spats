@@ -45,18 +45,24 @@ class Run(object):
         #: determine an appropriate value.
         self.minimum_target_match_length = 10
 
+
         #: Defaults to ``False``. If set to ``True``, will count both
         #: stops and muations, and incorporate the mutation information
         #: into the reactivity profile computations. Note that setting
         #: this will force ``allowed_target_errors`` to be ``1``.
         self.count_mutations = False
 
-
-        #: Defaults to ``None``. If set to a phred-score string, and
+        #: Defaults to ``None``. If set to a phred-score ascii integer value (33 - 75), and
         #: ``count_mutations`` is ``True``, then this will require the
         #: quality score on any mutation to be greater than or equal
         #: to the indicated phred score to be counted.
         self.mutations_require_quality_score = None
+
+        #: Defaults to ``None``. If set to ``stop_and_mut``, will count
+        #: mutations that are at the site like any other mutation. If
+        #: set to ``stop_only``, will count the stop but no mutation. In
+        #: the default behavior, neither stops nor edge mutations are counted.
+        self.count_edge_mutations = None
 
 
         #: Defaults to ``0``, set higher to require a minimal amount of
@@ -114,6 +120,11 @@ class Run(object):
         #: from input data. Otherwise, can be set explicitly.
         self.pair_length = None
 
+        #: Default ``False``, in which the right edge must match the
+        #: edge of the target. Set to ``True`` to allow other
+        #: possibilities for the right edge.
+        self.allow_multiple_rt_starts = False
+
         #: Default ``False``, set to ``True`` to run as a cotrans
         #: experiment. Pass a single target instead of a generated targets
         #: file.
@@ -168,17 +179,26 @@ class Run(object):
 
 
     def apply_config_restrictions(self):
+        if self._p_use_tag_processor:
+            self.count_mutations = False
         if self.count_mutations:
-            self.allowed_target_errors = 1
+            self.allowed_target_errors = max(self.allowed_target_errors, 1)
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
-        if self.count_left_prefixes:
+        if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1:
             self.algorithm = 'find_partial'
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
 
+    def validate_config(self):
+        if self.mutations_require_quality_score and (self.mutations_require_quality_score < 33 or self.mutations_require_quality_score > 75):
+            raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
+        if self.count_edge_mutations and (self.count_edge_mutations != 'stop_only' and self.count_edge_mutations != 'stop_and_mut'):
+            raise Exception('Invalid count_edge_mutations value: {}'.format(self.count_edge_mutations))
+
     def _get_processor_class(self):
         self.apply_config_restrictions()
+        self.validate_config()
         if self._p_use_tag_processor:
             return TagProcessor
         else:

@@ -137,10 +137,13 @@ class PartialFindProcessor(PairProcessor):
         n = pair.target.n
         assert(pair.matched and pair.left >= 0 and pair.left <= n)
 
-        # NOTE: this might change later due to "starts"
-        if pair.right != n:
+        if pair.right != n and not run.allow_multiple_rt_starts:
             pair.failure = Failures.right_edge
             self.counters.r1_not_on_right_edge += pair.multiplicity
+            return
+
+        if not pair.check_overlap():
+            pair.failure = Failures.r1_r2_overlap
             return
 
         if run.count_mutations:

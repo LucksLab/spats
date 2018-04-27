@@ -32,7 +32,8 @@ def preseq_data(key):
 
 class _SpatsRunData(object):
 
-    def __init__(self):
+    def __init__(self, path = None):
+        self._path = path
         self._spats = None
         self._db = None
 
@@ -55,7 +56,14 @@ class _SpatsRunData(object):
         return self._spats
 
     def _loadDBAndModel(self):
-        db = _spats_db.PairDB('run.spats')
+        path = 'run.spats'
+        if self._path:
+            if self._path.endswith('.spats'):
+                self._path = path
+            else:
+                import os
+                path = os.path.join(self._path, path)
+        db = _spats_db.PairDB(path)
         s = _spats.Spats()
         db.load_run(s.run)
         s.run.quiet = True
@@ -148,11 +156,11 @@ class _SpatsRunData(object):
                     getattr(res, plot_type).append(data[site])
         return res
 
-def spats_run_data():
-    return _SpatsRunData()
+def spats_run_data(path = None):
+    return _SpatsRunData(path)
 
-def cotrans_matrix_data(data_type, max_val = 0, x_range = None, y_range = None):
-    run_data = _SpatsRunData()
+def cotrans_matrix_data(data_type, max_val = 0, x_range = None, y_range = None, path = None):
+    run_data = _SpatsRunData(path)
     n = run_data.n
     min_length = run_data.min_length
     rows = [ [0] * (n + 1) for x in range(0, min_length) ]

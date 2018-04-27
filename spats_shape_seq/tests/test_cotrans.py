@@ -224,3 +224,36 @@ class TestPrefixPairs(unittest.TestCase):
         for case in prefix_cases:
             self.run_case(case)
         print("Ran {} prefix test cases.".format(len(cases)))
+
+class TestOnlyPrefixes(unittest.TestCase):
+
+    def setUp(self):
+        from spats_shape_seq import Spats
+        self.spats = Spats()
+        self.spats.run.cotrans = True
+        self.spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
+        self.spats.run.collapse_left_prefixes = True
+        self.spats.run.collapse_only_prefixes = "T,ACGT,CCA"
+        self.spats.addTargets("test/cotrans/cotrans_single.fa")
+
+    def tearDown(self):
+        self.spats = None
+
+    def pair_for_case(self, case):
+        pair = Pair()
+        pair.set_from_data(case[0], case[1], case[2])
+        return pair
+
+    def run_case(self, case):
+        pair = self.pair_for_case(case)
+        self.spats.counters.reset()
+        self.spats.process_pair(pair)
+        if case[5]:
+            expect = case[4] if case[5] in self.spats.run.collapse_only_prefixes.split(',') else None
+            self.assertEqual(expect, pair.site, "PREF res={} != {} ({}, {})".format(pair.site, case[4], self.__class__.__name__, case[0]))
+        return pair
+
+    def test_pairs(self):
+        for case in prefix_cases:
+            self.run_case(case)
+        print("Ran {} prefix test cases.".format(len(cases)))

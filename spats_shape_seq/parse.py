@@ -218,6 +218,12 @@ class SamRecord(object):
         # rest of bits are not used afaict
         self.right = self.left + self.length
 
+    def dump(self):
+        return '\t'.join([self.identifier, str(self.flags), self.target_name or '*', str(self.left + 1), self.quality,
+                          '{}M'.format(self.right - self.left) if self.target_name else '0', '=' if self.target_name else '*',
+                          # TODO: last three vals
+                          '?', '?', 'SEQ'])
+
 
 class SamParser(object):
 
