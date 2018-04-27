@@ -120,6 +120,11 @@ class Run(object):
         #: from input data. Otherwise, can be set explicitly.
         self.pair_length = None
 
+        #: Default ``False``, in which the right edge must match the
+        #: edge of the target. Set to ``True`` to allow other
+        #: possibilities for the right edge.
+        self.allow_multiple_rt_starts = False
+
         #: Default ``False``, set to ``True`` to run as a cotrans
         #: experiment. Pass a single target instead of a generated targets
         #: file.
