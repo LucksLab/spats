@@ -179,6 +179,8 @@ class Run(object):
 
 
     def apply_config_restrictions(self):
+        if self._p_use_tag_processor:
+            self.count_mutations = False
         if self.count_mutations:
             self.allowed_target_errors = 1
         if self.collapse_left_prefixes:
