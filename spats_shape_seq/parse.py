@@ -4,6 +4,8 @@ import os
 import struct
 from sys import version_info
 
+from mask import match_mask_optimized
+
 
 # not currently used in spats, but potentially useful for tools
 class FastqRecord(object):
@@ -169,6 +171,15 @@ class FastFastqParser(object):
         except StopIteration:
             pass
         return pairs, count
+
+
+def fastq_handle_filter(r1_path, r2_path, masks = [ 'RRRY', 'YYYR' ]):
+    # can assume masks are the default (use match_mask_optimized)
+    # write output to files: 'RRRY' + r1_path, 'YYYR' + r1_path, 'RRRY' + r2_path, 'YYYR' + r2_path
+    # (nuke them if they exist already)
+
+    # return the list of output files
+    return None
 
 
 def fasta_parse(target_path):
