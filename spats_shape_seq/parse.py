@@ -24,8 +24,9 @@ class FastqRecord(object):
         first = infile.readline()
         if not first:
             self.reset()
-            return
+            return False
         self.parse([ first, infile.readline(), infile.readline(), infile.readline() ])
+        return True
 
     def parse(self, lines):
         self.identifier = lines[0].lstrip('@').split(' ')[0]
@@ -173,13 +174,42 @@ class FastFastqParser(object):
         return pairs, count
 
 
-def fastq_handle_filter(r1_path, r2_path, masks = [ 'RRRY', 'YYYR' ]):
-    # can assume masks are the default (use match_mask_optimized)
-    # write output to files: 'RRRY' + r1_path, 'YYYR' + r1_path, 'RRRY' + r2_path, 'YYYR' + r2_path
-    # (nuke them if they exist already)
+def _prependFilename(path, prefix):
+    outpath = os.path.dirname(path) 
+    if len(outpath) > 0:
+        outpath += os.path.sep
+    return outpath + prefix + '_' + os.path.basename(path)
 
-    # return the list of output files
-    return None
+
+def fastq_handle_filter(r1_path, r2_path, masks = [ 'RRRY', 'YYYR' ]):
+    # creates 4 files, one for each mask for r1_path and r2_path.
+    # output filenames are the originals with the mask name prefixed (nukes them if they exist already)
+    # returns the list of output files
+    result = None if len(masks) == 0 else []
+    r1of = {}
+    r2of = {}
+    for mask in masks:
+        outpath = _prependFilename(r1_path, mask)
+        r1of[mask] = open(outpath, 'w+')
+        result.append(outpath)
+        outpath = _prependFilename(r2_path, mask)
+        r2of[mask] = open(outpath, 'w+')
+        result.append(outpath)
+    try:
+        fqr1 = FastqRecord()
+        fqr2 = FastqRecord()
+        with open(r1_path, 'r') as r1if, open(r2_path, 'r') as r2if:
+            while fqr1.read(r1if):
+                fqr2.read(r2if)
+                mask = match_mask_optimized(fqr1.sequence, masks)   # assumes masks are the default
+                if mask is not None:
+                    fqr1.write(r1of[mask])
+                    fqr2.write(r2of[mask])
+    finally:
+        for mask in masks:
+            r1of[mask].close()
+            r2of[mask].close()
+    return result
 
 
 def fasta_parse(target_path):
