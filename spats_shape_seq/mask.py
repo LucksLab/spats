@@ -36,6 +36,20 @@ class Mask(object):
                 return False
         return True
 
+# optimized version for RRRY/YYYR
+def match_mask_optimized(s, masks = [ 'RRRY', 'YYYR' ]):
+    if s[0] == 'A' or s[0] == 'G':
+        if (s[1] == 'A' or s[1] == 'G') and \
+           (s[2] == 'A' or s[2] == 'G') and \
+           (s[3] == 'C' or s[3] == 'T'):
+            return masks[0]
+    elif s[0] == 'C' or s[0] == 'T':
+        if (s[1] == 'C' or s[1] == 'T') and \
+           (s[2] == 'C' or s[2] == 'T') and \
+           (s[3] == 'G' or s[3] == 'A'):
+            return masks[1]
+    return None
+
 
 # returns (left, right), where 'left' is the max number of chars extending to the left,
 # and 'right' is the max number of chars extending to the right, s.t. s1 matches s2
