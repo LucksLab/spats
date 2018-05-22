@@ -307,7 +307,8 @@ class Spats(object):
         :param data_r1_path: path to R1 fragments
         :param data_r2_path: path to matching R2 fragments.
         """
-        use_quality = (self.run.count_mutations and self.run.mutations_require_quality_score)
+        self.run.apply_config_restrictions()
+        use_quality = self.run._parse_quality
         if not self.run.skip_database and not use_quality:
             self.process_pair_db(self._memory_db_from_pairs(data_r1_path, data_r2_path))
         else:
@@ -325,6 +326,7 @@ class Spats(object):
            :param pair_db: a :class:`.db.PairDB` of pairs to process.
         """
 
+        self.run.apply_config_restrictions()
         if not self.run.pair_length:
             self.run.pair_length = pair_db.pair_length()
 

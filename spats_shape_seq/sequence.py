@@ -37,12 +37,23 @@ class Sequence(object):
             return self._seq[self._ltrim:]
 
     @property
+    def subquality(self):
+        if self._rtrim:
+            return self.quality[self._ltrim:-self._rtrim]
+        else:
+            return self.quality[self._ltrim:]
+
+    @property
     def seq_len(self):
         return self._length - self._ltrim - self._rtrim
 
     @property
     def reverse_complement(self):
         return reverse_complement(self.subsequence)
+
+    @property
+    def reverse_complement_quality(self):
+        return reverse_complement(self.subquality)
 
     @property
     def matched(self):

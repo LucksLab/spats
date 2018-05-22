@@ -165,6 +165,9 @@ class Run(object):
         #: ``collapse_left_prefixes`` is ``True``
         self.collapse_only_prefixes = None
 
+        #: Default ``None``, set to a string path to generate SAM outputs
+        #: for the spats run.
+        self.generate_sam = None
 
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
@@ -172,13 +175,16 @@ class Run(object):
         self._p_v102_compat = False
         self._p_extra_tags = None # used by reads analyzer
 
-
         # private config that should not be persisted (use _ prefix)
         self._run_limit = 0 # for testing, only supported on num_workers=1
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
+        self._parse_quality = False
+        self._applied_restrictions = False
 
 
     def apply_config_restrictions(self):
+        if self._applied_restrictions:
+            return
         if self._p_use_tag_processor:
             self.count_mutations = False
         if self.count_mutations:
@@ -189,6 +195,14 @@ class Run(object):
             self.algorithm = 'find_partial'
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
+        if self.count_mutations and self.mutations_require_quality_score:
+            self._parse_quality = True
+        if self.generate_sam:
+            self.algorithm = 'find_partial'
+            self.num_workers = 1
+            self._parse_quality = True
+        self._applied_restrictions = True
+        self.validate_config()
 
     def validate_config(self):
         if self.mutations_require_quality_score and (self.mutations_require_quality_score < 33 or self.mutations_require_quality_score > 75):
@@ -198,7 +212,6 @@ class Run(object):
 
     def _get_processor_class(self):
         self.apply_config_restrictions()
-        self.validate_config()
         if self._p_use_tag_processor:
             return TagProcessor
         else:

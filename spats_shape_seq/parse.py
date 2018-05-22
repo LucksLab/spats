@@ -4,6 +4,8 @@ import os
 import struct
 from sys import version_info
 
+import spats_shape_seq
+
 
 # not currently used in spats, but potentially useful for tools
 class FastqRecord(object):
@@ -113,9 +115,9 @@ class FastFastqParser(object):
                     if R1_id != R2_id:
                         raise Exception("Malformed input files, id mismatch: {} != {}".format(R1_id, R2_id))
                 if include_quality:
-                    pairs.append((1, R1_seq, R2_seq, 0, R1_q, R2_q))
+                    pairs.append((1, R1_seq, R2_seq, R1_id.split(' ')[0], R1_q.rstrip('\n\r'), R2_q.rstrip('\n\r')))
                 else:
-                    pairs.append((1, R1_seq, R2_seq, 0))
+                    pairs.append((1, R1_seq, R2_seq, str(count)))
                 count += 1
         except StopIteration:
             pass
@@ -223,6 +225,62 @@ class SamRecord(object):
                           '{}M'.format(self.right - self.left) if self.target_name else '0', '=' if self.target_name else '*',
                           # TODO: last three vals
                           '?', '?', 'SEQ'])
+
+
+class SamWriter(object):
+
+    def __init__(self, path, targets, write_failures = True):
+        self.write_failures = write_failures
+        self.path = path
+        self.sam_out = open(self.path, 'w')
+        self._write_header(targets)
+
+    def _write_header(self, targets):
+        self.sam_out.write('@HD	VN:1.0	SO:unsorted\n')
+        for t in targets:
+            self.sam_out.write('@SQ	SN:{}	LN:{}\n'.format(t.name, t.n))
+        self.sam_out.write('@PG	ID:spats_shape_seq	VN:{}	CL:"spats_tool run"\n'.format(spats_shape_seq._VERSION))
+
+    def write(self, pair):
+        qname = pair.identifier
+        r2_seq = pair.r2.subsequence
+        r1_seq = pair.r1.reverse_complement
+        r2_q = pair.r2.subquality
+        r1_q = pair.r1.reverse_complement_quality
+        if pair.failure:
+            r2_flag = 141
+            r1_flag = 77
+            rname = r1_cigar = r2_cigar = rnext = '*'
+            r2_pos = r1_pos = mapq = r1_pnext = r2_pnext = r2_tlen = r1_tlen = 0
+            alignment = 'XM:i:0'
+            if self.write_failures:
+                alignment += ' f:Z:{}'.format(pair.failure)
+            r1_align = r2_align = alignment
+        else:
+            r2_flag = 163
+            r1_flag = 83
+            rname = pair.target.name
+            r2_pos = pair.r2.left + 1
+            r1_pos = pair.r1.left + 1
+            mapq = 255
+            r2_cigar = '{}M'.format(len(r2_seq))
+            r1_cigar = '{}M'.format(len(r1_seq))
+            rnext = '='
+            r2_pnext = pair.r1.left + 1
+            r1_pnext = pair.r2.left + 1
+            r2_tlen = pair.length
+            r1_tlen = 0 - pair.length
+            r2_align = 'XA:i:0	MD:Z:{}	NM:i:0'.format(len(r2_seq))
+            r1_align = 'XA:i:0	MD:Z:{}	NM:i:0'.format(len(r1_seq))
+        for row in ( [ qname, r2_flag, rname, r2_pos, mapq, r2_cigar, rnext, r2_pnext, r2_tlen, r2_seq, r2_q, r2_align ],
+                     [ qname, r1_flag, rname, r1_pos, mapq, r1_cigar, rnext, r1_pnext, r1_tlen, r1_seq, r1_q, r1_align ] ):
+            self.sam_out.write('\t'.join([ str(x) for x in row ]))
+            self.sam_out.write('\n')
+
+    def close(self):
+        if self.sam_out:
+            self.sam_out.close()
+            self.sam_out = None
 
 
 class SamParser(object):

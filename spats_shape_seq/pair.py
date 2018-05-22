@@ -100,6 +100,10 @@ class Pair(object):
         return self.r1.right
 
     @property
+    def length(self):
+        return self.r1.right - self.r2.left
+
+    @property
     def end(self):
         return self.right if self._end == -1 else self._end
 
