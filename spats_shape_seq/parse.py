@@ -185,6 +185,8 @@ def fastq_handle_filter(r1_path, r2_path, masks = [ 'RRRY', 'YYYR' ]):
     # creates 4 files, one for each mask for r1_path and r2_path.
     # output filenames are the originals with the mask name prefixed (nukes them if they exist already)
     # returns the list of output files
+    if masks[0] == 'RRRY' and masks[1] == 'YYYR':
+        raise Exception("fastq_handle_filter cannot yet be used with masks other than 'RRRY' and 'YYYR'.")
     result = None if len(masks) == 0 else []
     r1of = {}
     r2of = {}
@@ -199,10 +201,9 @@ def fastq_handle_filter(r1_path, r2_path, masks = [ 'RRRY', 'YYYR' ]):
         fqr1 = FastqRecord()
         fqr2 = FastqRecord()
         with open(r1_path, 'r') as r1if, open(r2_path, 'r') as r2if:
-            while fqr1.read(r1if):
-                fqr2.read(r2if)
-                mask = match_mask_optimized(fqr1.sequence, masks)   # assumes masks are the default
-                if mask is not None:
+            while fqr1.read(r1if) and fqr2.read(r2if):
+                mask = match_mask_optimized(fqr1.sequence, masks)   # currently assumes masks are the default
+                if mask:
                     fqr1.write(r1of[mask])
                     fqr2.write(r2of[mask])
     finally:
