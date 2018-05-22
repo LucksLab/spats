@@ -185,7 +185,7 @@ def fastq_handle_filter(r1_path, r2_path, masks = [ 'RRRY', 'YYYR' ]):
     # creates 4 files, one for each mask for r1_path and r2_path.
     # output filenames are the originals with the mask name prefixed (nukes them if they exist already)
     # returns the list of output files
-    if masks[0] == 'RRRY' and masks[1] == 'YYYR':
+    if masks != ['RRRY', 'YYYR']:
         raise Exception("fastq_handle_filter cannot yet be used with masks other than 'RRRY' and 'YYYR'.")
     result = None if len(masks) == 0 else []
     r1of = {}
