@@ -8,7 +8,7 @@
 #include "seq.hpp"
 #include <map>
 #include "db.hpp"
-
+#include <unistd.h>
 
 
 void
@@ -472,11 +472,115 @@ tdb()
     pdb.test();
 }
 
+int g_cnt = 0;
+
+bool
+null_handler(Fragment * r1, Fragment * r2, const char * handle)
+{
+    //if (0 == ++g_cnt % 1000000)
+    //    printf("NHC: %d\n", g_cnt);
+    return true;
+}
+
+void
+tfqp(const char * R1, const char * R2)
+{
+    fastq_parse_handler(R1, R2, &null_handler);
+}
+
+#include <fstream>
+#define BUFFER_SIZE (1024 << 8)
+
+void
+tfread(const char * R1, const char * R2)
+{
+    size_t r1r2read = 0;
+    char r1buf[BUFFER_SIZE + 1];
+    char r2buf[BUFFER_SIZE + 1];
+    FILE * r1 = fopen(R1, "rb");
+    FILE * r2 = fopen(R2, "rb");
+    while (true) {
+        r1r2read = fread(r1buf, 1, BUFFER_SIZE, r1);
+        if (0 == r1r2read)
+            return;
+        fread(r2buf, 1, BUFFER_SIZE, r2);
+    }
+}
+
+#include <sys/mman.h>
+#include <fcntl.h>
+
+#define MMAP_SIZE (1024 << 20)
+
+long
+file_size(const char * f)
+{
+    FILE * r1 = fopen(f, "rb");
+    fseek(r1, 0, SEEK_END);
+    long sz = ftell(r1);
+    fclose(r1);
+    return sz;
+}
+
+void
+tmmap(const char * R1, const char * R2)
+{
+    int r1 = open(R1, O_RDONLY);
+    int r2 = open(R2, O_RDONLY);
+    char buf[BUFFER_SIZE];
+    long sz = file_size(R1);
+    long fidx = 0;
+    int idx = 0;
+    unsigned char accum = 0;
+
+    while (fidx < sz) {
+        char * r1ptr = (char *)mmap(NULL, MMAP_SIZE, PROT_READ, MAP_FILE | MAP_PRIVATE, r1, fidx);
+        char * r2ptr = (char *)mmap(NULL, MMAP_SIZE, PROT_READ, MAP_FILE | MAP_PRIVATE, r2, fidx);
+        if (r1ptr == MAP_FAILED) {
+            printf("mmap failed %ld\n", fidx);
+            return;
+        }
+        for (int j = 0; j < MMAP_SIZE; j += BUFFER_SIZE) {
+            memcpy(&buf, &r1ptr[j], BUFFER_SIZE);
+            memcpy(&buf, &r2ptr[j], BUFFER_SIZE);
+            if (j == 0) {
+                buf[32] = 0;
+#if 0
+                printf("BUF: %s\n", buf);
+#endif
+            }
+        }
+        fidx += MMAP_SIZE;
+        munmap(r1ptr, MMAP_SIZE);
+        munmap(r2ptr, MMAP_SIZE);
+    }
+}
+
+void
+tfmap()
+{
+    pthread_mutex_init(&g_mutex, NULL);
+    const char * R1 = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R1.fastq";
+    const char * R2 = "/Users/jbrink/mos/tasks/1RwIBa/tmp/datasets/cotrans/data/EJS_6_F_10mM_NaF_Rep1_GCCAAT_R2.fastq";
+    //printf("AFP: %d\n", appx_number_of_fastq_pairs(R1));
+    //tfqp(R1, R2); // 17.3s real, 14.94GB read
+    //tfread(R1, R2); // 13.1s real, 14.94GB read
+    //tmmap(R1, R2); // WITH printf: 83s real, 14.94GB read
+    //tmmap(R1, R2); // WITHOUT printf: 1.9s real, 56kb read
+    //tfqp(R1, R2); // after conversion to mmap: ~60s real
+    // -> conclusions:
+    //  - memcpy is very smart and doesn't cause a page fault when performed, only when used -- ???
+    //  - mmap is slow b/c it relies on page faults to load, whereas fread explicitly maps in what you're going to use
+    //sleep(10);
+}
+
 int
 main(int argc, char ** argv)
 {
-    portable_srandomdev();
-    printf("%u\n", (unsigned int)random());
+    tfmap();
+    printf("done\n");
+    //portable_srandomdev();
+    //printf("%u\n", (unsigned int)random());
     //tcotrans2();
     //tdb();
     //return tcase(argc, argv);

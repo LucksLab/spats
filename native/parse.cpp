@@ -2,6 +2,8 @@
 #include <fstream>
 #include <unistd.h>
 #include <algorithm>
+#include <sys/mman.h>
+#include <fcntl.h>
 
 #include "ats.hpp"
 #include "seq.hpp"
@@ -17,8 +19,10 @@
 #define BENCHMARK_PARSING_ONLY 0
 
 
+#define USE_MMAP 0
 
 
+#define MMAP_SIZE (1024 << 20)
 #define BUFFER_SIZE (1024 << 8)
 #define MAX_LINE_SIZE 1024
 
@@ -29,11 +33,23 @@ void
 fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler handler, Spats * spats)
 {
     FILE * r1 = fopen(r1_path, "rb");
+#if USE_MMAP
+    int r1_fd = open(r1_path, O_RDONLY);
+    int r2_fd = open(r2_path, O_RDONLY);
+    char * r1_map = (char *) MAP_FAILED;
+    char * r2_map = (char *) MAP_FAILED;
+    long r1r2_fidx = 0L;
+    long file_size = 0L;
+    char * r1buf;
+    char * r2buf;
+#else
     FILE * r2 = fopen(r2_path, "rb");
 
     char r1buf[BUFFER_SIZE + 1];
     char r2buf[BUFFER_SIZE + 1];
     r1buf[BUFFER_SIZE] = r2buf[BUFFER_SIZE] = 0;
+#endif
+
     size_t r1r2read = 0;
     int buf_idx = 0;
     char r1line[MAX_LINE_SIZE];
@@ -79,20 +95,48 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
 
     /* first-pass set up */
     {
+#if USE_MMAP
+        char r1buffer[BUFFER_SIZE + 1];
+        r1r2read = fread(r1buffer, 1, BUFFER_SIZE, r1);
+#else
         r1r2read = fread(r1buf, 1, BUFFER_SIZE, r1);
         fread(r2buf, 1, BUFFER_SIZE, r2);
+        char * r1buffer = r1buf;
+#endif
         if (r1r2read == 0)
             goto fastq_parse_done;
         buf_idx = 0;
 
-        char * lineid_end = strchr(r1buf, '\n');
+        char * lineid_end = strchr(r1buffer, '\n');
         context.fragment_len = fragment_len = (int)(strchr(&lineid_end[1], '\n') - lineid_end - 1);
-        full_skip = (2) + (fragment_len + 1) + (lineid_end - r1buf - 2); // comment line, quality line, ID line
+        full_skip = (2) + (fragment_len + 1) + (lineid_end - r1buffer - 2); // comment line, quality line, ID line
         skip_padding = full_skip + 2 * fragment_len;
-        buf_idx = (int)(lineid_end - r1buf + 1);
+        buf_idx = (int)(lineid_end - r1buffer + 1);
+#if USE_MMAP
+        fseek(r1, 0, SEEK_END);
+        file_size = ftell(r1);
+        fclose(r1);
+#else
         r1start = &r1buf[buf_idx];
         r2start = &r2buf[buf_idx];
+#endif
     }
+
+#if USE_MMAP
+    r1_map = (char *)mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE, MAP_FILE | MAP_PRIVATE, r1_fd, r1r2_fidx);
+    if (r1_map == MAP_FAILED) {
+        printf("mmap failed %ld\n", r1r2_fidx);
+        goto fastq_parse_done;
+    }
+    r2_map = (char *)mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE, MAP_FILE | MAP_PRIVATE, r2_fd, r1r2_fidx);
+    r1r2_fidx += MMAP_SIZE;
+    r1buf = r1_map;
+    r2buf = r2_map;
+    r1r2read = MMAP_SIZE;
+    r1start = &r1buf[buf_idx];
+    r2start = &r2buf[buf_idx];
+#endif
+
 
     while (true)
     {
@@ -104,8 +148,6 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
         while (*r1end >= 0x10) ++r1end; // hotpath opt: \0, \r, \n are all < 0x10, all ascii are > 0x10
         buf_idx += (r1end - r1start + 1); // include the +1 at the end
         r2end = r2start + (r1end - r1start); // match r2
-        *r1end = 0; // null-terminate
-        *r2end = 0;
 
         ATS_ASSERT((int)buf_idx < (int)r1r2read);
 
@@ -148,10 +190,25 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
             memcpy(r1line, &r1buf[buf_idx], wrap_len);
             memcpy(r2line, &r2buf[buf_idx], wrap_len);
 
+#if USE_MMAP
+            munmap(r1_map, MMAP_SIZE);
+            munmap(r2_map, MMAP_SIZE);
+            r1_map = (char *)mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE, MAP_FILE | MAP_PRIVATE, r1_fd, r1r2_fidx);
+            if (r1_map == MAP_FAILED) {
+                printf("mmap failed %ld\n", r1r2_fidx);
+                goto fastq_parse_done;
+            }
+            r2_map = (char *)mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE, MAP_FILE | MAP_PRIVATE, r2_fd, r1r2_fidx);
+            r1r2_fidx += MMAP_SIZE;
+            r1buf = r1_map;
+            r2buf = r2_map;
+            r1r2read = MMAP_SIZE;
+#else
             r1r2read = fread(r1buf, 1, BUFFER_SIZE, r1);
             fread(r2buf, 1, BUFFER_SIZE, r2);
             if (r1r2read == 0)
                 goto fastq_parse_done;
+#endif
 
             buf_idx = (int)(skip - wrap_len);
 
@@ -182,8 +239,17 @@ fastq_parse_driver(const char * r1_path, const char * r2_path, pair_handler hand
 
 
 fastq_parse_done:
+#if USE_MMAP
+    close(r1_fd);
+    close(r2_fd);
+    if (MAP_FAILED != r1_map)
+        munmap(r1_map, MMAP_SIZE);
+    if (MAP_FAILED != r2_map)
+        munmap(r2_map, MMAP_SIZE);
+#else
     fclose(r1);
     fclose(r2);
+#endif
 
     int wempty = 0;
 #if !(BENCHMARK_PARSING_ONLY)

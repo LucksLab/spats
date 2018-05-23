@@ -25,6 +25,10 @@ debug: bin/test
 
 all: bin/test bin/unittest bin/cotrans bin/reads
 
+.PHONY: test
+test: bin/test
+	time ./bin/test
+
 .PHONY: clean
 clean:
 	rm -rf obj *~
