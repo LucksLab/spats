@@ -61,7 +61,8 @@ class FastFastqParser(object):
                 r2_first = r2_in.readline().strip('\r\n')
                 pair_length = len(r1_first)
                 if pair_length != len(r2_first):
-                    raise Exception("Unexpected pair length mismatch in R1 vs R2: {} / {}".format(pair_length, len(r2_first)))
+                    print("Warning: pair length mismatch in R1 vs R2: {} / {}".format(pair_length, len(r2_first)))
+                    return -1
                 return pair_length
 
     def appx_number_of_pairs(self):

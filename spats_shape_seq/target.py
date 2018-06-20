@@ -267,6 +267,8 @@ class Targets(object):
 
     def build_lookups(self, run, length = None, end_only = True):
         use_length = length or 35
+        if use_length < 0:
+            raise Exception('Cannot build lookups on variable-length inputs. Use find_partial processor.')
         self._build_R1_lookup(run.adapter_b, use_length - 4, end_only, run.count_mutations)
         self._build_R2_lookup(use_length - 4, run.count_mutations)
 
