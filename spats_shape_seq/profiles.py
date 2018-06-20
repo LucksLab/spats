@@ -186,6 +186,7 @@ class TargetProfiles(object):
         r_mut = [ 0 for x in range(n+1) ]
         depth_t = 0.0    # keep a running sum
         depth_u = 0.0  # for both channels
+        running_c_sum = 0.0
 
         # NOTE: there is an index discrepancy here between indices
         # used in the code, and the indices used in the derivation:
@@ -209,10 +210,13 @@ class TargetProfiles(object):
                 #print("domain error: {} / {} / {} / {}".format(s_j_t, depth_t, s_j_u, depth_u))
                 mu[j] = 0.0
 
+            running_c_sum -= math.log(1.0 - mu[j]) # xref Yu_Estimating_Reactivities pdf, p24
+
             r_mut[j] = self.betas[j] + mu[j]
 
         self.mu = mu
         self.r_mut = r_mut
+        self.c += running_c_sum
 
 
     def write(self, outfile):
