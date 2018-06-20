@@ -18,6 +18,7 @@ class Pair(object):
         self.tags = None
         self._end = -1
         self.mutations = None
+        self.removed_mutations = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()
@@ -69,6 +70,8 @@ class Pair(object):
                 removed.append(mut)
         for mut in removed:
             self.mutations.remove(mut)
+        if removed:
+            self.removed_mutations = removed
         return len(removed)
 
     def check_overlap(self):
