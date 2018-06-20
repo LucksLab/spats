@@ -1,5 +1,6 @@
 
 from counters import Counters
+from mask import match_mask_optimized
 from util import _warn, _debug, reverse_complement, string_match_errors
 
 class Failures(object):
@@ -64,18 +65,7 @@ class PairProcessor(object):
 
     # optimized version for RRRY/YYYR
     def _match_mask_optimized(self, pair):
-        s = pair.r1.original_seq[:4]
-        mask = None
-        if s[0] == 'A' or s[0] == 'G':
-            if (s[1] == 'A' or s[1] == 'G') and \
-               (s[2] == 'A' or s[2] == 'G') and \
-               (s[3] == 'C' or s[3] == 'T'):
-                mask = self._masks[0]
-        elif s[0] == 'C' or s[0] == 'T':
-            if (s[1] == 'C' or s[1] == 'T') and \
-               (s[2] == 'C' or s[2] == 'T') and \
-               (s[3] == 'G' or s[3] == 'A'):
-                mask = self._masks[1]
+        mask = match_mask_optimized(pair.r1.original_seq[:4], self._masks)
         if mask:
             pair.set_mask(mask)
             self.counters.increment_mask(mask, pair.multiplicity)

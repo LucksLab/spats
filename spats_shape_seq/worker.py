@@ -4,6 +4,7 @@ import Queue
 import sys
 
 from pair import Pair
+from parse import SamWriter
 from util import _debug, _warn
 
 
@@ -38,7 +39,7 @@ class SpatsWorker(object):
                 self._pair_db.worker_id = worker_id
             writeback = bool(self._result_set_id)
             tagged = processor.uses_tags
-            use_quality = (self._run.count_mutations and self._run.mutations_require_quality_score)
+            use_quality = self._run._parse_quality
             pair = Pair()
             while True:
                 pairs = self._pairs_to_do.get()
@@ -46,7 +47,7 @@ class SpatsWorker(object):
                     break
                 results = []
                 for lines in pairs:
-                    pair.set_from_data('', str(lines[1]), str(lines[2]), lines[0])
+                    pair.set_from_data(lines[3], str(lines[1]), str(lines[2]), lines[0])
                     if use_quality:
                         pair.r1.quality = str(lines[4])
                         pair.r2.quality = str(lines[5])
@@ -187,6 +188,8 @@ class SpatsWorker(object):
         more_pairs = True
         pair_db = self._pair_db
         writeback = bool(self._result_set_id)
+        sam = bool(self._run.generate_sam)
+        use_quality = self._run._parse_quality
         total = 0
         if writeback:
             result_set_id = self._result_set_id
@@ -197,6 +200,9 @@ class SpatsWorker(object):
         tagged = processor.uses_tags
         pair = Pair()
 
+        if sam:
+            sam_writer = SamWriter(self._run.generate_sam, processor._targets.targets)
+
         while more_pairs:
             try:
                 while True:
@@ -206,13 +212,18 @@ class SpatsWorker(object):
                         sys.stdout.flush()
                     results = []
                     for lines in pair_info:
-                        pair.set_from_data('', str(lines[1]), str(lines[2]), lines[0])
+                        pair.set_from_data(lines[3], str(lines[1]), str(lines[2]), lines[0])
+                        if use_quality:
+                            pair.r1.quality = str(lines[4])
+                            pair.r2.quality = str(lines[5])
 
                         try:
                             processor.process_pair(pair)
                         except:
                             print("**** Error processing pair: {} / {}".format(pair.r1.original_seq, pair.r2.original_seq))
                             raise
+                        if sam:
+                            sam_writer.write(pair)
 
                         total += pair.multiplicity
                         if writeback:

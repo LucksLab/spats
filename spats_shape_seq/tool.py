@@ -14,7 +14,7 @@ import time
 import spats_shape_seq
 import spats_shape_seq.nbutil as nbutil
 from spats_shape_seq import Spats
-from spats_shape_seq.parse import abif_parse
+from spats_shape_seq.parse import abif_parse, fastq_handle_filter
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
 
 
@@ -468,6 +468,14 @@ class SpatsTool(object):
             for row in data:
                 writer.writerow(row)
         self._add_note("Data dumped to {}".format(os.path.basename(output_path)))
+
+    def handle_filter(self):
+        """Generates an output of the demultiplexed positive and negative
+           fastq files for R1 and R2.
+        """
+        self._skip_log = True
+        files = fastq_handle_filter(self.r1, self.r2)
+        self._add_note("Pairs filtered to: {}".format(", ".join(files)))
 
     def doc(self):
         """Show the spats documentation.

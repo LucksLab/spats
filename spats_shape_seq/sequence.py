@@ -37,12 +37,23 @@ class Sequence(object):
             return self._seq[self._ltrim:]
 
     @property
+    def subquality(self):
+        if self._rtrim:
+            return self.quality[self._ltrim:-self._rtrim]
+        else:
+            return self.quality[self._ltrim:]
+
+    @property
     def seq_len(self):
         return self._length - self._ltrim - self._rtrim
 
     @property
     def reverse_complement(self):
         return reverse_complement(self.subsequence)
+
+    @property
+    def reverse_complement_quality(self):
+        return reverse_complement(self.subquality)
 
     @property
     def matched(self):
@@ -86,5 +97,5 @@ class Sequence(object):
         else:
             self.match_index -= (self.match_start - self._ltrim)
             self.match_start = self._ltrim
-            self.match_len = self.seq_len - self._ltrim
+            self.match_len = self.seq_len
         _debug(["M2S:", self.match_index, self.match_len, self.match_start, "-- ", self._rtrim])

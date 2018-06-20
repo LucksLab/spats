@@ -22,7 +22,9 @@ class Profiles(object):
                                                                                 counters.mask_muts(target, masks[0], end) if count_muts else None,
                                                                                 counters.mask_muts(target, masks[1], end) if count_muts else None,
                                                                                 counters.mask_edge_muts(target, masks[0], end) if count_muts else None,
-                                                                                counters.mask_edge_muts(target, masks[1], end) if count_muts else None)
+                                                                                counters.mask_edge_muts(target, masks[1], end) if count_muts else None,
+                                                                                counters.mask_removed_muts(target, masks[0], end) if count_muts else None,
+                                                                                counters.mask_removed_muts(target, masks[1], end) if count_muts else None)
             else:
                 profiles[target.name] = TargetProfiles(self, target,
                                                        counters.mask_counts(target, masks[0], n),
@@ -30,7 +32,10 @@ class Profiles(object):
                                                        counters.mask_muts(target, masks[0], n) if count_muts else None,
                                                        counters.mask_muts(target, masks[1], n) if count_muts else None,
                                                        counters.mask_edge_muts(target, masks[0], n) if count_muts else None,
-                                                       counters.mask_edge_muts(target, masks[1], n) if count_muts else None)
+                                                       counters.mask_edge_muts(target, masks[1], n) if count_muts else None,
+                                                       counters.mask_removed_muts(target, masks[0], n) if count_muts else None,
+                                                       counters.mask_removed_muts(target, masks[1], n) if count_muts else None)
+
         self._profiles = profiles
 
     def profilesForTarget(self, target):
@@ -76,7 +81,7 @@ class Profiles(object):
 
 class TargetProfiles(object):
 
-    def __init__(self, owner, target, treated_counts, untreated_counts, treated_muts, untreated_muts, treated_edge_muts, untreated_edge_muts):
+    def __init__(self, owner, target, treated_counts, untreated_counts, treated_muts, untreated_muts, treated_edge_muts, untreated_edge_muts, treated_removed_muts, untreated_removed_muts):
         self.owner = owner
         self._target = target
         self.treated_counts = treated_counts
@@ -85,6 +90,8 @@ class TargetProfiles(object):
         self.untreated_muts = untreated_muts
         self.treated_edge_muts = treated_edge_muts
         self.untreated_edge_muts = untreated_edge_muts
+        self.treated_removed_muts = treated_removed_muts
+        self.untreated_removed_muts = untreated_removed_muts
 
     @property
     def treated(self):
@@ -181,20 +188,29 @@ class TargetProfiles(object):
         untreated_counts = self.untreated_counts
         treated_muts = self.treated_muts
         untreated_muts = self.untreated_muts
+        treated_removed_muts = self.treated_removed_muts
+        untreated_removed_muts = self.untreated_removed_muts
         n = len(treated_counts) - 1
         mu = [ 0 for x in range(n+1) ]
         r_mut = [ 0 for x in range(n+1) ]
         depth_t = 0.0    # keep a running sum
         depth_u = 0.0  # for both channels
+        running_c_sum = 0.0
 
         # NOTE: there is an index discrepancy here between indices
         # used in the code, and the indices used in the derivation:
         # the indices are reversed. so, where formula uses
         # \sum_{i=j}^{n+1}, in the code we use \sum_{i=0}^{j+1}, and
         # this is intentional.
+
         for j in range(n):
-            s_j_t = float(treated_counts[j])   # s_j^+
-            s_j_u = float(untreated_counts[j]) # s_j^-
+
+            # xref https://trello.com/c/10pysbq7/261-mutation-depth-with-quality-filtering-when-calculating-mus
+            # if we removed a mut due to low quality, then we want to remove the corresponding stop
+            # from the analysis (even though it should still be counted in the non-mut analysis).
+            s_j_t = float(treated_counts[j] - treated_removed_muts[j])     # s_j^+
+            s_j_u = float(untreated_counts[j] - untreated_removed_muts[j]) # s_j^-
+
             mut_j_t = float(treated_muts[j])     # mut_j^+
             mut_j_u = float(untreated_muts[j])   # mut_j^-
             depth_t += s_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + 1)]))
@@ -209,10 +225,13 @@ class TargetProfiles(object):
                 #print("domain error: {} / {} / {} / {}".format(s_j_t, depth_t, s_j_u, depth_u))
                 mu[j] = 0.0
 
+            running_c_sum -= math.log(1.0 - mu[j]) # xref Yu_Estimating_Reactivities pdf, p24
+
             r_mut[j] = self.betas[j] + mu[j]
 
         self.mu = mu
         self.r_mut = r_mut
+        self.c += running_c_sum
 
 
     def write(self, outfile):
