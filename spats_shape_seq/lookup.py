@@ -65,7 +65,7 @@ class LookupProcessor(PairProcessor):
         if not self._match_mask(pair):
             return
 
-        r1_res = self._targets.r1_lookup.get(pair.r1.original_seq[4:])
+        r1_res = self._targets.lookup_r1(pair.r1.original_seq[4:])
         if not r1_res:
             pair.failure = Failures.nomatch
             return
@@ -92,10 +92,7 @@ class LookupProcessor(PairProcessor):
         r2len = pair.r2.original_len
         r2_mutations = []
         if r1_res[1] == None:
-            lookup = targets.r2_lookup[target.name]
-            r2_match_len = targets.r2_match_lengths[target.name]
-            r2_key = pair.r2.original_seq[:r2_match_len]
-            r2_res = lookup.get(r2_key)
+            r2_res = targets.lookup_r2(target.name, pair.r2.original_seq)
             if r2_res is not None:
                 match_site = r2_res[0]
             else:
@@ -182,7 +179,7 @@ class CotransLookupProcessor(PairProcessor):
         if not self._match_mask(pair):
             return
 
-        r1_res = self._targets.r1_lookup.get(pair.r1.original_seq[4:])
+        r1_res = self._targets.lookup_r1(pair.r1.original_seq[4:])
         if not r1_res:
             pair.failure = Failures.nomatch
             return

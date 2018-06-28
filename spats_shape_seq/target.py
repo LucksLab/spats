@@ -259,6 +259,7 @@ class Targets(object):
                             r1_table[mutated_match] = entries
 
         self.r1_lookup = r1_table
+        self._build_R1_aliases(adapter_b, r1_match_len)
 
         # we only need to build R2 lookups for full sequences (excepting linker)
         # trim cases are just tested against R1
@@ -280,6 +281,7 @@ class Targets(object):
         #  - note that in cases where R1 includes some (enough) adapter, then position and content of R2 is determined
         # note that this does *not* include the handle.
         r1_table = {}
+        use_aliases = False
         for target in self.targets:
             tlen = target.n
             rc_tgt = reverse_complement(target.seq)
@@ -310,6 +312,37 @@ class Targets(object):
                 _warn("!! No R1 match candidates for {}".format(target.name))
 
         self.r1_lookup = r1_table
+        self._build_R1_aliases(adapter_b, length)
+
+
+    # if we don't have enough adapter_b, then make aliases for short lookup keys
+    def _build_R1_aliases(self, adapter_b, length):
+
+        self.r1_aliases = None
+        self.r1_lookup_length = length
+
+        use_aliases = False
+        for key in self.r1_lookup.keys():
+            if len(key) < length:
+                use_aliases = True
+                break
+        if not use_aliases:
+            return
+
+        minimum_length = 1 + len(adapter_b)
+        if use_aliases:
+            r1_aliases = {}
+            for key in self.r1_lookup.keys():
+                if len(key) == length:
+                    continue
+                alias = key[:minimum_length]
+                if alias in r1_aliases:
+                    r1_aliases[alias].append(key)
+                else:
+                    r1_aliases[alias] = [ key ]
+            self.r1_aliases = r1_aliases
+            self.r1_lookup_length = minimum_length
+
 
     def _build_R2_lookup(self, length = 35, mutations = False):
         # for the R2 table, we only care about R2's that are in the sequence
@@ -347,3 +380,19 @@ class Targets(object):
 
         self.r2_lookup = r2_full_table
         self.r2_match_lengths = r2_match_lengths
+
+    def lookup_r1(self, seq):
+        res = self.r1_lookup.get(seq)
+        if not res and self.r1_aliases:
+            keylist = self.r1_aliases.get(seq[:self.r1_lookup_length])
+            if keylist:
+                for key in keylist:
+                    if key and seq.startswith(key):
+                        res = self.r1_lookup.get(key)
+                        break
+        return res
+
+    def lookup_r2(self, target_name, seq):
+        lookup = self.r2_lookup[target_name]
+        r2_match_len = self.r2_match_lengths[target_name]
+        return lookup.get(seq[:r2_match_len])

@@ -56,7 +56,7 @@ class PartialFindProcessor(PairProcessor):
         pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self._run.adapter_b)
         _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
         if len(pair.r1.adapter_errors) > self._run.allowed_adapter_errors:
-             return False
+            return False
 
         if r1_match_trimmed and len(self._targets.targets) > 1:
             # ok, we trimmed down our R1 due to adapters. need to see if that means the leftover matches
@@ -65,8 +65,8 @@ class PartialFindProcessor(PairProcessor):
             if not target or isinstance(target, list):
                 # note that target may be None if pair.r1.match_len is less than the index word length
                 _debug("dropping pair due to multiple R1 match after adapter trim")
-                print("multiple R1 trim: " + pair.r1.original_seq)
-                print("{}".format([r1_match_trimmed, r1_adapter_match, r1_length_to_trim]))
+                #print("multiple R1 trim: " + pair.r1.original_seq)
+                #print("{}".format([r1_match_trimmed, r1_adapter_match, r1_length_to_trim]))
                 pair.target = None
                 pair.failure = Failures.multiple_R1
                 self.counters.multiple_R1_match += pair.multiplicity
