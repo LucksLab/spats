@@ -31,10 +31,29 @@ def string_match_errors(substr, target_str, max_errors = None):
                 return errors
     return errors
 
+def _slow_string_find_errors(substr, target_str, max_errors = 2):
+    assert(max_errors > 1)
+    if max_errors >= len(substr):
+        raise Exception("more errors allowed than len of substr being sought!")
+    result = []
+    ls = len(substr)
+    for t in range(len(target_str) - ls + 1):
+        num_errors = 0
+        s = 0
+        while s < ls:
+            if target_str[t + s] != substr[s]:
+                num_errors += 1
+                if num_errors > max_errors:
+                    s = ls
+            s += 1
+        if s == ls:
+            result.append(t)
+    return result
+
 def string_find_errors(substr, target_str, max_errors = 0):
 
     if max_errors > 1:
-        raise Exception("fast(-ish) max_errors > 1 NYI")
+        return _slow_string_find_errors(substr, target_str, max_errors)
 
     half_sublen = (len(substr) >> 1)
     first_half = substr[:half_sublen]
