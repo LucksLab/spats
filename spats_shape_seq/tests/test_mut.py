@@ -138,6 +138,7 @@ class TestMutPairs(unittest.TestCase):
         self.spats.run.count_mutations = True
         self.spats.run.mutations_require_quality_score = ord('.')
         self.spats.run.allowed_target_errors = 1
+        self.spats.run.ignore_stops_with_mismatched_overlap = True
         self.spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
         self.setup_processor()
 
