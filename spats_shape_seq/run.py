@@ -201,7 +201,7 @@ class Run(object):
             self.algorithm = 'find_partial'
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
-        if self.count_mutations and self.mutations_require_quality_score:
+        if self.count_mutations and self.mutations_require_quality_score is not None:
             self._parse_quality = True
         if self.generate_sam:
             self.algorithm = 'find_partial'
@@ -211,7 +211,7 @@ class Run(object):
         self.validate_config()
 
     def validate_config(self):
-        if self.mutations_require_quality_score and (self.mutations_require_quality_score < 0 or self.mutations_require_quality_score > 42):
+        if self.mutations_require_quality_score is not None and (self.mutations_require_quality_score < 0 or self.mutations_require_quality_score > 42):
             raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
         if self.count_edge_mutations and (self.count_edge_mutations != 'stop_only' and self.count_edge_mutations != 'stop_and_mut'):
             raise Exception('Invalid count_edge_mutations value: {}'.format(self.count_edge_mutations))
