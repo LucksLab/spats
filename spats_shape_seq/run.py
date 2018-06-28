@@ -52,7 +52,7 @@ class Run(object):
         #: this will force ``allowed_target_errors`` to be ``1``.
         self.count_mutations = False
 
-        #: Defaults to ``None``. If set to a phred-score ascii integer value (33 - 75), and
+        #: Defaults to ``None``. If set to a phred-score integer value (0 - 42), and
         #: ``count_mutations`` is ``True``, then this will require the
         #: quality score on any mutation to be greater than or equal
         #: to the indicated phred score to be counted.
@@ -211,7 +211,7 @@ class Run(object):
         self.validate_config()
 
     def validate_config(self):
-        if self.mutations_require_quality_score and (self.mutations_require_quality_score < 33 or self.mutations_require_quality_score > 75):
+        if self.mutations_require_quality_score and (self.mutations_require_quality_score < 0 or self.mutations_require_quality_score > 42):
             raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
         if self.count_edge_mutations and (self.count_edge_mutations != 'stop_only' and self.count_edge_mutations != 'stop_and_mut'):
             raise Exception('Invalid count_edge_mutations value: {}'.format(self.count_edge_mutations))

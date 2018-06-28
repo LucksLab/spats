@@ -52,7 +52,7 @@ class Pair(object):
             self.mutations = list(mutations)
 
     def check_mutation_quality(self, minimum_quality_score):
-        if not minimum_quality_score or not self.mutations:
+        if minimum_quality_score is None  or  not self.mutations:
             return 0
         removed = []
         r1_start = self.r1.match_index
@@ -66,7 +66,7 @@ class Pair(object):
                 q1 = ord(self.r1.quality[::-1][mut - r1_start + self.r1._rtrim - 1])
             # note: this assumes agreement. TODO: handle disagreement, xref check_overlap below
             q = max(q1, q2) if (q1 and q2) else (q1 if q1 else q2)
-            if q < minimum_quality_score:
+            if q < (minimum_quality_score + ord('!')):
                 removed.append(mut)
         for mut in removed:
             self.mutations.remove(mut)
