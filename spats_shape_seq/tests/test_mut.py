@@ -216,3 +216,35 @@ class TestMutPairsCotransLookup(TestMutPairs):
         self.spats.run.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
         self.spats.run.algorithm = "lookup"
         self.spats.addTargets("test/mut/mut_cotrans.fa")
+
+
+# [ id, r1, r2, end, site, muts ]
+mismatched_overlap_cases = [
+
+    [ '81_0', 'GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC', 'GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT', 137, 81, [ 117 ] ],
+
+    [ '92_0', 'GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC', 'GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC', 137, 92, [ 117 ] ],
+
+    [ '116_1', 'CCCGGTCCTTGGTGCCCGAGTCAGTAGATCGGAAGA', 'TCTGACTCGGGCACCAAGGACCGGGAGATCGGAAGA', 137, 116, [ 117 ] ],
+
+]
+
+class TestOverlapMut(TestMutPairs):
+
+    def setup_processor(self):
+        self.spats.run.algorithm = "find_partial"
+        self.spats.run.allowed_target_errors = 2
+        self.spats.run.ignore_stops_with_mismatched_overlap = False
+        self.spats.addTargets("test/SRP/SRP.fa")
+
+    def cases(self):
+        return mismatched_overlap_cases
+
+    def test_pairs(self):
+        for case in mismatched_overlap_cases:
+            self.run_case(case)
+
+        self.spats.run.ignore_stops_with_mismatched_overlap = True
+        for case in mismatched_overlap_cases:
+            case[4] = None
+            self.run_case(case)

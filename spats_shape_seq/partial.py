@@ -142,8 +142,9 @@ class PartialFindProcessor(PairProcessor):
             self.counters.r1_not_on_right_edge += pair.multiplicity
             return
 
-        if not pair.check_overlap():
+        if run.ignore_stops_with_mismatched_overlap  and  not pair.check_overlap():
             pair.failure = Failures.r1_r2_overlap
+            self.counters.r1_r2_overlap += pair.multiplicity
             return
 
         if run.count_mutations:
@@ -399,8 +400,9 @@ class CotransPartialFindProcessor(PairProcessor):
                 self.counters.match_errors += pair.multiplicity
                 return
 
-        if not pair.check_overlap():
+        if run.ignore_stops_with_mismatched_overlap  and  not pair.check_overlap():
             pair.failure = Failures.r1_r2_overlap
+            self.counters.r1_r2_overlap += pair.multiplicity
             return
 
         if run.count_mutations:

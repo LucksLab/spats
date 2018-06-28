@@ -64,6 +64,12 @@ class Run(object):
         #: the default behavior, neither stops nor edge mutations are counted.
         self.count_edge_mutations = None
 
+        #: Defaults to ``False``. When R1 and R2 overlap and have a mismatch
+        #: on their overlap, the default behavior is to count the stop (and
+        #: any mutations).  Set this to ``True`` to have the stop and
+        #: mutations ignored.
+        self.ignore_stops_with_mismatched_overlap = False
+
 
         #: Defaults to ``0``, set higher to require a minimal amount of
         #: adapter in order to do trimming. Generally not necessary since
