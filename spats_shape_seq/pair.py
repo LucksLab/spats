@@ -57,7 +57,6 @@ class Pair(object):
         assert(prefix_length > 0)
         # prefix is always on the left end of R2
         prefix_quality = self.r2.quality[0:prefix_length]
-        print('pq: {} / {}'.format(prefix_quality, minimum_quality_score))
         for q in prefix_quality:
             if ord(q) < minimum_quality_score + ord('!'):
                 return False
