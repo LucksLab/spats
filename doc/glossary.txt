@@ -2,6 +2,9 @@
 some terms defined:
 
 - target: base sequence
+  - 5' end === left end
+  - 3' end === right end
+    - R1 is (in non-cotrans) on the right/3' end
 
 - fragment: thing in the machine
 
@@ -10,6 +13,8 @@ some terms defined:
 - pair: pair of segments are the ends of the fragment
 
 - R1/R2: names of the right and left segments
+  - R1 is right end (and reverse-complemented)
+  - R2 is left end
 
 - handle: first four bp of R1 -> indicates which experimental condition
   - treated = positive = RRRY

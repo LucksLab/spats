@@ -8,10 +8,11 @@ def _set_debug(run):
     _debug_run = run
 
 def _warn(stuff):
-    _debug_run.log.write(str(stuff) + "\n")
+    if _debug_run:
+        _debug_run.log.write(str(stuff) + "\n")
 
 def _debug(stuff):
-    if _debug_run.debug:
+    if _debug_run and _debug_run.debug:
         _debug_run.log.write(str(stuff) + "\n")
 
 
