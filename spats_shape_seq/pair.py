@@ -51,8 +51,19 @@ class Pair(object):
         if mutations:
             self.mutations = list(mutations)
 
+    def check_prefix_quality(self, prefix_length, minimum_quality_score):
+        if minimum_quality_score is None:
+            return True
+        assert(prefix_length > 0)
+        # prefix is always on the left end of R2
+        prefix_quality = self.r2.quality[0:prefix_length]
+        for q in prefix_quality:
+            if ord(q) < minimum_quality_score + ord('!'):
+                return False
+        return True
+
     def check_mutation_quality(self, minimum_quality_score):
-        if not minimum_quality_score or not self.mutations:
+        if minimum_quality_score is None  or  not self.mutations:
             return 0
         removed = []
         r1_start = self.r1.match_index
@@ -61,12 +72,12 @@ class Pair(object):
         for mut in self.mutations:
             q1 = q2 = None
             if mut < r2_start + seq_len + 1:
-                q1 = ord(self.r2.quality[mut - r2_start - 1])
+                q2 = ord(self.r2.quality[mut - r2_start + self.r2._ltrim - 1])
             if mut > r1_start:
-                q2 = ord(self.r1.quality[::-1][mut - r1_start - 1])
+                q1 = ord(self.r1.quality[::-1][mut - r1_start + self.r1._rtrim - 1])
             # note: this assumes agreement. TODO: handle disagreement, xref check_overlap below
             q = max(q1, q2) if (q1 and q2) else (q1 if q1 else q2)
-            if q < minimum_quality_score:
+            if q < (minimum_quality_score + ord('!')):
                 removed.append(mut)
         for mut in removed:
             self.mutations.remove(mut)

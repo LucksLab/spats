@@ -1,0 +1,45 @@
+
+some terms defined:
+
+- target: base sequence
+  - 5' end === left end
+  - 3' end === right end
+    - R1 is (in non-cotrans) on the right/3' end
+
+- fragment: thing in the machine
+
+- segment: what code calls sequence, one of the two ends of the fragment
+
+- pair: pair of segments are the ends of the fragment
+
+- R1/R2: names of the right and left segments
+  - R1 is right end (and reverse-complemented)
+  - R2 is left end
+
+- handle: first four bp of R1 -> indicates which experimental condition
+  - treated = positive = RRRY
+  - untreated = negative = YYYR (= control)
+  - also known as "mask"
+
+- adapter: sequence added to the right end of target to sequence short fragments
+  - "adapter trimming": handling this in the code
+
+- cotrans: different analysis that doesn't require R1 on the very right edge
+  - linker: fixed sequence, appended to right of end, part of R1
+
+- end: the right end of a fragment (variable in cotrans, fixed to the right end of the target otherwise)
+
+- site: when an r1/r2 pair is matched to the target, the left end of r2 is the site
+
+- stats:
+  - counts: counters that track the number of r1/r2 pairs that matched an end/site
+  - reactivity: relative likelihood of a stop at a spot
+    - high reactivity at N --> likely stop at N
+  - specific stats:
+    - betas: treated/untreated comparative intermediate stat (~prob of modification at N) (at site N)
+    - thetas: treated/untreated comparative intermediate stat (~relative reactivity) (at site N)
+    - rhos: reactivity at site N (desired stat)
+    - mus: like rho, but counting mutations
+    - c: estimate of the average modification rate (one per experiment)
+  - allow_negative_values: config option that specifies whether beta/theta/mu can be negative or not
+    - this also affects result for c-value

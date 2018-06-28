@@ -52,7 +52,7 @@ class Run(object):
         #: this will force ``allowed_target_errors`` to be ``1``.
         self.count_mutations = False
 
-        #: Defaults to ``None``. If set to a phred-score ascii integer value (33 - 75), and
+        #: Defaults to ``None``. If set to a phred-score integer value (0 - 42), and
         #: ``count_mutations`` is ``True``, then this will require the
         #: quality score on any mutation to be greater than or equal
         #: to the indicated phred score to be counted.
@@ -63,6 +63,12 @@ class Run(object):
         #: set to ``stop_only``, will count the stop but no mutation. In
         #: the default behavior, neither stops nor edge mutations are counted.
         self.count_edge_mutations = None
+
+        #: Defaults to ``False``. When R1 and R2 overlap and have a mismatch
+        #: on their overlap, the default behavior is to count the stop (and
+        #: any mutations).  Set this to ``True`` to have the stop and
+        #: mutations ignored.
+        self.ignore_stops_with_mismatched_overlap = False
 
 
         #: Defaults to ``0``, set higher to require a minimal amount of
@@ -195,7 +201,7 @@ class Run(object):
             self.algorithm = 'find_partial'
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
-        if self.count_mutations and self.mutations_require_quality_score:
+        if self.count_mutations and self.mutations_require_quality_score is not None:
             self._parse_quality = True
         if self.generate_sam:
             self.algorithm = 'find_partial'
@@ -205,7 +211,7 @@ class Run(object):
         self.validate_config()
 
     def validate_config(self):
-        if self.mutations_require_quality_score and (self.mutations_require_quality_score < 33 or self.mutations_require_quality_score > 75):
+        if self.mutations_require_quality_score is not None and (self.mutations_require_quality_score < 0 or self.mutations_require_quality_score > 42):
             raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
         if self.count_edge_mutations and (self.count_edge_mutations != 'stop_only' and self.count_edge_mutations != 'stop_and_mut'):
             raise Exception('Invalid count_edge_mutations value: {}'.format(self.count_edge_mutations))

@@ -87,6 +87,7 @@ class TestOverlap(unittest.TestCase):
         self.spats.run.algorithm = alg
         self.spats.run.count_mutations = True
         self.spats.run.allowed_target_errors = True
+        self.spats.run.ignore_stops_with_mismatched_overlap = True
         self.spats.addTargets("test/SRP/SRP.fa")
         self.run_pairs()
 
