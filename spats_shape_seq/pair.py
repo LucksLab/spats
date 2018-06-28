@@ -61,7 +61,7 @@ class Pair(object):
         for mut in self.mutations:
             q1 = q2 = None
             if mut < r2_start + seq_len + 1:
-                q2 = ord(self.r2.quality[mut - r2_start - 1])
+                q2 = ord(self.r2.quality[mut - r2_start + self.r2._ltrim - 1])
             if mut > r1_start:
                 q1 = ord(self.r1.quality[::-1][mut - r1_start + self.r1._rtrim - 1])
             # note: this assumes agreement. TODO: handle disagreement, xref check_overlap below

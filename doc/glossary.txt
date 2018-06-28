@@ -36,4 +36,5 @@ some terms defined:
     - rhos: reactivity at site N (desired stat)
     - mus: like rho, but counting mutations
     - c: estimate of the average modification rate (one per experiment)
-
+  - allow_negative_values: config option that specifies whether beta/theta/mu can be negative or not
+    - this also affects result for c-value
