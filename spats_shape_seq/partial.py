@@ -96,7 +96,10 @@ class PartialFindProcessor(PairProcessor):
             self.counters.left_of_target += pair.multiplicity
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - r2_start_in_target]
-                self.counters.register_prefix(prefix, pair)
+                if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(0 - r2_start_in_target, run.mutations_require_quality_score):
+                    self.counters.register_prefix(prefix, pair)
+                else:
+                    self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
                 pair.r2._ltrim = 0 - r2_start_in_target
             else:
@@ -366,7 +369,10 @@ class CotransPartialFindProcessor(PairProcessor):
             self.counters.left_of_target += pair.multiplicity
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - pair.left]
-                self.counters.register_prefix(prefix, pair)
+                if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(0 - pair.left, run.mutations_require_quality_score):
+                    self.counters.register_prefix(prefix, pair)
+                else:
+                    self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
                 pair.r2._ltrim = 0 - pair.left
                 pair.r2.match_to_seq()
