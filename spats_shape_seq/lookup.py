@@ -148,10 +148,10 @@ class LookupProcessor(PairProcessor):
 
         if r2_mutations or r1_res[3]:
             pair.mutations = list(set(r2_mutations + r1_res[3]))
-            self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
             if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 return
+            self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
 
         pair.target = target
         pair.site = site
@@ -261,10 +261,10 @@ class CotransLookupProcessor(PairProcessor):
 
         if r2_mutations or r1_res[3]:
             pair.mutations = list(set(r2_mutations + r1_res[3]))
-            self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
             if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 return
+            self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
 
         pair.end = L
         pair.target = target
