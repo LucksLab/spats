@@ -24,6 +24,9 @@ some terms defined:
 - adapter: sequence added to the right end of target to sequence short fragments
   - "adapter trimming": handling this in the code
 
+- prefix:  part of segment (typically R2 since on left side) that precedes the part where the segment matches the target
+    - prefixes can be counted or "collapsed" (pretend it's not there so that we can still match the target)
+
 - cotrans: different analysis that doesn't require R1 on the very right edge
   - linker: fixed sequence, appended to right of end, part of R1
 
