@@ -238,11 +238,36 @@ class TestOverlapMut(TestMutPairs):
         self.spats.run.ignore_stops_with_mismatched_overlap = False
         self.spats.addTargets("test/SRP/SRP.fa")
 
-    def cases(self):
-        return mismatched_overlap_cases
-
     def test_pairs(self):
         for case in mismatched_overlap_cases:
+            self.run_case(case)
+
+        self.spats.run.ignore_stops_with_mismatched_overlap = True
+        for case in mismatched_overlap_cases:
+            case[4] = None
+            self.run_case(case)
+
+
+# [ id, r1, r2, end, site, muts ]
+prefix_mut_cases = [
+    [ 'sah1', 'CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC', 'TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT', 87, 0, [ 75 ] ],
+]
+
+class TestOverlapMut(TestMutPairs):
+
+    def setup_processor(self):
+        self.spats.run.algorithm = "find_partial"
+        self.spats.run.count_mutations = True
+        self.spats.run.count_edge_mutations = "stop_and_mut"
+        self.spats.run.allowed_target_errors = 8
+        self.spats.run.mutations_require_quality_score = 30
+        self.spats.run.count_left_prefixes = True
+        self.spats.run.collapse_left_prefixes = True
+        self.spats.run.ignore_stops_with_mismatched_overlap = False
+        self.spats.addTargets("test/hairpin/hairpinA_circ.fa")
+
+    def test_pairs(self):
+        for case in prefix_mut_cases:
             self.run_case(case)
 
         self.spats.run.ignore_stops_with_mismatched_overlap = True
