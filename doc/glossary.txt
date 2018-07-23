@@ -33,7 +33,7 @@ some terms defined:
 
 - end: the right end of a fragment (variable in cotrans, fixed to the right end of the target otherwise)
 
-- site: when an r1/r2 pair is matched to the target, the left end of r2 is the site
+- site: when an r1/r2 pair is matched to the target, the left end of r2 is the site/stop (counted as "f")
 
 - stats:
   - counts: counters that track the number of r1/r2 pairs that matched an end/site
