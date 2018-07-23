@@ -71,7 +71,7 @@ class Pair(object):
         seq_len = self.r2.original_len
         for mut in self.mutations:
             q1 = q2 = None
-            if mut < r2_start + seq_len + 1:
+            if mut < r2_start + seq_len + 1 - self.r2._ltrim:
                 q2 = ord(self.r2.quality[mut - r2_start + self.r2._ltrim - 1])
             if mut > r1_start:
                 q1 = ord(self.r1.quality[::-1][mut - r1_start + self.r1._rtrim - 1])
