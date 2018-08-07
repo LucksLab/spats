@@ -503,9 +503,9 @@ class SpatsTool(object):
         pair = Pair()
         pair.set_from_data(test_case.get('id', ''), str(test_case['R1']), str(test_case['R2']))
         if test_case.get('R1_quality'):
-            pair.r1.quality = test_case['R1_quality']
+            pair.r1.quality = str(test_case['R1_quality'])
         if test_case.get('R2_quality'):
-            pair.r1.quality = test_case['R2_quality']
+            pair.r1.quality = str(test_case['R2_quality'])
 
         spats.process_pair(pair)
 
@@ -517,8 +517,6 @@ class SpatsTool(object):
                 if value != getattr(pair, key):
                     print('**** Mismatch: {} != {}'.format(value, getattr(pair, key)))
                     fail = True
-                else:
-                    print('  {} = {}'.format(key, value))
             if fail:
                 print('FAIL')
                 sys.exit(1)

@@ -102,8 +102,10 @@ class Diagram(object):
     def _make_part_errors(self, part):
         d = sp(part.match_index)
         errors = sp(part.seq_len)
+        error_bars = []
         for e in part.match_errors:
             errors = errors[:e] + "!" + errors[e+1:]
+            error_bars.append(self.prefix_len + part.match_index + e)
         d += errors
         d += sp(self.target.n - len(d))
         if part.adapter_errors:
@@ -120,7 +122,9 @@ class Diagram(object):
             if errors[-1] == " ":
                 errors = errors[:-1] + "|"
             d += errors
-        self._add_line(self._make_prefix("-err!") + d)
+        self._add_line(self._make_prefix("-mut!") + d)
+        self.bars.append(error_bars)
+        self.error_bars = error_bars
 
     def _make_r1_rev(self):
         r1 = self.pair.r1
@@ -142,6 +146,9 @@ class Diagram(object):
         bit = "^{}{}, {}{}^".format("-"*halfish,l,r,"-"*(leftover - halfish))
         d += bit
         self._add_line(sp(self.prefix_len) + d)
+
+    def _add_marker(self, label, index):
+        self._add_line(sp(self.prefix_len + index) + '^--- {} = {}'.format(label, index))
 
     def _add_line(self, line):
         if len(line) < self.max_len:
@@ -207,18 +214,38 @@ class Diagram(object):
         self._add_line("")
 
         self._make_target_lines()
+        self.bars.remove(self.error_bars)
+
+        features = {}
+        if self.pair.site is not None:
+            features['Site'] = self.pair.site
+        if self.pair.end is not None:
+            features['End'] = self.pair.end
+        if self.pair.mutations:
+            idx = 1
+            for mut in self.pair.mutations:
+                features['Mut{}'.format(idx)] = mut
+                idx += 1
+        for v in features.values():
+            self.bars.append([v + self.prefix_len])
 
         if self.pair.r2.matched:
             self._make_result(self.pair.r2)
             self.bars.remove(r2_bars)
         if self.pair.r1.matched:
             self._make_result(self.pair.r1)
+            self.bars.remove(r1_bars)
         else:
             self._add_line("")
+
+        for key, value in features.items():
+            self._add_marker(key, value)
+            self.bars.remove([value + self.prefix_len])
 
         if self.pair.matched and self.pair.left > 100:
             self._snip_lines(self.prefix_len + 15, self.prefix_len + 85)
 
+        self._add_line("")
         self._make_summary()
 
         return "\n".join(self.lines)
