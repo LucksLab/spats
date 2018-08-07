@@ -493,9 +493,9 @@ class SpatsTool(object):
         from spats_shape_seq.diagram import diagram
         spats = Spats()
 
-        spats.run.debug = True # default to debug to see inline output?
-
         for key, value in test_case.get('config', {}).items():
+            if isinstance(value, unicode):
+                value = str(value)
             setattr(spats.run, key, value)
 
         spats.addTargets(test_case['target'])

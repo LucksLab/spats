@@ -310,6 +310,8 @@ class CotransPartialFindProcessor(PairProcessor):
             pair.r2.match_len = l2index
             pair.r2.match_index = index
 
+            pair.linker = index + (lindex - rtrim)
+
         else:
 
             # (2b)
@@ -319,6 +321,7 @@ class CotransPartialFindProcessor(PairProcessor):
                 return
 
             linker_start = pair.r1.match_index + (lindex - pair.r1.match_start)
+            pair.linker = linker_start
             check_len = 0
             if pair.r2.match_index + (r2_len - pair.r2.match_start) > linker_start:
                 linker_in_r2_idx = linker_start - pair.r2.match_index + pair.r2.match_start

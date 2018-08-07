@@ -50,13 +50,16 @@ class Counters(object):
                     # xref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case
                     count_muts = self._run.count_edge_mutations
                     if count_muts == 'stop_and_mut':
+                        pair.edge_mut = 'stop_and_mut'
                         _dict_incr(self._registered, self._mut_key(pair, mut), pair.multiplicity)
                         self.mutations += pair.multiplicity
                         _dict_incr(self._counts, pair.mask.chars + "_mut", pair.multiplicity)
                     elif count_muts == 'stop_only':
+                        pair.edge_mut = 'stop_only'
                         pass
                     else:
                         # don't count this as a stop at all
+                        pair.edge_mut = 'ignore'
                         return
                 else:
                     _dict_incr(self._registered, self._mut_key(pair, mut), pair.multiplicity)

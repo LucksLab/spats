@@ -19,6 +19,7 @@ class Diagram(object):
         self.prefix_len = 8
         self.bars = []
         self.max_len = 0
+        self.error_bars = None
 
     def _make_prefix(self, label):
         bit = label[:min(5, len(label))]
@@ -94,8 +95,10 @@ class Diagram(object):
     def _make_adapter_line(self, part, adapter, label):
         d = label
         d += sp(self.prefix_len + part.match_index + part.match_len + 1 - len(d))
-        if (part == self.pair.r2):
+        if part == self.pair.r2:
             d += sp(5)
+        if self.run.cotrans:
+            d += sp(len(self.run.cotrans_linker))
         d += (adapter[:part._rtrim - (4 if part == self.pair.r2 else 0)] + "..")
         self._add_line(d)
 
@@ -128,9 +131,16 @@ class Diagram(object):
 
     def _make_r1_rev(self):
         r1 = self.pair.r1
-        d = "(revcomp)"
+        d = "revcomp(R1)"
         d += sp(r1.match_index + self.prefix_len - len(d))
         d += r1.reverse_complement
+        self._add_line(d)
+
+    def _make_linker(self):
+        l = self.pair.linker
+        d = "LINKER"
+        d += sp(l + self.prefix_len - len(d))
+        d += self.run.cotrans_linker
         self._add_line(d)
 
     def _make_result(self, part):
@@ -210,21 +220,28 @@ class Diagram(object):
             self._add_line("")
             self._make_r1_rev()
 
+        if self.pair.linker != None:
+            self._make_linker()
+
         self._add_line("")
         self._add_line("")
 
         self._make_target_lines()
-        self.bars.remove(self.error_bars)
+        if self.error_bars:
+            self.bars.remove(self.error_bars)
 
         features = {}
-        if self.pair.site is not None:
+        if self.pair.site != None:
             features['Site'] = self.pair.site
-        if self.pair.end is not None:
+        if self.pair.end != None:
             features['End'] = self.pair.end
         if self.pair.mutations:
             idx = 1
             for mut in self.pair.mutations:
-                features['Mut{}'.format(idx)] = mut
+                if self.pair.edge_mut and mut + 1 == self.pair.site:
+                    features['EdgeMut{} ({})'.format(idx, self.pair.edge_mut)]
+                else:
+                    features['Mut{}'.format(idx)] = mut
                 idx += 1
         for v in features.values():
             self.bars.append([v + self.prefix_len])
