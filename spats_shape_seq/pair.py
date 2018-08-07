@@ -21,6 +21,7 @@ class Pair(object):
         self.removed_mutations = None
         self.linker = None
         self.edge_mut = None
+        self.dumbbell = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()

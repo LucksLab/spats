@@ -112,6 +112,7 @@ class SpatsTool(object):
         except Exception, e:
             print("** Command {} failed. ({})".format(command, e))
             failure = True
+            #raise
 
         if not failure and not self._skip_log:
             delta = self._sentinel("{} complete".format(command))

@@ -90,9 +90,26 @@ class PartialFindProcessor(PairProcessor):
 
         run = self._run
 
-        # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
-        r2_start_in_target = pair.r2.match_index - pair.r2.match_start
+        if run.dumbbell:
+            if not pair.r2.original_seq.startswith(run.dumbbell):
+                pair.failure = Failures.dumbbell
+                return
+            dumbbell_len = len(run.dumbbell)
+            if pair.r2.match_start < dumbbell_len:
+                delta = dumbbell_len - pair.r2.match_start
+                pair.r2.match_start = dumbbell_len
+                pair.r2.match_len -= delta
+                pair.r2.match_index += delta
+            pair.dumbbell = pair.r2.match_index - pair.r2.match_start
+            r2_start_in_target = pair.dumbbell + dumbbell_len
+            pair.r2._ltrim = dumbbell_len
+            _debug("R2 dumbbell results in: {}".format([r2_start_in_target, pair.r2.match_index, pair.r2.match_start, pair.r2.match_len, dumbbell_len]))
+        else:
+            # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
+            r2_start_in_target = pair.r2.match_index - pair.r2.match_start
+
         if r2_start_in_target < 0:
+            _debug("prefix check")
             self.counters.left_of_target += pair.multiplicity
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - r2_start_in_target]
@@ -105,8 +122,9 @@ class PartialFindProcessor(PairProcessor):
             else:
                 pair.failure = Failures.left_of_zero
                 return
-        elif r2_start_in_target + pair.r2.original_len <= pair.target.n:
+        elif r2_start_in_target + pair.r2.seq_len <= pair.target.n:
             # we're in the middle -- no problem
+            _debug("middle case")
             pass
         elif not self._trim_adapters(pair):
             # we're over the right edge, and adapter trimming failed
@@ -120,10 +138,27 @@ class PartialFindProcessor(PairProcessor):
         # set the match to be the rest of the (possibly trimmed) sequence, and count errors
         pair.r1.match_to_seq(reverse_complement = True)
         pair.r2.match_to_seq()
+
+        if pair.dumbbell:
+            _debug("fixing R1 for dumbbell: {}".format([pair.r1.left, pair.r2.left, pair.dumbbell]))
+            if pair.r1.left < pair.dumbbell + dumbbell_len:
+                dumbbell_part = pair.dumbbell + dumbbell_len - pair.r1.left
+                # TODO: match errors on dumbbell?
+                if pair.r1.reverse_complement[:dumbbell_part] != run.dumbbell[-dumbbell_part:]:
+                    _debug("R1 dumbbell failure: {} != {}".format(pair.r1.reverse_complement[0:dumbbell_part], run.dumbbell[-dumbbell_part:]))
+                    pair.failure = Failures.dumbbell
+                    return
+                pair.r1._rtrim += dumbbell_part
+                pair.r1.match_index += dumbbell_part
+                pair.r1.match_len -= dumbbell_part
+                pair.r1.match_start += dumbbell_part
+                _debug("after dumbbell: {}".format([pair.r1._ltrim, pair.r1._rtrim, pair.r1.match_start, pair.r1.match_len, pair.r1.match_index ]))
+
         target_seq = pair.target.seq
         r1_matcher = pair.r1.reverse_complement
         pair.r1.match_errors = string_match_errors(r1_matcher, target_seq[pair.r1.match_index:])
         pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
+        _debug("match errors: {} / {}".format(pair.r1.match_errors, pair.r2.match_errors))
 
         if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
             if pair.r1.match_errors:

@@ -100,13 +100,24 @@ class Diagram(object):
             return []
 
     def _make_adapter_line(self, part, adapter, label):
+        is_R1 = (part == self.pair.r1)
+        if self.pair.dumbbell and is_R1:
+            dumbbell_part = min(part._rtrim, len(self.run.dumbbell))
+            d = self._make_prefix('rc(DUMBBELL)')
+            d += sp(part.right + 1) + reverse_complement(self.run.dumbbell)[:dumbbell_part]
+            self._add_line(d)
+            if part._rtrim < len(self.run.dumbbell):
+                return
+            else:
+                raise Exception("NYI: dumbbell+adapter")
+
         d = label
         d += sp(self.prefix_len + part.match_index + part.match_len + 1 - len(d))
-        if part == self.pair.r2:
+        if not is_R1:
             d += sp(5)
         if self.run.cotrans:
             d += sp(len(self.run.cotrans_linker))
-        d += (adapter[:part._rtrim - (4 if part == self.pair.r2 else 0)] + "..")
+        d += (adapter[:part._rtrim - (0 if is_R1 else 4)] + "..")
         self._add_line(d)
 
     def _make_part_errors(self, part):
@@ -152,6 +163,13 @@ class Diagram(object):
         d += self.run.cotrans_linker
         self._add_line(d)
 
+    def _make_dumbbell(self):
+        l = self.pair.dumbbell
+        d = "DUMBBELL"
+        d += sp(l + self.prefix_len - len(d))
+        d += self.run.dumbbell
+        self._add_line(d)
+
     def _make_result(self, part):
         d = sp(part.match_index)
         l = "l={}".format(part.match_index)
@@ -167,7 +185,9 @@ class Diagram(object):
         self._add_line(sp(self.prefix_len) + d)
 
     def _add_marker(self, label, index):
-        self._add_line(sp(self.prefix_len + index) + '^--- {} = {}'.format(label, index))
+        # note: the delta for 'Mut' and 'End' is to make diagram and off-by-one conventions align better
+        # xref 'conventions' below
+        self._add_line(sp(self.prefix_len + index) + '^--- {} = {}'.format(label, index + (1 if ('Mut' in label or 'End' in label) else 0)))
 
     def _add_line(self, line):
         if len(line) < self.max_len:
@@ -218,21 +238,24 @@ class Diagram(object):
             r2_errors = self._make_part_errors(self.pair.r2)
         else:
             r2_errors = None
+        if self.pair.dumbbell != None:
+            self._make_dumbbell()
         if self.pair.r2.trimmed:
             self._make_adapter_line(self.pair.r2, reverse_complement(self.run.adapter_t), "RC(adapter_t)")
 
         r1_bars = self._make_part(self.pair.r1)
         self.bars.append(r1_bars)
-        if self.pair.r1.match_errors or self.pair.r1.adapter_errors:
-            r1_errors = self._make_part_errors(self.pair.r1)
-        else:
-            r1_errors = None
         if self.pair.r1.trimmed:
             self._make_adapter_line(self.pair.r1, self.run.adapter_b, "adapter_b")
 
         if self.pair.mask and self.pair.r1.matched:
             self._add_line("")
             self._make_r1_rev()
+
+        if self.pair.r1.match_errors or self.pair.r1.adapter_errors:
+            r1_errors = self._make_part_errors(self.pair.r1)
+        else:
+            r1_errors = None
 
         if self.pair.linker != None:
             self._make_linker()
@@ -250,14 +273,20 @@ class Diagram(object):
         if self.pair.site != None:
             features['Site'] = self.pair.site
         if self.pair.end != None:
-            features['End'] = self.pair.end
+            # note: decrement to make off-by-one conventions align better
+            # xref 'conventions' above
+            features['End'] = self.pair.end - 1
         if self.pair.mutations:
             idx = 1
             for mut in self.pair.mutations:
                 if self.pair.edge_mut and mut + 1 == self.pair.site:
-                    features['EdgeMut{} ({})'.format(idx, self.pair.edge_mut)]
+                    # note: decrement to make off-by-one conventions align better
+                    # xref 'conventions' above
+                    features['EdgeMut{} ({})'.format(idx, self.pair.edge_mut)] = mut - 1
                 else:
-                    features['Mut{}'.format(idx)] = mut
+                    # note: decrement to make off-by-one conventions align better
+                    # xref 'conventions' above
+                    features['Mut{}'.format(idx)] = mut - 1
                 idx += 1
         for v in features.values():
             self.bars.append([v + self.prefix_len])

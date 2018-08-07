@@ -175,6 +175,10 @@ class Run(object):
         #: for the spats run.
         self.generate_sam = None
 
+        #: Default ``None``, set to a string sequence for analyses which use
+        #: a dumbbell sequence (on the front of R2).
+        self.dumbbell = None
+
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
         self._p_processor_class = None
@@ -207,6 +211,8 @@ class Run(object):
             self.algorithm = 'find_partial'
             self.num_workers = 1
             self._parse_quality = True
+        if self.dumbbell:
+            self.algorithm = 'find_partial'
         self._applied_restrictions = True
         self.validate_config()
 
@@ -215,6 +221,8 @@ class Run(object):
             raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
         if self.count_edge_mutations and (self.count_edge_mutations != 'stop_only' and self.count_edge_mutations != 'stop_and_mut'):
             raise Exception('Invalid count_edge_mutations value: {}'.format(self.count_edge_mutations))
+        if self.dumbbell and self.cotrans:
+            raise Exception('Use of dumbbell in cotrans NYI')
 
     def _get_processor_class(self):
         self.apply_config_restrictions()
