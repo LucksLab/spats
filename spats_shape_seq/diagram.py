@@ -22,7 +22,7 @@ class Diagram(object):
         self.error_bars = None
 
     def _make_prefix(self, label):
-        bit = label[:min(5, len(label))]
+        bit = label[:min(self.prefix_len - 3, len(label))]
         return bit + sp(self.prefix_len - len(bit))
 
     def _make_target_lines(self):
@@ -48,7 +48,7 @@ class Diagram(object):
     def _make_part(self, part):
         is_R1 = (part == self.pair.r1)
         match_index = part.match_index if part.matched else (((self.target.n - part.original_len) >> 1) + (40 if is_R1 else -40))
-        hdr = sp(match_index - (5 if is_R1 else 0))
+        hdr = sp(match_index - part._ltrim - (1 if is_R1 else 0))
         if is_R1:
             if self.pair.mask:
                 hdr += self.pair.mask.chars
@@ -60,10 +60,18 @@ class Diagram(object):
         hdr += "R1" if is_R1 else "R2"
         self._add_line(self._make_prefix("") + hdr)
 
-        spaces = match_index - (5 if is_R1 else 0)
-        d = sp(spaces)
+        d = self._make_prefix("R1" if is_R1 else "R2")
+        spaces = match_index - part._ltrim - (1 if is_R1 else 0)
+        if spaces >= 0:
+            d += sp(spaces)
+        else:
+            d = d[0:spaces]
         if is_R1:
             d += (part.original_seq[:4] + ".")
+            if part._ltrim > 4:
+                d += part.original_seq[4:part._ltrim]
+        else:
+            d += part.original_seq[:part._ltrim]
         d += part.subsequence
         if part._rtrim:
             trimmed = part.original_seq[-part._rtrim:]
@@ -71,7 +79,6 @@ class Diagram(object):
                 d += ("." + trimmed)
             else:
                 d += ("." + trimmed[:4] + "." + trimmed[4:])
-        d = self._make_prefix("R1" if is_R1 else "R2") + d
         self._add_line(d)
 
         if part.matched:
@@ -126,8 +133,10 @@ class Diagram(object):
                 errors = errors[:-1] + "|"
             d += errors
         self._add_line(self._make_prefix("-mut!") + d)
-        self.bars.append(error_bars)
-        self.error_bars = error_bars
+        if error_bars:
+            self.bars.append(error_bars)
+            return error_bars
+        return None
 
     def _make_r1_rev(self):
         r1 = self.pair.r1
@@ -166,6 +175,9 @@ class Diagram(object):
         self.max_len = max(self.max_len, len(line))
         for bar_list in self.bars:
             for bar in bar_list:
+                if bar <= 0:
+                    print('ignoring bad bar: {}'.format(bar))
+                    continue
                 if len(line) > bar and line[bar] == ' ':
                     line = line[:bar] + '|' + line[(bar+1):]
         if line.startswith("@") or line.startswith("\\"):
@@ -180,14 +192,8 @@ class Diagram(object):
         result = "\===>  "
         if self.pair.has_site:
             result += "++SITE {}:{}".format(self.pair.mask.chars, self.pair.site)
-        elif not self.pair.mask:
-            result += "mask failure"
-        elif not self.pair.r1.matched:
-            result += "R1 match not found"
-        elif not self.pair.r2.matched:
-            result += "R2 match not found"
         else:
-            result += "FAIL"
+            result += "FAIL: {}".format(self.pair.failure)
         self.lines.append(result)
 
     def _snip_lines(self, start, end):
@@ -200,19 +206,27 @@ class Diagram(object):
     def make(self):
         self.lines = [ ]
 
+        # handling left-of-target matches
+        if self.pair.r2._ltrim > 4 or  self.pair.r1.match_index < 0 or self.pair.r2.match_index < 0:
+            self.prefix_len += 4 - min(self.pair.r1.match_index, self.pair.r2.match_index, 0 - self.pair.r2._ltrim)
+
         self._add_line("@" + self.pair.identifier)
         
         r2_bars = self._make_part(self.pair.r2)
         self.bars.append(r2_bars)
         if self.pair.r2.match_errors or self.pair.r2.adapter_errors:
-            self._make_part_errors(self.pair.r2)
+            r2_errors = self._make_part_errors(self.pair.r2)
+        else:
+            r2_errors = None
         if self.pair.r2.trimmed:
             self._make_adapter_line(self.pair.r2, reverse_complement(self.run.adapter_t), "RC(adapter_t)")
 
         r1_bars = self._make_part(self.pair.r1)
         self.bars.append(r1_bars)
         if self.pair.r1.match_errors or self.pair.r1.adapter_errors:
-            self._make_part_errors(self.pair.r1)
+            r1_errors = self._make_part_errors(self.pair.r1)
+        else:
+            r1_errors = None
         if self.pair.r1.trimmed:
             self._make_adapter_line(self.pair.r1, self.run.adapter_b, "adapter_b")
 
@@ -227,8 +241,10 @@ class Diagram(object):
         self._add_line("")
 
         self._make_target_lines()
-        if self.error_bars:
-            self.bars.remove(self.error_bars)
+        if r1_errors:
+            self.bars.remove(r1_errors)
+        if r2_errors:
+            self.bars.remove(r2_errors)
 
         features = {}
         if self.pair.site != None:
@@ -248,12 +264,12 @@ class Diagram(object):
 
         if self.pair.r2.matched:
             self._make_result(self.pair.r2)
-            self.bars.remove(r2_bars)
+        self.bars.remove(r2_bars)
         if self.pair.r1.matched:
             self._make_result(self.pair.r1)
-            self.bars.remove(r1_bars)
         else:
             self._add_line("")
+        self.bars.remove(r1_bars)
 
         for key, value in features.items():
             self._add_marker(key, value)
