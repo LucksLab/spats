@@ -25,7 +25,7 @@ class SpatsTool(object):
         self.config = None
         self.cotrans = False
         self._skip_log = False
-        self._no_config_required_commands = [ "doc", "help", "init", "viz" ]
+        self._no_config_required_commands = [ "doc", "help", "init", "viz", "show" ]
         self._private_commands = [ "viz" ]
         self._temp_files = []
         self._r1 = None
@@ -476,6 +476,54 @@ class SpatsTool(object):
         self._skip_log = True
         files = fastq_handle_filter(self.r1, self.r2)
         self._add_note("Pairs filtered to: {}".format(", ".join(files)))
+
+
+    def show(self):
+        """Shows the diagram and result for analysis of a test case pair.
+        """
+
+        if not self._command_args:
+            raise Exception("show requires the path to a test case")
+
+        test_case_file = self._command_args[0]
+        test_case = json.loads(open(test_case_file, 'r').read())
+
+        from spats_shape_seq import Spats
+        from spats_shape_seq.pair import Pair
+        from spats_shape_seq.diagram import diagram
+        spats = Spats()
+
+        spats.run.debug = True # default to debug to see inline output?
+
+        for key, value in test_case.get('config', {}).items():
+            setattr(spats.run, key, value)
+
+        spats.addTargets(test_case['target'])
+
+        pair = Pair()
+        pair.set_from_data(test_case.get('id', ''), str(test_case['R1']), str(test_case['R2']))
+        if test_case.get('R1_quality'):
+            pair.r1.quality = test_case['R1_quality']
+        if test_case.get('R2_quality'):
+            pair.r1.quality = test_case['R2_quality']
+
+        spats.process_pair(pair)
+
+        print diagram(pair, spats.run)
+
+        if 'expect' in test_case:
+            fail = False
+            for key, value in test_case['expect'].items():
+                if value != getattr(pair, key):
+                    print('**** Mismatch: {} != {}'.format(value, getattr(pair, key)))
+                    fail = True
+                else:
+                    print('  {} = {}'.format(key, value))
+            if fail:
+                print('FAIL')
+                sys.exit(1)
+            else:
+                print('PASS')
 
     def doc(self):
         """Show the spats documentation.
