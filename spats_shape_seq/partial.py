@@ -107,6 +107,7 @@ class PartialFindProcessor(PairProcessor):
         else:
             # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
             r2_start_in_target = pair.r2.match_index - pair.r2.match_start
+            dumbbell_len = 0
 
         if r2_start_in_target < 0:
             _debug("prefix check")
@@ -122,7 +123,7 @@ class PartialFindProcessor(PairProcessor):
             else:
                 pair.failure = Failures.left_of_zero
                 return
-        elif r2_start_in_target + (pair.r2.seq_len - pair.r2.match_start) <= pair.target.n:
+        elif r2_start_in_target + (pair.r2.seq_len - dumbbell_len) <= pair.target.n:
             # we're in the middle -- no problem
             _debug("middle case")
             pass
