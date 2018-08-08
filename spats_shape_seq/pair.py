@@ -95,8 +95,10 @@ class Pair(object):
         overlap_index = self.r1.match_index
         overlap_len = self.r2.match_index + r2_match_len - overlap_index
         if overlap_len > 0:
-            #print('O: {} / {}'.format(self.r1.reverse_complement[:overlap_len], self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]))
-            if self.r1.reverse_complement[:overlap_len] != self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]:
+            r1_part = self.r1.reverse_complement[:overlap_len]
+            r2_part = self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]
+            #print('O: {} / {}'.format(r1_part, r2_part))
+            if r1_part != r2_part:
                 return False
         return True
 

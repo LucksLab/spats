@@ -101,17 +101,29 @@ class LookupProcessor(PairProcessor):
         else:
             match_site = r1_res[1]
 
-        # need to check R2 against expectation
         match_len = min(r2len, target.n - match_site)
+        r2_match_start = 0
+        if run.dumbbell:
+            r2_match_start = len(run.dumbbell)
+            # TODO: dumbbell errors
+            if pair.r2.original_seq[:r2_match_start] != run.dumbbell:
+                pair.failure = Failures.dumbbell
+                return
+            pair.dumbbell = match_site - r2_match_start
+            match_len = min(r2len - r2_match_start, target.n - match_site)
+            pair.r2._ltrim = r2_match_start
+
+        # need to check R2 against expectation
         if match_len > 0:
-            pair.r2.match_errors = string_match_errors(pair.r2.original_seq[:match_len], target.seq[match_site:match_site + match_len])
+            pair.r2.match_errors = string_match_errors(pair.r2.original_seq[r2_match_start:match_len], target.seq[match_site:match_site + match_len])
             #+1 for M_j indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention
             r2_mutations = map(lambda x : x + match_site + 1, pair.r2.match_errors)
         if match_len <= 0  or  len(pair.r2.match_errors) > run.allowed_target_errors:
             pair.failure = Failures.match_errors
             return
 
-        adapter_len = r2len - match_len - 4
+        adapter_len = r2len - match_len - r2_match_start - 4
+        print([adapter_len, r2len, match_len, r2_match_start])
         if adapter_len > 0:
             pair.r2.adapter_errors = string_match_errors(self._adapter_t_rc[:adapter_len], pair.r2.original_seq[-adapter_len:])
             if len(pair.r2.adapter_errors) > run.allowed_adapter_errors:
@@ -127,6 +139,17 @@ class LookupProcessor(PairProcessor):
             if len(pair.r1.match_errors) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 return
+            if adapter_len > 0 and pair.dumbbell:
+                if adapter_len > r2_match_start:
+                    dumbbell_len = len(run.dumbbell)
+                    adapter_len -= r2_match_start
+                else:
+                    dumbbell_len = adapter_len
+                    adapter_len = 0
+                # TODO: dumbbell errors
+                if pair.r1.reverse_complement[adapter_len:dumbbell_len] != run.dumbbell[-dumbbell_len:]:
+                    pair.failure = Failures.dumbbell
+                    return
             if adapter_len > 0:
                 pair.r1.adapter_errors = string_match_errors(pair.r1.original_seq[-adapter_len:], self._run.adapter_b[:adapter_len])
                 if len(pair.r1.adapter_errors) > run.allowed_adapter_errors:

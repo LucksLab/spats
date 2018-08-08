@@ -211,8 +211,6 @@ class Run(object):
             self.algorithm = 'find_partial'
             self.num_workers = 1
             self._parse_quality = True
-        if self.dumbbell:
-            self.algorithm = 'find_partial'
         self._applied_restrictions = True
         self.validate_config()
 

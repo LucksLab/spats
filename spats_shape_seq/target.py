@@ -1,6 +1,6 @@
 
 from mask import longest_match
-from util import reverse_complement, _warn
+from util import reverse_complement, _debug, _warn
 
 class _Target(object):
 
@@ -270,13 +270,13 @@ class Targets(object):
         use_length = length or 35
         if use_length < 0:
             raise Exception('Cannot build lookups on variable-length inputs. Use find_partial processor.')
-        self._build_R1_lookup(run.adapter_b, use_length - 4, end_only, run.count_mutations)
-        self._build_R2_lookup(use_length - 4, run.count_mutations)
+        self._build_R1_lookup(run.adapter_b, use_length - 4, end_only, run.count_mutations, run.dumbbell)
+        self._build_R2_lookup(use_length - 4, run.count_mutations, run.dumbbell)
 
-    def _build_R1_lookup(self, adapter_b, length = 31, end_only = True, mutations = False):
+    def _build_R1_lookup(self, adapter_b, length = 31, end_only = True, mutations = False, dumbbell = None):
         # we can pre-build the set of all possible (error-free) R1, b/c:
         #  - R1 has to include the right-most nt
-        #  - R1 can include some adapter-b off the end
+        #  - R1 can include some adapter-b (or dumbbell) off the end
         #  - this is done for each target
         #  - note that in cases where R1 includes some (enough) adapter, then position and content of R2 is determined
         # note that this does *not* include the handle.
@@ -285,10 +285,20 @@ class Targets(object):
         for target in self.targets:
             tlen = target.n
             rc_tgt = reverse_complement(target.seq)
+            rc_dumbbell = reverse_complement(dumbbell) if dumbbell else None
             tcandidates = 0
             for i in range(1, length + 1):
-                r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
+                if rc_dumbbell:
+                    if length - i <= len(rc_dumbbell):
+                        r1_candidate = rc_tgt[:i] + rc_dumbbell[:length - i]
+                    else:
+                        r1_candidate = rc_tgt[:i] + rc_dumbbell + adapter_b[:length - len(rc_dumbbell) - i]
+                else:
+                    r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
                 res = (target, None if i == length else tlen - i, length - i, []) # target, end, amount of adapter to trim, mutations
+                if len(r1_candidate) < length:
+                    _debug('ignoring short length {} = {}'.format(len(r1_candidate), r1_candidate))
+                    continue
                 existing = r1_table.get(r1_candidate)
                 if existing:
                     existing.append(res)
@@ -344,7 +354,7 @@ class Targets(object):
             self.r1_lookup_length = minimum_length
 
 
-    def _build_R2_lookup(self, length = 35, mutations = False):
+    def _build_R2_lookup(self, length = 35, mutations = False, dumbbell = None):
         # for the R2 table, we only care about R2's that are in the sequence
         # when R2 needs adapter trimming, R1 will determine that
         self_matches = self.longest_target_self_matches()
@@ -362,7 +372,10 @@ class Targets(object):
             tlen = target.n
             tgt_seq = target.seq
             for i in range(tlen - mlen + 1):
-                r2_candidate = tgt_seq[i:i+mlen]
+                if dumbbell:
+                    r2_candidate = dumbbell + tgt_seq[i:i+mlen-dumbbell]
+                else:
+                    r2_candidate = tgt_seq[i:i+mlen]
                 if r2_table.get(r2_candidate):
                     raise Exception("indeterminate R2 candidate {} in target?".format(r2_candidate))
                 r2_table[r2_candidate] = (i, [])

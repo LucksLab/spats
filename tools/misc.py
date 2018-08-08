@@ -202,14 +202,21 @@ def show_failure_types():
 def diag_case():
     from spats_shape_seq import Spats
     from spats_shape_seq.pair import Pair
-    from spats_shape_seq.tests.test_pairs import cases
+    from spats_shape_seq.tests.test_mut import cases
     #from spats_shape_seq.tests.test_pairs import prefix_cases as cases
     from spats_shape_seq.diagram import diagram
     #spats_config.minimum_target_match_length = 8
     spats = Spats()
-    spats.addTargets("test/5s/5s.fa")
+    #spats.addTargets("test/5s/5s.fa")
+    spats.addTargets("test/mut/mut_single.fa")
     spats.run.debug = True
     spats.run.algorithm = "find_partial"
+    spats.run.count_mutations = True
+    #spats.run.mutations_require_quality_score = ord('.') - ord('!')
+    spats.run.allowed_target_errors = 1
+    spats.run.ignore_stops_with_mismatched_overlap = True
+    spats.run.adapter_b = "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
+
     #spats.run.collapse_left_prefixes = True
     spats._case_errors = False
     def run_case(case):
