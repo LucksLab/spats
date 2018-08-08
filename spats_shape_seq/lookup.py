@@ -269,7 +269,7 @@ class CotransLookupProcessor(PairProcessor):
             if pair_len - target_match_len - linker_len - 4 > trim:
                 pair.failure = Failures.adapter_trim
                 return
-            pair.r2._rtrim = trim + 4
+            pair.r2._rtrim = trim + min(4, pair_len - target_match_len)
 
         if not self._check_indeterminate(pair):
             return
