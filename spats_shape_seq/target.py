@@ -296,9 +296,6 @@ class Targets(object):
                 else:
                     r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
                 res = (target, None if i == length else tlen - i, length - i, []) # target, end, amount of adapter to trim, mutations
-                if len(r1_candidate) < length:
-                    _debug('ignoring short length {} = {}'.format(len(r1_candidate), r1_candidate))
-                    continue
                 existing = r1_table.get(r1_candidate)
                 if existing:
                     existing.append(res)
