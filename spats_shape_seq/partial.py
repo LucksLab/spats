@@ -122,7 +122,7 @@ class PartialFindProcessor(PairProcessor):
             else:
                 pair.failure = Failures.left_of_zero
                 return
-        elif r2_start_in_target + pair.r2.seq_len <= pair.target.n:
+        elif r2_start_in_target + (pair.r2.seq_len - pair.r2.match_start) <= pair.target.n:
             # we're in the middle -- no problem
             _debug("middle case")
             pass

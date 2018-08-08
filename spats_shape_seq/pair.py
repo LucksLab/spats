@@ -6,6 +6,9 @@ class Pair(object):
     def __init__(self):
         self.reset()
 
+    def __repr__(self):
+        return 'T={}/E={}/S={}/m={}'.format(self.target.name if self.target else None, self.end, self.site, self.mutations)
+
     def reset(self):
         self.identifier = None
         self.r1 = Sequence()
@@ -108,7 +111,7 @@ class Pair(object):
 
     @property
     def has_site(self):
-        return (self.target and self.site is not None)
+        return bool(self.target and self.site is not None)
 
     @property
     def left(self):

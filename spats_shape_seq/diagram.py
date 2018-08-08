@@ -106,7 +106,7 @@ class Diagram(object):
             d = self._make_prefix('rc(DUMBBELL)')
             d += sp(part.right + 1) + reverse_complement(self.run.dumbbell)[:dumbbell_part]
             self._add_line(d)
-            if part._rtrim < len(self.run.dumbbell):
+            if part._rtrim <= len(self.run.dumbbell):
                 return
             else:
                 raise Exception("NYI: dumbbell+adapter")
@@ -227,8 +227,8 @@ class Diagram(object):
         self.lines = [ ]
 
         # handling left-of-target matches
-        if self.pair.r2._ltrim > 4 or  self.pair.r1.match_index < 0 or self.pair.r2.match_index < 0:
-            self.prefix_len += 4 - min(self.pair.r1.match_index, self.pair.r2.match_index, 0 - self.pair.r2._ltrim)
+        if self.pair.r2._ltrim > 4 or self.pair.r1.match_index < 0 or self.pair.r2.match_index < 0:
+            self.prefix_len += 4 - min(self.pair.r1.match_index or 0, self.pair.r2.match_index or 0, 0 - self.pair.r2._ltrim)
 
         self._add_line("@" + self.pair.identifier)
         

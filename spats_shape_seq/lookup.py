@@ -123,7 +123,6 @@ class LookupProcessor(PairProcessor):
             return
 
         adapter_len = r2len - match_len - r2_match_start - 4
-        print([adapter_len, r2len, match_len, r2_match_start])
         if adapter_len > 0:
             pair.r2.adapter_errors = string_match_errors(self._adapter_t_rc[:adapter_len], pair.r2.original_seq[-adapter_len:])
             if len(pair.r2.adapter_errors) > run.allowed_adapter_errors:

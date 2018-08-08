@@ -14,7 +14,7 @@ import time
 import spats_shape_seq
 import spats_shape_seq.nbutil as nbutil
 from spats_shape_seq import Spats
-from spats_shape_seq.parse import abif_parse, fastq_handle_filter
+from spats_shape_seq.parse import abif_parse, fastq_handle_filter, FastFastqParser
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
 
 
@@ -219,7 +219,7 @@ class SpatsTool(object):
         self._add_note("wrote output to {}".format(os.path.basename(run_name)))
         self._notebook().add_spats_run(self.cotrans, spats.run.count_mutations).save()
 
-    def _update_run_config(self, run):
+    def _update_run_config(self, run, dictionary = None):
         custom_config = False
         sentinel = '_-=*< sEnTiNeL >*-=_'
         for key, value in self.config.iteritems():
@@ -232,6 +232,8 @@ class SpatsTool(object):
                     val = value
                 setattr(run, key, val)
                 self._add_note("config set {} = {}".format(key, val))
+                if dictionary:
+                    dictionary[key] = val
                 custom_config = True
             else:
                 self._add_note("warning: unknown config {}".format(key))
@@ -478,6 +480,62 @@ class SpatsTool(object):
         files = fastq_handle_filter(self.r1, self.r2)
         self._add_note("Pairs filtered to: {}".format(", ".join(files)))
 
+
+    def compare(self):
+
+        from spats_shape_seq import Spats
+        from spats_shape_seq.pair import Pair
+
+        json_base = { 'target' : self.config['target'], 'config' : { 'algorithm' : 'find_partial', 'debug' : True }, 'expect' : {}}
+
+        spats_fp = Spats(cotrans = self.cotrans)
+        spats_lookup = Spats(cotrans = self.cotrans)
+        self._update_run_config(spats_fp.run)
+        self._update_run_config(spats_lookup.run, json_base['config'])
+        spats_fp.run.algorithm = 'find_partial'
+        spats_lookup.run.algorithm = 'lookup'
+
+        spats_fp.addTargets(self.config['target'])
+        spats_lookup.addTargets(self.config['target'])
+
+        count = 0
+        match = 0
+        with FastFastqParser(self.r1, self.r2) as parser:
+            total = parser.appx_number_of_pairs()
+            for batch in parser.iterator(5000):
+                for item in batch:
+                    pair_fp = Pair()
+                    pair_lookup = Pair()
+                    pair_fp.set_from_data(str(item[0]), item[1], item[2])
+                    pair_lookup.set_from_data(str(item[0]), item[1], item[2])
+                    try:
+                        spats_fp.process_pair(pair_fp)
+                        spats_lookup.process_pair(pair_lookup)
+                    except:
+                        print('Error after {}/{}'.format(match, count))
+                        raise
+                    if (pair_fp.has_site == pair_lookup.has_site):
+                        if not pair_fp.has_site:
+                            count += 1
+                            continue
+                        elif (pair_fp.target.name == pair_lookup.target.name and
+                              pair_fp.end == pair_lookup.end and
+                              pair_fp.site == pair_lookup.site and
+                              pair_fp.mutations == pair_lookup.mutations):
+                            count += 1
+                            match += 1
+                            continue
+                    json_base["id"] = str(item[0])
+                    json_base["R1"] = str(item[1])
+                    json_base["R2"] = str(item[2])
+                    print('After {}/{} matches; mismatched pair: {} != {}\n{}'.format(match, count, pair_fp, pair_lookup,
+                                                                                      json.dumps(json_base, sort_keys = True,indent = 4, separators = (',', ': '))))
+                    return
+                print('{}/{}-{}...'.format(match,count, total))
+
+        print('All match {}/{}.'.format(match, count))
+        print(spats_fp._report_counts())
+        print(spats_lookup._report_counts())
 
     def show(self):
         """Shows the diagram and result for analysis of a test case pair.

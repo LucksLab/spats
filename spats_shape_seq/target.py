@@ -364,6 +364,8 @@ class Targets(object):
         r2_match_lengths = {}
         for target in self.targets:
             mlen = length if mutations else self_matches[target.name] + 1
+            if dumbbell:
+                mlen += len(dumbbell)
             if length < mlen:
                 raise Exception("R2 length not long enough for target self-match ({} / {})".format(length, mlen))
             r2_table = {}
@@ -373,7 +375,7 @@ class Targets(object):
             tgt_seq = target.seq
             for i in range(tlen - mlen + 1):
                 if dumbbell:
-                    r2_candidate = dumbbell + tgt_seq[i:i+mlen-dumbbell]
+                    r2_candidate = dumbbell + tgt_seq[i:i+mlen-len(dumbbell)]
                 else:
                     r2_candidate = tgt_seq[i:i+mlen]
                 if r2_table.get(r2_candidate):
