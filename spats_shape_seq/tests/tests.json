@@ -19,7 +19,7 @@
             "run_opts": {
                 "algorithms": [ "find_partial", "lookup" ]
             },
-            "target_path": "test/mut/mut_single.fa",
+            "target_paths": [ "test/mut/mut_single.fa" ],
             "tests": [
                 { "id": "muts_1", "comment": "basic test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "end": 107, "site": 0, "muts": [ 16 ] },
                 { "id": "muts_2", "comment": "basic test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "end": 107, "site": 2, "muts": [ 96 ] },
@@ -51,7 +51,7 @@
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
             },
-            "target_path": "test/mut/mut_cotrans.fa",
+            "target_paths": [ "test/mut/mut_cotrans.fa" ],
             "tests": [
                 { "id": "muts_cotrans_1", "comment": "indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGCCAGCTACATCCCGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGA", "r2": "AGGTCAGATCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCTGACTCGGGCACCAA", "end": 103, "site": 44, "muts": [52] },
                 { "id": "muts_cotrans_2", "comment": "R1/R2 disagree on overlap; similar to x3, may need to factor in quality at some point", "r1": "AGGCGTCCTTGGTGCCCGAGTCAGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGG", "r2": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCT", "end": null, "site": null, "muts": [] },
@@ -71,7 +71,7 @@
             "run_opts": { 
                 "allowed_target_errors": 5
             },
-            "target_path": "test/mut/mut_single.fa",
+            "target_paths": [ "test/mut/mut_single.fa" ],
             "tests": [
                 { "id": "muts_multi_1", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GCACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "end": 107, "site": 0, "muts": [ 2, 16 ] },
                 { "id": "muts_multi_2", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GTACTAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "end": 107, "site": 0, "muts": [ 2, 5, 16 ] },
@@ -86,7 +86,7 @@
                 "allowed_target_errors": 2,
                 "ignore_stops_with_mismatched_overlap": false 
             },
-            "target_path": "test/SRP/SRP.fa",
+            "target_paths": [ "test/SRP/SRP.fa" ],
             "tests": [
                 { "id": "muts_mismatched_overlap_1", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC", "r2": "GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT", "end": 137, "site": 81, "muts": [ 117 ] },
                 { "id": "muts_mismatched_overlap_2", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC", "r2": "GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC", "end": 137, "site": 92, "muts": [ 117 ] },
@@ -99,7 +99,7 @@
                 "allowed_target_errors": 2,
                 "ignore_stops_with_mismatched_overlap": true 
             },
-            "target_path": "test/SRP/SRP.fa",
+            "target_paths": [ "test/SRP/SRP.fa" ],
             "tests": [
                 { "id": "muts_mismatched_overlap_igmm_1", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC", "r2": "GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT", "end": 137, "site": null, "muts": [ 117 ] },
                 { "id": "muts_mismatched_overlap_igmm_2", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC", "r2": "GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC", "end": 137, "site": null, "muts": [ 117 ] },
@@ -116,7 +116,7 @@
                 "count_left_prefixes": true,
                 "collapse_left_prefixes": true
             },
-            "target_path": "test/hairpin/hairpinA_circ.fa",
+            "target_paths": [ "test/hairpin/hairpinA_circ.fa" ],
             "tests": [
                 { "id": "muts_prefix_1", "r1": "CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC", "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT", "end": 87, "site": 0, "muts": [ 75 ] }
             ]
@@ -131,11 +131,120 @@
                 "count_left_prefixes": true,
                 "collapse_left_prefixes": true
             },
-            "target_path": "test/hairpin/hairpinA_circ.fa",
+            "target_paths": [ "test/hairpin/hairpinA_circ.fa" ],
             "tests": [
                 { "id": "muts_prefix_igmm_1", "r1": "CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC", "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT", "end": 87, "site": null, "muts": [ 75 ] }
+            ]
+        },
+        {
+            "set_name": "pairs",
+            "run_opts": { 
+                "pair_length": 35 
+            },
+            "target_paths": [ "test/5s/5s.fa", "test/5s/5su.fa" ],
+            "tests": [
+                { "id": "pairs_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", "site": 29 },
+                { "id": "pairs_2", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA", "site": 27 },
+                { "id": "pairs_3", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", "site": 123 },
+                { "id": "pairs_4", "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "r2": "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG", "site": null },
+                { "id": "pairs_5", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCTGACCCCATGCCGAACTCAGAAGTGAAACCCCG", "site": null },
+                { "id": "pairs_6", "r1": "TCTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGAC", "r2": "ACTCGGGCACCAAGGACCAGAAGATCGGAAGAGCG", "site": null },
+                { "id": "pairs_7", "r1": "AGATGTCCTTGGTGCCCGAGTCAGAAGATCGGGAA", "r2": "TCTGACTCGGGCACCAAGGACATCTAGATCGGAAG", "site": null },
+                { "id": "pairs_8", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAGAGATCGGAAAA", "site": null },
+                { "id": "pairs_9", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "site": null },
+                { "id": "pairs_10", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC", "site": null },
+                { "id": "pairs_11", "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG", "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG", "site": 118 },
+                { "id": "pairs_12", "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATG", "site": 64, "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial" },
+                { "id": "pairs_13", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCAT", "site": 63, "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial" },
+                { "id": "pairs_14", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", "site": null, "comment": "similarly if you don't keep checking all sites" },
+            
+                { "id": "pairs_15", "r1": "TCTGAGATCGGAAGAGCACACGTCTGAACTCCAGT", "r2": "CAGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGT", "site": null, "comment": "R1 is pure adapter, make sure it's rejected" },
+                { "id": "pairs_16", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCAGATCGGAAG", "r2": "TCTGACTCGGGCACCAAGGACTAAGAGATCGGAAG", "site": null },
+                { "id": "pairs_17", "r1": "AAACGTCCTTGGTGCCCGAGTCAGAGATCGAAGAG", "r2": "CTGACTCGGGCACCAAGGGCGTGTATATCGGAAGA", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_18", "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG", "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG", 118, "comment": "differed with v102" },
+                { "id": "pairs_19", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_20", "r1": "NTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "NCCGAACTCAGAAGTGAANCGCCGTAGCGCNGANG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_21", "r1": "TTCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCTCCT", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_22", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_23", "r1": "AAACGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_24", "r1": "CTCAGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACTGAGAGATCGGCAGAGCG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_25", "r1": "TTTAGTCCTTGGTGCCCGAGATCGGAAGAGCACAC", "r2": "CGGGCACCAAGGACTAAAAGATCGGAAGAGCGTCG", "site": 129, "comment": "differed with v102" },
+                { "id": "pairs_26", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_27", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACACTTAGATCGGAA", "site": 121, "comment": "differed with v102" },
+                { "id": "pairs_28", "r1": "GAGTGTCCTTGGTGCCCGAGTATCGGAAGAGCACA", "r2": "CGGGCACCAAGGACACTCAGATCGGAAGAGCGTCG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_29", "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCAGAACGG", "r2": "GCATCTGACTCGGGCACCAAGGACATTCAGATCGG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_30", "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT", "site": 116, "comment": "differed with v102" },
+                { "id": "pairs_31", "r1": "CCCGGTCCTTGGTGCCCGAGTCAGATGCAGATCGG", "r2": "GCATCTGACTCGGGCACCAAGGACCGGGAGATCGG", "site": 119, "comment": "differed with v102" },
+                { "id": "pairs_32", "r1": "AGACGTCCTTGGTGCCCGAGTCAGATGCAGATCGG", "r2": "GCATCTGACTCGGGCACCAAGGACGTCTAGATCGG", "site": 119, "comment": "differed with v102" },
+                { "id": "pairs_33", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGACCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAGGGAGCGGAAGA", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_34", "r1": "NTCAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACNT", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_35", "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_36", "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT", "site": 116, "comment": "differed with v102" },
+                { "id": "pairs_37", "r1": "TTTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA", "r2": "ACTCGGGCACCAAAGACCAAAAGATCGGAAGAGCG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_38", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGACGGAAGAG", "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_39", "r1": "TCTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACCAGAAGATCGAAGAG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_40", "r1": "TCCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAGGCCTGGAAGAACGGAAGAA", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_41", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAAAGATTGGAAAA", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_42", "r1": "AGATGTCCTTGGTGCCCGAGTCAGATCGGAAGAGC", "r2": "GACTCGGGCACCAAGGACATCTAGATCGGAAAACC", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_43", "r1": "CTTAGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACTAAGGGATAGGAAGAGCG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_44", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTAGATC", "r2": "AGGCATCTGACTCGGGCACCAAGGCCACCCAGATC", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_45", "r1": "AGATGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGCACATCTAGAT", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_46", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "ACTGCCAGGCATCTGACTCGGGCACCAAGGGCGCT", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_47", "r1": "TCCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "AACTGCCAGGCATCTGACTCGGGCACCAACGACCG", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_48", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAA", "r2": "TGCCAGGCATCTGACTCGGGCACCAAGGCCTAAAA", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_49", "r1": "TTCAGTCCTTGGTGCCCGAGTGATCGGAAGAGCAC", "r2": "CTCGGGCACCAAGGACTGAAAGCTCGGAAGAGCGA", "site": null, "comment": "differed with v102" },
+                { "id": "pairs_find_partial_weird", "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG", "site": null, "comment": "TODO: not sure what site should be here" }
+            ]
+        },
+        {
+            "set_name": "pairs_minimum_length",
+            "run_opts": { 
+                "pair_length": 35,
+                "minimum_target_match_length": 11
+            },
+            "target_paths": [ "test/5s/5s.fa" ],
+            "tests": [
+                { "id": "pairs_minimum_length_1", "r1": "TCCAGTCCTTGGAGATCGGAAGAGCACACGTCTGA", "r2": "CCAAGGACTGGAAGATCGGAAGAGCGTCGTGTAGG", "site": null }
+            ]
+        },
+        {
+            "set_name": "pairs_minimum_length_tml8",
+            "run_opts": { 
+                "pair_length": 35,
+                "minimum_target_match_length": 8
+            },
+            "target_paths": [ "test/5s/5s.fa" ],
+            "tests": [
+                { "id": "pairs_minimum_length_tml8_1", "r1": "TCCAGTCCTTGGAGATCGGAAGAGCACACGTCTGA", "r2": "CCAAGGACTGGAAGATCGGAAGAGCGTCGTGTAGG", "site": 135 }
+            ]
+        },
+        {
+            "set_name": "pairs_panel",
+            "run_opts": { 
+                "pair_length": 35,
+                "minimum_target_match_length": 10,
+                "debug": true
+            },
+            "target_paths": [ "test/panel_RNAs/panel_RNAs_complete.fa" ],
+            "tests": [
+                { "id": "pairs_panel_1", "r1": "CCCGCCGTCCTTGGTGCCCGAGTGAGATCGGAAGA", "r2": "CACTCGGGCACCAAGGACGGCGGGAGATCGGAAGA", "multiple_R1_match": 1, "comment": "test single R1 match with adapter multiple without.  TODO:  check pair.target is None?" }
+            ]
+        },
+        {
+            "set_name": "pairs_prefix",
+            "run_opts": { 
+                "pair_length": 35,
+                "collapse_left_prefixes": true
+            },
+            "target_paths": [ "test/5s/5s.fa" ],
+            "tests": [
+                { "id": "pairs_prefix_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", "site": 0 },
+                { "id": "pairs_prefix_2", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", "site": 0, "prefix_RRRY_T": 1 },
+                { "id": "pairs_prefix_3", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", "site": 0, "prefix_RRRY_TT": 1 },
+                { "id": "pairs_prefix_4", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "ACGTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCA", "site": 0, "prefix_RRRY_ACGT": 1 }
             ]
         }
     ]
 }
+
 
