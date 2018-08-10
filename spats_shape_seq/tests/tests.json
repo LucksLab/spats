@@ -1,23 +1,26 @@
 {
     "default_opts": {
         "algorithms": [ "find_partial" ], 
-        "pair_length": 75, 
-        "count_mutations": true, 
+        "count_mutations": false, 
         "mutations_require_quality_score": 13, 
-        "allowed_target_errors": 1, 
-        "ignore_stops_with_mismatched_overlap": true, 
+        "allowed_target_errors": 0, 
+        "ignore_stops_with_mismatched_overlap": false, 
         "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
         "cotrans": false,
         "cotrans_linker": null,
         "count_edge_mutations": null,
         "count_left_prefixes": false,
-        "collapse_left_prefixes": false
+        "collapse_left_prefixes": false,
+        "pair_length": 75
     },
     "tests" : [
         {
             "set_name": "muts",
             "run_opts": {
-                "algorithms": [ "find_partial", "lookup" ]
+                "algorithms": [ "find_partial", "lookup" ],
+                "count_mutations": true,
+                "allowed_target_errors": 1,
+                "ignore_stops_with_mismatched_overlap": true
             },
             "target_paths": [ "test/mut/mut_single.fa" ],
             "tests": [
@@ -48,6 +51,9 @@
             "set_name": "muts_cotrans",
             "run_opts": { 
                 "algorithms": [ "find_partial", "lookup" ],
+                "count_mutations": true,
+                "allowed_target_errors": 1,
+                "ignore_stops_with_mismatched_overlap": true,
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
             },
@@ -69,7 +75,9 @@
         {
             "set_name": "muts_multi",
             "run_opts": { 
-                "allowed_target_errors": 5
+                "count_mutations": true,
+                "allowed_target_errors": 5,
+                "ignore_stops_with_mismatched_overlap": true
             },
             "target_paths": [ "test/mut/mut_single.fa" ],
             "tests": [
@@ -83,8 +91,8 @@
         {
             "set_name": "muts_mismatched_overlap",
             "run_opts": { 
+                "count_mutations": true,
                 "allowed_target_errors": 2,
-                "ignore_stops_with_mismatched_overlap": false 
             },
             "target_paths": [ "test/SRP/SRP.fa" ],
             "tests": [
@@ -96,6 +104,7 @@
         {
             "set_name": "muts_mismatched_overlap_igmm",
             "run_opts": { 
+                "count_mutations": true,
                 "allowed_target_errors": 2,
                 "ignore_stops_with_mismatched_overlap": true 
             },
@@ -109,9 +118,9 @@
         {
             "set_name": "muts_prefix",
             "run_opts": { 
+                "count_mutations": true,
                 "mutations_require_quality_score": 30,
                 "allowed_target_errors": 8,
-                "ignore_stops_with_mismatched_overlap": false,
                 "count_edge_mutations": "stop_and_mut",
                 "count_left_prefixes": true,
                 "collapse_left_prefixes": true
@@ -124,6 +133,7 @@
         {
             "set_name": "muts_prefix_igmm",
             "run_opts": { 
+                "count_mutations": true,
                 "mutations_require_quality_score": 30,
                 "allowed_target_errors": 8,
                 "ignore_stops_with_mismatched_overlap": true,
