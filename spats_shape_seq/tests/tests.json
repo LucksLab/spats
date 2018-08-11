@@ -10,8 +10,7 @@
         "cotrans_linker": null,
         "count_edge_mutations": null,
         "count_left_prefixes": false,
-        "collapse_left_prefixes": false,
-        "pair_length": 75
+        "collapse_left_prefixes": false
     },
     "targets": {
         "mut_single": "ggacaagcaatgcttgccttgatgttgaacttttgaatagtgattcaggaggttaatgATGagcaaaggagaagaacttttcactggagttgtcccaattcttgttg",
@@ -172,9 +171,6 @@
         },
         {
             "set_name": "pairs",
-            "run_opts": { 
-                "pair_length": 35 
-            },
             "targets": [ "5s" ], 
             "tests": [
                 { "id": "pairs_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", "expect": { "site": 29 } },
@@ -232,9 +228,6 @@
         },
         {
             "set_name": "pairs_u",
-            "run_opts": { 
-                "pair_length": 35 
-            },
             "targets": [ "5su" ],
             "tests": [
                 { "id": "pairs_u_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", "expect": { "site": 29 } },
@@ -293,7 +286,6 @@
         {
             "set_name": "pairs_minimum_length",
             "run_opts": { 
-                "pair_length": 35,
                 "minimum_target_match_length": 11
             },
             "targets": [ "5s" ],
@@ -304,7 +296,6 @@
         {
             "set_name": "pairs_minimum_length_tml8",
             "run_opts": { 
-                "pair_length": 35,
                 "minimum_target_match_length": 8
             },
             "targets": [ "5s" ],
@@ -315,7 +306,6 @@
         {
             "set_name": "pairs_panel",
             "run_opts": { 
-                "pair_length": 35,
                 "minimum_target_match_length": 10,
                 "debug": true
             },
@@ -327,7 +317,6 @@
         {
             "set_name": "pairs_prefix",
             "run_opts": { 
-                "pair_length": 35,
                 "collapse_left_prefixes": true
             },
             "target": [ "5s" ],
@@ -342,7 +331,6 @@
             "set_name": "cotrans",
             "run_opts": { 
                 "algorithms": [ "find_partial", "lookup", "native" ],
-                "pair_length": 36,
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
             },
@@ -379,7 +367,6 @@
         {
             "set_name": "cotrans_prefix",
             "run_opts": { 
-                "pair_length": 36,
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
                 "collapse_left_prefixes": true
@@ -395,7 +382,6 @@
         {
             "set_name": "cotrans_prefix_only",
             "run_opts": { 
-                "pair_length": 36,
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
                 "collapse_left_prefixes": true,
@@ -412,7 +398,6 @@
         {
             "set_name": "overlaps",
             "run_opts": { 
-                "pair_length": 36,
                 "algorithms": [ "find_partial", "lookup" ], 
                 "count_mutations": true,
                 "allowed_target_errors": 1,
@@ -427,7 +412,6 @@
         {
             "set_name": "short_adapter_b",
             "run_opts": { 
-                "pair_length": 75,
                 "algorithms": [ "find_partial", "lookup" ] 
             },
             "targets": [ "5SrRNA" ],
