@@ -10,8 +10,7 @@
         "cotrans_linker": null,
         "count_edge_mutations": null,
         "count_left_prefixes": false,
-        "collapse_left_prefixes": false,
-        "pair_length": 75
+        "collapse_left_prefixes": false
     },
     "targets": {
         "mut_single": "ggacaagcaatgcttgccttgatgttgaacttttgaatagtgattcaggaggttaatgATGagcaaaggagaagaacttttcactggagttgtcccaattcttgttg",
@@ -23,7 +22,20 @@
         "5su": "GGAUGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAUCUGACUCGGGCACCAAGGAC",
         "5SrRNA": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC",
         "cotrans_single": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACTCCTACCAGTATCACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC",
-        "panel_RNAs_complete": "TODO"
+        "tRNA": "GGCGGATTTAGCTCAGTTGGGAGAGCGCCAGACTGAAGATCTGGAGGTCCTGTGTTCGATCCACAGAATTCGCACCACACTCGGGCACCAAGGAC",
+        "Adenine_Riboswitch": "GGACGCTTCATATAATCCTAATGATATGGTTTGGGAGTTTCTACCAAGAGCCTTAAACTCTTGATTATGAAGTGCACTCGGGCACCAAGGAC",
+        "5S_panel": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCACTCGGGCACCAAGGAC",
+        "P4-P6_tetrahymena_ribozyme_GG_barcode": "GGAATTGCGGGAAAGGGGTCAACAGCCGTTCAGTACCAAGTCTCAGGGGAAACTTTGAGATGGCCTTGCAAAGGGTATGGTAATAAGCTGACGGACATGGTCCTAACCACGCAGCCAAGTCCTAAGTCAACAGATCTTCTGTTGATATGGATGCAGTTCAAAACCCACTCGGGCACCAAGGACGG",
+        "RNAse_P_wt_T_barcode": "GGTCGTGCCTAGCGAAGTCATAAGCTAGGGCAGTCTTTAGAGGCTGACGGCAGGAAAAAAGCCTACGTCTTCGGATATGGCTGAGTATCCTTGAAAGTGCCACAGTGACGAAGTCTCACTAGAAATGGTGAGAGTGGAACGCGGTAAACCCCTCGACACTCGGGCACCAAGGACT",
+        "RNAse_P_A131_GG_barcode": "GGTCGTGCCTAGCGAAGTCATAAGCTAGGGCAGTCTTTAGAGGCTGAACGGCAGGAAAAAAGCCTACGTCTTCGGATATGGCTGAGTATCCTTGAAAGTGCCACAGTGACGAAGTCTCACTAGAAATGGTGAGAGTGGAACGCGGTAAACCCCTCGACACTCGGGCACCAAGGACGG",
+        "Glycine_Riboswitch_GG_barcode_A": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGACACTCGGGCACCAAGGACGG",
+        "Glycine_Riboswitch_GG_barcode_C": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGCCACTCGGGCACCAAGGACGG",
+        "Glycine_Riboswitch_GG_barcode_T": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGTCACTCGGGCACCAAGGACGG",
+        "Glycine_Riboswitch_GG_barcode_G": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGGCACTCGGGCACCAAGGACGG",
+        "Glycine_Riboswitch_GG_barcode": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGCACTCGGGCACCAAGGACGG",
+        "TPP_Riboswitch_T_barcode": "GGACTCGGGGTGCCCTTCTGCGTGAAGGCTGAGAAATACCCGTATCACCTGATCTGGATAATGCCAGCGTAGGGAAGTTCCACTCGGGCACCAAGGACT",
+        "SAM_Riboswitch_T_barcode": "GGTTCTTATCAAGAGAAGCAGAGGGACTGGCCCGACGAAGCTTCAGCAACCGGTGTAATGGCGATCAGCCATGACCAAGGTGCTAAATCCAGCAAGCTCGAACAGCTTGGAAGATAAGAACACTCGGGCACCAAGGACT",
+        "HepC_IRES_GG_barcode": "GGCCATGAATCACTCCCCTGTGAGGAACTACTGTCTTCACGCAGAAAGCGTCTAGCCATGGCGTTAGTATGAGTGTCGTGCAGCCTCCAGGACCCCCCCTCCCGGGAGAGCCATAGTGGTCTGCGGAACCGGTGAGTACACCGGAATTGCCAGGACGACCGGGTCCTTTCTTGGATTAACCCGCTCAATGCCTGGAGATTTGGGCGTGCCCCCGCGAGACTGCTAGCCGAGTAGTGTTGGGTCGCGAAAGGCCTTGTGGTACTGCCTGATAGGGTGCTTGCGAGTGCCCCGGGAGGTCTCGTAGACCGTGCATCATGAGCACGAATCCTAAACCTCAACACTCGGGCACCAAGGACGG"
     },
     "tests" : [
         {
@@ -47,16 +59,16 @@
                 { "id": "muts_9", "comment": "trim/mut edge case", "r1": "CCTACAACAAGAATTGGGACAACTCCAGTGAGAAGTTCTTCTCCTTTGCTCATCATTAAGATCGGAAGAGCACAC", "r2": "TAATGATGAGCAAAGGAGAAGAACTTCTCACTGGAGTTGTCCCAATTCTTGTTGTAGGAGATCGGAAGAGCGTCG", "expect": { "end": 107, "site": 53, "muts": [ 80 ] } },
                 { "id": "muts_10", "comment": "trim/mut edge case (but they disagree on overlap)", "r1": "CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCTTTAACCTCCTGAATCACTAA", "r2": "TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA", "expect": { "site": null } },
                 { "id": "muts_11", "comment": "trim/mut edge case", "r1": "CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAA", "r2": "TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA", "expect": { "end": 107, "site": 37, "muts": [] } },
-                { "id": "muts_q1", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 16 ], "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" } },
-                { "id": "muts_q2", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [ 96 ], "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" } },
-                { "id": "muts_q3", "comment": "r1 mutation quality check case", "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 78 ], "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" } },
-                { "id": "muts_q4", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [], "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((", "r2_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((" } },
-                { "id": "muts_q5", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [], "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((", "r2_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((" } },
-                { "id": "muts_q6", "comment": "r1 mutation quality check case", "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [], "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((", "r2_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((" } },
-                { "id": "muts_q7", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [], "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" } },
-                { "id": "muts_q8", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [], "r1_quality": "AAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" } },
-                { "id": "muts_q9", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 16 ], "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" } },
-                { "id": "muts_q10", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [ 96 ], "r1_quality": "AAAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" } }
+                { "id": "muts_q1", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 16 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+                { "id": "muts_q2", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [ 96 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+                { "id": "muts_q3", "comment": "r1 mutation quality check case", "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 78 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+                { "id": "muts_q4", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [] }, "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((", "r2_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((" },
+                { "id": "muts_q5", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [] }, "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((", "r2_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((" },
+                { "id": "muts_q6", "comment": "r1 mutation quality check case", "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [] }, "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((", "r2_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((" },
+                { "id": "muts_q7", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+                { "id": "muts_q8", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [] }, "r1_quality": "AAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+                { "id": "muts_q9", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 16 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+                { "id": "muts_q10", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [ 96 ] }, "r1_quality": "AAAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" }
             ]
         },
         {
@@ -160,10 +172,7 @@
         },
         {
             "set_name": "pairs",
-            "run_opts": { 
-                "pair_length": 35 
-            },
-            "targets": [ "5s", "5su" ],
+            "targets": [ "5s" ], 
             "tests": [
                 { "id": "pairs_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", "expect": { "site": 29 } },
                 { "id": "pairs_2", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA", "expect": { "site": 27 } },
@@ -219,9 +228,65 @@
             ]
         },
         {
+            "set_name": "pairs_u",
+            "targets": [ "5su" ],
+            "tests": [
+                { "id": "pairs_u_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", "expect": { "site": 29 } },
+                { "id": "pairs_u_2", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA", "expect": { "site": 27 } },
+                { "id": "pairs_u_3", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", "expect": { "site": 123 } },
+                { "id": "pairs_u_4", "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "r2": "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG", "expect": { "site": null } },
+                { "id": "pairs_u_5", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCTGACCCCATGCCGAACTCAGAAGTGAAACCCCG", "expect": { "site": null } },
+                { "id": "pairs_u_6", "r1": "TCTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGAC", "r2": "ACTCGGGCACCAAGGACCAGAAGATCGGAAGAGCG", "expect": { "site": null } },
+                { "id": "pairs_u_7", "r1": "AGATGTCCTTGGTGCCCGAGTCAGAAGATCGGGAA", "r2": "TCTGACTCGGGCACCAAGGACATCTAGATCGGAAG", "expect": { "site": null } },
+                { "id": "pairs_u_8", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAGAGATCGGAAAA", "expect": { "site": null } },
+                { "id": "pairs_u_9", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "expect": { "site": null } },
+                { "id": "pairs_u_10", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC", "expect": { "site": null } },
+                { "id": "pairs_u_11", "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG", "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG", "expect": { "site": 118 } },
+                { "id": "pairs_u_12", "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATG", "expect": { "site": 64 }, "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial" },
+                { "id": "pairs_u_13", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCAT", "expect": { "site": 63 }, "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial" },
+                { "id": "pairs_u_14", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", "expect": { "site": null }, "comment": "similarly if you don't keep checking all sites" },
+            
+                { "id": "pairs_u_15", "r1": "TCTGAGATCGGAAGAGCACACGTCTGAACTCCAGT", "r2": "CAGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGT", "expect": { "site": null }, "comment": "R1 is pure adapter, make sure it's rejected" },
+                { "id": "pairs_u_16", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCAGATCGGAAG", "r2": "TCTGACTCGGGCACCAAGGACTAAGAGATCGGAAG", "expect": { "site": null } },
+                { "id": "pairs_u_17", "r1": "AAACGTCCTTGGTGCCCGAGTCAGAGATCGAAGAG", "r2": "CTGACTCGGGCACCAAGGGCGTGTATATCGGAAGA", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_18", "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG", "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG", "expect": { "site": 118 }, "comment": "differed with v102" },
+                { "id": "pairs_u_19", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_20", "r1": "NTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "NCCGAACTCAGAAGTGAANCGCCGTAGCGCNGANG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_21", "r1": "TTCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCTCCT", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_22", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_23", "r1": "AAACGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_24", "r1": "CTCAGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACTGAGAGATCGGCAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_25", "r1": "TTTAGTCCTTGGTGCCCGAGATCGGAAGAGCACAC", "r2": "CGGGCACCAAGGACTAAAAGATCGGAAGAGCGTCG", "expect": { "site": 129 }, "comment": "differed with v102" },
+                { "id": "pairs_u_26", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_27", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACACTTAGATCGGAA", "expect": { "site": 121 }, "comment": "differed with v102" },
+                { "id": "pairs_u_28", "r1": "GAGTGTCCTTGGTGCCCGAGTATCGGAAGAGCACA", "r2": "CGGGCACCAAGGACACTCAGATCGGAAGAGCGTCG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_29", "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCAGAACGG", "r2": "GCATCTGACTCGGGCACCAAGGACATTCAGATCGG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_30", "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT", "expect": { "site": 116 }, "comment": "differed with v102" },
+                { "id": "pairs_u_31", "r1": "CCCGGTCCTTGGTGCCCGAGTCAGATGCAGATCGG", "r2": "GCATCTGACTCGGGCACCAAGGACCGGGAGATCGG", "expect": { "site": 119 }, "comment": "differed with v102" },
+                { "id": "pairs_u_32", "r1": "AGACGTCCTTGGTGCCCGAGTCAGATGCAGATCGG", "r2": "GCATCTGACTCGGGCACCAAGGACGTCTAGATCGG", "expect": { "site": 119 }, "comment": "differed with v102" },
+                { "id": "pairs_u_33", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGACCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAGGGAGCGGAAGA", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_34", "r1": "NTCAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACNT", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_35", "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_36", "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT", "expect": { "site": 116 }, "comment": "differed with v102" },
+                { "id": "pairs_u_37", "r1": "TTTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA", "r2": "ACTCGGGCACCAAAGACCAAAAGATCGGAAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_38", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGACGGAAGAG", "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_39", "r1": "TCTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACCAGAAGATCGAAGAG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_40", "r1": "TCCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAGGCCTGGAAGAACGGAAGAA", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_41", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAAAGATTGGAAAA", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_42", "r1": "AGATGTCCTTGGTGCCCGAGTCAGATCGGAAGAGC", "r2": "GACTCGGGCACCAAGGACATCTAGATCGGAAAACC", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_43", "r1": "CTTAGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACTAAGGGATAGGAAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_44", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTAGATC", "r2": "AGGCATCTGACTCGGGCACCAAGGCCACCCAGATC", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_45", "r1": "AGATGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGCACATCTAGAT", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_46", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "ACTGCCAGGCATCTGACTCGGGCACCAAGGGCGCT", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_47", "r1": "TCCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "AACTGCCAGGCATCTGACTCGGGCACCAACGACCG", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_48", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAA", "r2": "TGCCAGGCATCTGACTCGGGCACCAAGGCCTAAAA", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_49", "r1": "TTCAGTCCTTGGTGCCCGAGTGATCGGAAGAGCAC", "r2": "CTCGGGCACCAAGGACTGAAAGCTCGGAAGAGCGA", "expect": { "site": null }, "comment": "differed with v102" },
+                { "id": "pairs_u_find_partial_weird", "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG", "expect": { "site": null }, "comment": "TODO: not sure what site should be here" }
+            ]
+        },
+        {
             "set_name": "pairs_minimum_length",
             "run_opts": { 
-                "pair_length": 35,
                 "minimum_target_match_length": 11
             },
             "targets": [ "5s" ],
@@ -232,7 +297,6 @@
         {
             "set_name": "pairs_minimum_length_tml8",
             "run_opts": { 
-                "pair_length": 35,
                 "minimum_target_match_length": 8
             },
             "targets": [ "5s" ],
@@ -243,19 +307,17 @@
         {
             "set_name": "pairs_panel",
             "run_opts": { 
-                "pair_length": 35,
                 "minimum_target_match_length": 10,
                 "debug": true
             },
-            "targets": [ "panel_RNAs_complete" ],
+            "targets": [ "tRNA", "Adenine_Riboswitch", "5S_panel", "P4-P6_tetrahymena_ribozyme_GG_barcode", "RNAse_P_wt_T_barcode", "RNAse_P_A131_GG_barcode", "Glycine_Riboswitch_GG_barcode_A", "Glycine_Riboswitch_GG_barcode_C", "Glycine_Riboswitch_GG_barcode_T", "Glycine_Riboswitch_GG_barcode_G", "Glycine_Riboswitch_GG_barcode", "TPP_Riboswitch_T_barcode", "SAM_Riboswitch_T_barcode", "HepC_IRES_GG_barcode" ],
             "tests": [
-                { "id": "pairs_panel_1", "r1": "CCCGCCGTCCTTGGTGCCCGAGTGAGATCGGAAGA", "r2": "CACTCGGGCACCAAGGACGGCGGGAGATCGGAAGA", "expect": { "counters": { "multiple_R1_match": 1 }, "pair.target": null }, "comment": "test single R1 match with adapter multiple without.  TODO" }
+                { "id": "pairs_panel_1", "r1": "CCCGCCGTCCTTGGTGCCCGAGTGAGATCGGAAGA", "r2": "CACTCGGGCACCAAGGACGGCGGGAGATCGGAAGA", "expect": { "site": null, "counters": { "multiple_R1_match": 1 }, "pair.target": null }, "comment": "test single R1 match with adapter multiple without.  TODO" }
             ]
         },
         {
             "set_name": "pairs_prefix",
             "run_opts": { 
-                "pair_length": 35,
                 "collapse_left_prefixes": true
             },
             "target": [ "5s" ],
@@ -270,7 +332,6 @@
             "set_name": "cotrans",
             "run_opts": { 
                 "algorithms": [ "find_partial", "lookup", "native" ],
-                "pair_length": 36,
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
             },
@@ -307,7 +368,6 @@
         {
             "set_name": "cotrans_prefix",
             "run_opts": { 
-                "pair_length": 36,
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
                 "collapse_left_prefixes": true
@@ -323,7 +383,6 @@
         {
             "set_name": "cotrans_prefix_only",
             "run_opts": { 
-                "pair_length": 36,
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
                 "collapse_left_prefixes": true,
@@ -340,7 +399,6 @@
         {
             "set_name": "overlaps",
             "run_opts": { 
-                "pair_length": 36,
                 "algorithms": [ "find_partial", "lookup" ], 
                 "count_mutations": true,
                 "allowed_target_errors": 1,
@@ -368,7 +426,6 @@
         {
             "set_name": "short_adapter_b",
             "run_opts": { 
-                "pair_length": 75,
                 "algorithms": [ "find_partial", "lookup" ] 
             },
             "targets": [ "5SrRNA" ],
