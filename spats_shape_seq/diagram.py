@@ -49,7 +49,10 @@ class Diagram(object):
         is_R1 = (part == self.pair.r1)
         match_index = part.match_index if part.matched else (((self.target.n - part.original_len) >> 1) + (40 if is_R1 else -40))
         hdr = sp(match_index - part._ltrim - (1 if is_R1 else 0))
+        dumbbell_len = 0
         if is_R1:
+            if self.pair.dumbbell:
+                dumbbell_len = len(self.run.dumbbell)
             if self.pair.mask:
                 hdr += self.pair.mask.chars
             else:
@@ -108,13 +111,13 @@ class Diagram(object):
             self._add_line(d)
             if part._rtrim <= len(self.run.dumbbell):
                 return
-            else:
-                raise Exception("NYI: dumbbell+adapter")
 
         d = label
         d += sp(self.prefix_len + part.match_index + part.match_len + 1 - len(d))
         if not is_R1:
             d += sp(5)
+        elif self.pair.dumbbell:
+            d += sp(len(self.run.dumbbell))
         if self.run.cotrans:
             d += sp(len(self.run.cotrans_linker))
         d += (adapter[:part._rtrim - (0 if is_R1 else 4)] + "..")

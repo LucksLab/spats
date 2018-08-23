@@ -25,7 +25,7 @@ class PartialFindProcessor(PairProcessor):
         # if we're here, we know that R2 hangs over the right edge. first, figure out by how much
 
         r2_seq = pair.r2.subsequence
-        r2_start_in_target = pair.r2.match_index - pair.r2.match_start
+        r2_start_in_target = pair.r2.match_index - pair.r2.match_start + pair.r2._ltrim
         r2_len_should_be = pair.target.n - r2_start_in_target
         r2_length_to_trim = pair.r2.seq_len - r2_len_should_be
         pair.r2.trim(r2_length_to_trim)
@@ -123,7 +123,7 @@ class PartialFindProcessor(PairProcessor):
             else:
                 pair.failure = Failures.left_of_zero
                 return
-        elif r2_start_in_target + (pair.r2.seq_len - dumbbell_len) <= pair.target.n:
+        elif r2_start_in_target + (pair.r2.original_len - dumbbell_len) <= pair.target.n:
             # we're in the middle -- no problem
             _debug("middle case")
             pass
@@ -140,7 +140,7 @@ class PartialFindProcessor(PairProcessor):
         pair.r1.match_to_seq(reverse_complement = True)
         pair.r2.match_to_seq()
 
-        if pair.dumbbell:
+        if pair.dumbbell != None:
             _debug("fixing R1 for dumbbell: {}".format([pair.r1.left, pair.r2.left, pair.dumbbell]))
             if pair.r1.left < pair.dumbbell + dumbbell_len:
                 dumbbell_part = pair.dumbbell + dumbbell_len - pair.r1.left

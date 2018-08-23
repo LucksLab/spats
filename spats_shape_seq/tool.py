@@ -531,8 +531,9 @@ class SpatsTool(object):
                     print('After {}/{} matches; mismatched pair: {} != {}\n{}'.format(match, count, pair_fp, pair_lookup,
                                                                                       json.dumps(json_base, sort_keys = True,indent = 4, separators = (',', ': '))))
                     return
-                print('{}/{}-{}...'.format(match,count, total))
-
+                print('{}/{}-{}...'.format(match, count, total))
+        spats_fp.counters.total_pairs = count
+        spats_lookup.counters.total_pairs = count
         print('All match {}/{}.'.format(match, count))
         print(spats_fp._report_counts())
         print(spats_lookup._report_counts())
