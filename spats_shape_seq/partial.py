@@ -119,7 +119,7 @@ class PartialFindProcessor(PairProcessor):
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
-                pair.r2._ltrim = 0 - r2_start_in_target
+                pair.r2._ltrim -= r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero
                 return
