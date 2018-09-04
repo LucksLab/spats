@@ -565,11 +565,11 @@ class SpatsTool(object):
         if test_case.get('R1_quality'):
             pair.r1.quality = str(test_case['R1_quality'])
         if test_case.get('R2_quality'):
-            pair.r1.quality = str(test_case['R2_quality'])
+            pair.r2.quality = str(test_case['R2_quality'])
 
         spats.process_pair(pair)
 
-        print diagram(pair, spats.run)
+        print(diagram(pair, spats.run))
 
         if 'expect' in test_case:
             fail = False
