@@ -167,6 +167,12 @@ class SpatsTool(object):
 
         analyzer = ReadsAnalyzer(data, cotrans = self.cotrans)
         self._update_run_config(analyzer.run)
+
+        # xref https://trello.com/c/VMFyZjjg/286-handle-quality-parsing-in-reads-tool-if-configured
+        # to do this, we'd need to parse quality to the db (nontrivial)
+        # for now just force-disable this, as it's not required to do reads analysis
+        analyzer.run.mutations_require_quality_score = None
+
         analyzer.process_tags()
         self._add_note("tags processed to {}".format(os.path.basename(db_name)))
 
