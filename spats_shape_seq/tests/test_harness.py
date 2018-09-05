@@ -1,12 +1,29 @@
 import sys
 import unittest
 import simplejson     # Use so don't have to bother with unicode->str 
+from collections import defaultdict
 from spats_shape_seq import Spats
 from spats_shape_seq.pair import Pair
 
 
 
 class TestHarness:
+    def __init__(self, testfile = "tests.json"):
+        self.test_results = self.SpatsTestResults(self)
+        with open(testfile) as TF:
+            self.tests = simplejson.load(TF)
+        self.all_targets = self.tests['targets']
+
+    def run_testsets(self):
+        for testset_dict in self.tests["tests"]:
+            self.test_results.current_testset = testset_dict['set_name']
+            TestHarness.SpatsTestSet(self, testset_dict).run(self.test_results)
+            self.test_results.test_sets_run += 1
+
+    def print_stats(self):
+        self.test_results.print_stats()
+
+
     class SpatsTestResults(unittest.TextTestResult):
         # Taken from legacy python unittest
         class WritelnDecorator:
@@ -18,69 +35,88 @@ class TestHarness:
             def writeln(self, arg = None):
                 if arg: self.write(arg)
                 self.write('\n') # text-mode streams translate to \r\n if needed
-        def __init__(self, outer):
-            super(TestHarness.SpatsTestResults, self).__init__(TestHarness.SpatsTestResults.WritelnDecorator(sys.stdout), True, 1)
-        # TAI:  can override addFailure(self, test, err) and # addError(self, test, err) here if we want 
 
-    def __init__(self, testfile = "tests.json"):
-        self.test_results = self.SpatsTestResults(self)
-        with open(testfile) as TF:
-            self.tests = simplejson.load(TF)
+        def __init__(self, outer, verbose = False):
+            super(TestHarness.SpatsTestResults, self).__init__(TestHarness.SpatsTestResults.WritelnDecorator(sys.stdout), True, 2 if verbose else 1)
+            self.test_sets_run = 0
+            self.current_testset = ""
+            self.testset_failures = defaultdict(int)
+            self.testset_errors = defaultdict(int)
+        
+        def addFailure(self, test, err):
+            super(TestHarness.SpatsTestResults, self).addFailure(test, err)
+            self.testset_failures[self.current_testset] += 1
+            
+        def addError(self, test, err):
+            super(TestHarness.SpatsTestResults, self).addError(test, err)
+            self.testset_errors[self.current_testset] += 1
 
-    def run_testsets(self):
-        for testset_dict in self.tests["tests"]:
-            self.TestSet(self, testset_dict).run(self.test_results)   # TODO:  use a unittest.TestResult object
+        def print_stats(self):
+            print("\n\nSUMMARY")
+            print("Tests Sets Run:  {}".format(self.test_sets_run))
+            print("Total Tests Run:  {}".format(self.testsRun))
+            print("All Test Sets Passed?  {}".format(self.wasSuccessful()))
+            if not self.wasSuccessful():
+                if len(self.testset_failures) > 0:
+                    print("Test Sets with failures:")
+                    print(str(dict(self.testset_failures)))
+                if len(self.testset_errors) > 0:
+                    print("Test Sets with errors:")
+                    print(str(dict(self.testset_failures)))
+                print("\nAll Failures and Errors:")
+                self.printErrors()
 
-    def print_stats(self):
-        print("\n\nSUMMARY")
-        print("Tests Sets Run:  {}".format(self.test_results.testsRun))
-        print("All Test Sets Passed?  {}".format(self.test_results.wasSuccessful()))
-        if not self.test_results.wasSuccessful():
-            self.test_results.printErrors()
 
-
-    # TAI:  Use a unittest.TestSuite object
-    class TestSet(unittest.TestCase):
+    class SpatsTestSet(unittest.TestSuite):
         def __init__(self, outer, testset_dict):
-            super(TestHarness.TestSet, self).__init__()
+            super(TestHarness.SpatsTestSet, self).__init__()
             self.outer = outer
             self.testset_dict = testset_dict
             self.set_name = self.testset_dict['set_name']
             self.algorithms = [ "find_partial" ]
+            self._add_all_testcases()
 
-        def setUp(self):
-            #print("setting up options for test set '{}'...".format(self.set_name))
-            self.spats = Spats()
+        def _add_all_testcases(self):
+            for case in self.testset_dict['tests']:
+                self.addTest(TestHarness.SpatsTestCase(self, case))
+
+        def spats_setUp(self, spatso):
             for key, value in self.outer.tests['default_opts'].iteritems():
                 if (key == 'algorithms'):
                     self.algorithms = value
                 else:
-                    setattr(self.spats.run, key, value)
+                    setattr(spatso.run, key, value)
             for key, value in self.testset_dict.get('run_opts', {}).iteritems():
                 if (key == 'algorithms'):
                     self.algorithms = value
                 else:
-                    setattr(self.spats.run, key, value)
-            all_targets = self.outer.tests['targets']
+                    setattr(spatso.run, key, value)
             for target in self.testset_dict['targets']:
-                self.spats.addTarget(target, all_targets[target])
+                spatso.addTarget(target, self.outer.all_targets[target])
+
+
+    class SpatsTestCase(unittest.TestCase):
+        def __init__(self, test_set, case_dict):
+            super(TestHarness.SpatsTestCase, self).__init__()
+            self.test_set = test_set
+            self.case_dict = case_dict
+
+        def setUp(self):
+            try:
+                self.spats = Spats()
+                self.test_set.spats_setUp(self.spats)
+            except Exception as e:
+                print("exception caught on testset '{}' setup : {}".format(self.test_set.set_name, e))
 
         def tearDown(self):
             self.spats = None
 
         def runTest(self):
-            for algorithm in self.algorithms:
-                #print("running tests for test set '{}' with algorithm '{}'...".format(self.set_name, algorithm))
+            for algorithm in self.test_set.algorithms:
                 self.spats.run.algorithm = algorithm
-                for case in self.testset_dict['tests']:
-                    try:
-                        self._run_case(case)
-                    except Exception as e:
-                        # TODO:  This isn't right.  If we catch here, it wont update the test results.  (but if we don't, it aborts in the middle of the test cases for this set.  --> need to use a suite.
-                        print("exception caught on test '{}': {}".format(case['id'], e))
+                self._run_case(self.case_dict)
 
         def _run_case(self, case):
-            #print("running case {} ({})...".format(case['id'], case.get('comment', '')))
             pair = self._pair_for_case(case)
             self.spats.counters.reset()
             self.spats.process_pair(pair)
@@ -100,7 +136,7 @@ class TestHarness:
             return pair
 
         def _check_expects(self, expects, pair, caseid):
-            msg = "testset='{}', test id='{}' failed:  ".format(self.set_name, caseid)
+            msg = "testset='{}', test id='{}', algorithm='{}' failed: ".format(self.test_set.set_name, caseid, self.spats.run.algorithm)
             if expects['site'] is None:
                 self.assertIs(pair.site, None, msg + "pair.site={} when expecting none.".format(pair.site))
             else:
