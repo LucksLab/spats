@@ -165,7 +165,7 @@
                 "count_left_prefixes": true,
                 "collapse_left_prefixes": true
             },
-            "target": [ "hairpinA_circ" ],
+            "targets": [ "hairpinA_circ" ],
             "tests": [
                 { "id": "muts_prefix_igmm_1", "r1": "CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC", "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT", "expect": { "site": null } }
             ]
@@ -320,7 +320,7 @@
             "run_opts": { 
                 "collapse_left_prefixes": true
             },
-            "target": [ "5s" ],
+            "targets": [ "5s" ],
             "tests": [
                 { "id": "pairs_prefix_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", "expect": { "site": 0 } },
                 { "id": "pairs_prefix_2", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", "expect": { "site": 0, "counters": { "prefix_RRRY_T": 1 } } },
