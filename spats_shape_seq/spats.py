@@ -233,7 +233,7 @@ class Spats(object):
         self._addTargets(targets)
 
     def addTarget(self, name, seq, rowid = -1):
-        self._addTargets( [ (name, seq, rowid if rowid != -1 else len(self._targets.targets)) ] )
+        self._addTargets( [ (name, seq, rowid if rowid != -1 else 0 if self._targets is None else len(self._targets.targets)) ] )
 
     def loadTargets(self, pair_db):
         self._addTargets(pair_db.targets())

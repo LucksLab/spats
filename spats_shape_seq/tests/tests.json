@@ -407,7 +407,7 @@
             "targets": [ "SRP" ],
             "tests": [
                 { "id": "overlap_1", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGAAGATCGGAAGA", "r2": "ACTGACTCGGGCACCAAGGACGCCCAGATCGGAAGA", "expect": { "site": null, "failure": "r1_r2_overlap" } },
-                { "id": "overlap_2", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGAAGATCGGAAGA", "r2": "TCTGACTCGGGCACCAAGGACGCCCAGATCGGAAGA", "expect": { "site": 116 }
+                { "id": "overlap_2", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGAAGATCGGAAGA", "r2": "TCTGACTCGGGCACCAAGGACGCCCAGATCGGAAGA", "expect": { "site": 116 } }
             ]
         },
         {
