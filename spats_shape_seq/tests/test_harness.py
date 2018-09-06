@@ -1,6 +1,8 @@
+import json
+import os
 import sys
 import unittest
-import simplejson     # Use so don't have to bother with unicode->str 
+
 from collections import defaultdict
 from spats_shape_seq import Spats
 from spats_shape_seq.pair import Pair
@@ -8,17 +10,20 @@ from spats_shape_seq.pair import Pair
 
 
 class TestHarness:
-    def __init__(self, testfile = "tests.json"):
+    def __init__(self, testfile = None):
+        testfile = testfile or os.path.join(os.path.dirname(__file__), "tests.json")
         self.test_results = self.SpatsTestResults(self)
-        with open(testfile) as TF:
-            self.tests = simplejson.load(TF)
-        self.all_targets = self.tests['targets']
+        self.tests = json.loads(open(testfile, 'r').read())
+        self.all_targets = { str(key) : str(val) for key, val in self.tests['targets'].iteritems() }
 
     def run_testsets(self):
         for testset_dict in self.tests["tests"]:
-            self.test_results.current_testset = testset_dict['set_name']
+            self.test_results.current_testset = str(testset_dict['set_name'])
             TestHarness.SpatsTestSet(self, testset_dict).run(self.test_results)
             self.test_results.test_sets_run += 1
+        self.print_stats()
+        if not self.test_results.wasSuccessful():
+            raise Exception('Test harness failure')
 
     def print_stats(self):
         self.test_results.print_stats()
@@ -39,32 +44,47 @@ class TestHarness:
         def __init__(self, outer, verbose = False):
             super(TestHarness.SpatsTestResults, self).__init__(TestHarness.SpatsTestResults.WritelnDecorator(sys.stdout), True, 2 if verbose else 1)
             self.test_sets_run = 0
+            self.tests_passed = 0
             self.current_testset = ""
+            self.testset_success = defaultdict(int)
             self.testset_failures = defaultdict(int)
             self.testset_errors = defaultdict(int)
-        
+            self.failure_cases = []
+
         def addFailure(self, test, err):
             super(TestHarness.SpatsTestResults, self).addFailure(test, err)
+            print(' ==> FAIL: {}'.format(err[1]))
             self.testset_failures[self.current_testset] += 1
+            self.failure_cases.append('{}/{}'.format(self.current_testset, str(test.case_dict['id'])))
             
         def addError(self, test, err):
+            import traceback
             super(TestHarness.SpatsTestResults, self).addError(test, err)
+            print(' ==> ERROR: {}/{} {}\n{}'.format(self.current_testset, str(test.case_dict['id']), err[1], traceback.format_exc(err[2])))
             self.testset_errors[self.current_testset] += 1
+            self.failure_cases.append('{}/{}'.format(self.current_testset, str(test.case_dict['id'])))
+
+        def addSuccess(self, test):
+            self.testset_success[self.current_testset] += 1
+            self.tests_passed += 1
 
         def print_stats(self):
-            print("\n\nSUMMARY")
+            if not self.wasSuccessful():
+                print("\nAll Failures and Errors:")
+                for fail in self.failure_cases:
+                    print('  {}'.format(fail))
+            print("\nSUMMARY")
             print("Tests Sets Run:  {}".format(self.test_sets_run))
             print("Total Tests Run:  {}".format(self.testsRun))
+            print("Total Tests Passed:  {}".format(self.tests_passed))
             print("All Test Sets Passed?  {}".format(self.wasSuccessful()))
             if not self.wasSuccessful():
                 if len(self.testset_failures) > 0:
-                    print("Test Sets with failures:")
+                    print("Test Sets with failures ({}):".format(sum(self.testset_failures.values())))
                     print(str(dict(self.testset_failures)))
                 if len(self.testset_errors) > 0:
-                    print("Test Sets with errors:")
-                    print(str(dict(self.testset_failures)))
-                print("\nAll Failures and Errors:")
-                self.printErrors()
+                    print("Test Sets with errors ({}):".format(sum(self.testset_errors.values())))
+                    print(str(dict(self.testset_errors)))
 
 
     class SpatsTestSet(unittest.TestSuite):
@@ -124,15 +144,11 @@ class TestHarness:
 
         def _pair_for_case(self, case):
             pair = Pair()
-            pair.set_from_data(case['id'], case['r1'], case['r2'])
+            pair.set_from_data(str(case['id']), str(case['r1']), str(case['r2']))
             if 'r1_quality' in case:
-                pair.r1.quality = case['r1_quality']
-            else:
-                pair.r1.quality = 'K' * len(case['r1'])
+                pair.r1.quality = str(case['r1_quality'])
             if 'r2_quality' in case:
-                pair.r2.quality = case['r2_quality']
-            else:
-                pair.r2.quality = 'K' * len(case['r2'])
+                pair.r2.quality = str(case['r2_quality'])
             return pair
 
         def _check_expects(self, expects, pair, caseid):
@@ -157,8 +173,7 @@ class TestHarness:
                 self.assertEqual(pair.target, expects['pair.target'], msg + "pair.target={} != expect.pair.target={}".format(pair.target, expects['pair.target']))
 
 
-
-if __name__ == "__main__":
+def run_harness():
     th = TestHarness()
     th.run_testsets()
     th.print_stats()

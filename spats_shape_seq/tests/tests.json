@@ -307,8 +307,7 @@
         {
             "set_name": "pairs_panel",
             "run_opts": { 
-                "minimum_target_match_length": 10,
-                "debug": true
+                "minimum_target_match_length": 10
             },
             "targets": [ "tRNA", "Adenine_Riboswitch", "5S_panel", "P4-P6_tetrahymena_ribozyme_GG_barcode", "RNAse_P_wt_T_barcode", "RNAse_P_A131_GG_barcode", "Glycine_Riboswitch_GG_barcode_A", "Glycine_Riboswitch_GG_barcode_C", "Glycine_Riboswitch_GG_barcode_T", "Glycine_Riboswitch_GG_barcode_G", "Glycine_Riboswitch_GG_barcode", "TPP_Riboswitch_T_barcode", "SAM_Riboswitch_T_barcode", "HepC_IRES_GG_barcode" ],
             "tests": [

@@ -136,6 +136,8 @@ u.%:
 t.%:
 	@${PYENV} python $(patsubst t.%, ${TOOLS_DIR}/misc.py %, $@)
 
+harness:
+	nosetests ${TEST_PKG}.test_harness
 
 # profiling
 
