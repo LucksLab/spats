@@ -222,6 +222,8 @@ class TestHarness:
                 if key == 'algorithms':
                     self.algorithms = value
                 else:
+                    if not hasattr(spatso.run, key):
+                        raise Exception('Invalid run_opt: {}'.format(key))
                     setattr(spatso.run, key, value)
             for target in self.testset.targets:
                 spatso.addTarget(target, self.outer.registry.targets[target])

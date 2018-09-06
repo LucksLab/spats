@@ -629,12 +629,16 @@ class SpatsTool(object):
                     continue
                 if isinstance(value, unicode):
                     value = str(value)
+                if not hasattr(spats.run, key):
+                    raise Exception('Invalid run_opt: {}'.format(key))
                 setattr(spats.run, key, value)
 
             for name, seq in test_case.targets.iteritems():
                 spats.addTarget(name, seq)
 
             pair = test_case.pair()
+            if len(algs) > 1:
+                print('\n[[ ALGORITHM: {} ]]'.format(algorithm))
             spats.process_pair(pair)
             print diagram(pair, spats.run)
 
