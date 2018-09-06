@@ -14,9 +14,37 @@ class SpatsCase(object):
         self.id = str(jsonDict['id'])
         self.r1 = str(jsonDict['r1'])
         self.r2 = str(jsonDict['r2'])
-        self.r1_quality = str(jsonDict.get('r1_quality', ''))
-        self.r2_quality = str(jsonDict.get('r2_quality', ''))
-        self.expects = jsonDict.get('expect')
+        self.r1_quality = str(jsonDict.get('r1_quality', '')) or None
+        self.r2_quality = str(jsonDict.get('r2_quality', '')) or None
+        self.comment = jsonDict.get('comment')
+        self.expect = jsonDict.get('expect', {})
+        self.run_opts = jsonDict.get('run_opts', {})
+        self.targets = jsonDict.get('targets', {})
+        self.set_name = jsonDict.get('set_name')
+
+    def clone(self):
+        return SpatsCase(self.jsonDict())
+
+    def jsonDict(self):
+        info = self.caseDict()
+        if self.run_opts:
+            info["run_opts"] = { k : v for k, v in self.run_opts.iteritems() }
+        if self.targets:
+            info["targets"] = { k : v for k, v in self.targets.iteritems() }
+        if self.set_name:
+            info["set_name"] = self.set_name
+        if self.comment:
+            info["comment"] = self.comment
+        return info
+
+    def caseDict(self):
+        info = { "id" : self.id, "r1" : self.r1, "r2" : self.r2 }
+        if self.r1_quality:
+            info["r1_quality"] = self.r1_quality
+            info["r2_quality"] = self.r2_quality
+        if self.expect:
+            info["expect"] = { k : v for k, v in self.expect.iteritems() }
+        return info
 
     def pair(self):
         pair = Pair()
@@ -29,20 +57,68 @@ class SpatsCase(object):
 
 class SpatsCaseSet(object):
 
-    def __init__(self, jsonDict):
+    def __init__(self, reg, jsonDict):
+        self.reg = reg
         self.name = str(jsonDict['set_name'])
         self.tests = [ SpatsCase(d) for d in jsonDict['tests'] ]
         self.targets = jsonDict['targets']
         self.run_opts = jsonDict.get('run_opts', {})
 
+    def extract_case(self, case_id):
+        for case in self.tests:
+            if case.id == case_id:
+                clone = case.clone()
+                for k, v in self.run_opts.iteritems():
+                    if k not in clone.run_opts:
+                        clone.run_opts[k] = v
+                for t in self.targets:
+                    if t not in clone.targets:
+                        clone.targets[t] = self.reg.targets[t]
+                clone.set_name = self.name
+                return clone
+        return None
+
 
 class SpatsCaseRegistry(object):
 
     def __init__(self, path = None):
-        testfile = path or os.path.join(os.path.dirname(__file__), "tests.json")
-        self.tests = json.loads(open(testfile, 'r').read())
-        self.testsets = [ SpatsCaseSet(d) for d in self.tests["tests"] ]
+        self.testfile = path or os.path.join(os.path.dirname(__file__), "tests.json")
+        self.tests = json.loads(open(self.testfile, 'r').read())
+        self.testsets = [ SpatsCaseSet(self, d) for d in self.tests["tests"] ]
         self.targets = { str(key) : str(val) for key, val in self.tests["targets"].iteritems() }
+
+    def extract_case(self, case_id):
+        for testset in self.testsets:
+            case = testset.extract_case(case_id)
+            if case:
+                return case
+        return None
+
+    def add_case(self, case_json):
+        for key in [ 'id', 'r1', 'r2', 'run_opts', 'set_name', 'targets' ]:
+            if key not in case_json:
+                raise Exception("Test case missing required key '{}'".format(key))
+        case = SpatsCase(case_json)
+        testset = None
+        for ts in self.tests["tests"]:
+            if case.set_name == ts["set_name"]:
+                testset = ts
+                break
+        if testset:
+            if case.run_opts != testset['run_opts']:
+                raise Exception('Case options do not match set options {}'.format(testset('run_opts')))
+            if case.targets.keys() != testset['targets']:
+                raise Exception('Case targets do not match set targets {}'.format(testset('targets')))
+            testset['tests'].append(case.caseDict())
+        else:
+            print("Creating new test_set '{}'...".format(case.set_name))
+            self.tests["tests"].append({ "set_name" : case.set_name,
+                                         "run_opts" : case.run_opts,
+                                         "targets" : case.targets.keys(),
+                                         "tests" : [ case.caseDict() ] })
+
+        open(self.testfile, 'w').write(json.dumps(self.tests, sort_keys = True, indent = 4, separators = (',', ': ')))
+
 
 def registry():
     return SpatsCaseRegistry()
@@ -127,7 +203,7 @@ class TestHarness:
             super(TestHarness.SpatsTestSet, self).__init__()
             self.outer = outer
             self.testset = testset
-            self.algorithms = [ "find_partial" ]
+            self.algorithms = [ "find_partial", "lookup" ]
             self._add_all_testcases()
 
         @property
@@ -178,7 +254,7 @@ class TestHarness:
             self._check_expects(case, pair)
 
         def _check_expects(self, case, pair):
-            expects = case.expects
+            expects = case.expect
             msg = "testset='{}', test id='{}', algorithm='{}' failed: ".format(self.test_set.name, case.id, self.spats.run.algorithm)
             if expects['site'] is None:
                 self.assertIs(pair.site, None, msg + "pair.site={} when expecting none.".format(pair.site))

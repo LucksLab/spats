@@ -25,7 +25,7 @@ class SpatsTool(object):
         self.config = None
         self.cotrans = False
         self._skip_log = False
-        self._no_config_required_commands = [ "doc", "help", "init", "viz", "show" ]
+        self._no_config_required_commands = [ "doc", "help", "init", "viz", "show", "extract_case", "add_case" ]
         self._private_commands = [ "viz" ]
         self._temp_files = []
         self._r1 = None
@@ -536,6 +536,43 @@ class SpatsTool(object):
         print('All match {}/{}.'.format(match, count))
         print(spats_fp._report_counts())
         print(spats_lookup._report_counts())
+
+    def _test_case_registry(self):
+        import spats_shape_seq.tests.test_harness
+        return spats_shape_seq.tests.test_harness.registry()
+
+    def extract_case(self):
+        """Extracts a test case from the registry.
+        """
+
+        if not self._command_args or len(self._command_args) < 2:
+            raise Exception("extract requires a test case id and an output filename")
+        case_id = self._command_args[0]
+        test_case_file = self._command_args[1]
+
+        reg = self._test_case_registry()
+        case = reg.extract_case(case_id)
+        if not case:
+            raise Exception('Unknown case id: {}'.format(case_id))
+
+        open(test_case_file, 'w').write(json.dumps(case.jsonDict(), sort_keys = True, indent = 4, separators = (',', ': ')))
+        print("Extracted case '{}' to '{}'".format(case_id, test_case_file))
+
+    def add_case(self):
+        """Adds a test case from the registry.
+        """
+
+        import spats_shape_seq.tests.test_harness
+
+        if not self._command_args:
+            raise Exception("add requires a test case file")
+
+        test_case_file = self._command_args[0]
+        test_case = json.loads(open(test_case_file, 'r').read())
+
+        reg = self._test_case_registry()
+        reg.add_case(test_case)
+        print("Added case '{}' to set '{}' in the test case registry.".format(test_case['id'], test_case['set_name']))
 
     def show(self):
         """Shows the diagram and result for analysis of a test case pair.

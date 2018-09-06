@@ -1,451 +1,2212 @@
 {
     "targets": {
-        "mut_single": "ggacaagcaatgcttgccttgatgttgaacttttgaatagtgattcaggaggttaatgATGagcaaaggagaagaacttttcactggagttgtcccaattcttgttg",
-        "mut_cotrans": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCGGGTCGGCATGGCATCTCCACCTCCTCGCGGT",
-        "SRP": "ATCGGGGGCTCTGTTGGTTCTCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCCTGACTCGGGCACCAAGGAC",
-        "hairpinA_circ": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
-        "HairpinC_SS2":  "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
+        "5S_panel": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCACTCGGGCACCAAGGAC",
+        "5SrRNA": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC",
         "5s": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC",
         "5su": "GGAUGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAUCUGACUCGGGCACCAAGGAC",
-        "5SrRNA": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGAC",
-        "cotrans_single": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACTCCTACCAGTATCACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC",
-        "tRNA": "GGCGGATTTAGCTCAGTTGGGAGAGCGCCAGACTGAAGATCTGGAGGTCCTGTGTTCGATCCACAGAATTCGCACCACACTCGGGCACCAAGGAC",
         "Adenine_Riboswitch": "GGACGCTTCATATAATCCTAATGATATGGTTTGGGAGTTTCTACCAAGAGCCTTAAACTCTTGATTATGAAGTGCACTCGGGCACCAAGGAC",
-        "5S_panel": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCACTCGGGCACCAAGGAC",
-        "P4-P6_tetrahymena_ribozyme_GG_barcode": "GGAATTGCGGGAAAGGGGTCAACAGCCGTTCAGTACCAAGTCTCAGGGGAAACTTTGAGATGGCCTTGCAAAGGGTATGGTAATAAGCTGACGGACATGGTCCTAACCACGCAGCCAAGTCCTAAGTCAACAGATCTTCTGTTGATATGGATGCAGTTCAAAACCCACTCGGGCACCAAGGACGG",
-        "RNAse_P_wt_T_barcode": "GGTCGTGCCTAGCGAAGTCATAAGCTAGGGCAGTCTTTAGAGGCTGACGGCAGGAAAAAAGCCTACGTCTTCGGATATGGCTGAGTATCCTTGAAAGTGCCACAGTGACGAAGTCTCACTAGAAATGGTGAGAGTGGAACGCGGTAAACCCCTCGACACTCGGGCACCAAGGACT",
-        "RNAse_P_A131_GG_barcode": "GGTCGTGCCTAGCGAAGTCATAAGCTAGGGCAGTCTTTAGAGGCTGAACGGCAGGAAAAAAGCCTACGTCTTCGGATATGGCTGAGTATCCTTGAAAGTGCCACAGTGACGAAGTCTCACTAGAAATGGTGAGAGTGGAACGCGGTAAACCCCTCGACACTCGGGCACCAAGGACGG",
+        "Glycine_Riboswitch_GG_barcode": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGCACTCGGGCACCAAGGACGG",
         "Glycine_Riboswitch_GG_barcode_A": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGACACTCGGGCACCAAGGACGG",
         "Glycine_Riboswitch_GG_barcode_C": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGCCACTCGGGCACCAAGGACGG",
-        "Glycine_Riboswitch_GG_barcode_T": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGTCACTCGGGCACCAAGGACGG",
         "Glycine_Riboswitch_GG_barcode_G": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGGCACTCGGGCACCAAGGACGG",
-        "Glycine_Riboswitch_GG_barcode": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGCACTCGGGCACCAAGGACGG",
-        "TPP_Riboswitch_T_barcode": "GGACTCGGGGTGCCCTTCTGCGTGAAGGCTGAGAAATACCCGTATCACCTGATCTGGATAATGCCAGCGTAGGGAAGTTCCACTCGGGCACCAAGGACT",
+        "Glycine_Riboswitch_GG_barcode_T": "GGTCGGATGAAGATATGAGGAGAGATTTCATTTTAATGAAACACCGAAGAAGTAAATCTTTCAGGTAAAAAGGACTCATATTGGACGAACCTCTGGAGAGCTTATCTAAGAGATAACACCGAAGGAGCAAAGCTAATTTTAGCCTAAACTCTCAGGTAAAAGGACGGAGTCACTCGGGCACCAAGGACGG",
+        "HairpinC_SS2": "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
+        "HepC_IRES_GG_barcode": "GGCCATGAATCACTCCCCTGTGAGGAACTACTGTCTTCACGCAGAAAGCGTCTAGCCATGGCGTTAGTATGAGTGTCGTGCAGCCTCCAGGACCCCCCCTCCCGGGAGAGCCATAGTGGTCTGCGGAACCGGTGAGTACACCGGAATTGCCAGGACGACCGGGTCCTTTCTTGGATTAACCCGCTCAATGCCTGGAGATTTGGGCGTGCCCCCGCGAGACTGCTAGCCGAGTAGTGTTGGGTCGCGAAAGGCCTTGTGGTACTGCCTGATAGGGTGCTTGCGAGTGCCCCGGGAGGTCTCGTAGACCGTGCATCATGAGCACGAATCCTAAACCTCAACACTCGGGCACCAAGGACGG",
+        "P4-P6_tetrahymena_ribozyme_GG_barcode": "GGAATTGCGGGAAAGGGGTCAACAGCCGTTCAGTACCAAGTCTCAGGGGAAACTTTGAGATGGCCTTGCAAAGGGTATGGTAATAAGCTGACGGACATGGTCCTAACCACGCAGCCAAGTCCTAAGTCAACAGATCTTCTGTTGATATGGATGCAGTTCAAAACCCACTCGGGCACCAAGGACGG",
+        "RNAse_P_A131_GG_barcode": "GGTCGTGCCTAGCGAAGTCATAAGCTAGGGCAGTCTTTAGAGGCTGAACGGCAGGAAAAAAGCCTACGTCTTCGGATATGGCTGAGTATCCTTGAAAGTGCCACAGTGACGAAGTCTCACTAGAAATGGTGAGAGTGGAACGCGGTAAACCCCTCGACACTCGGGCACCAAGGACGG",
+        "RNAse_P_wt_T_barcode": "GGTCGTGCCTAGCGAAGTCATAAGCTAGGGCAGTCTTTAGAGGCTGACGGCAGGAAAAAAGCCTACGTCTTCGGATATGGCTGAGTATCCTTGAAAGTGCCACAGTGACGAAGTCTCACTAGAAATGGTGAGAGTGGAACGCGGTAAACCCCTCGACACTCGGGCACCAAGGACT",
         "SAM_Riboswitch_T_barcode": "GGTTCTTATCAAGAGAAGCAGAGGGACTGGCCCGACGAAGCTTCAGCAACCGGTGTAATGGCGATCAGCCATGACCAAGGTGCTAAATCCAGCAAGCTCGAACAGCTTGGAAGATAAGAACACTCGGGCACCAAGGACT",
-        "HepC_IRES_GG_barcode": "GGCCATGAATCACTCCCCTGTGAGGAACTACTGTCTTCACGCAGAAAGCGTCTAGCCATGGCGTTAGTATGAGTGTCGTGCAGCCTCCAGGACCCCCCCTCCCGGGAGAGCCATAGTGGTCTGCGGAACCGGTGAGTACACCGGAATTGCCAGGACGACCGGGTCCTTTCTTGGATTAACCCGCTCAATGCCTGGAGATTTGGGCGTGCCCCCGCGAGACTGCTAGCCGAGTAGTGTTGGGTCGCGAAAGGCCTTGTGGTACTGCCTGATAGGGTGCTTGCGAGTGCCCCGGGAGGTCTCGTAGACCGTGCATCATGAGCACGAATCCTAAACCTCAACACTCGGGCACCAAGGACGG"
+        "SRP": "ATCGGGGGCTCTGTTGGTTCTCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCCTGACTCGGGCACCAAGGAC",
+        "TPP_Riboswitch_T_barcode": "GGACTCGGGGTGCCCTTCTGCGTGAAGGCTGAGAAATACCCGTATCACCTGATCTGGATAATGCCAGCGTAGGGAAGTTCCACTCGGGCACCAAGGACT",
+        "cotrans_single": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACTCCTACCAGTATCACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC",
+        "hairpinA_circ": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
+        "mut_cotrans": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCGGGTCGGCATGGCATCTCCACCTCCTCGCGGT",
+        "mut_single": "ggacaagcaatgcttgccttgatgttgaacttttgaatagtgattcaggaggttaatgATGagcaaaggagaagaacttttcactggagttgtcccaattcttgttg",
+        "tRNA": "GGCGGATTTAGCTCAGTTGGGAGAGCGCCAGACTGAAGATCTGGAGGTCCTGTGTTCGATCCACAGAATTCGCACCACACTCGGGCACCAAGGAC"
     },
-    "tests" : [
+    "tests": [
         {
-            "set_name": "muts",
             "run_opts": {
-                "count_mutations": true,
-                "allowed_target_errors": 1,
-                "ignore_stops_with_mismatched_overlap": true,
-                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
-            },
-            "targets": [ "mut_single" ],
-            "tests": [
-                { "id": "muts_1", "comment": "basic test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 16 ] } },
-                { "id": "muts_2", "comment": "basic test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [ 96 ] } },
-                { "id": "muts_3", "comment": "r1/r2 nearly overlap", "r1": "AAATCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "AATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGATT", "expect": { "end": 107, "site": 35, "muts": [] } },
-                { "id": "muts_4", "comment": "r1/r2 overlap", "r1": "TCCGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCGGA", "expect": { "end": 107, "site": 36, "muts": [] } },
-                { "id": "muts_5", "comment": "r1 mutation case -- disagree on overlap", "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCATTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "site": null } },
-                { "id": "muts_6", "comment": "r1 mutation case", "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 78 ] } },
-                { "id": "muts_7", "comment": "r1 mutation with adapter trim", "r1": "GGGTCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTTAGATCGGAAGAGCACAC", "r2": "AAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGACCCAGATCGGAAGAGCGTCG", "expect": { "end": 107, "site": 53, "muts": [ 54 ] } },
-                { "id": "muts_8", "comment": "r1 mutation on edge with trim", "r1": "GAACCAACAAGAATTGGGACAACTCCAGTGAAAGGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAAGATCGGA", "r2": "TCAGGAGGTTAATGATGAGCAAAGGAGAAGAACCTTTCACTGGAGTTGTCCCAATTCTTGTTGGTTCAGATCGGA", "expect": { "end": 107, "site": 44, "muts": [ 78 ] } },
-                { "id": "muts_9", "comment": "trim/mut edge case", "r1": "CCTACAACAAGAATTGGGACAACTCCAGTGAGAAGTTCTTCTCCTTTGCTCATCATTAAGATCGGAAGAGCACAC", "r2": "TAATGATGAGCAAAGGAGAAGAACTTCTCACTGGAGTTGTCCCAATTCTTGTTGTAGGAGATCGGAAGAGCGTCG", "expect": { "end": 107, "site": 53, "muts": [ 80 ] } },
-                { "id": "muts_10", "comment": "trim/mut edge case (but they disagree on overlap)", "r1": "CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCTTTAACCTCCTGAATCACTAA", "r2": "TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA", "expect": { "site": null } },
-                { "id": "muts_11", "comment": "trim/mut edge case", "r1": "CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAA", "r2": "TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA", "expect": { "end": 107, "site": 37, "muts": [] } }
-            ]
-        },
-        {
-            "set_name": "muts",
-            "run_opts": {
-                "count_mutations": true,
-                "allowed_target_errors": 1,
-                "ignore_stops_with_mismatched_overlap": true,
-                "mutations_require_quality_score" : 13,
-                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
-            },
-            "targets": [ "mut_single" ],
-            "tests": [
-                { "id": "muts_q1", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 16 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
-                { "id": "muts_q2", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [ 96 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
-                { "id": "muts_q3", "comment": "r1 mutation quality check case", "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 78 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
-                { "id": "muts_q4", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [] }, "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((", "r2_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((" },
-                { "id": "muts_q5", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [] }, "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((", "r2_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((" },
-                { "id": "muts_q6", "comment": "r1 mutation quality check case", "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [] }, "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((", "r2_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((" },
-                { "id": "muts_q7", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
-                { "id": "muts_q8", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [] }, "r1_quality": "AAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
-                { "id": "muts_q9", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 16 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
-                { "id": "muts_q10", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [ 96 ] }, "r1_quality": "AAAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" }
-            ]
-        },
-        {
-            "set_name": "muts_cotrans",
-            "run_opts": { 
-                "count_mutations": true,
-                "allowed_target_errors": 1,
-                "ignore_stops_with_mismatched_overlap": true,
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "cotrans": true,
-                "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
-            },
-            "targets": [ "mut_cotrans" ],
-            "tests": [
-                { "id": "muts_cotrans_1", "comment": "indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGCCAGCTACATCCCGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGA", "r2": "AGGTCAGATCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCTGACTCGGGCACCAA", "expect": { "end": 103, "site": 44, "muts": [52] } },
-                { "id": "muts_cotrans_2", "comment": "R1/R2 disagree on overlap; similar to x3, may need to factor in quality at some point", "r1": "AGGCGTCCTTGGTGCCCGAGTCAGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGG", "r2": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCT", "expect": { "site": null } },
-                { "id": "muts_cotrans_3", "comment": "note: on this one, the quality score on R1 vs. R2 indicates that mut 73 really is a misread on R2, so this case may change in the future (to be 88, 0, [88])... \nfor now it should be tossed b/c R1 and R2 disagree where they overlap \nxref https://trello.com/c/35mBHvPA/197-stop-map-r1-r2-disagree-case", "r1": "GAATGTCCTTGGTGCCCGAGTCAGGACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAAC", "r2": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCA", "expect": { "site": null } },
-                { "id": "muts_cotrans_4", "r1": "GAGCGTCCTTGGTGCCCGAGTCAGATGCCGACCCGGGTGGGGGCCCTGCCAGCTACATCCCGGCACACGCGTCAT", "r2": "TAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCG", "expect": { "end": 127, "site": 43, "muts": [44] } },
-                { "id": "muts_cotrans_5", "r1": "GAATGTCCTTGGTGCCCGAGTCAGTCCTTGGTGCCCGAGTCAGTCCTTGGTTCCCGAGTCACTCCTTTGTTCCCC", "r2": "AGGACTGACTCGGGCACCAAGGACTTTCTCGTTCACCTATTTCTTTCTCTTCCCCCTTTTTCTTTCTCTTTCTCC","expect": { "site": null } },
-                { "id": "muts_cotrans_6", "comment": "this one is slightly ambiguous due to mutation at the site. the code reports it the same as the rest for consistency, \nbut it's counted separately in counters for further analysis \nxref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case", "r1": "AAATGTCCTTGGTGCCCGAGTCAGATCTGCCTTAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGA", "r2": "TAAGGCAGATCTGACTCGGGCACCAAGGACATTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCG", "expect": { "end": 78, "site": 68, "muts": [69] } },
-                { "id": "muts_cotrans_7", "comment": "relatively short target match with one bp toggle", "r1": "CTCAGTCCTTGGTGCCCGAGTCAGTGAGCTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTC", "r2": "AGCTCACTGACTCGGGCACCAAGGACTGAGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGG", "expect": { "end": 50, "site": 44, "muts": [47] } },
-                { "id": "muts_cotrans_8", "comment": "matches more than one site-end-toggle combination in the target \nhttps://trello.com/c/fxS3L7aM/202-stop-map-ambiguous-match-minimum-target-match-length", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGTGGAGGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCT", "r2": "ACCTCCACTGACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTG", "expect": { "site": null } },
-                { "id": "muts_cotrans_9", "comment": "one mutation on R1 and one on R2, nonoverlapping. should not match due to multiple target errors", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGTGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTA", "r2": "AGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGA", "expect": { "site": null } },
-                { "id": "muts_cotrans_10", "comment": "corner case for find_partial, short target match", "r1": "TCCGGTCCTTGGTGCCCGAGTCAGATGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGT", "r2": "ACATCTGACTCGGGCACCAAGGACCGGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTC", "expect": { "site": null } },
-                { "id": "muts_cotrans_11", "comment": "extra BP on the end of R1, should fail", "r1": "TTTAAGTCCTTGGTGCCCGAGTCAGGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTA", "r2": "TACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACCTGACTCGGGCACCAAGGACTTAAA", "expect": { "site": null } }
-            ]
-        },
-        {
-            "set_name": "muts_multi",
-            "run_opts": { 
-                "algorithms": [ "find_partial" ],
+                "allowed_target_errors": 1,
                 "count_mutations": true,
-                "allowed_target_errors": 5,
-                "ignore_stops_with_mismatched_overlap": true,
-                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
-            },
-            "targets": [ "mut_single" ],
-            "tests": [
-                { "id": "muts_multi_1", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GCACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 2, 16 ] } },
-                { "id": "muts_multi_2", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GTACTAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 2, 5, 16 ] } },
-                { "id": "muts_multi_3", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GTACTAGCAATACTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 2, 5, 12, 16 ] } },
-                { "id": "muts_multi_4", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GTACTAGCCATACTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 2, 5, 9, 12,16 ] } },
-                { "id": "muts_multi_5", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GTATTAGCCATACTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "site": null } }
-            ]
-        },
-        {
-            "set_name": "muts_mismatched_overlap",
-            "run_opts": { 
-                "algorithms": [ "find_partial" ],
-                "count_mutations": true,
-                "allowed_target_errors": 2,
-                "allowed_target_errors": 5,
-                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
-            },
-            "targets": [ "SRP" ],
-            "tests": [
-                { "id": "muts_mismatched_overlap_1", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC", "r2": "GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT", "expect": { "end": 137, "site": 81, "muts": [ 117 ] } },
-                { "id": "muts_mismatched_overlap_2", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC", "r2": "GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC", "expect": { "end": 137, "site": 92, "muts": [ 117 ] } },
-                { "id": "muts_mismatched_overlap_3", "r1": "CCCGGTCCTTGGTGCCCGAGTCAGTAGATCGGAAGA", "r2": "TCTGACTCGGGCACCAAGGACCGGGAGATCGGAAGA", "expect": { "end": 137, "site": 116, "muts": [ 117 ] } }
-            ]
-        },
-        {
-            "set_name": "muts_mismatched_overlap_igmm",
-            "run_opts": { 
-                "algorithms": [ "find_partial" ],
-                "count_mutations": true,
-                "allowed_target_errors": 2,
-                "ignore_stops_with_mismatched_overlap": true,
-                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
-            },
-            "targets": [ "SRP" ],
-            "tests": [
-                { "id": "muts_mismatched_overlap_igmm_1", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC", "r2": "GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT", "expect": { "site": null } },
-                { "id": "muts_mismatched_overlap_igmm_2", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC", "r2": "GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC", "expect": { "site": null } },
-                { "id": "muts_mismatched_overlap_igmm_3", "r1": "CCCGGTCCTTGGTGCCCGAGTCAGTAGATCGGAAGA", "r2": "TCTGACTCGGGCACCAAGGACCGGGAGATCGGAAGA", "expect": { "site": null } }
-            ]
-        },
-        {
-            "set_name": "muts_prefix",
-            "run_opts": { 
-                "algorithms": [ "find_partial" ],
-                "count_mutations": true,
-                "allowed_target_errors": 8,
-                "count_edge_mutations": "stop_and_mut",
-                "count_left_prefixes": true,
-                "collapse_left_prefixes": true,
-                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
-            },
-            "targets": [ "hairpinA_circ" ],
-            "tests": [
-                { "id": "muts_prefix_1", "r1": "CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC", "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT", "expect": { "end": 87, "site": 0, "muts": [ 75 ] } }
-            ]
-        },
-        {
-            "set_name": "muts_prefix_igmm",
-            "run_opts": { 
-                "algorithms": [ "find_partial" ],
-                "count_mutations": true,
-                "allowed_target_errors": 8,
-                "count_edge_mutations": "stop_and_mut",
-                "count_left_prefixes": true,
-                "collapse_left_prefixes": true,
-                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "ignore_stops_with_mismatched_overlap": true
             },
-            "targets": [ "hairpinA_circ" ],
+            "set_name": "muts",
+            "targets": [
+                "mut_single"
+            ],
             "tests": [
-                { "id": "muts_prefix_igmm_1", "r1": "CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC", "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT", "expect": { "site": null } }
+                {
+                    "comment": "basic test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            16
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_1",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA"
+                },
+                {
+                    "comment": "basic test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            96
+                        ],
+                        "site": 2
+                    },
+                    "id": "muts_2",
+                    "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC"
+                },
+                {
+                    "comment": "r1/r2 nearly overlap",
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 35
+                    },
+                    "id": "muts_3",
+                    "r1": "AAATCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "AATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGATT"
+                },
+                {
+                    "comment": "r1/r2 overlap",
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 36
+                    },
+                    "id": "muts_4",
+                    "r1": "TCCGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "ATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCGGA"
+                },
+                {
+                    "comment": "r1 mutation case -- disagree on overlap",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_5",
+                    "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCATTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA"
+                },
+                {
+                    "comment": "r1 mutation case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            78
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_6",
+                    "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA"
+                },
+                {
+                    "comment": "r1 mutation with adapter trim",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            54
+                        ],
+                        "site": 53
+                    },
+                    "id": "muts_7",
+                    "r1": "GGGTCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTTAGATCGGAAGAGCACAC",
+                    "r2": "AAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGACCCAGATCGGAAGAGCGTCG"
+                },
+                {
+                    "comment": "r1 mutation on edge with trim",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            78
+                        ],
+                        "site": 44
+                    },
+                    "id": "muts_8",
+                    "r1": "GAACCAACAAGAATTGGGACAACTCCAGTGAAAGGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAAGATCGGA",
+                    "r2": "TCAGGAGGTTAATGATGAGCAAAGGAGAAGAACCTTTCACTGGAGTTGTCCCAATTCTTGTTGGTTCAGATCGGA"
+                },
+                {
+                    "comment": "trim/mut edge case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            80
+                        ],
+                        "site": 53
+                    },
+                    "id": "muts_9",
+                    "r1": "CCTACAACAAGAATTGGGACAACTCCAGTGAGAAGTTCTTCTCCTTTGCTCATCATTAAGATCGGAAGAGCACAC",
+                    "r2": "TAATGATGAGCAAAGGAGAAGAACTTCTCACTGGAGTTGTCCCAATTCTTGTTGTAGGAGATCGGAAGAGCGTCG"
+                },
+                {
+                    "comment": "trim/mut edge case (but they disagree on overlap)",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_10",
+                    "r1": "CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCTTTAACCTCCTGAATCACTAA",
+                    "r2": "TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA"
+                },
+                {
+                    "comment": "trim/mut edge case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 37
+                    },
+                    "id": "muts_11",
+                    "r1": "CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAA",
+                    "r2": "TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "allowed_target_errors": 1,
+                "count_mutations": true,
+                "ignore_stops_with_mismatched_overlap": true,
+                "mutations_require_quality_score": 13
+            },
+            "set_name": "muts",
+            "targets": [
+                "mut_single"
+            ],
+            "tests": [
+                {
+                    "comment": "basic quality check test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            16
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_q1",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "comment": "basic quality check test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            96
+                        ],
+                        "site": 2
+                    },
+                    "id": "muts_q2",
+                    "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "comment": "r1 mutation quality check case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            78
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_q3",
+                    "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "comment": "basic quality check test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "muts_q4",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((",
+                    "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA",
+                    "r2_quality": "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
+                },
+                {
+                    "comment": "basic quality check test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 2
+                    },
+                    "id": "muts_q5",
+                    "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((",
+                    "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC",
+                    "r2_quality": "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
+                },
+                {
+                    "comment": "r1 mutation quality check case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "muts_q6",
+                    "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA",
+                    "r2_quality": "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
+                },
+                {
+                    "comment": "basic quality check test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "muts_q7",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "comment": "basic quality check test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 2
+                    },
+                    "id": "muts_q8",
+                    "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "comment": "basic quality check test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            16
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_q9",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "comment": "basic quality check test case",
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            96
+                        ],
+                        "site": 2
+                    },
+                    "id": "muts_q10",
+                    "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAA!AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "allowed_target_errors": 1,
+                "cotrans": true,
+                "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
+                "count_mutations": true,
+                "ignore_stops_with_mismatched_overlap": true
+            },
+            "set_name": "muts_cotrans",
+            "targets": [
+                "mut_cotrans"
+            ],
+            "tests": [
+                {
+                    "comment": "indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention",
+                    "expect": {
+                        "end": 103,
+                        "muts": [
+                            52
+                        ],
+                        "site": 44
+                    },
+                    "id": "muts_cotrans_1",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTCAGCCAGCTACATCCCGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGA",
+                    "r2": "AGGTCAGATCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCTGACTCGGGCACCAA"
+                },
+                {
+                    "comment": "R1/R2 disagree on overlap; similar to x3, may need to factor in quality at some point",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_cotrans_2",
+                    "r1": "AGGCGTCCTTGGTGCCCGAGTCAGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGG",
+                    "r2": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCT"
+                },
+                {
+                    "comment": "note: on this one, the quality score on R1 vs. R2 indicates that mut 73 really is a misread on R2, so this case may change in the future (to be 88, 0, [88])... \nfor now it should be tossed b/c R1 and R2 disagree where they overlap \nxref https://trello.com/c/35mBHvPA/197-stop-map-r1-r2-disagree-case",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_cotrans_3",
+                    "r1": "GAATGTCCTTGGTGCCCGAGTCAGGACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAAC",
+                    "r2": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGTCA"
+                },
+                {
+                    "expect": {
+                        "end": 127,
+                        "muts": [
+                            44
+                        ],
+                        "site": 43
+                    },
+                    "id": "muts_cotrans_4",
+                    "r1": "GAGCGTCCTTGGTGCCCGAGTCAGATGCCGACCCGGGTGGGGGCCCTGCCAGCTACATCCCGGCACACGCGTCAT",
+                    "r2": "TAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_cotrans_5",
+                    "r1": "GAATGTCCTTGGTGCCCGAGTCAGTCCTTGGTGCCCGAGTCAGTCCTTGGTTCCCGAGTCACTCCTTTGTTCCCC",
+                    "r2": "AGGACTGACTCGGGCACCAAGGACTTTCTCGTTCACCTATTTCTTTCTCTTCCCCCTTTTTCTTTCTCTTTCTCC"
+                },
+                {
+                    "comment": "this one is slightly ambiguous due to mutation at the site. the code reports it the same as the rest for consistency, \nbut it's counted separately in counters for further analysis \nxref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case",
+                    "expect": {
+                        "end": 78,
+                        "muts": [
+                            69
+                        ],
+                        "site": 68
+                    },
+                    "id": "muts_cotrans_6",
+                    "r1": "AAATGTCCTTGGTGCCCGAGTCAGATCTGCCTTAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGA",
+                    "r2": "TAAGGCAGATCTGACTCGGGCACCAAGGACATTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCG"
+                },
+                {
+                    "comment": "relatively short target match with one bp toggle",
+                    "expect": {
+                        "end": 50,
+                        "muts": [
+                            47
+                        ],
+                        "site": 44
+                    },
+                    "id": "muts_cotrans_7",
+                    "r1": "CTCAGTCCTTGGTGCCCGAGTCAGTGAGCTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTC",
+                    "r2": "AGCTCACTGACTCGGGCACCAAGGACTGAGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGG"
+                },
+                {
+                    "comment": "matches more than one site-end-toggle combination in the target \nhttps://trello.com/c/fxS3L7aM/202-stop-map-ambiguous-match-minimum-target-match-length",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_cotrans_8",
+                    "r1": "AAGCGTCCTTGGTGCCCGAGTCAGTGGAGGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCT",
+                    "r2": "ACCTCCACTGACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTG"
+                },
+                {
+                    "comment": "one mutation on R1 and one on R2, nonoverlapping. should not match due to multiple target errors",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_cotrans_9",
+                    "r1": "AAGCGTCCTTGGTGCCCGAGTCAGTGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTA",
+                    "r2": "AGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGA"
+                },
+                {
+                    "comment": "corner case for find_partial, short target match",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_cotrans_10",
+                    "r1": "TCCGGTCCTTGGTGCCCGAGTCAGATGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGT",
+                    "r2": "ACATCTGACTCGGGCACCAAGGACCGGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTC"
+                },
+                {
+                    "comment": "extra BP on the end of R1, should fail",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_cotrans_11",
+                    "r1": "TTTAAGTCCTTGGTGCCCGAGTCAGGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTA",
+                    "r2": "TACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACCTGACTCGGGCACCAAGGACTTAAA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "algorithms": [
+                    "find_partial"
+                ],
+                "allowed_target_errors": 5,
+                "count_mutations": true,
+                "ignore_stops_with_mismatched_overlap": true
+            },
+            "set_name": "muts_multi",
+            "targets": [
+                "mut_single"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            2,
+                            16
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_multi_1",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "GCACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            2,
+                            5,
+                            16
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_multi_2",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "GTACTAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            2,
+                            5,
+                            12,
+                            16
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_multi_3",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "GTACTAGCAATACTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            2,
+                            5,
+                            9,
+                            12,
+                            16
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_multi_4",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "GTACTAGCCATACTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_multi_5",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r2": "GTATTAGCCATACTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "algorithms": [
+                    "find_partial"
+                ],
+                "allowed_target_errors": 5,
+                "count_mutations": true
+            },
+            "set_name": "muts_mismatched_overlap",
+            "targets": [
+                "SRP"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "end": 137,
+                        "muts": [
+                            117
+                        ],
+                        "site": 81
+                    },
+                    "id": "muts_mismatched_overlap_1",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC",
+                    "r2": "GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT"
+                },
+                {
+                    "expect": {
+                        "end": 137,
+                        "muts": [
+                            117
+                        ],
+                        "site": 92
+                    },
+                    "id": "muts_mismatched_overlap_2",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC",
+                    "r2": "GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC"
+                },
+                {
+                    "expect": {
+                        "end": 137,
+                        "muts": [
+                            117
+                        ],
+                        "site": 116
+                    },
+                    "id": "muts_mismatched_overlap_3",
+                    "r1": "CCCGGTCCTTGGTGCCCGAGTCAGTAGATCGGAAGA",
+                    "r2": "TCTGACTCGGGCACCAAGGACCGGGAGATCGGAAGA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "algorithms": [
+                    "find_partial"
+                ],
+                "allowed_target_errors": 2,
+                "count_mutations": true,
+                "ignore_stops_with_mismatched_overlap": true
+            },
+            "set_name": "muts_mismatched_overlap_igmm",
+            "targets": [
+                "SRP"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_mismatched_overlap_igmm_1",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC",
+                    "r2": "GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_mismatched_overlap_igmm_2",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC",
+                    "r2": "GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_mismatched_overlap_igmm_3",
+                    "r1": "CCCGGTCCTTGGTGCCCGAGTCAGTAGATCGGAAGA",
+                    "r2": "TCTGACTCGGGCACCAAGGACCGGGAGATCGGAAGA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "algorithms": [
+                    "find_partial"
+                ],
+                "allowed_target_errors": 8,
+                "collapse_left_prefixes": true,
+                "count_edge_mutations": "stop_and_mut",
+                "count_left_prefixes": true,
+                "count_mutations": true
+            },
+            "set_name": "muts_prefix",
+            "targets": [
+                "hairpinA_circ"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "end": 87,
+                        "muts": [
+                            75
+                        ],
+                        "site": 0
+                    },
+                    "id": "muts_prefix_1",
+                    "r1": "CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC",
+                    "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "algorithms": [
+                    "find_partial"
+                ],
+                "allowed_target_errors": 8,
+                "collapse_left_prefixes": true,
+                "count_edge_mutations": "stop_and_mut",
+                "count_left_prefixes": true,
+                "count_mutations": true,
+                "ignore_stops_with_mismatched_overlap": true
+            },
+            "set_name": "muts_prefix_igmm",
+            "targets": [
+                "hairpinA_circ"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "muts_prefix_igmm_1",
+                    "r1": "CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC",
+                    "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT"
+                }
             ]
         },
         {
             "set_name": "pairs",
-            "targets": [ "5s" ], 
+            "targets": [
+                "5s"
+            ],
             "tests": [
-                { "id": "pairs_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", "expect": { "site": 29 } },
-                { "id": "pairs_2", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA", "expect": { "site": 27 } },
-                { "id": "pairs_3", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", "expect": { "site": 123 } },
-                { "id": "pairs_4", "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "r2": "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG", "expect": { "site": null } },
-                { "id": "pairs_5", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCTGACCCCATGCCGAACTCAGAAGTGAAACCCCG", "expect": { "site": null } },
-                { "id": "pairs_6", "r1": "TCTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGAC", "r2": "ACTCGGGCACCAAGGACCAGAAGATCGGAAGAGCG", "expect": { "site": null } },
-                { "id": "pairs_7", "r1": "AGATGTCCTTGGTGCCCGAGTCAGAAGATCGGGAA", "r2": "TCTGACTCGGGCACCAAGGACATCTAGATCGGAAG", "expect": { "site": null } },
-                { "id": "pairs_8", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAGAGATCGGAAAA", "expect": { "site": null } },
-                { "id": "pairs_9", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "expect": { "site": null } },
-                { "id": "pairs_10", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC", "expect": { "site": null } },
-                { "id": "pairs_11", "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG", "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG", "expect": { "site": 118 } },
-                { "id": "pairs_12", "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATG", "expect": { "site": 64 }, "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial" },
-                { "id": "pairs_13", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCAT", "expect": { "site": 63 }, "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial" },
-                { "id": "pairs_14", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", "expect": { "site": null }, "comment": "similarly if you don't keep checking all sites" },
-            
-                { "id": "pairs_15", "r1": "TCTGAGATCGGAAGAGCACACGTCTGAACTCCAGT", "r2": "CAGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGT", "expect": { "site": null }, "comment": "R1 is pure adapter, make sure it's rejected" },
-                { "id": "pairs_16", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCAGATCGGAAG", "r2": "TCTGACTCGGGCACCAAGGACTAAGAGATCGGAAG", "expect": { "site": null } },
-                { "id": "pairs_17", "r1": "AAACGTCCTTGGTGCCCGAGTCAGAGATCGAAGAG", "r2": "CTGACTCGGGCACCAAGGGCGTGTATATCGGAAGA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_18", "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG", "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG", "expect": { "site": 118 }, "comment": "differed with v102" },
-                { "id": "pairs_19", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_20", "r1": "NTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "NCCGAACTCAGAAGTGAANCGCCGTAGCGCNGANG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_21", "r1": "TTCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCTCCT", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_22", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_23", "r1": "AAACGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_24", "r1": "CTCAGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACTGAGAGATCGGCAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_25", "r1": "TTTAGTCCTTGGTGCCCGAGATCGGAAGAGCACAC", "r2": "CGGGCACCAAGGACTAAAAGATCGGAAGAGCGTCG", "expect": { "site": 129 }, "comment": "differed with v102" },
-                { "id": "pairs_26", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_27", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACACTTAGATCGGAA", "expect": { "site": 121 }, "comment": "differed with v102" },
-                { "id": "pairs_28", "r1": "GAGTGTCCTTGGTGCCCGAGTATCGGAAGAGCACA", "r2": "CGGGCACCAAGGACACTCAGATCGGAAGAGCGTCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_29", "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCAGAACGG", "r2": "GCATCTGACTCGGGCACCAAGGACATTCAGATCGG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_30", "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT", "expect": { "site": 116 }, "comment": "differed with v102" },
-                { "id": "pairs_31", "r1": "CCCGGTCCTTGGTGCCCGAGTCAGATGCAGATCGG", "r2": "GCATCTGACTCGGGCACCAAGGACCGGGAGATCGG", "expect": { "site": 119 }, "comment": "differed with v102" },
-                { "id": "pairs_32", "r1": "AGACGTCCTTGGTGCCCGAGTCAGATGCAGATCGG", "r2": "GCATCTGACTCGGGCACCAAGGACGTCTAGATCGG", "expect": { "site": 119 }, "comment": "differed with v102" },
-                { "id": "pairs_33", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGACCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAGGGAGCGGAAGA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_34", "r1": "NTCAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACNT", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_35", "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_36", "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT", "expect": { "site": 116 }, "comment": "differed with v102" },
-                { "id": "pairs_37", "r1": "TTTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA", "r2": "ACTCGGGCACCAAAGACCAAAAGATCGGAAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_38", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGACGGAAGAG", "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_39", "r1": "TCTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACCAGAAGATCGAAGAG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_40", "r1": "TCCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAGGCCTGGAAGAACGGAAGAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_41", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAAAGATTGGAAAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_42", "r1": "AGATGTCCTTGGTGCCCGAGTCAGATCGGAAGAGC", "r2": "GACTCGGGCACCAAGGACATCTAGATCGGAAAACC", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_43", "r1": "CTTAGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACTAAGGGATAGGAAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_44", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTAGATC", "r2": "AGGCATCTGACTCGGGCACCAAGGCCACCCAGATC", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_45", "r1": "AGATGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGCACATCTAGAT", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_46", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "ACTGCCAGGCATCTGACTCGGGCACCAAGGGCGCT", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_47", "r1": "TCCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "AACTGCCAGGCATCTGACTCGGGCACCAACGACCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_48", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAA", "r2": "TGCCAGGCATCTGACTCGGGCACCAAGGCCTAAAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_49", "r1": "TTCAGTCCTTGGTGCCCGAGTGATCGGAAGAGCAC", "r2": "CTCGGGCACCAAGGACTGAAAGCTCGGAAGAGCGA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_find_partial_weird", "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG", "expect": { "site": null }, "comment": "TODO: not sure what site should be here" }
+                {
+                    "expect": {
+                        "site": 29
+                    },
+                    "id": "pairs_1",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG"
+                },
+                {
+                    "expect": {
+                        "site": 27
+                    },
+                    "id": "pairs_2",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA"
+                },
+                {
+                    "expect": {
+                        "site": 123
+                    },
+                    "id": "pairs_3",
+                    "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_4",
+                    "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG",
+                    "r2": "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_5",
+                    "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "CCTGACCCCATGCCGAACTCAGAAGTGAAACCCCG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_6",
+                    "r1": "TCTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGAC",
+                    "r2": "ACTCGGGCACCAAGGACCAGAAGATCGGAAGAGCG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_7",
+                    "r1": "AGATGTCCTTGGTGCCCGAGTCAGAAGATCGGGAA",
+                    "r2": "TCTGACTCGGGCACCAAGGACATCTAGATCGGAAG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_8",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACTAAGAGATCGGAAAA"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_9",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA",
+                    "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_10",
+                    "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC"
+                },
+                {
+                    "expect": {
+                        "site": 118
+                    },
+                    "id": "pairs_11",
+                    "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG",
+                    "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG"
+                },
+                {
+                    "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial",
+                    "expect": {
+                        "site": 64
+                    },
+                    "id": "pairs_12",
+                    "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "CCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATG"
+                },
+                {
+                    "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial",
+                    "expect": {
+                        "site": 63
+                    },
+                    "id": "pairs_13",
+                    "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "GCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCAT"
+                },
+                {
+                    "comment": "similarly if you don't keep checking all sites",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_14",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG",
+                    "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT"
+                },
+                {
+                    "comment": "R1 is pure adapter, make sure it's rejected",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_15",
+                    "r1": "TCTGAGATCGGAAGAGCACACGTCTGAACTCCAGT",
+                    "r2": "CAGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGT"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_16",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCAGATCGGAAG",
+                    "r2": "TCTGACTCGGGCACCAAGGACTAAGAGATCGGAAG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_17",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAGAGATCGAAGAG",
+                    "r2": "CTGACTCGGGCACCAAGGGCGTGTATATCGGAAGA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 118
+                    },
+                    "id": "pairs_18",
+                    "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG",
+                    "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_19",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA",
+                    "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_20",
+                    "r1": "NTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "NCCGAACTCAGAAGTGAANCGCCGTAGCGCNGANG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_21",
+                    "r1": "TTCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCTCCT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_22",
+                    "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_23",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA",
+                    "r2": "ACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_24",
+                    "r1": "CTCAGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA",
+                    "r2": "ACTCGGGCACCAAGGACTGAGAGATCGGCAGAGCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 129
+                    },
+                    "id": "pairs_25",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGATCGGAAGAGCACAC",
+                    "r2": "CGGGCACCAAGGACTAAAAGATCGGAAGAGCGTCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_26",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA",
+                    "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 121
+                    },
+                    "id": "pairs_27",
+                    "r1": "AAGTGTCCTTGGTGCCCGAGTCAGATAGATCGGAA",
+                    "r2": "ATCTGACTCGGGCACCAAGGACACTTAGATCGGAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_28",
+                    "r1": "GAGTGTCCTTGGTGCCCGAGTATCGGAAGAGCACA",
+                    "r2": "CGGGCACCAAGGACACTCAGATCGGAAGAGCGTCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_29",
+                    "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCAGAACGG",
+                    "r2": "GCATCTGACTCGGGCACCAAGGACATTCAGATCGG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 116
+                    },
+                    "id": "pairs_30",
+                    "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT",
+                    "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 119
+                    },
+                    "id": "pairs_31",
+                    "r1": "CCCGGTCCTTGGTGCCCGAGTCAGATGCAGATCGG",
+                    "r2": "GCATCTGACTCGGGCACCAAGGACCGGGAGATCGG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 119
+                    },
+                    "id": "pairs_32",
+                    "r1": "AGACGTCCTTGGTGCCCGAGTCAGATGCAGATCGG",
+                    "r2": "GCATCTGACTCGGGCACCAAGGACGTCTAGATCGG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_33",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGACCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACTAAGGGAGCGGAAGA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_34",
+                    "r1": "NTCAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACNT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_35",
+                    "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG",
+                    "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 116
+                    },
+                    "id": "pairs_36",
+                    "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT",
+                    "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_37",
+                    "r1": "TTTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA",
+                    "r2": "ACTCGGGCACCAAAGACCAAAAGATCGGAAGAGCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_38",
+                    "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGACGGAAGAG",
+                    "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_39",
+                    "r1": "TCTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACCAGAAGATCGAAGAG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_40",
+                    "r1": "TCCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG",
+                    "r2": "TGACTCGGGCACCAAGGCCTGGAAGAACGGAAGAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_41",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACTAAAAGATTGGAAAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_42",
+                    "r1": "AGATGTCCTTGGTGCCCGAGTCAGATCGGAAGAGC",
+                    "r2": "GACTCGGGCACCAAGGACATCTAGATCGGAAAACC"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_43",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA",
+                    "r2": "ACTCGGGCACCAAGGACTAAGGGATAGGAAGAGCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_44",
+                    "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTAGATC",
+                    "r2": "AGGCATCTGACTCGGGCACCAAGGCCACCCAGATC"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_45",
+                    "r1": "AGATGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT",
+                    "r2": "CAGGCATCTGACTCGGGCACCAAGCACATCTAGAT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_46",
+                    "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "ACTGCCAGGCATCTGACTCGGGCACCAAGGGCGCT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_47",
+                    "r1": "TCCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "AACTGCCAGGCATCTGACTCGGGCACCAACGACCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_48",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAA",
+                    "r2": "TGCCAGGCATCTGACTCGGGCACCAAGGCCTAAAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_49",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTGATCGGAAGAGCAC",
+                    "r2": "CTCGGGCACCAAGGACTGAAAGCTCGGAAGAGCGA"
+                },
+                {
+                    "comment": "TODO: not sure what site should be here",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_find_partial_weird",
+                    "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG",
+                    "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG"
+                }
             ]
         },
         {
             "set_name": "pairs_u",
-            "targets": [ "5su" ],
+            "targets": [
+                "5su"
+            ],
             "tests": [
-                { "id": "pairs_u_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG", "expect": { "site": 29 } },
-                { "id": "pairs_u_2", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA", "expect": { "site": 27 } },
-                { "id": "pairs_u_3", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", "expect": { "site": 123 } },
-                { "id": "pairs_u_4", "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG", "r2": "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG", "expect": { "site": null } },
-                { "id": "pairs_u_5", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCTGACCCCATGCCGAACTCAGAAGTGAAACCCCG", "expect": { "site": null } },
-                { "id": "pairs_u_6", "r1": "TCTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGAC", "r2": "ACTCGGGCACCAAGGACCAGAAGATCGGAAGAGCG", "expect": { "site": null } },
-                { "id": "pairs_u_7", "r1": "AGATGTCCTTGGTGCCCGAGTCAGAAGATCGGGAA", "r2": "TCTGACTCGGGCACCAAGGACATCTAGATCGGAAG", "expect": { "site": null } },
-                { "id": "pairs_u_8", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAGAGATCGGAAAA", "expect": { "site": null } },
-                { "id": "pairs_u_9", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "expect": { "site": null } },
-                { "id": "pairs_u_10", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC", "expect": { "site": null } },
-                { "id": "pairs_u_11", "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG", "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG", "expect": { "site": 118 } },
-                { "id": "pairs_u_12", "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "CCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATG", "expect": { "site": 64 }, "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial" },
-                { "id": "pairs_u_13", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCAT", "expect": { "site": 63 }, "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial" },
-                { "id": "pairs_u_14", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", "expect": { "site": null }, "comment": "similarly if you don't keep checking all sites" },
-            
-                { "id": "pairs_u_15", "r1": "TCTGAGATCGGAAGAGCACACGTCTGAACTCCAGT", "r2": "CAGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGT", "expect": { "site": null }, "comment": "R1 is pure adapter, make sure it's rejected" },
-                { "id": "pairs_u_16", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCAGATCGGAAG", "r2": "TCTGACTCGGGCACCAAGGACTAAGAGATCGGAAG", "expect": { "site": null } },
-                { "id": "pairs_u_17", "r1": "AAACGTCCTTGGTGCCCGAGTCAGAGATCGAAGAG", "r2": "CTGACTCGGGCACCAAGGGCGTGTATATCGGAAGA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_18", "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG", "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG", "expect": { "site": 118 }, "comment": "differed with v102" },
-                { "id": "pairs_u_19", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_20", "r1": "NTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "NCCGAACTCAGAAGTGAANCGCCGTAGCGCNGANG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_21", "r1": "TTCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCTCCT", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_22", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_23", "r1": "AAACGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_24", "r1": "CTCAGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACTGAGAGATCGGCAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_25", "r1": "TTTAGTCCTTGGTGCCCGAGATCGGAAGAGCACAC", "r2": "CGGGCACCAAGGACTAAAAGATCGGAAGAGCGTCG", "expect": { "site": 129 }, "comment": "differed with v102" },
-                { "id": "pairs_u_26", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_27", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGATAGATCGGAA", "r2": "ATCTGACTCGGGCACCAAGGACACTTAGATCGGAA", "expect": { "site": 121 }, "comment": "differed with v102" },
-                { "id": "pairs_u_28", "r1": "GAGTGTCCTTGGTGCCCGAGTATCGGAAGAGCACA", "r2": "CGGGCACCAAGGACACTCAGATCGGAAGAGCGTCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_29", "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCAGAACGG", "r2": "GCATCTGACTCGGGCACCAAGGACATTCAGATCGG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_30", "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT", "expect": { "site": 116 }, "comment": "differed with v102" },
-                { "id": "pairs_u_31", "r1": "CCCGGTCCTTGGTGCCCGAGTCAGATGCAGATCGG", "r2": "GCATCTGACTCGGGCACCAAGGACCGGGAGATCGG", "expect": { "site": 119 }, "comment": "differed with v102" },
-                { "id": "pairs_u_32", "r1": "AGACGTCCTTGGTGCCCGAGTCAGATGCAGATCGG", "r2": "GCATCTGACTCGGGCACCAAGGACGTCTAGATCGG", "expect": { "site": 119 }, "comment": "differed with v102" },
-                { "id": "pairs_u_33", "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGACCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAGGGAGCGGAAGA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_34", "r1": "NTCAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACNT", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_35", "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_36", "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT", "expect": { "site": 116 }, "comment": "differed with v102" },
-                { "id": "pairs_u_37", "r1": "TTTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA", "r2": "ACTCGGGCACCAAAGACCAAAAGATCGGAAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_38", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGACGGAAGAG", "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_39", "r1": "TCTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACCAGAAGATCGAAGAG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_40", "r1": "TCCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAGGCCTGGAAGAACGGAAGAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_41", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA", "r2": "CTGACTCGGGCACCAAGGACTAAAAGATTGGAAAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_42", "r1": "AGATGTCCTTGGTGCCCGAGTCAGATCGGAAGAGC", "r2": "GACTCGGGCACCAAGGACATCTAGATCGGAAAACC", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_43", "r1": "CTTAGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA", "r2": "ACTCGGGCACCAAGGACTAAGGGATAGGAAGAGCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_44", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTAGATC", "r2": "AGGCATCTGACTCGGGCACCAAGGCCACCCAGATC", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_45", "r1": "AGATGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT", "r2": "CAGGCATCTGACTCGGGCACCAAGCACATCTAGAT", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_46", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "ACTGCCAGGCATCTGACTCGGGCACCAAGGGCGCT", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_47", "r1": "TCCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "AACTGCCAGGCATCTGACTCGGGCACCAACGACCG", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_48", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAA", "r2": "TGCCAGGCATCTGACTCGGGCACCAAGGCCTAAAA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_49", "r1": "TTCAGTCCTTGGTGCCCGAGTGATCGGAAGAGCAC", "r2": "CTCGGGCACCAAGGACTGAAAGCTCGGAAGAGCGA", "expect": { "site": null }, "comment": "differed with v102" },
-                { "id": "pairs_u_find_partial_weird", "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG", "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG", "expect": { "site": null }, "comment": "TODO: not sure what site should be here" }
+                {
+                    "expect": {
+                        "site": 29
+                    },
+                    "id": "pairs_u_1",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "CCACCTGACCCCATGCCGAACTCAGAAGTGAAACG"
+                },
+                {
+                    "expect": {
+                        "site": 27
+                    },
+                    "id": "pairs_u_2",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "TCCCACCTGACCCCATGCCGAACTCAGAAGTGAAA"
+                },
+                {
+                    "expect": {
+                        "site": 123
+                    },
+                    "id": "pairs_u_3",
+                    "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_4",
+                    "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTGGTAGATCGG",
+                    "r2": "ACCACTGACTCGGGCACCAAGGACACTCAGATCGG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_5",
+                    "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "CCTGACCCCATGCCGAACTCAGAAGTGAAACCCCG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_6",
+                    "r1": "TCTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGAC",
+                    "r2": "ACTCGGGCACCAAGGACCAGAAGATCGGAAGAGCG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_7",
+                    "r1": "AGATGTCCTTGGTGCCCGAGTCAGAAGATCGGGAA",
+                    "r2": "TCTGACTCGGGCACCAAGGACATCTAGATCGGAAG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_8",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACTAAGAGATCGGAAAA"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_9",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA",
+                    "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_10",
+                    "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC"
+                },
+                {
+                    "expect": {
+                        "site": 118
+                    },
+                    "id": "pairs_u_11",
+                    "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG",
+                    "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG"
+                },
+                {
+                    "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial",
+                    "expect": {
+                        "site": 64
+                    },
+                    "id": "pairs_u_12",
+                    "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "CCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATG"
+                },
+                {
+                    "comment": "tests for matching the wrong substring if your min_len is too small and you don't keep looking in find_partial",
+                    "expect": {
+                        "site": 63
+                    },
+                    "id": "pairs_u_13",
+                    "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "GCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCAT"
+                },
+                {
+                    "comment": "similarly if you don't keep checking all sites",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_14",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCTTGGTGCCCG",
+                    "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT"
+                },
+                {
+                    "comment": "R1 is pure adapter, make sure it's rejected",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_15",
+                    "r1": "TCTGAGATCGGAAGAGCACACGTCTGAACTCCAGT",
+                    "r2": "CAGAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGT"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_16",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTCAGCAGATCGGAAG",
+                    "r2": "TCTGACTCGGGCACCAAGGACTAAGAGATCGGAAG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_17",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAGAGATCGAAGAG",
+                    "r2": "CTGACTCGGGCACCAAGGGCGTGTATATCGGAAGA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 118
+                    },
+                    "id": "pairs_u_18",
+                    "r1": "GGATGTCCTTGGTGCCCGAGTCAGATGCCAGATCG",
+                    "r2": "GGCATCTGACTCGGGCACCAAGGACATACAGATCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_19",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA",
+                    "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_20",
+                    "r1": "NTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "NCCGAACTCAGAAGTGAANCGCCGTAGCGCNGANG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_21",
+                    "r1": "TTCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCTCCT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_22",
+                    "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACACTTAGATCGGAGAC"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_23",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA",
+                    "r2": "ACTCGGGCACCAAGGACGCTTAGATCGGAAGAGCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_24",
+                    "r1": "CTCAGTCCTTGGTGCCCGAGTCAATCGGAAGAGCA",
+                    "r2": "ACTCGGGCACCAAGGACTGAGAGATCGGCAGAGCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 129
+                    },
+                    "id": "pairs_u_25",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGATCGGAAGAGCACAC",
+                    "r2": "CGGGCACCAAGGACTAAAAGATCGGAAGAGCGTCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_26",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTCAGATAGATCGGAA",
+                    "r2": "ATCTGACTCGGGCACCAAGGACTGAAAGATCGAAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 121
+                    },
+                    "id": "pairs_u_27",
+                    "r1": "AAGTGTCCTTGGTGCCCGAGTCAGATAGATCGGAA",
+                    "r2": "ATCTGACTCGGGCACCAAGGACACTTAGATCGGAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_28",
+                    "r1": "GAGTGTCCTTGGTGCCCGAGTATCGGAAGAGCACA",
+                    "r2": "CGGGCACCAAGGACACTCAGATCGGAAGAGCGTCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_29",
+                    "r1": "GAATGTCCTTGGTGCCCGAGTCAGATGCAGAACGG",
+                    "r2": "GCATCTGACTCGGGCACCAAGGACATTCAGATCGG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 116
+                    },
+                    "id": "pairs_u_30",
+                    "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT",
+                    "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 119
+                    },
+                    "id": "pairs_u_31",
+                    "r1": "CCCGGTCCTTGGTGCCCGAGTCAGATGCAGATCGG",
+                    "r2": "GCATCTGACTCGGGCACCAAGGACCGGGAGATCGG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 119
+                    },
+                    "id": "pairs_u_32",
+                    "r1": "AGACGTCCTTGGTGCCCGAGTCAGATGCAGATCGG",
+                    "r2": "GCATCTGACTCGGGCACCAAGGACGTCTAGATCGG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_33",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTCAGAGACCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACTAAGGGAGCGGAAGA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_34",
+                    "r1": "NTCAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACNT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_35",
+                    "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG",
+                    "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": 116
+                    },
+                    "id": "pairs_u_36",
+                    "r1": "TCTAGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT",
+                    "r2": "CAGGCATCTGACTCGGGCACCAAGGACTAGAAGAT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_37",
+                    "r1": "TTTGGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA",
+                    "r2": "ACTCGGGCACCAAAGACCAAAAGATCGGAAGAGCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_38",
+                    "r1": "TTTGGTCCTTGGTGCCCGAGTCAGAGACGGAAGAG",
+                    "r2": "CTGACTCGGGCACCAAGGACCAAAAGATCGGAAGA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_39",
+                    "r1": "TCTGGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACCAGAAGATCGAAGAG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_40",
+                    "r1": "TCCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG",
+                    "r2": "TGACTCGGGCACCAAGGCCTGGAAGAACGGAAGAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_41",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGTCAGAGATCGGAAGA",
+                    "r2": "CTGACTCGGGCACCAAGGACTAAAAGATTGGAAAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_42",
+                    "r1": "AGATGTCCTTGGTGCCCGAGTCAGATCGGAAGAGC",
+                    "r2": "GACTCGGGCACCAAGGACATCTAGATCGGAAAACC"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_43",
+                    "r1": "CTTAGTCCTTGGTGCCCGAGTAGATCGGAAGAGCA",
+                    "r2": "ACTCGGGCACCAAGGACTAAGGGATAGGAAGAGCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_44",
+                    "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATGCCTAGATC",
+                    "r2": "AGGCATCTGACTCGGGCACCAAGGCCACCCAGATC"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_45",
+                    "r1": "AGATGTCCTTGGTGCCCGAGTCAGATGCCTGAGAT",
+                    "r2": "CAGGCATCTGACTCGGGCACCAAGCACATCTAGAT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_46",
+                    "r1": "AAGCGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "ACTGCCAGGCATCTGACTCGGGCACCAAGGGCGCT"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_47",
+                    "r1": "TCCGGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "AACTGCCAGGCATCTGACTCGGGCACCAACGACCG"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_48",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAA",
+                    "r2": "TGCCAGGCATCTGACTCGGGCACCAAGGCCTAAAA"
+                },
+                {
+                    "comment": "differed with v102",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_49",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTGATCGGAAGAGCAC",
+                    "r2": "CTCGGGCACCAAGGACTGAAAGCTCGGAAGAGCGA"
+                },
+                {
+                    "comment": "TODO: not sure what site should be here",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_u_find_partial_weird",
+                    "r1": "CTCAGTCCTTGGTGCCCGAGTCAGGATCGGAAGAG",
+                    "r2": "TGACTCGGGCACCAAAGACTGAGAGATCGGAAGAG"
+                }
             ]
         },
         {
-            "set_name": "pairs_minimum_length",
-            "run_opts": { 
+            "run_opts": {
                 "minimum_target_match_length": 11
             },
-            "targets": [ "5s" ],
+            "set_name": "pairs_minimum_length",
+            "targets": [
+                "5s"
+            ],
             "tests": [
-                { "id": "pairs_minimum_length_1", "r1": "TCCAGTCCTTGGAGATCGGAAGAGCACACGTCTGA", "r2": "CCAAGGACTGGAAGATCGGAAGAGCGTCGTGTAGG", "expect": { "site": null } }
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "pairs_minimum_length_1",
+                    "r1": "TCCAGTCCTTGGAGATCGGAAGAGCACACGTCTGA",
+                    "r2": "CCAAGGACTGGAAGATCGGAAGAGCGTCGTGTAGG"
+                }
             ]
         },
         {
-            "set_name": "pairs_minimum_length_tml8",
-            "run_opts": { 
+            "run_opts": {
                 "minimum_target_match_length": 8
             },
-            "targets": [ "5s" ],
+            "set_name": "pairs_minimum_length_tml8",
+            "targets": [
+                "5s"
+            ],
             "tests": [
-                { "id": "pairs_minimum_length_tml8_1", "r1": "TCCAGTCCTTGGAGATCGGAAGAGCACACGTCTGA", "r2": "CCAAGGACTGGAAGATCGGAAGAGCGTCGTGTAGG", "expect": { "site": 135 } }
+                {
+                    "expect": {
+                        "site": 135
+                    },
+                    "id": "pairs_minimum_length_tml8_1",
+                    "r1": "TCCAGTCCTTGGAGATCGGAAGAGCACACGTCTGA",
+                    "r2": "CCAAGGACTGGAAGATCGGAAGAGCGTCGTGTAGG"
+                }
             ]
         },
         {
-            "set_name": "pairs_panel",
-            "run_opts": { 
+            "run_opts": {
                 "minimum_target_match_length": 10
             },
-            "targets": [ "tRNA", "Adenine_Riboswitch", "5S_panel", "P4-P6_tetrahymena_ribozyme_GG_barcode", "RNAse_P_wt_T_barcode", "RNAse_P_A131_GG_barcode", "Glycine_Riboswitch_GG_barcode_A", "Glycine_Riboswitch_GG_barcode_C", "Glycine_Riboswitch_GG_barcode_T", "Glycine_Riboswitch_GG_barcode_G", "Glycine_Riboswitch_GG_barcode", "TPP_Riboswitch_T_barcode", "SAM_Riboswitch_T_barcode", "HepC_IRES_GG_barcode" ],
+            "set_name": "pairs_panel",
+            "targets": [
+                "tRNA",
+                "Adenine_Riboswitch",
+                "5S_panel",
+                "P4-P6_tetrahymena_ribozyme_GG_barcode",
+                "RNAse_P_wt_T_barcode",
+                "RNAse_P_A131_GG_barcode",
+                "Glycine_Riboswitch_GG_barcode_A",
+                "Glycine_Riboswitch_GG_barcode_C",
+                "Glycine_Riboswitch_GG_barcode_T",
+                "Glycine_Riboswitch_GG_barcode_G",
+                "Glycine_Riboswitch_GG_barcode",
+                "TPP_Riboswitch_T_barcode",
+                "SAM_Riboswitch_T_barcode",
+                "HepC_IRES_GG_barcode"
+            ],
             "tests": [
-                { "id": "pairs_panel_1", "r1": "CCCGCCGTCCTTGGTGCCCGAGTGAGATCGGAAGA", "r2": "CACTCGGGCACCAAGGACGGCGGGAGATCGGAAGA", "expect": { "site": null, "counters": { "multiple_R1_match": 1 }, "pair.target": null }, "comment": "test single R1 match with adapter multiple without.  TODO" }
+                {
+                    "comment": "test single R1 match with adapter multiple without.  TODO",
+                    "expect": {
+                        "counters": {
+                            "multiple_R1_match": 1
+                        },
+                        "pair.target": null,
+                        "site": null
+                    },
+                    "id": "pairs_panel_1",
+                    "r1": "CCCGCCGTCCTTGGTGCCCGAGTGAGATCGGAAGA",
+                    "r2": "CACTCGGGCACCAAGGACGGCGGGAGATCGGAAGA"
+                }
             ]
         },
         {
-            "set_name": "pairs_prefix",
-            "run_opts": { 
-                "algorithms": [ "find_partial" ],
+            "run_opts": {
+                "algorithms": [
+                    "find_partial"
+                ],
                 "collapse_left_prefixes": true
             },
-            "targets": [ "5s" ],
+            "set_name": "pairs_prefix",
+            "targets": [
+                "5s"
+            ],
             "tests": [
-                { "id": "pairs_prefix_1", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT", "expect": { "site": 0 } },
-                { "id": "pairs_prefix_2", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", "expect": { "site": 0, "counters": { "prefix_RRRY_T": 1 } } },
-                { "id": "pairs_prefix_3", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "TTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC", "expect": { "site": 0, "counters": { "prefix_RRRY_TT": 1 } } },
-                { "id": "pairs_prefix_4", "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG", "r2": "ACGTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCA", "expect": { "site": 0, "counters": { "prefix_RRRY_ACGT": 1 } } }
+                {
+                    "expect": {
+                        "site": 0
+                    },
+                    "id": "pairs_prefix_1",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "GGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACCT"
+                },
+                {
+                    "expect": {
+                        "counters": {
+                            "prefix_RRRY_T": 1
+                        },
+                        "site": 0
+                    },
+                    "id": "pairs_prefix_2",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "TGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC"
+                },
+                {
+                    "expect": {
+                        "counters": {
+                            "prefix_RRRY_TT": 1
+                        },
+                        "site": 0
+                    },
+                    "id": "pairs_prefix_3",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "TTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCACC"
+                },
+                {
+                    "expect": {
+                        "counters": {
+                            "prefix_RRRY_ACGT": 1
+                        },
+                        "site": 0
+                    },
+                    "id": "pairs_prefix_4",
+                    "r1": "AAACGTCCTTGGTGCCCGAGTCAGATGCCTGGCAG",
+                    "r2": "ACGTGGATGCCTGGCGGCCGTAGCGCGGTGGTCCCA"
+                }
             ]
         },
         {
-            "set_name": "cotrans",
-            "run_opts": { 
+            "run_opts": {
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
             },
-            "targets": [ "cotrans_single" ],
+            "set_name": "cotrans",
+            "targets": [
+                "cotrans_single"
+            ],
             "tests": [
-                { "id": "cotrans_1", "r1": "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA", "r2": "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC", "expect": { "end": 93, "site": 68 }, "comment": "R2 partial linker case" },
-                { "id": "cotrans_2", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGAAAAGTTCTTCT", "r2": "TCTATGAGCAAAGGAGAAGAACTTTTCTGACTCGGG", "expect": { "end": 119, "site": 93 }, "comment": "R2 partial linker case" },
-                { "id": "cotrans_3", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT", "r2": "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA", "expect": { "site": null }, "comment": "1 bp toggle in last 4 of R2 (xref v102 compat cases)" },
-                { "id": "cotrans_4", "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "r2": "ATCTCTGACTCGGGCACCAAGGACACTTAGATCGGA", "expect": { "end": 96, "site": 92 }, "comment": "adapter trim case" },
-                { "id": "cotrans_5", "r1": "GAATGTCCTTGGTGCCCGAGTCAGAAAAAAATTTTT", "r2": "ATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACT", "expect": { "site": null }, "comment": "R1 no-match case" },
-                { "id": "cotrans_6", "r1": "TCCGGTCCTTGGTGCCCGAGTCAGAAAAAAATAGAA", "r2": "TCTATTTTTTTCTGACTCGGGCACCAAGGACCGGAA", "expect": { "end": 82, "site": 71 }, "comment": "one bp adapter trim case" },
-                { "id": "cotrans_7", "r1": "TTCAGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "r2": "ATCTCTGACTCGGGCACCAATGACCGGAAGATCGGA", "expect": { "site": null }, "comment": "one bp toggle in linker !" },
-                { "id": "cotrans_8", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGTAGCTAAGAAAT", "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", "expect": { "site": null } },
-                { "id": "cotrans_9", "r1": "AAATGTCCTTGGTGCCCGAGTCAGACTGGTAGGAGT", "r2": "TCTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT", "expect": { "site": null }, "comment": "R2 left of zero case" },
-                { "id": "cotrans_10", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGGAGTCATAGATC", "r2": "ATGACTCCTGACTCGGGCACCAAGGACGCTTAGATC", "expect": { "end": 46, "site": 39 }, "comment": "corner case b/c longest_match on rc(r1) could match the target spot, or the spot indicated by '.>xx<.' in target, both are 9bp long. make sure the code matches the correct one." },
-                { "id": "cotrans_11", "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATTAGCTAAGCA", "r2": "AGCTAATCTGACTCGGGCACCAAGGACGCTGCTTAG", "expect": { "site": null }, "comment": "R2 is misaligned with R1, when it includes the linker\n it should left-aligned with R1. also, note that the right side of R2 matches the target, to the right of the '->'. clearly messed up, should be rejected." },
-                { "id": "cotrans_12", "r1": "GAATGTCCTTGGTGCCCGAGTCAGAACTCCAAGATC", "r2": "TGGAGTTCTGACTCGGGCACCAAGGACATTCAGATC", "expect": { "site": null } },
-                { "id": "cotrans_13", "r1": "AAGCTGTCCTTGGTGCCCGAGTCAGGAAAAGTTCTT", "r2": "TTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAA", "expect": { "site": null }, "comment": "R1 over right edge (of linker)" },
-                { "id": "cotrans_14", "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTCGACAACTCCA", "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", "expect": { "site": null }, "comment": "R1 over right edge (of target)" },
-                { "id": "cotrans_15", "r1": "GGATGTCCTTGGTGCCCGAGTCAGCCTTAGATCGGA", "r2": "AAGGCTGACTCGGGCACCAAGGACATCCAGATCGGA", "expect": { "site": null }, "comment": "multiple R1 match" },
-                { "id": "cotrans_16", "r1": "GGACGTCCTTGGTGCCCGAGTCAGTATAGATCGGAA", "r2": "ATACTGACTCGGGCACCAAGGACTTCCAGATCGGAA", "expect": { "site": null }, "comment": "should fail b/c of short match and multiple R1" },
-                { "id": "cotrans_17", "r1": "TCCGGTCCTTGGTGCCCGAGTCAGAAAAAAATAGAA", "r2": "TCTATTTTTTTCTGACTCGGGCACCAAGGACCGTAA", "expect": { "end": 82, "site": 71 }, "comment": "1-bp toggle in R2 of handle -- for now, confirms that we ignore this" },
-                { "id": "cotrans_18", "r1": "GGACGTCCTTGGTGCCCGAGTCAGGGCGAACTAGAT", "r2": "AGTTCGCCCTGACTCGGGCACCAAGGACGTCCAGAT", "expect": { "end": 21, "site": 13 }, "comment": "testing cotrans minimum length -- L=21 passes" },
-                { "id": "cotrans_19", "r1": "GGACGTCCTTGGTGCCCGAGTCAGGCGAACTCAGAT", "r2": "GAGTTCGCCTGACTCGGGCACCAAGGACGTCCAGAT", "expect": { "end": 20, "site": 12 }, "comment": "testing cotrans minimum length -- L=20 passes" },
-                { "id": "cotrans_20", "r1": "GGACGTCCTTGGTGCCCGAGTCAGCGAACTCCAGAT", "r2": "GGAGTTCGCTGACTCGGGCACCAAGGACGTCCAGAT", "expect": { "site": null }, "comment": "testing cotrans minimum length -- L=19 fails" },
-                { "id": "cotrans_21", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", "expect": { "end": 132, "site": 0 }, "comment": "R1 on end of target sequence" },
-                { "id": "cotrans_22", "r1": "AAGCGTCCTTGGTGCCCGAGTCAGTTGAGATCGGAA", "r2": "CAACTGACTCGGGCACCAAGGACCCTTAGATCGGAA", "expect": { "end": 104, "site": 101 }, "comment": "very short (3bp) target match" },
-                { "id": "cotrans_23", "r1": "TCCAGTCCTTGGTGCCCGAGTCAGCTAAGCAGCGTT", "r2": "AATGACTCCTACCAGTATCACTACTGGTAGGAGTCT", "expect": { "site": null }, "comment": "R2 is to the right of R1 -- invalid pair" },
-                { "id": "cotrans_24", "r1": "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "r2": "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCC", "expect": { "site": null }, "comment": "adapter trim corner case (R2 requires a single bp trim, but it's a 1bp toggle)" },
-                { "id": "cotrans_25", "r1": "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA", "r2": "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCA", "expect": { "end": 27, "site": 16 }, "comment": "adapter trim corner case (R2 requires a trim -- which now matches R1)" },
-                { "id": "contrans_26", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGTAAAAAAATAGA", "r2": "TCTATTTTTTTACTGACTCGGGCACCAAGGACCAAA", "expect": { "end": 83, "site": 71 }, "comment": "R2 has linker and RC of R1 handle, but no adapter" }
+                {
+                    "comment": "R2 partial linker case",
+                    "expect": {
+                        "end": 93,
+                        "site": 68
+                    },
+                    "id": "cotrans_1",
+                    "r1": "TCCGGTCCTTGGTGCCCGAGTCAGTCCTTCCTCCTA",
+                    "r2": "GAGTCTATTTTTTTAGGAGGAAGGACTGACTCGGGC"
+                },
+                {
+                    "comment": "R2 partial linker case",
+                    "expect": {
+                        "end": 119,
+                        "site": 93
+                    },
+                    "id": "cotrans_2",
+                    "r1": "GGGTGTCCTTGGTGCCCGAGTCAGAAAAGTTCTTCT",
+                    "r2": "TCTATGAGCAAAGGAGAAGAACTTTTCTGACTCGGG"
+                },
+                {
+                    "comment": "1 bp toggle in last 4 of R2 (xref v102 compat cases)",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_3",
+                    "r1": "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT",
+                    "r2": "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA"
+                },
+                {
+                    "comment": "adapter trim case",
+                    "expect": {
+                        "end": 96,
+                        "site": 92
+                    },
+                    "id": "cotrans_4",
+                    "r1": "AAGTGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA",
+                    "r2": "ATCTCTGACTCGGGCACCAAGGACACTTAGATCGGA"
+                },
+                {
+                    "comment": "R1 no-match case",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_5",
+                    "r1": "GAATGTCCTTGGTGCCCGAGTCAGAAAAAAATTTTT",
+                    "r2": "ATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACT"
+                },
+                {
+                    "comment": "one bp adapter trim case",
+                    "expect": {
+                        "end": 82,
+                        "site": 71
+                    },
+                    "id": "cotrans_6",
+                    "r1": "TCCGGTCCTTGGTGCCCGAGTCAGAAAAAAATAGAA",
+                    "r2": "TCTATTTTTTTCTGACTCGGGCACCAAGGACCGGAA"
+                },
+                {
+                    "comment": "one bp toggle in linker !",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_7",
+                    "r1": "TTCAGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA",
+                    "r2": "ATCTCTGACTCGGGCACCAATGACCGGAAGATCGGA"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_8",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGTAGCTAAGAAAT",
+                    "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG"
+                },
+                {
+                    "comment": "R2 left of zero case",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_9",
+                    "r1": "AAATGTCCTTGGTGCCCGAGTCAGACTGGTAGGAGT",
+                    "r2": "TCTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT"
+                },
+                {
+                    "comment": "corner case b/c longest_match on rc(r1) could match the target spot, or the spot indicated by '.>xx<.' in target, both are 9bp long. make sure the code matches the correct one.",
+                    "expect": {
+                        "end": 46,
+                        "site": 39
+                    },
+                    "id": "cotrans_10",
+                    "r1": "AAGCGTCCTTGGTGCCCGAGTCAGGAGTCATAGATC",
+                    "r2": "ATGACTCCTGACTCGGGCACCAAGGACGCTTAGATC"
+                },
+                {
+                    "comment": "R2 is misaligned with R1, when it includes the linker\n it should left-aligned with R1. also, note that the right side of R2 matches the target, to the right of the '->'. clearly messed up, should be rejected.",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_11",
+                    "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATTAGCTAAGCA",
+                    "r2": "AGCTAATCTGACTCGGGCACCAAGGACGCTGCTTAG"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_12",
+                    "r1": "GAATGTCCTTGGTGCCCGAGTCAGAACTCCAAGATC",
+                    "r2": "TGGAGTTCTGACTCGGGCACCAAGGACATTCAGATC"
+                },
+                {
+                    "comment": "R1 over right edge (of linker)",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_13",
+                    "r1": "AAGCTGTCCTTGGTGCCCGAGTCAGGAAAAGTTCTT",
+                    "r2": "TTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAA"
+                },
+                {
+                    "comment": "R1 over right edge (of target)",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_14",
+                    "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTCGACAACTCCA",
+                    "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG"
+                },
+                {
+                    "comment": "multiple R1 match",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_15",
+                    "r1": "GGATGTCCTTGGTGCCCGAGTCAGCCTTAGATCGGA",
+                    "r2": "AAGGCTGACTCGGGCACCAAGGACATCCAGATCGGA"
+                },
+                {
+                    "comment": "should fail b/c of short match and multiple R1",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_16",
+                    "r1": "GGACGTCCTTGGTGCCCGAGTCAGTATAGATCGGAA",
+                    "r2": "ATACTGACTCGGGCACCAAGGACTTCCAGATCGGAA"
+                },
+                {
+                    "comment": "1-bp toggle in R2 of handle -- for now, confirms that we ignore this",
+                    "expect": {
+                        "end": 82,
+                        "site": 71
+                    },
+                    "id": "cotrans_17",
+                    "r1": "TCCGGTCCTTGGTGCCCGAGTCAGAAAAAAATAGAA",
+                    "r2": "TCTATTTTTTTCTGACTCGGGCACCAAGGACCGTAA"
+                },
+                {
+                    "comment": "testing cotrans minimum length -- L=21 passes",
+                    "expect": {
+                        "end": 21,
+                        "site": 13
+                    },
+                    "id": "cotrans_18",
+                    "r1": "GGACGTCCTTGGTGCCCGAGTCAGGGCGAACTAGAT",
+                    "r2": "AGTTCGCCCTGACTCGGGCACCAAGGACGTCCAGAT"
+                },
+                {
+                    "comment": "testing cotrans minimum length -- L=20 passes",
+                    "expect": {
+                        "end": 20,
+                        "site": 12
+                    },
+                    "id": "cotrans_19",
+                    "r1": "GGACGTCCTTGGTGCCCGAGTCAGGCGAACTCAGAT",
+                    "r2": "GAGTTCGCCTGACTCGGGCACCAAGGACGTCCAGAT"
+                },
+                {
+                    "comment": "testing cotrans minimum length -- L=19 fails",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_20",
+                    "r1": "GGACGTCCTTGGTGCCCGAGTCAGCGAACTCCAGAT",
+                    "r2": "GGAGTTCGCTGACTCGGGCACCAAGGACGTCCAGAT"
+                },
+                {
+                    "comment": "R1 on end of target sequence",
+                    "expect": {
+                        "end": 132,
+                        "site": 0
+                    },
+                    "id": "cotrans_21",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT",
+                    "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG"
+                },
+                {
+                    "comment": "very short (3bp) target match",
+                    "expect": {
+                        "end": 104,
+                        "site": 101
+                    },
+                    "id": "cotrans_22",
+                    "r1": "AAGCGTCCTTGGTGCCCGAGTCAGTTGAGATCGGAA",
+                    "r2": "CAACTGACTCGGGCACCAAGGACCCTTAGATCGGAA"
+                },
+                {
+                    "comment": "R2 is to the right of R1 -- invalid pair",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_23",
+                    "r1": "TCCAGTCCTTGGTGCCCGAGTCAGCTAAGCAGCGTT",
+                    "r2": "AATGACTCCTACCAGTATCACTACTGGTAGGAGTCT"
+                },
+                {
+                    "comment": "adapter trim corner case (R2 requires a single bp trim, but it's a 1bp toggle)",
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_24",
+                    "r1": "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA",
+                    "r2": "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCC"
+                },
+                {
+                    "comment": "adapter trim corner case (R2 requires a trim -- which now matches R1)",
+                    "expect": {
+                        "end": 27,
+                        "site": 16
+                    },
+                    "id": "cotrans_25",
+                    "r1": "GAACGTCCTTGGTGCCCGAGTCAGGTTTATGGCGAA",
+                    "r2": "TCGCCATAAACCTGACTCGGGCACCAAGGACGTTCA"
+                },
+                {
+                    "comment": "R2 has linker and RC of R1 handle, but no adapter",
+                    "expect": {
+                        "end": 83,
+                        "site": 71
+                    },
+                    "id": "contrans_26",
+                    "r1": "TTTGGTCCTTGGTGCCCGAGTCAGTAAAAAAATAGA",
+                    "r2": "TCTATTTTTTTACTGACTCGGGCACCAAGGACCAAA"
+                }
             ]
         },
         {
-            "set_name": "cotrans_prefix",
-            "run_opts": { 
-                "algorithms": [ "find_partial" ],
-                "cotrans": true,
-                "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
-                "collapse_left_prefixes": true
-            },
-            "targets": [ "cotrans_single" ],
-            "tests": [
-                { "id" : "cotrans_prefix_1", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", "expect": { "end": 132, "site": 0 } },
-                { "id" : "cotrans_prefix_2", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "r2": "TTTATAGGCGATGGAGTTCGCCATAAACGCTGCTTA", "expect": { "end": 132, "site": 0, "counters": { "prefix_RRRY_T": 1 } } },
-                { "id" : "cotrans_prefix_3", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "r2": "TTTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT", "expect": { "end": 132, "site": 0, "counters": { "prefix_RRRY_TT": 1 } } },
-                { "id" : "cotrans_prefix_4", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "r2": "ACGTTTATAGGCGATGGAGTTCGCCATAAACGCTGC", "expect": { "end": 132, "site": 0, "counters": { "prefix_RRRY_ACGT": 1 } } }
-            ]
-        },
-        {
-            "set_name": "cotrans_prefix_only",
-            "run_opts": { 
-                "algorithms": [ "find_partial" ],
-                "cotrans": true,
-                "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
+            "run_opts": {
+                "algorithms": [
+                    "find_partial"
+                ],
                 "collapse_left_prefixes": true,
-                "collapse_only_prefixes": "T,ACGT,CCA"
+                "cotrans": true,
+                "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
             },
-            "targets": [ "cotrans_single" ],
+            "set_name": "cotrans_prefix",
+            "targets": [
+                "cotrans_single"
+            ],
             "tests": [
-                { "id" : "cotrans_prefix_only_1", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG", "expect": { "end": 132, "site": 0 } },
-                { "id" : "cotrans_prefix_only_2", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "r2": "TTTATAGGCGATGGAGTTCGCCATAAACGCTGCTTA", "expect": { "end": 132, "site": 0 } },
-                { "id" : "cotrans_prefix_only_3", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "r2": "TTTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT", "expect": { "site": null } },
-                { "id" : "cotrans_prefix_only_4", "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT", "r2": "ACGTTTATAGGCGATGGAGTTCGCCATAAACGCTGC", "expect": { "end": 132, "site": 0 } }
+                {
+                    "expect": {
+                        "end": 132,
+                        "site": 0
+                    },
+                    "id": "cotrans_prefix_1",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT",
+                    "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG"
+                },
+                {
+                    "expect": {
+                        "counters": {
+                            "prefix_RRRY_T": 1
+                        },
+                        "end": 132,
+                        "site": 0
+                    },
+                    "id": "cotrans_prefix_2",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT",
+                    "r2": "TTTATAGGCGATGGAGTTCGCCATAAACGCTGCTTA"
+                },
+                {
+                    "expect": {
+                        "counters": {
+                            "prefix_RRRY_TT": 1
+                        },
+                        "end": 132,
+                        "site": 0
+                    },
+                    "id": "cotrans_prefix_3",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT",
+                    "r2": "TTTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT"
+                },
+                {
+                    "expect": {
+                        "counters": {
+                            "prefix_RRRY_ACGT": 1
+                        },
+                        "end": 132,
+                        "site": 0
+                    },
+                    "id": "cotrans_prefix_4",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT",
+                    "r2": "ACGTTTATAGGCGATGGAGTTCGCCATAAACGCTGC"
+                }
             ]
         },
         {
-            "set_name": "overlaps",
-            "run_opts": { 
-                "count_mutations": true,
+            "run_opts": {
+                "algorithms": [
+                    "find_partial"
+                ],
+                "collapse_left_prefixes": true,
+                "collapse_only_prefixes": "T,ACGT,CCA",
+                "cotrans": true,
+                "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
+            },
+            "set_name": "cotrans_prefix_only",
+            "targets": [
+                "cotrans_single"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "end": 132,
+                        "site": 0
+                    },
+                    "id": "cotrans_prefix_only_1",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT",
+                    "r2": "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAG"
+                },
+                {
+                    "expect": {
+                        "end": 132,
+                        "site": 0
+                    },
+                    "id": "cotrans_prefix_only_2",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT",
+                    "r2": "TTTATAGGCGATGGAGTTCGCCATAAACGCTGCTTA"
+                },
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "cotrans_prefix_only_3",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT",
+                    "r2": "TTTTATAGGCGATGGAGTTCGCCATAAACGCTGCTT"
+                },
+                {
+                    "expect": {
+                        "end": 132,
+                        "site": 0
+                    },
+                    "id": "cotrans_prefix_only_4",
+                    "r1": "AGGTGTCCTTGGTGCCCGAGTCAGGACAACTCCAGT",
+                    "r2": "ACGTTTATAGGCGATGGAGTTCGCCATAAACGCTGC"
+                }
+            ]
+        },
+        {
+            "run_opts": {
                 "allowed_target_errors": 1,
+                "count_mutations": true,
                 "ignore_stops_with_mismatched_overlap": true
             },
-            "targets": [ "SRP" ],
+            "set_name": "overlaps",
+            "targets": [
+                "SRP"
+            ],
             "tests": [
-                { "id": "overlap_1", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGAAGATCGGAAGA", "r2": "ACTGACTCGGGCACCAAGGACGCCCAGATCGGAAGA", "expect": { "site": null, "failure": "r1_r2_overlap" } },
-                { "id": "overlap_2", "r1": "GGGCGTCCTTGGTGCCCGAGTCAGAAGATCGGAAGA", "r2": "TCTGACTCGGGCACCAAGGACGCCCAGATCGGAAGA", "expect": { "site": 116 } }
+                {
+                    "expect": {
+                        "failure": "r1_r2_overlap",
+                        "site": null
+                    },
+                    "id": "overlap_1",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGAAGATCGGAAGA",
+                    "r2": "ACTGACTCGGGCACCAAGGACGCCCAGATCGGAAGA"
+                },
+                {
+                    "expect": {
+                        "site": 116
+                    },
+                    "id": "overlap_2",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGAAGATCGGAAGA",
+                    "r2": "TCTGACTCGGGCACCAAGGACGCCCAGATCGGAAGA"
+                }
             ]
         },
         {
-            "set_name": "dumbbell",
             "run_opts": {
-                "dumbbell" : "TGAACAGCGACTAGGCTCTTCA"
+                "dumbbell": "TGAACAGCGACTAGGCTCTTCA"
             },
-            "targets": [ "HairpinC_SS2" ],
+            "set_name": "dumbbell",
+            "targets": [
+                "HairpinC_SS2"
+            ],
             "tests": [
-                { "id": "dumbbell_1_testdba", "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAATGAAGAGCCTAGTCGCTGTTCAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCC", "r2": "TGAACAGCGACTAGGCTCTTCATTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCCACCCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGA", "expect": { "site": 49 } },
-                { "id": "dumbbell_1_test128", "r1": "AGATGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATTGAAGAGCCTAGTCGCTGTTCAAGATCGGAAGAGCAC", "r2": "TGAACAGCGACTAGGCTCTTCAATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCCATCTAGATCGGAAGAGCGT", "expect": { "site": 28 } },
-                { "id": "dumbbell_1_test2308", "r1": "AAGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCGCGGTGAAGAGCCTAGTCGCTGTTCAAGATCGGAA", "r2": "TGAACAGCGACTAGGCTCTTCACCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCCACTTAGATCGGAA", "expect": { "site": 22 } }
+                {
+                    "expect": {
+                        "site": 49
+                    },
+                    "id": "dumbbell_1_testdba",
+                    "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAATGAAGAGCCTAGTCGCTGTTCAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCC",
+                    "r2": "TGAACAGCGACTAGGCTCTTCATTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCCACCCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGA"
+                },
+                {
+                    "expect": {
+                        "site": 28
+                    },
+                    "id": "dumbbell_1_test128",
+                    "r1": "AGATGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATTGAAGAGCCTAGTCGCTGTTCAAGATCGGAAGAGCAC",
+                    "r2": "TGAACAGCGACTAGGCTCTTCAATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCCATCTAGATCGGAAGAGCGT"
+                },
+                {
+                    "expect": {
+                        "site": 22
+                    },
+                    "id": "dumbbell_1_test2308",
+                    "r1": "AAGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCGCGGTGAAGAGCCTAGTCGCTGTTCAAGATCGGAA",
+                    "r2": "TGAACAGCGACTAGGCTCTTCACCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCCACTTAGATCGGAA"
+                }
             ]
         },
         {
+            "run_opts": {},
             "set_name": "short_adapter_b",
-            "run_opts": { 
-            },
-            "targets": [ "5SrRNA" ],
+            "targets": [
+                "5SrRNA"
+            ],
             "tests": [
-                { "id": "short_adapter_b_1", "r1": "AAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTAAGATCGGAAGAGCACACGTCTGAACTCCAGTCA", "r2": "TAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGACATTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT", "expect": { "site": 105 } },
-                { "id": "short_adapter_b_2", "r1": "TTTGGTCCTTGGTGCCCGAGTCAGATAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTAT", "r2": "ATCTGACTCGGGCACCAAGGACCAAAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGC", "expect": { "site": 121 } },
-                { "id": "short_adapter_b_3", "r1": "GAGCGTCCTTGGTGCCCGAGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTATGCCGT", "r2": "ACTCGGGCACCAAGGACGCTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTAT", "expect": { "site": 126 } },
-                { "id": "short_adapter_b_4", "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTAGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", "r2": "AGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGACTAAAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA", "expect": { "site": 106 } },
-                { "id": "short_adapter_b_5", "r1": "GAGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCG", "r2": "GGAACTGCCAGGCATCTGACTCGGGCACCAAGGACACTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGA", "expect": { "site": 108 } },
-                { "id": "short_adapter_b_6", "r1": "CCCAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCAGATCGGAAGAGCACACGTCTGAACTCCAGTCACC", "r2": "GGGAACTGCCAGGCATCTGACTCGGGCACCAAGGACTGGGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAG", "expect": { "site": 107 } },
-                { "id": "short_adapter_b_7", "r1": "GAATGTCCTTGGTGCCCGAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTATGCCGTCT", "r2": "TCGGGCACCAAGGACATTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCA", "expect": { "site": 128 } }
+                {
+                    "expect": {
+                        "site": 105
+                    },
+                    "id": "short_adapter_b_1",
+                    "r1": "AAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTAAGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+                    "r2": "TAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGACATTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
+                },
+                {
+                    "expect": {
+                        "site": 121
+                    },
+                    "id": "short_adapter_b_2",
+                    "r1": "TTTGGTCCTTGGTGCCCGAGTCAGATAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTAT",
+                    "r2": "ATCTGACTCGGGCACCAAGGACCAAAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGC"
+                },
+                {
+                    "expect": {
+                        "site": 126
+                    },
+                    "id": "short_adapter_b_3",
+                    "r1": "GAGCGTCCTTGGTGCCCGAGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTATGCCGT",
+                    "r2": "ACTCGGGCACCAAGGACGCTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTAT"
+                },
+                {
+                    "expect": {
+                        "site": 106
+                    },
+                    "id": "short_adapter_b_4",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTAGATCGGAAGAGCACACGTCTGAACTCCAGTCAC",
+                    "r2": "AGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGACTAAAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA"
+                },
+                {
+                    "expect": {
+                        "site": 108
+                    },
+                    "id": "short_adapter_b_5",
+                    "r1": "GAGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCG",
+                    "r2": "GGAACTGCCAGGCATCTGACTCGGGCACCAAGGACACTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGA"
+                },
+                {
+                    "expect": {
+                        "site": 107
+                    },
+                    "id": "short_adapter_b_6",
+                    "r1": "CCCAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCAGATCGGAAGAGCACACGTCTGAACTCCAGTCACC",
+                    "r2": "GGGAACTGCCAGGCATCTGACTCGGGCACCAAGGACTGGGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAG"
+                },
+                {
+                    "expect": {
+                        "site": 128
+                    },
+                    "id": "short_adapter_b_7",
+                    "r1": "GAATGTCCTTGGTGCCCGAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTATGCCGTCT",
+                    "r2": "TCGGGCACCAAGGACATTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCA"
+                }
             ]
         }
     ]
 }
-
