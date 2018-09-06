@@ -241,7 +241,7 @@ class Spats(object):
     def _addTargets(self, target_list):
         targets = self._targets or Targets()
         for name, seq, rowid in target_list:
-            targets.addTarget(name, seq, rowid)
+            targets.addTarget(name, seq.upper().replace('U', 'T'), rowid)
         if not targets.targets:
             raise Exception("didn't get any targets!")
         targets.minimum_match_length = self.run.minimum_target_match_length

@@ -1,16 +1,6 @@
 {
     "default_opts": {
-        "algorithms": [ "find_partial" ], 
-        "count_mutations": false, 
-        "mutations_require_quality_score": 13, 
-        "allowed_target_errors": 0, 
-        "ignore_stops_with_mismatched_overlap": false, 
-        "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-        "cotrans": false,
-        "cotrans_linker": null,
-        "count_edge_mutations": null,
-        "count_left_prefixes": false,
-        "collapse_left_prefixes": false
+        "algorithms": [ "find_partial", "lookup" ]
     },
     "targets": {
         "mut_single": "ggacaagcaatgcttgccttgatgttgaacttttgaatagtgattcaggaggttaatgATGagcaaaggagaagaacttttcactggagttgtcccaattcttgttg",
@@ -41,10 +31,10 @@
         {
             "set_name": "muts",
             "run_opts": {
-                "algorithms": [ "find_partial", "lookup" ],
                 "count_mutations": true,
                 "allowed_target_errors": 1,
-                "ignore_stops_with_mismatched_overlap": true
+                "ignore_stops_with_mismatched_overlap": true,
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
             },
             "targets": [ "mut_single" ],
             "tests": [
@@ -58,7 +48,20 @@
                 { "id": "muts_8", "comment": "r1 mutation on edge with trim", "r1": "GAACCAACAAGAATTGGGACAACTCCAGTGAAAGGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAAGATCGGA", "r2": "TCAGGAGGTTAATGATGAGCAAAGGAGAAGAACCTTTCACTGGAGTTGTCCCAATTCTTGTTGGTTCAGATCGGA", "expect": { "end": 107, "site": 44, "muts": [ 78 ] } },
                 { "id": "muts_9", "comment": "trim/mut edge case", "r1": "CCTACAACAAGAATTGGGACAACTCCAGTGAGAAGTTCTTCTCCTTTGCTCATCATTAAGATCGGAAGAGCACAC", "r2": "TAATGATGAGCAAAGGAGAAGAACTTCTCACTGGAGTTGTCCCAATTCTTGTTGTAGGAGATCGGAAGAGCGTCG", "expect": { "end": 107, "site": 53, "muts": [ 80 ] } },
                 { "id": "muts_10", "comment": "trim/mut edge case (but they disagree on overlap)", "r1": "CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCTTTAACCTCCTGAATCACTAA", "r2": "TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA", "expect": { "site": null } },
-                { "id": "muts_11", "comment": "trim/mut edge case", "r1": "CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAA", "r2": "TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA", "expect": { "end": 107, "site": 37, "muts": [] } },
+                { "id": "muts_11", "comment": "trim/mut edge case", "r1": "CTTGCAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAA", "r2": "TAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGCAAGA", "expect": { "end": 107, "site": 37, "muts": [] } }
+            ]
+        },
+        {
+            "set_name": "muts",
+            "run_opts": {
+                "count_mutations": true,
+                "allowed_target_errors": 1,
+                "ignore_stops_with_mismatched_overlap": true,
+                "mutations_require_quality_score" : 13,
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
+            },
+            "targets": [ "mut_single" ],
+            "tests": [
                 { "id": "muts_q1", "comment": "basic quality check test case", "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTACCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 16 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
                 { "id": "muts_q2", "comment": "basic quality check test case", "r1": "AGATCAACAAGAATTAGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC", "expect": { "end": 107, "site": 2, "muts": [ 96 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
                 { "id": "muts_q3", "comment": "r1 mutation quality check case", "r1": "TCCACAACAAGAATTGGGACAACTCCAGTGAAATGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT", "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA", "expect": { "end": 107, "site": 0, "muts": [ 78 ] }, "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
@@ -74,10 +77,10 @@
         {
             "set_name": "muts_cotrans",
             "run_opts": { 
-                "algorithms": [ "find_partial", "lookup" ],
                 "count_mutations": true,
                 "allowed_target_errors": 1,
                 "ignore_stops_with_mismatched_overlap": true,
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
             },
@@ -99,9 +102,11 @@
         {
             "set_name": "muts_multi",
             "run_opts": { 
+                "algorithms": [ "find_partial" ],
                 "count_mutations": true,
                 "allowed_target_errors": 5,
-                "ignore_stops_with_mismatched_overlap": true
+                "ignore_stops_with_mismatched_overlap": true,
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
             },
             "targets": [ "mut_single" ],
             "tests": [
@@ -115,8 +120,11 @@
         {
             "set_name": "muts_mismatched_overlap",
             "run_opts": { 
+                "algorithms": [ "find_partial" ],
                 "count_mutations": true,
-                "allowed_target_errors": 2
+                "allowed_target_errors": 2,
+                "allowed_target_errors": 5,
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
             },
             "targets": [ "SRP" ],
             "tests": [
@@ -128,9 +136,11 @@
         {
             "set_name": "muts_mismatched_overlap_igmm",
             "run_opts": { 
+                "algorithms": [ "find_partial" ],
                 "count_mutations": true,
                 "allowed_target_errors": 2,
-                "ignore_stops_with_mismatched_overlap": true 
+                "ignore_stops_with_mismatched_overlap": true,
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
             },
             "targets": [ "SRP" ],
             "tests": [
@@ -142,12 +152,13 @@
         {
             "set_name": "muts_prefix",
             "run_opts": { 
+                "algorithms": [ "find_partial" ],
                 "count_mutations": true,
-                "mutations_require_quality_score": 30,
                 "allowed_target_errors": 8,
                 "count_edge_mutations": "stop_and_mut",
                 "count_left_prefixes": true,
-                "collapse_left_prefixes": true
+                "collapse_left_prefixes": true,
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG"
             },
             "targets": [ "hairpinA_circ" ],
             "tests": [
@@ -157,13 +168,14 @@
         {
             "set_name": "muts_prefix_igmm",
             "run_opts": { 
+                "algorithms": [ "find_partial" ],
                 "count_mutations": true,
-                "mutations_require_quality_score": 30,
                 "allowed_target_errors": 8,
-                "ignore_stops_with_mismatched_overlap": true,
                 "count_edge_mutations": "stop_and_mut",
                 "count_left_prefixes": true,
-                "collapse_left_prefixes": true
+                "collapse_left_prefixes": true,
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "ignore_stops_with_mismatched_overlap": true
             },
             "targets": [ "hairpinA_circ" ],
             "tests": [
@@ -317,6 +329,7 @@
         {
             "set_name": "pairs_prefix",
             "run_opts": { 
+                "algorithms": [ "find_partial" ],
                 "collapse_left_prefixes": true
             },
             "targets": [ "5s" ],
@@ -330,7 +343,6 @@
         {
             "set_name": "cotrans",
             "run_opts": { 
-                "algorithms": [ "find_partial", "lookup", "native" ],
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
             },
@@ -367,6 +379,7 @@
         {
             "set_name": "cotrans_prefix",
             "run_opts": { 
+                "algorithms": [ "find_partial" ],
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
                 "collapse_left_prefixes": true
@@ -382,6 +395,7 @@
         {
             "set_name": "cotrans_prefix_only",
             "run_opts": { 
+                "algorithms": [ "find_partial" ],
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
                 "collapse_left_prefixes": true,
@@ -398,7 +412,6 @@
         {
             "set_name": "overlaps",
             "run_opts": { 
-                "algorithms": [ "find_partial", "lookup" ], 
                 "count_mutations": true,
                 "allowed_target_errors": 1,
                 "ignore_stops_with_mismatched_overlap": true
@@ -412,7 +425,6 @@
         {
             "set_name": "dumbbell",
             "run_opts": {
-                "algorithms": [ "find_partial", "lookup" ],
                 "dumbbell" : "TGAACAGCGACTAGGCTCTTCA"
             },
             "targets": [ "HairpinC_SS2" ],
@@ -425,7 +437,6 @@
         {
             "set_name": "short_adapter_b",
             "run_opts": { 
-                "algorithms": [ "find_partial", "lookup" ] 
             },
             "targets": [ "5SrRNA" ],
             "tests": [
