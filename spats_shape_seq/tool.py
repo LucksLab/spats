@@ -167,6 +167,12 @@ class SpatsTool(object):
 
         analyzer = ReadsAnalyzer(data, cotrans = self.cotrans)
         self._update_run_config(analyzer.run)
+
+        # xref https://trello.com/c/VMFyZjjg/286-handle-quality-parsing-in-reads-tool-if-configured
+        # to do this, we'd need to parse quality to the db (nontrivial)
+        # for now just force-disable this, as it's not required to do reads analysis
+        analyzer.run.mutations_require_quality_score = None
+
         analyzer.process_tags()
         self._add_note("tags processed to {}".format(os.path.basename(db_name)))
 
@@ -531,8 +537,9 @@ class SpatsTool(object):
                     print('After {}/{} matches; mismatched pair: {} != {}\n{}'.format(match, count, pair_fp, pair_lookup,
                                                                                       json.dumps(json_base, sort_keys = True,indent = 4, separators = (',', ': '))))
                     return
-                print('{}/{}-{}...'.format(match,count, total))
-
+                print('{}/{}-{}...'.format(match, count, total))
+        spats_fp.counters.total_pairs = count
+        spats_lookup.counters.total_pairs = count
         print('All match {}/{}.'.format(match, count))
         print(spats_fp._report_counts())
         print(spats_lookup._report_counts())
