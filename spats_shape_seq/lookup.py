@@ -164,7 +164,7 @@ class LookupProcessor(PairProcessor):
         pair.r2.match_index = site
         pair.r2.match_len = match_len
 
-        if not pair.check_overlap():
+        if run.ignore_stops_with_mismatched_overlap and not pair.check_overlap():
             pair.failure = Failures.r1_r2_overlap
             return
 
@@ -279,7 +279,7 @@ class CotransLookupProcessor(PairProcessor):
         pair.r1.match_len = (pair_len - linker_len - 4 - trim)
         pair.r2.match_index = site
         pair.r2.match_len = target_match_len
-        if not pair.check_overlap():
+        if run.ignore_stops_with_mismatched_overlap and not pair.check_overlap():
             pair.failure = Failures.r1_r2_overlap
             return
 

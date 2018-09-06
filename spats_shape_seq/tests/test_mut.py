@@ -253,7 +253,7 @@ prefix_mut_cases = [
     [ 'sah1', 'CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC', 'TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT', 87, 0, [ 75 ] ],
 ]
 
-class TestOverlapMut(TestMutPairs):
+class TestPrefixMut(TestMutPairs):
 
     def setup_processor(self):
         self.spats.run.algorithm = "find_partial"
@@ -268,9 +268,4 @@ class TestOverlapMut(TestMutPairs):
 
     def test_pairs(self):
         for case in prefix_mut_cases:
-            self.run_case(case)
-
-        self.spats.run.ignore_stops_with_mismatched_overlap = True
-        for case in mismatched_overlap_cases:
-            case[4] = None
             self.run_case(case)

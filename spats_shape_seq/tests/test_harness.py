@@ -169,14 +169,14 @@ class TestHarness:
             super(TestHarness.SpatsTestResults, self).addFailure(test, err)
             print(' ==> FAIL: {}'.format(err[1]))
             self.testset_failures[self.current_testset] += 1
-            self.failure_cases.append('{}/{}'.format(self.current_testset, test.case.id))
+            self.failure_cases.append(test.case.id)
             
         def addError(self, test, err):
             import traceback
             super(TestHarness.SpatsTestResults, self).addError(test, err)
             print(' ==> ERROR: {}/{} {}\n{}'.format(self.current_testset, test.case.id, err[1], traceback.format_exc(err[2])))
             self.testset_errors[self.current_testset] += 1
-            self.failure_cases.append('{}/{}'.format(self.current_testset, test.case.id))
+            self.failure_cases.append(test.case.id)
 
         def addSuccess(self, test):
             self.testset_success[self.current_testset] += 1
@@ -195,7 +195,9 @@ class TestHarness:
                 if len(self.testset_errors) > 0:
                     print("Test Sets with errors ({}):".format(sum(self.testset_errors.values())))
                     print(dict(self.testset_errors))
-
+                print("Failed tests:")
+                for f in self.failure_cases:
+                    print("  make tc.{}".format(f))
 
     class SpatsTestSet(unittest.TestSuite):
 

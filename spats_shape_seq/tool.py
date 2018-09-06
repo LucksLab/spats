@@ -25,7 +25,7 @@ class SpatsTool(object):
         self.config = None
         self.cotrans = False
         self._skip_log = False
-        self._no_config_required_commands = [ "doc", "help", "init", "viz", "show", "extract_case", "add_case" ]
+        self._no_config_required_commands = [ "doc", "help", "init", "viz", "show", "extract_case", "add_case", "show_test_case" ]
         self._private_commands = [ "viz" ]
         self._temp_files = []
         self._r1 = None
@@ -545,6 +545,7 @@ class SpatsTool(object):
         """Extracts a test case from the registry.
         """
 
+        self._skip_log = True
         if not self._command_args or len(self._command_args) < 2:
             raise Exception("extract requires a test case id and an output filename")
         case_id = self._command_args[0]
@@ -562,6 +563,7 @@ class SpatsTool(object):
         """Adds a test case from the registry.
         """
 
+        self._skip_log = True
         if not self._command_args:
             raise Exception("add requires a test case file")
 
@@ -572,11 +574,29 @@ class SpatsTool(object):
         reg.add_case(test_case)
         print("Added case '{}' to set '{}' in the test case registry.".format(test_case['id'], test_case['set_name']))
 
+    def show_test_case(self):
+        """Shows the diagram and result for analysis of a unit test case.
+        """
+
+        self._skip_log = True
+        if not self._command_args:
+            raise Exception("show_test_case requires a test id")
+
+        test_case_id = self._command_args[0]
+        print(test_case_id)
+        reg = self._test_case_registry()
+        test_case = reg.extract_case(test_case_id)
+        test_case.run_opts['debug'] = True
+        print(json.dumps(test_case.jsonDict(), sort_keys = True, indent = 4, separators = (',', ': ')))
+        self._show_case(test_case)
+
+
     def show(self):
         """Shows the diagram and result for analysis of a test case pair.
         """
 
         import spats_shape_seq.tests.test_harness
+        self._skip_log = True
 
         if not self._command_args:
             raise Exception("show requires the path to a test case")
@@ -584,25 +604,32 @@ class SpatsTool(object):
         test_case_file = self._command_args[0]
         test_case_dict = json.loads(open(test_case_file, 'r').read())
         test_case = spats_shape_seq.tests.test_harness.SpatsCase(test_case_dict)
+        self._show_case(test_case)
+
+
+    def _show_case(self, test_case):
 
         from spats_shape_seq import Spats
         from spats_shape_seq.diagram import diagram
-        spats = Spats()
 
-        for key, value in test_case.run_opts.items():
-            if str(key) == 'algorithms':
-                spats.run.algorithm = str(value[0])
-                continue
-            if isinstance(value, unicode):
-                value = str(value)
-            setattr(spats.run, key, value)
+        algs = test_case.run_opts.get('algorithms', [ 'find_partial', 'lookup' ])
+        for algorithm in algs:
+            spats = Spats()
+            spats.run.algorithm = algorithm
 
-        for name, seq in test_case.targets.iteritems():
-            spats.addTarget(name, seq)
+            for key, value in test_case.run_opts.items():
+                if str(key) == 'algorithms':
+                    continue
+                if isinstance(value, unicode):
+                    value = str(value)
+                setattr(spats.run, key, value)
 
-        pair = test_case.pair()
-        spats.process_pair(pair)
-        print diagram(pair, spats.run)
+            for name, seq in test_case.targets.iteritems():
+                spats.addTarget(name, seq)
+
+            pair = test_case.pair()
+            spats.process_pair(pair)
+            print diagram(pair, spats.run)
 
         if test_case.expect:
             # should mirror `_check_expect` in test_harness.py...

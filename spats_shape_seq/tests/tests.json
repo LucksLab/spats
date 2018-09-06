@@ -660,34 +660,6 @@
             ]
         },
         {
-            "run_opts": {
-                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "algorithms": [
-                    "find_partial"
-                ],
-                "allowed_target_errors": 8,
-                "collapse_left_prefixes": true,
-                "count_edge_mutations": "stop_and_mut",
-                "count_left_prefixes": true,
-                "count_mutations": true,
-                "ignore_stops_with_mismatched_overlap": true
-            },
-            "set_name": "muts_prefix_igmm",
-            "targets": [
-                "hairpinA_circ"
-            ],
-            "tests": [
-                {
-                    "expect": {
-                        "site": null
-                    },
-                    "id": "muts_prefix_igmm_1",
-                    "r1": "CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC",
-                    "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT"
-                }
-            ]
-        },
-        {
             "set_name": "pairs",
             "targets": [
                 "5s"

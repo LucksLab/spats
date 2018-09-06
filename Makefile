@@ -136,6 +136,9 @@ u.%:
 t.%:
 	@${PYENV} python $(patsubst t.%, ${TOOLS_DIR}/misc.py %, $@)
 
+tc.%:
+	@${PYENV} python bin/spats_tool show_test_case $(patsubst tc.%, %, $@) || echo
+
 harness:
 	nosetests ${TEST_PKG}.test_harness
 
