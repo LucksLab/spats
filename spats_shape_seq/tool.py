@@ -562,8 +562,6 @@ class SpatsTool(object):
         """Adds a test case from the registry.
         """
 
-        import spats_shape_seq.tests.test_harness
-
         if not self._command_args:
             raise Exception("add requires a test case file")
 
@@ -578,46 +576,72 @@ class SpatsTool(object):
         """Shows the diagram and result for analysis of a test case pair.
         """
 
+        import spats_shape_seq.tests.test_harness
+
         if not self._command_args:
             raise Exception("show requires the path to a test case")
 
         test_case_file = self._command_args[0]
-        test_case = json.loads(open(test_case_file, 'r').read())
+        test_case_dict = json.loads(open(test_case_file, 'r').read())
+        test_case = spats_shape_seq.tests.test_harness.SpatsCase(test_case_dict)
 
         from spats_shape_seq import Spats
-        from spats_shape_seq.pair import Pair
         from spats_shape_seq.diagram import diagram
         spats = Spats()
 
-        for key, value in test_case.get('config', {}).items():
+        for key, value in test_case.run_opts.items():
+            if str(key) == 'algorithms':
+                spats.run.algorithm = str(value[0])
+                continue
             if isinstance(value, unicode):
                 value = str(value)
             setattr(spats.run, key, value)
 
-        spats.addTargets(test_case['target'])
+        for name, seq in test_case.targets.iteritems():
+            spats.addTarget(name, seq)
 
-        pair = Pair()
-        pair.set_from_data(test_case.get('id', ''), str(test_case['R1']), str(test_case['R2']))
-        if test_case.get('R1_quality'):
-            pair.r1.quality = str(test_case['R1_quality'])
-        if test_case.get('R2_quality'):
-            pair.r1.quality = str(test_case['R2_quality'])
-
+        pair = test_case.pair()
         spats.process_pair(pair)
-
         print diagram(pair, spats.run)
 
-        if 'expect' in test_case:
+        if test_case.expect:
+            # should mirror `_check_expect` in test_harness.py...
+            expects = test_case.expect
             fail = False
-            for key, value in test_case['expect'].items():
-                if value != getattr(pair, key):
-                    print('**** Mismatch: {} != {}'.format(value, getattr(pair, key)))
-                    fail = True
-            if fail:
-                print('FAIL')
+
+            try:
+
+                if expects['site'] is None:
+                    if pair.site is not None:
+                        raise Exception("pair.site={} when expecting none.".format(pair.site))
+                else:
+                    if pair.site is None:
+                        raise Exception("pair.site is none when expecting {}.".format(expects['site']))
+                    if pair.site != expects['site']:
+                        raise Exception("pair.site={} != expect.site={}".format(pair.site, expects['site']))
+                    if 'end' in expects and pair.end != expects['end']:
+                        raise Exception("pair.end={} != expect.end={}".format(pair.end, expects['end']))
+                    if 'muts' in expects:
+                        if expects['muts'] is not None  and  len(expects['muts']) > 0:
+                            if not sorted(expects['muts']) == (sorted(pair.mutations) if pair.mutations else pair.mutations):
+                                raise Exception("mismatching mutations:  expected={}, pair.mutations={}".format(expects['muts'], pair.mutations))
+                        else:
+                            if not (pair.mutations is None  or len(pair.mutations) == 0):
+                                raise Exception("unexpected mutations: {}".format(pair.mutations))
+                    if 'counters' in expects:
+                        for counter, value in expects['counters'].iteritems():
+                            if getattr(self.spats.counters, str(counter)) != value:
+                                raise Exception("counter '{}' value off: expected={} != got={}".format(counter, value, getattr(self.spats.counters, counter)))
+                    if 'pair.target' in expects:
+                        tname = pair.target.name if pair.target else None
+                        if tname != expects['pair.target']:
+                            raise Exception("pair.target={} != expect.pair.target={}".format(tname, expects['pair.target']))
+
+            except Exception as e:
+                print('FAIL: {}'.format(e))
                 sys.exit(1)
-            else:
-                print('PASS')
+
+            print('PASS')
 
     def doc(self):
         """Show the spats documentation.
