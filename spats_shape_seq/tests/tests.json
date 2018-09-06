@@ -1,7 +1,4 @@
 {
-    "default_opts": {
-        "algorithms": [ "find_partial", "lookup" ]
-    },
     "targets": {
         "mut_single": "ggacaagcaatgcttgccttgatgttgaacttttgaatagtgattcaggaggttaatgATGagcaaaggagaagaacttttcactggagttgtcccaattcttgttg",
         "mut_cotrans": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCGGGTCGGCATGGCATCTCCACCTCCTCGCGGT",

@@ -69,11 +69,7 @@ class TestHarness:
             self.tests_passed += 1
 
         def print_stats(self):
-            if not self.wasSuccessful():
-                print("\nAll Failures and Errors:")
-                for fail in self.failure_cases:
-                    print('  {}'.format(fail))
-            print("\nSUMMARY")
+            print("\n\nSUMMARY")
             print("Tests Sets Run:  {}".format(self.test_sets_run))
             print("Total Tests Run:  {}".format(self.testsRun))
             print("Total Tests Passed:  {}".format(self.tests_passed))
@@ -101,11 +97,7 @@ class TestHarness:
                 self.addTest(TestHarness.SpatsTestCase(self, case))
 
         def spats_setUp(self, spatso):
-            for key, value in self.outer.tests['default_opts'].iteritems():
-                if (key == 'algorithms'):
-                    self.algorithms = value
-                else:
-                    setattr(spatso.run, key, value)
+            self.algorithms = [ "find_partial", "lookup" ]
             for key, value in self.testset_dict.get('run_opts', {}).iteritems():
                 if (key == 'algorithms'):
                     self.algorithms = value
