@@ -278,9 +278,3 @@ class TestHarness:
             if 'pair.target' in expects:
                 tname = pair.target.name if pair.target else None
                 self.assertEqual(tname, expects['pair.target'], msg + "pair.target={} != expect.pair.target={}".format(tname, expects['pair.target']))
-
-
-def run_harness():
-    th = TestHarness()
-    th.run_testsets()
-    th.print_stats()
