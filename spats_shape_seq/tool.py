@@ -12,7 +12,6 @@ import sys
 import time
 
 import spats_shape_seq
-import spats_shape_seq.nbutil as nbutil
 from spats_shape_seq import Spats
 from spats_shape_seq.parse import abif_parse, fastq_handle_filter, FastFastqParser
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
@@ -191,10 +190,14 @@ class SpatsTool(object):
             preseq_data = abif_parse(filename, fields = [ 'DATA2', 'DATA3', 'DATA105' ])
             open(pre_name, 'wb').write(json.dumps(preseq_data))
             self._add_note("pre-sequencing data processed to {}".format(os.path.basename(pre_name)))
-            self._notebook().add_preseq(key).save()
+            nb = self._notebook()
+            if nb:
+                nb.add_preseq(key).save()
 
     def _run_plots(self):
-        self._notebook().add_spats_run(self.cotrans, True).save()
+        nb = self._notebook()
+        if nb:
+            nb.add_spats_run(self.cotrans, True).save()
 
     def run(self):
         """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
@@ -223,7 +226,9 @@ class SpatsTool(object):
             spats.process_pair_data(self.r1, self.r2)
             spats.store(run_name)
         self._add_note("wrote output to {}".format(os.path.basename(run_name)))
-        self._notebook().add_spats_run(self.cotrans, spats.run.count_mutations).save()
+        nb = self._notebook()
+        if nb:
+            nb.add_spats_run(self.cotrans, spats.run.count_mutations).save()
 
     def _update_run_config(self, run, dictionary = None):
         custom_config = False
@@ -258,6 +263,10 @@ class SpatsTool(object):
         return self._spats_file('reads')
 
     def _notebook(self):
+        try:
+            import spats_shape_seq.nbutil as nbutil
+        except:
+            return None
         nb = nbutil.Notebook(os.path.join(self.path, 'spats.ipynb'))
         if nb.is_empty():
             nb.add_metadata(self.metadata)
@@ -315,6 +324,9 @@ class SpatsTool(object):
         """Launch the Jupyter notebook.
         """
         self._skip_log = True
+
+        if not self._notebook():
+            raise Exception('Notebook requires the jupyter and nbformat pacakges. Try "pip install nbformat jupyter".')
 
         self._install_nbextensions()
         self._install_matplotlib_styles()
