@@ -16,7 +16,7 @@ class Diagram(object):
         self.target = pair.target or _Target('???', '?' * 100, 0)
         self.pair = pair
         self.run = run
-        self.prefix_len = 8
+        self.prefix_len = 12
         self.bars = []
         self.max_len = 0
         self.error_bars = None
@@ -27,6 +27,7 @@ class Diagram(object):
 
     def _make_target_lines(self):
         d = self._make_prefix("site")
+        d = d[:-1]
         for i in range(0, self.target.n, 10):
             marker = str(i)
             if i > 0:
@@ -36,6 +37,7 @@ class Diagram(object):
         self._add_line(d)
 
         d = self._make_prefix(self.target.name)
+        d = d[:-1] + '^'
         seq = self.target.seq.lower()
         for part in [ self.pair.r1, self.pair.r2 ]:
             if part.match_len:
@@ -128,7 +130,11 @@ class Diagram(object):
         errors = sp(part.seq_len)
         error_bars = []
         for e in part.match_errors:
-            errors = errors[:e] + "!" + errors[e+1:]
+            q = part.quality
+            if q and part == self.pair.r1:
+                q = q[::-1]
+            bit = q[e] if q else "!"
+            errors = errors[:e] + bit + errors[e+1:]
             error_bars.append(self.prefix_len + part.match_index + e)
         d += errors
         d += sp(self.target.n - len(d))
@@ -146,11 +152,22 @@ class Diagram(object):
             if errors[-1] == " ":
                 errors = errors[:-1] + "|"
             d += errors
-        self._add_line(self._make_prefix("-mut!") + d)
+        self._add_line(self._make_prefix("-mutQ30") + d)
         if error_bars:
             self.bars.append(error_bars)
             return error_bars
         return None
+
+    def _make_part_quality(self, part):
+        if not part.quality:
+            return
+        d = sp(part.match_index)
+        q = part.quality
+        if q:
+            if part == self.pair.r1:
+                q = q[::-1]
+            q = q[part.match_start:(part.match_start or 0) + part.match_len]
+        self._add_line(self._make_prefix("-allQ30") + d + (q or ""))
 
     def _make_r1_rev(self):
         r1 = self.pair.r1
@@ -235,17 +252,6 @@ class Diagram(object):
 
         self._add_line("@" + self.pair.identifier)
         
-        r2_bars = self._make_part(self.pair.r2)
-        self.bars.append(r2_bars)
-        if self.pair.r2.match_errors or self.pair.r2.adapter_errors:
-            r2_errors = self._make_part_errors(self.pair.r2)
-        else:
-            r2_errors = None
-        if self.pair.dumbbell != None:
-            self._make_dumbbell()
-        if self.pair.r2.trimmed:
-            self._make_adapter_line(self.pair.r2, reverse_complement(self.run.adapter_t), "RC(adapter_t)")
-
         r1_bars = self._make_part(self.pair.r1)
         self.bars.append(r1_bars)
         if self.pair.r1.trimmed:
@@ -259,11 +265,27 @@ class Diagram(object):
             r1_errors = self._make_part_errors(self.pair.r1)
         else:
             r1_errors = None
+        if self.show_quality:
+            self._make_part_quality(self.pair.r1)
 
         if self.pair.linker != None:
             self._make_linker()
 
         self._add_line("")
+
+        r2_bars = self._make_part(self.pair.r2)
+        self.bars.append(r2_bars)
+        if self.pair.r2.match_errors or self.pair.r2.adapter_errors:
+            r2_errors = self._make_part_errors(self.pair.r2)
+        else:
+            r2_errors = None
+        if self.show_quality:
+            self._make_part_quality(self.pair.r2)
+        if self.pair.dumbbell != None:
+            self._make_dumbbell()
+        if self.pair.r2.trimmed:
+            self._make_adapter_line(self.pair.r2, reverse_complement(self.run.adapter_t), "RC(adapter_t)")
+
         self._add_line("")
 
         self._make_target_lines()
@@ -315,5 +337,7 @@ class Diagram(object):
 
         return "\n".join(self.lines)
 
-def diagram(pair, run):
-    return Diagram(pair, run).make()
+def diagram(pair, run, show_quality = False):
+    d = Diagram(pair, run)
+    d.show_quality = show_quality
+    return d.make()

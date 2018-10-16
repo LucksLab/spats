@@ -652,7 +652,7 @@ class SpatsTool(object):
             if len(algs) > 1:
                 print('\n[[ ALGORITHM: {} ]]'.format(algorithm))
             spats.process_pair(pair)
-            print diagram(pair, spats.run)
+            print(diagram(pair, spats.run))
 
         if test_case.expect:
             # should mirror `_check_expect` in test_harness.py...
