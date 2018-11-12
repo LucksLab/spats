@@ -2232,11 +2232,11 @@
         {
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "allowed_target_errors": 2,
                 "algorithms": [
                     "lookup",
                     "find_partial"
                 ],
+                "allowed_target_errors": 1,
                 "count_mutations": true,
                 "ignore_stops_with_mismatched_overlap": false,
                 "mutations_require_quality_score": 30
@@ -2382,6 +2382,59 @@
                     "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
                     "r1_quality": "###########################################################################",
                     "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGTAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "allowed_target_errors": 1,
+                "count_mutations": true,
+                "ignore_stops_with_mismatched_overlap": false,
+                "mutations_require_quality_score": 30
+            },
+            "set_name": "count_only_full_length_reads_no",
+            "targets": [
+                "mut_single"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 2
+                    },
+                    "id": "flr_1",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "allowed_target_errors": 1,
+                "count_mutations": true,
+                "count_only_full_reads": true,
+                "ignore_stops_with_mismatched_overlap": false,
+                "mutations_require_quality_score": 30
+            },
+            "set_name": "count_only_full_length_reads_yes",
+            "targets": [
+                "mut_single"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "site": null
+                    },
+                    "id": "flr_2",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC",
                     "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 }
             ]

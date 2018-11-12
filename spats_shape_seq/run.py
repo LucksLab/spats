@@ -178,6 +178,10 @@ class Run(object):
         #: a dumbbell sequence (on the front of R2).
         self.dumbbell = None
 
+        #: Default ``False``, set to ``True`` to only count reads with no 
+        #: stops.
+        self.count_only_full_reads = False
+
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
         self._p_processor_class = None
@@ -200,7 +204,7 @@ class Run(object):
             self.allowed_target_errors = max(self.allowed_target_errors, 1)
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
-        if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1:
+        if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1 or not self.ignore_stops_with_mismatched_overlap:
             self.algorithm = 'find_partial'
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]

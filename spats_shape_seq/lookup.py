@@ -176,6 +176,10 @@ class LookupProcessor(PairProcessor):
                 return
             self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
 
+        if run.count_only_full_reads and site != 0:
+            pair.failure = Failures.not_full_read
+            return
+
         pair.site = site
         pair.end = target.n
         pair.failure = None
@@ -290,6 +294,10 @@ class CotransLookupProcessor(PairProcessor):
                 pair.failure = Failures.match_errors
                 return
             self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
+
+        if run.count_only_full_reads and site != 0:
+            pair.failure = Failures.not_full_read
+            return
 
         pair.end = L
         pair.site = site
