@@ -657,44 +657,44 @@ class SpatsTool(object):
                 print('Comment: {}'.format(test_case.comment))
             print(diagram(pair, spats.run))
 
-        if test_case.expect:
-            # should mirror `_check_expect` in test_harness.py...
-            expects = test_case.expect
-            fail = False
+            if test_case.expect:
+                # should mirror `_check_expect` in test_harness.py...
+                expects = test_case.expect
+                fail = False
 
-            try:
+                try:
 
-                if expects['site'] is None:
-                    if pair.site is not None:
-                        raise Exception("pair.site={} when expecting none.".format(pair.site))
-                else:
-                    if pair.site is None:
-                        raise Exception("pair.site is none when expecting {}.".format(expects['site']))
-                    if pair.site != expects['site']:
-                        raise Exception("pair.site={} != expect.site={}".format(pair.site, expects['site']))
-                    if 'end' in expects and pair.end != expects['end']:
-                        raise Exception("pair.end={} != expect.end={}".format(pair.end, expects['end']))
-                    if 'muts' in expects:
-                        if expects['muts'] is not None  and  len(expects['muts']) > 0:
-                            if not sorted(expects['muts']) == (sorted(pair.mutations) if pair.mutations else pair.mutations):
-                                raise Exception("mismatching mutations:  expected={}, pair.mutations={}".format(expects['muts'], pair.mutations))
-                        else:
-                            if not (pair.mutations is None  or len(pair.mutations) == 0):
-                                raise Exception("unexpected mutations: {}".format(pair.mutations))
-                    if 'counters' in expects:
-                        for counter, value in expects['counters'].iteritems():
-                            if getattr(self.spats.counters, str(counter)) != value:
-                                raise Exception("counter '{}' value off: expected={} != got={}".format(counter, value, getattr(self.spats.counters, counter)))
-                    if 'pair.target' in expects:
-                        tname = pair.target.name if pair.target else None
-                        if tname != expects['pair.target']:
-                            raise Exception("pair.target={} != expect.pair.target={}".format(tname, expects['pair.target']))
+                    if expects['site'] is None:
+                        if pair.site is not None:
+                            raise Exception("pair.site={} when expecting none.".format(pair.site))
+                    else:
+                        if pair.site is None:
+                            raise Exception("pair.site is none when expecting {}.".format(expects['site']))
+                        if pair.site != expects['site']:
+                            raise Exception("pair.site={} != expect.site={}".format(pair.site, expects['site']))
+                        if 'end' in expects and pair.end != expects['end']:
+                            raise Exception("pair.end={} != expect.end={}".format(pair.end, expects['end']))
+                        if 'muts' in expects:
+                            if expects['muts'] is not None  and  len(expects['muts']) > 0:
+                                if not sorted(expects['muts']) == (sorted(pair.mutations) if pair.mutations else pair.mutations):
+                                    raise Exception("mismatching mutations:  expected={}, pair.mutations={}".format(expects['muts'], pair.mutations))
+                            else:
+                                if not (pair.mutations is None  or len(pair.mutations) == 0):
+                                    raise Exception("unexpected mutations: {}".format(pair.mutations))
+                        if 'counters' in expects:
+                            for counter, value in expects['counters'].iteritems():
+                                if getattr(self.spats.counters, str(counter)) != value:
+                                    raise Exception("counter '{}' value off: expected={} != got={}".format(counter, value, getattr(self.spats.counters, counter)))
+                        if 'pair.target' in expects:
+                            tname = pair.target.name if pair.target else None
+                            if tname != expects['pair.target']:
+                                raise Exception("pair.target={} != expect.pair.target={}".format(tname, expects['pair.target']))
 
-            except Exception as e:
-                print('FAIL: {}'.format(e))
-                sys.exit(1)
+                except Exception as e:
+                    print('FAIL: {}'.format(e))
+                    sys.exit(1)
 
-            print('PASS')
+                print('PASS')
 
     def doc(self):
         """Show the spats documentation.
