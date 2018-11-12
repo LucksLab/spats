@@ -165,8 +165,8 @@ class TestMutPairs(unittest.TestCase):
         self.spats.process_pair(pair)
         self.assertEqual(case[4], pair.site, "res={} != {} ({}, {}, {})".format(pair.site, case[4], self.__class__.__name__, case[0], pair.failure))
         if pair.site is not None:
-            self.assertEqual(case[3], pair.end)
-            self.assertEqual(case[5], sorted(pair.mutations) if pair.mutations else pair.mutations)
+            self.assertEqual(case[3], pair.end, "end={} != {} ({}, {}, {})".format(pair.end, case[3], self.__class__.__name__, case[0], pair.failure))
+            self.assertEqual(case[5], sorted(pair.mutations) if pair.mutations else pair.mutations, "muts={} != {} ({}, {}, {})".format(pair.mutations, case[5], self.__class__.__name__, case[0], pair.failure))
         return pair
 
     def cases(self):
@@ -222,11 +222,14 @@ class TestMutPairsCotransLookup(TestMutPairs):
 # [ id, r1, r2, end, site, muts ]
 mismatched_overlap_cases = [
 
-    [ '81_0', 'GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC', 'GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT', 137, 81, [ 117 ] ],
+    # was [117], now [] due to checking against high-quality overlap
+    [ '81_0', 'GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC', 'GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT', 137, 81, [  ] ],
 
-    [ '92_0', 'GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC', 'GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC', 137, 92, [ 117 ] ],
+    # was [117], now [] due to checking against high-quality overlap
+    [ '92_0', 'GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC', 'GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC', 137, 92, [  ] ],
 
-    [ '116_1', 'CCCGGTCCTTGGTGCCCGAGTCAGTAGATCGGAAGA', 'TCTGACTCGGGCACCAAGGACCGGGAGATCGGAAGA', 137, 116, [ 117 ] ],
+    # was [117], now [] due to checking against high-quality overlap
+    [ '116_1', 'CCCGGTCCTTGGTGCCCGAGTCAGTAGATCGGAAGA', 'TCTGACTCGGGCACCAAGGACCGGGAGATCGGAAGA', 137, 116, [  ] ],
 
 ]
 

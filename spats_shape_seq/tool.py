@@ -631,7 +631,8 @@ class SpatsTool(object):
         from spats_shape_seq import Spats
         from spats_shape_seq.diagram import diagram
 
-        algs = test_case.run_opts.get('algorithms', [ 'find_partial', 'lookup' ])
+        alg = test_case.run_opts.get('algorithm')
+        algs = [ alg ] if alg else test_case.run_opts.get('algorithms', [ 'find_partial', 'lookup' ])
         for algorithm in algs:
             spats = Spats()
             spats.run.algorithm = algorithm
@@ -652,6 +653,8 @@ class SpatsTool(object):
             if len(algs) > 1:
                 print('\n[[ ALGORITHM: {} ]]'.format(algorithm))
             spats.process_pair(pair)
+            if test_case.comment:
+                print('Comment: {}'.format(test_case.comment))
             print(diagram(pair, spats.run))
 
         if test_case.expect:

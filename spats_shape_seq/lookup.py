@@ -168,6 +168,7 @@ class LookupProcessor(PairProcessor):
             pair.failure = Failures.r1_r2_overlap
             return
 
+        pair.target = target
         if r2_mutations or r1_res[3]:
             pair.mutations = list(set(r2_mutations + r1_res[3]))
             if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
@@ -175,7 +176,6 @@ class LookupProcessor(PairProcessor):
                 return
             self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
 
-        pair.target = target
         pair.site = site
         pair.end = target.n
         pair.failure = None
@@ -283,6 +283,7 @@ class CotransLookupProcessor(PairProcessor):
             pair.failure = Failures.r1_r2_overlap
             return
 
+        pair.target = target
         if r2_mutations or r1_res[3]:
             pair.mutations = list(set(r2_mutations + r1_res[3]))
             if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
@@ -291,7 +292,6 @@ class CotransLookupProcessor(PairProcessor):
             self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
 
         pair.end = L
-        pair.target = target
         pair.site = site
         pair.linker = L
         pair.failure = None

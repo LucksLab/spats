@@ -539,7 +539,7 @@
                 ],
                 "allowed_target_errors": 5,
                 "count_mutations": true,
-                "ignore_stops_with_mismatched_overlap" : false
+                "ignore_stops_with_mismatched_overlap": false
             },
             "set_name": "muts_mismatched_overlap",
             "targets": [
@@ -581,6 +581,60 @@
                     "id": "muts_mismatched_overlap_3",
                     "r1": "CCCGGTCCTTGGTGCCCGAGTCAGTAGATCGGAAGA",
                     "r2": "TCTGACTCGGGCACCAAGGACCGGGAGATCGGAAGA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "algorithms": [
+                    "find_partial"
+                ],
+                "allowed_target_errors": 5,
+                "count_mutations": true,
+                "ignore_stops_with_mismatched_overlap": false,
+                "mutations_require_quality_score": 13
+            },
+            "set_name": "muts_mismatched_overlap_quality",
+            "targets": [
+                "SRP"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "end": 137,
+                        "muts": [],
+                        "site": 81
+                    },
+                    "id": "muts_mismatched_overlap_quality_1",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGCGGTGGGGGCCC",
+                    "r1_quality": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+                    "r2": "GCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCT",
+                    "r2_quality": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
+                },
+                {
+                    "expect": {
+                        "end": 137,
+                        "muts": [],
+                        "site": 92
+                    },
+                    "id": "muts_mismatched_overlap_quality_2",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGTGGTGGGGGCCC",
+                    "r1_quality": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+                    "r2": "GATGTAGCTGGCAGGGCCCCCACCGCTGACTCGGGC",
+                    "r2_quality": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
+                },
+                {
+                    "expect": {
+                        "end": 137,
+                        "muts": [],
+                        "site": 116
+                    },
+                    "id": "muts_mismatched_overlap_quality_3",
+                    "r1": "CCCGGTCCTTGGTGCCCGAGTCAGTAGATCGGAAGA",
+                    "r1_quality": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+                    "r2": "TCTGACTCGGGCACCAAGGACCGGGAGATCGGAAGA",
+                    "r2_quality": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
                 }
             ]
         },
@@ -2172,6 +2226,160 @@
                     "id": "short_adapter_b_7",
                     "r1": "GAATGTCCTTGGTGCCCGAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTATGCCGTCT",
                     "r2": "TCGGGCACCAAGGACATTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "algorithm": "find_partial",
+                "allowed_target_errors": 2,
+                "count_mutations": true,
+                "ignore_stops_with_mismatched_overlap": false,
+                "mutations_require_quality_score": 30
+            },
+            "set_name": "discordant_discussion",
+            "targets": [
+                "mut_single"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "dd_p7",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTCCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGTAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "dd_no_muts",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "dd_p8_1",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGTAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "dd_p8_2",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTCCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "dd_p9",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTCCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "###########################################################################",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGTAGA",
+                    "r2_quality": "###########################################################################"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "dd_p10_1",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "###########################################################################",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGTAGA",
+                    "r2_quality": "###########################################################################"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "dd_p10_2",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTCCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "###########################################################################",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGA",
+                    "r2_quality": "###########################################################################"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            72
+                        ],
+                        "site": 0
+                    },
+                    "id": "dd_p11_1",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTCCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGTAGA",
+                    "r2_quality": "###########################################################################"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            72
+                        ],
+                        "site": 0
+                    },
+                    "id": "dd_p11_2",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTCCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "###########################################################################",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGTAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [],
+                        "site": 0
+                    },
+                    "id": "dd_p12",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGTAGA",
+                    "r2_quality": "###########################################################################"
+                },
+                {
+                    "expect": {
+                        "end": 107,
+                        "muts": [
+                            72
+                        ],
+                        "site": 0
+                    },
+                    "id": "dd_p13",
+                    "r1": "TTCACAACAAGAATTGGGACAACTCCAGTGAAAAGTTCTTCTCCTTTGCTCATCATTAACCTCCTGAATCACTAT",
+                    "r1_quality": "###########################################################################",
+                    "r2": "GGACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGTAGA",
+                    "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 }
             ]
         }
