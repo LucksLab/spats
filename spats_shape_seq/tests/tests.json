@@ -2232,8 +2232,11 @@
         {
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "algorithm": "find_partial",
                 "allowed_target_errors": 2,
+                "algorithms": [
+                    "lookup",
+                    "find_partial"
+                ],
                 "count_mutations": true,
                 "ignore_stops_with_mismatched_overlap": false,
                 "mutations_require_quality_score": 30
