@@ -188,10 +188,12 @@ class PartialFindProcessor(PairProcessor):
 
         if run.count_mutations:
             pair.check_mutations()
-            if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
-                pair.failure = Failures.match_errors
-                self.counters.match_errors += pair.multiplicity
-                return
+            if pair.mutations:
+                self.counters.register_mut_count(pair)
+                if len(pair.mutations) > run.allowed_target_errors:
+                    pair.failure = Failures.match_errors
+                    self.counters.match_errors += pair.multiplicity
+                    return
             self.counters.low_quality_muts += pair.check_mutation_quality(self._run.mutations_require_quality_score)
 
         if run.count_only_full_reads and (pair.site or pair.left) != 0:
@@ -456,10 +458,12 @@ class CotransPartialFindProcessor(PairProcessor):
 
         if run.count_mutations:
             pair.check_mutations()
-            if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
-                pair.failure = Failures.match_errors
-                self.counters.match_errors += pair.multiplicity
-                return
+            if pair.mutations:
+                self.counters.register_mut_count(pair)
+                if len(pair.mutations) > run.allowed_target_errors:
+                    pair.failure = Failures.match_errors
+                    self.counters.match_errors += pair.multiplicity
+                    return
             self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
 
         if run.count_only_full_reads and pair.left != 0:

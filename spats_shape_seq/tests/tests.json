@@ -43,6 +43,9 @@
                         "muts": [
                             16
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_1",
@@ -56,6 +59,9 @@
                         "muts": [
                             96
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 2
                     },
                     "id": "muts_2",
@@ -100,6 +106,9 @@
                         "muts": [
                             78
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_6",
@@ -113,6 +122,9 @@
                         "muts": [
                             54
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 53
                     },
                     "id": "muts_7",
@@ -126,6 +138,9 @@
                         "muts": [
                             78
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 44
                     },
                     "id": "muts_8",
@@ -139,6 +154,9 @@
                         "muts": [
                             80
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 53
                     },
                     "id": "muts_9",
@@ -174,7 +192,7 @@
                 "count_mutations": true,
                 "mutations_require_quality_score": 13
             },
-            "set_name": "muts",
+            "set_name": "muts_quality",
             "targets": [
                 "mut_single"
             ],
@@ -186,6 +204,9 @@
                         "muts": [
                             16
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_q1",
@@ -201,6 +222,9 @@
                         "muts": [
                             96
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 2
                     },
                     "id": "muts_q2",
@@ -216,6 +240,9 @@
                         "muts": [
                             78
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_q3",
@@ -296,6 +323,9 @@
                         "muts": [
                             16
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_q9",
@@ -311,6 +341,9 @@
                         "muts": [
                             96
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 2
                     },
                     "id": "muts_q10",
@@ -341,6 +374,9 @@
                         "muts": [
                             52
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 44
                     },
                     "id": "muts_cotrans_1",
@@ -371,6 +407,9 @@
                         "muts": [
                             44
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 43
                     },
                     "id": "muts_cotrans_4",
@@ -392,6 +431,9 @@
                         "muts": [
                             69
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 68
                     },
                     "id": "muts_cotrans_6",
@@ -405,6 +447,9 @@
                         "muts": [
                             47
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 44
                     },
                     "id": "muts_cotrans_7",
@@ -470,6 +515,9 @@
                             2,
                             16
                         ],
+                        "counters": {
+                            "mut_count_2": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_multi_1",
@@ -484,6 +532,9 @@
                             5,
                             16
                         ],
+                        "counters": {
+                            "mut_count_3": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_multi_2",
@@ -499,6 +550,9 @@
                             12,
                             16
                         ],
+                        "counters": {
+                            "mut_count_4": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_multi_3",
@@ -515,6 +569,9 @@
                             12,
                             16
                         ],
+                        "counters": {
+                            "mut_count_5": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_multi_4",
@@ -552,6 +609,9 @@
                         "muts": [
                             117
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 81
                     },
                     "id": "muts_mismatched_overlap_1",
@@ -564,6 +624,9 @@
                         "muts": [
                             117
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 92
                     },
                     "id": "muts_mismatched_overlap_2",
@@ -576,6 +639,9 @@
                         "muts": [
                             117
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 116
                     },
                     "id": "muts_mismatched_overlap_3",
@@ -701,6 +767,9 @@
                         "muts": [
                             75
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 0
                     },
                     "id": "muts_prefix_1",
@@ -2336,6 +2405,9 @@
                         "muts": [
                             72
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 0
                     },
                     "id": "dd_p11_1",
@@ -2350,6 +2422,9 @@
                         "muts": [
                             72
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 0
                     },
                     "id": "dd_p11_2",
@@ -2376,6 +2451,9 @@
                         "muts": [
                             72
                         ],
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "site": 0
                     },
                     "id": "dd_p13",

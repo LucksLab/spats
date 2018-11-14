@@ -6,7 +6,7 @@ some terms defined:
   - 3' end === right end
     - R1 is (in non-cotrans) on the right/3' end
 
-- fragment: thing in the machine
+- fragment: thing in the machine (a.k.a "read")
 
 - segment: what code calls sequence, one of the two ends of the fragment
 

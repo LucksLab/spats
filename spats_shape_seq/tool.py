@@ -378,12 +378,12 @@ class SpatsTool(object):
             uiclient_worker.terminate()
 
     def dump(self):
-        """Dump data. Provide 'reads' or 'run' as an argument to dump the
-        indicated type of data.
+        """Dump data. Provide 'reads', 'run', 'prefixes' or 'mut_counts' 
+        as an argument to dump the indicated type of data.
         """
         self._skip_log = True
         if not self._command_args:
-            raise Exception("Dump requires a type (either 'reads' or 'run').")
+            raise Exception("Dump requires a type ('reads', 'run', 'prefixes' or 'mut_counts').")
         dump_type = self._command_args[0]
         handler = getattr(self, "_dump_" + dump_type, None)
         if not handler:
@@ -394,7 +394,6 @@ class SpatsTool(object):
         run_name = self._run_file()
         if not os.path.exists(run_name):
             raise Exception("Run must be run before attempting dump")
-
         spats = Spats()
         spats.load(run_name)
         countinfo = spats.counters.counts_dict()
@@ -405,6 +404,19 @@ class SpatsTool(object):
                 prefixes.append((key[12:], float(countinfo[key]) / total, countinfo[key]))
             output_path = os.path.join(self.path, 'prefixes_{}.csv'.format(mask))
             self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
+
+    def _dump_mut_counts(self):
+        run_name = self._run_file()
+        if not os.path.exists(run_name):
+            raise Exception("Run must be run before attempting dump")
+        spats = Spats()
+        spats.load(run_name)
+        countinfo = spats.counters.counts_dict()
+        mut_cnts = []
+        for muts in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mut_count_')]):
+            mut_cnts.append((muts, countinfo["mut_count_{}".format(muts)]))
+        output_path = os.path.join(self.path, 'mut_counts.csv')
+        self._write_csv(output_path, [ "Mutation Count", "Reads" ], mut_cnts)
 
     def _dump_reads(self):
         reads_name = self._reads_file()
