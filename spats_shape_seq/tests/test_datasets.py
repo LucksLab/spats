@@ -94,4 +94,49 @@ class TestOverlap(unittest.TestCase):
     def run_pairs(self):
         for case in overlap_cases:
             self.run_case(case)
-        print("Ran {} overlap test cases.".format(len(cases)))
+        print("Ran {} overlap test cases.".format(len(overlap_cases)))
+
+
+short_adapter_b_cases = [
+    [ "181", "AAATGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTAAGATCGGAAGAGCACACGTCTGAACTCCAGTCA", "TAGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGACATTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT", 105 ],
+    [ "225", "TTTGGTCCTTGGTGCCCGAGTCAGATAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTAT", "ATCTGACTCGGGCACCAAGGACCAAAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGC", 121 ],
+    [ "350", "GAGCGTCCTTGGTGCCCGAGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTATGCCGT", "ACTCGGGCACCAAGGACGCTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTAT", 126 ],
+    [ "504", "TTTAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCTAGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", "AGGGAACTGCCAGGCATCTGACTCGGGCACCAAGGACTAAAAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA", 106 ],
+    [ "9678", "GAGTGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCG", "GGAACTGCCAGGCATCTGACTCGGGCACCAAGGACACTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGA", 108 ],
+    [ "13115", "CCCAGTCCTTGGTGCCCGAGTCAGATGCCTGGCAGTTCCCAGATCGGAAGAGCACACGTCTGAACTCCAGTCACC", "GGGAACTGCCAGGCATCTGACTCGGGCACCAAGGACTGGGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAG", 107 ],
+    [ "14670", "GAATGTCCTTGGTGCCCGAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGTACGATCTCGTATGCCGTCT", "TCGGGCACCAAGGACATTCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCA", 128 ],
+]
+
+class TestShortAdapterB(unittest.TestCase):
+
+    def tearDown(self):
+        self.spats = None
+
+    def pair_for_case(self, case):
+        pair = Pair()
+        pair.set_from_data(case[0], case[1], case[2])
+        return pair
+
+    def run_case(self, case):
+        pair = self.pair_for_case(case)
+        print('running: {} / {}'.format(case[0], self.spats.run.algorithm))
+        self.spats.process_pair(pair)
+        self.assertEqual(case[3], pair.site, "site res={} != {} ({}, {}, {}, {})".format(pair.site, case[3], self.__class__.__name__, case[0], self.spats.run.algorithm, pair.failure))
+
+    def test_pairs(self):
+        for alg in algorithms:
+            if alg == 'native':
+                continue
+            self.run_algorithm(alg)
+
+    def run_algorithm(self, alg):
+        from spats_shape_seq import Spats
+        self.spats = Spats()
+        self.spats.run.algorithm = alg
+        self.spats.addTargets("test/5SrRNA/5SrRNA.fa")
+        self.run_pairs()
+
+    def run_pairs(self):
+        for case in short_adapter_b_cases:
+            self.run_case(case)
+        print("Ran {} adapter_b test cases.".format(len(short_adapter_b_cases)))

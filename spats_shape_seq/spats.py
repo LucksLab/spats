@@ -233,7 +233,7 @@ class Spats(object):
         self._addTargets(targets)
 
     def addTarget(self, name, seq, rowid = -1):
-        self._addTargets( [ (name, seq, rowid if rowid != -1 else len(self._targets.targets)) ] )
+        self._addTargets( [ (name, seq, rowid if rowid != -1 else 0 if self._targets is None else len(self._targets.targets)) ] )
 
     def loadTargets(self, pair_db):
         self._addTargets(pair_db.targets())
@@ -241,7 +241,7 @@ class Spats(object):
     def _addTargets(self, target_list):
         targets = self._targets or Targets()
         for name, seq, rowid in target_list:
-            targets.addTarget(name, seq, rowid)
+            targets.addTarget(name, seq.upper().replace('U', 'T'), rowid)
         if not targets.targets:
             raise Exception("didn't get any targets!")
         targets.minimum_match_length = self.run.minimum_target_match_length

@@ -64,11 +64,10 @@ class Run(object):
         #: the default behavior, neither stops nor edge mutations are counted.
         self.count_edge_mutations = None
 
-        #: Defaults to ``False``. When R1 and R2 overlap and have a mismatch
-        #: on their overlap, the default behavior is to count the stop (and
-        #: any mutations).  Set this to ``True`` to have the stop and
-        #: mutations ignored.
-        self.ignore_stops_with_mismatched_overlap = False
+        #: Defaults to ``True``. When R1 and R2 overlap and have a mismatch
+        #: on their overlap, the default behavior is throw away the pair. Set
+        #: this to ``False`` to have the stop and any mutations counted.
+        self.ignore_stops_with_mismatched_overlap = True
 
 
         #: Defaults to ``0``, set higher to require a minimal amount of
@@ -175,6 +174,14 @@ class Run(object):
         #: for the spats run.
         self.generate_sam = None
 
+        #: Default ``None``, set to a string sequence for analyses which use
+        #: a dumbbell sequence (on the front of R2).
+        self.dumbbell = None
+
+        #: Default ``False``, set to ``True`` to only count reads with no 
+        #: stops.
+        self.count_only_full_reads = False
+
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
         self._p_processor_class = None
@@ -197,7 +204,7 @@ class Run(object):
             self.allowed_target_errors = max(self.allowed_target_errors, 1)
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
-        if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1:
+        if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1 or not self.ignore_stops_with_mismatched_overlap:
             self.algorithm = 'find_partial'
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
@@ -215,6 +222,8 @@ class Run(object):
             raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
         if self.count_edge_mutations and (self.count_edge_mutations != 'stop_only' and self.count_edge_mutations != 'stop_and_mut'):
             raise Exception('Invalid count_edge_mutations value: {}'.format(self.count_edge_mutations))
+        if self.dumbbell and self.cotrans:
+            raise Exception('Use of dumbbell in cotrans NYI')
 
     def _get_processor_class(self):
         self.apply_config_restrictions()

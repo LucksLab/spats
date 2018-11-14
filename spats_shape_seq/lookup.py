@@ -65,7 +65,7 @@ class LookupProcessor(PairProcessor):
         if not self._match_mask(pair):
             return
 
-        r1_res = self._targets.r1_lookup.get(pair.r1.original_seq[4:])
+        r1_res = self._targets.lookup_r1(pair.r1.original_seq[4:])
         if not r1_res:
             pair.failure = Failures.nomatch
             return
@@ -92,10 +92,7 @@ class LookupProcessor(PairProcessor):
         r2len = pair.r2.original_len
         r2_mutations = []
         if r1_res[1] == None:
-            lookup = targets.r2_lookup[target.name]
-            r2_match_len = targets.r2_match_lengths[target.name]
-            r2_key = pair.r2.original_seq[:r2_match_len]
-            r2_res = lookup.get(r2_key)
+            r2_res = targets.lookup_r2(target.name, pair.r2.original_seq)
             if r2_res is not None:
                 match_site = r2_res[0]
             else:
@@ -104,17 +101,28 @@ class LookupProcessor(PairProcessor):
         else:
             match_site = r1_res[1]
 
-        # need to check R2 against expectation
         match_len = min(r2len, target.n - match_site)
+        r2_match_start = 0
+        if run.dumbbell:
+            r2_match_start = len(run.dumbbell)
+            # TODO: dumbbell errors
+            if pair.r2.original_seq[:r2_match_start] != run.dumbbell:
+                pair.failure = Failures.dumbbell
+                return
+            pair.dumbbell = match_site - r2_match_start
+            match_len = min(r2len - r2_match_start, target.n - match_site)
+            pair.r2._ltrim = r2_match_start
+
+        # need to check R2 against expectation
         if match_len > 0:
-            pair.r2.match_errors = string_match_errors(pair.r2.original_seq[:match_len], target.seq[match_site:match_site + match_len])
+            pair.r2.match_errors = string_match_errors(pair.r2.original_seq[r2_match_start:match_len], target.seq[match_site:match_site + match_len])
             #+1 for M_j indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention
             r2_mutations = map(lambda x : x + match_site + 1, pair.r2.match_errors)
         if match_len <= 0  or  len(pair.r2.match_errors) > run.allowed_target_errors:
             pair.failure = Failures.match_errors
             return
 
-        adapter_len = r2len - match_len - 4
+        adapter_len = r2len - match_len - r2_match_start - 4
         if adapter_len > 0:
             pair.r2.adapter_errors = string_match_errors(self._adapter_t_rc[:adapter_len], pair.r2.original_seq[-adapter_len:])
             if len(pair.r2.adapter_errors) > run.allowed_adapter_errors:
@@ -130,6 +138,17 @@ class LookupProcessor(PairProcessor):
             if len(pair.r1.match_errors) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 return
+            if adapter_len > 0 and pair.dumbbell:
+                if adapter_len > r2_match_start:
+                    dumbbell_len = len(run.dumbbell)
+                    adapter_len -= r2_match_start
+                else:
+                    dumbbell_len = adapter_len
+                    adapter_len = 0
+                # TODO: dumbbell errors
+                if pair.r1.reverse_complement[adapter_len:dumbbell_len] != run.dumbbell[-dumbbell_len:]:
+                    pair.failure = Failures.dumbbell
+                    return
             if adapter_len > 0:
                 pair.r1.adapter_errors = string_match_errors(pair.r1.original_seq[-adapter_len:], self._run.adapter_b[:adapter_len])
                 if len(pair.r1.adapter_errors) > run.allowed_adapter_errors:
@@ -145,18 +164,22 @@ class LookupProcessor(PairProcessor):
         pair.r2.match_index = site
         pair.r2.match_len = match_len
 
-        if not pair.check_overlap():
+        if run.ignore_stops_with_mismatched_overlap and not pair.check_overlap():
             pair.failure = Failures.r1_r2_overlap
             return
 
+        pair.target = target
         if r2_mutations or r1_res[3]:
             pair.mutations = list(set(r2_mutations + r1_res[3]))
-            self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
             if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 return
+            self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
 
-        pair.target = target
+        if run.count_only_full_reads and site != 0:
+            pair.failure = Failures.not_full_read
+            return
+
         pair.site = site
         pair.end = target.n
         pair.failure = None
@@ -182,7 +205,7 @@ class CotransLookupProcessor(PairProcessor):
         if not self._match_mask(pair):
             return
 
-        r1_res = self._targets.r1_lookup.get(pair.r1.original_seq[4:])
+        r1_res = self._targets.lookup_r1(pair.r1.original_seq[4:])
         if not r1_res:
             pair.failure = Failures.nomatch
             return
@@ -250,27 +273,34 @@ class CotransLookupProcessor(PairProcessor):
             if pair_len - target_match_len - linker_len - 4 > trim:
                 pair.failure = Failures.adapter_trim
                 return
+            pair.r2._rtrim = trim + min(4, pair_len - target_match_len)
 
         if not self._check_indeterminate(pair):
             return
 
         pair.r1.match_index = L - (pair_len - linker_len - 4) + trim
         pair.r1._rtrim = trim
+        pair.r1.match_len = (pair_len - linker_len - 4 - trim)
         pair.r2.match_index = site
         pair.r2.match_len = target_match_len
-        if not pair.check_overlap():
+        if run.ignore_stops_with_mismatched_overlap and not pair.check_overlap():
             pair.failure = Failures.r1_r2_overlap
             return
 
+        pair.target = target
         if r2_mutations or r1_res[3]:
             pair.mutations = list(set(r2_mutations + r1_res[3]))
-            self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
             if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 return
+            self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
+
+        if run.count_only_full_reads and site != 0:
+            pair.failure = Failures.not_full_read
+            return
 
         pair.end = L
-        pair.target = target
         pair.site = site
+        pair.linker = L
         pair.failure = None
         self.counters.register_count(pair)

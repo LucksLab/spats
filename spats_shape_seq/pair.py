@@ -6,6 +6,9 @@ class Pair(object):
     def __init__(self):
         self.reset()
 
+    def __repr__(self):
+        return 'T={}/E={}/S={}/m={}'.format(self.target.name if self.target else None, self.end, self.site, self.mutations)
+
     def reset(self):
         self.identifier = None
         self.r1 = Sequence()
@@ -19,6 +22,9 @@ class Pair(object):
         self._end = -1
         self.mutations = None
         self.removed_mutations = None
+        self.linker = None
+        self.edge_mut = None
+        self.dumbbell = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()
@@ -69,15 +75,46 @@ class Pair(object):
         r1_start = self.r1.match_index
         r2_start = self.r2.match_index
         seq_len = self.r2.original_len
+        min_quality = minimum_quality_score + ord('!')
         for mut in self.mutations:
             q1 = q2 = None
-            if mut < r2_start + seq_len + 1:
-                q2 = ord(self.r2.quality[mut - r2_start + self.r2._ltrim - 1])
+            nt1 = nt2 = None
+            if mut < r2_start + seq_len + 1 - self.r2._ltrim:
+                idx = mut - r2_start + self.r2._ltrim - 1
+                q2 = ord(self.r2.quality[idx])
+                nt2 = self.r2.original_seq[idx]
             if mut > r1_start:
-                q1 = ord(self.r1.quality[::-1][mut - r1_start + self.r1._rtrim - 1])
-            # note: this assumes agreement. TODO: handle disagreement, xref check_overlap below
-            q = max(q1, q2) if (q1 and q2) else (q1 if q1 else q2)
-            if q < (minimum_quality_score + ord('!')):
+                idx = mut - r1_start - 1
+                q1 = ord(self.r1.quality[::-1][idx + self.r1._rtrim])
+                nt1 = self.r1.reverse_complement[idx]
+            if q1 and q2:
+                # check for agreement
+                if nt1 == nt2:
+                    q = max(q1, q2)
+                else:
+                    # xref https://trello.com/c/usT0vTiG/308-discordant-mutations-case-handling-and-unit-tests
+                    #    and associated test cases
+                    ref = self.target.seq[mut]
+                    if q1 < min_quality and q2 >= min_quality:
+                        if nt2 == ref:
+                            q = q1 # signals to ignore the mutation from low-quality q1
+                        else:
+                            q = q2 # signals to count the mutation from high-quality q2
+                    elif q2 < min_quality and q1 >= min_quality:
+                        if nt1 == ref:
+                            q = q2 # signals to ignore the mutation from low-quality q2
+                        else:
+                            q = q1 # signals to count the mutation from high-quality q1
+                    elif q1 < min_quality and q2 < min_quality:
+                        q = max(q1, q2) # both quality are low, we're going to throw it away
+                    else:
+                        # both high quality and disagree, signal low quality which has effect of ignoring the mut
+                        q = 0
+            elif q1:
+                q = q1
+            elif q2:
+                q = q2
+            if q < min_quality:
                 removed.append(mut)
         for mut in removed:
             self.mutations.remove(mut)
@@ -92,8 +129,10 @@ class Pair(object):
         overlap_index = self.r1.match_index
         overlap_len = self.r2.match_index + r2_match_len - overlap_index
         if overlap_len > 0:
-            #print('O: {} / {}'.format(self.r1.reverse_complement[:overlap_len], self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]))
-            if self.r1.reverse_complement[:overlap_len] != self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]:
+            r1_part = self.r1.reverse_complement[:overlap_len]
+            r2_part = self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]
+            #print('O: {} / {}'.format(r1_part, r2_part))
+            if r1_part != r2_part:
                 return False
         return True
 
@@ -103,7 +142,7 @@ class Pair(object):
 
     @property
     def has_site(self):
-        return (self.target and self.site is not None)
+        return bool(self.target and self.site is not None)
 
     @property
     def left(self):

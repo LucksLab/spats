@@ -17,6 +17,8 @@ class Failures(object):
     cotrans_min = "cotrans minimum"
     r1_r2_overlap = "R1/R2 disagree on overlap"
     extra_r1 = "extra bp in R1"
+    dumbbell = "dumbbell match failure"
+    not_full_read = "not full-length read"
 
     @staticmethod
     def all_failures():

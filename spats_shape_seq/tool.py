@@ -12,9 +12,8 @@ import sys
 import time
 
 import spats_shape_seq
-import spats_shape_seq.nbutil as nbutil
 from spats_shape_seq import Spats
-from spats_shape_seq.parse import abif_parse, fastq_handle_filter
+from spats_shape_seq.parse import abif_parse, fastq_handle_filter, FastFastqParser
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
 
 
@@ -25,7 +24,7 @@ class SpatsTool(object):
         self.config = None
         self.cotrans = False
         self._skip_log = False
-        self._no_config_required_commands = [ "doc", "help", "init", "viz" ]
+        self._no_config_required_commands = [ "doc", "help", "init", "viz", "show", "extract_case", "add_case", "show_test_case" ]
         self._private_commands = [ "viz" ]
         self._temp_files = []
         self._r1 = None
@@ -112,6 +111,7 @@ class SpatsTool(object):
         except Exception, e:
             print("** Command {} failed. ({})".format(command, e))
             failure = True
+            #raise
 
         if not failure and not self._skip_log:
             delta = self._sentinel("{} complete".format(command))
@@ -166,6 +166,12 @@ class SpatsTool(object):
 
         analyzer = ReadsAnalyzer(data, cotrans = self.cotrans)
         self._update_run_config(analyzer.run)
+
+        # xref https://trello.com/c/VMFyZjjg/286-handle-quality-parsing-in-reads-tool-if-configured
+        # to do this, we'd need to parse quality to the db (nontrivial)
+        # for now just force-disable this, as it's not required to do reads analysis
+        analyzer.run.mutations_require_quality_score = None
+
         analyzer.process_tags()
         self._add_note("tags processed to {}".format(os.path.basename(db_name)))
 
@@ -184,10 +190,14 @@ class SpatsTool(object):
             preseq_data = abif_parse(filename, fields = [ 'DATA2', 'DATA3', 'DATA105' ])
             open(pre_name, 'wb').write(json.dumps(preseq_data))
             self._add_note("pre-sequencing data processed to {}".format(os.path.basename(pre_name)))
-            self._notebook().add_preseq(key).save()
+            nb = self._notebook()
+            if nb:
+                nb.add_preseq(key).save()
 
     def _run_plots(self):
-        self._notebook().add_spats_run(self.cotrans, True).save()
+        nb = self._notebook()
+        if nb:
+            nb.add_spats_run(self.cotrans, True).save()
 
     def run(self):
         """Process the SPATS data for the configured target(s) and r1/r2 fragment pairs.
@@ -216,9 +226,11 @@ class SpatsTool(object):
             spats.process_pair_data(self.r1, self.r2)
             spats.store(run_name)
         self._add_note("wrote output to {}".format(os.path.basename(run_name)))
-        self._notebook().add_spats_run(self.cotrans, spats.run.count_mutations).save()
+        nb = self._notebook()
+        if nb:
+            nb.add_spats_run(self.cotrans, spats.run.count_mutations).save()
 
-    def _update_run_config(self, run):
+    def _update_run_config(self, run, dictionary = None):
         custom_config = False
         sentinel = '_-=*< sEnTiNeL >*-=_'
         for key, value in self.config.iteritems():
@@ -231,6 +243,8 @@ class SpatsTool(object):
                     val = value
                 setattr(run, key, val)
                 self._add_note("config set {} = {}".format(key, val))
+                if dictionary:
+                    dictionary[key] = val
                 custom_config = True
             else:
                 self._add_note("warning: unknown config {}".format(key))
@@ -249,6 +263,10 @@ class SpatsTool(object):
         return self._spats_file('reads')
 
     def _notebook(self):
+        try:
+            import spats_shape_seq.nbutil as nbutil
+        except:
+            return None
         nb = nbutil.Notebook(os.path.join(self.path, 'spats.ipynb'))
         if nb.is_empty():
             nb.add_metadata(self.metadata)
@@ -307,6 +325,9 @@ class SpatsTool(object):
         """
         self._skip_log = True
 
+        if not self._notebook():
+            raise Exception('Notebook requires the jupyter and nbformat pacakges. Try "pip install nbformat jupyter".')
+
         self._install_nbextensions()
         self._install_matplotlib_styles()
         self._install_jupyter_browser_fix()
@@ -357,12 +378,12 @@ class SpatsTool(object):
             uiclient_worker.terminate()
 
     def dump(self):
-        """Dump data. Provide 'reads' or 'run' as an argument to dump the
-        indicated type of data.
+        """Dump data. Provide 'reads', 'run', 'prefixes' or 'mut_counts' 
+        as an argument to dump the indicated type of data.
         """
         self._skip_log = True
         if not self._command_args:
-            raise Exception("Dump requires a type (either 'reads' or 'run').")
+            raise Exception("Dump requires a type ('reads', 'run', 'prefixes' or 'mut_counts').")
         dump_type = self._command_args[0]
         handler = getattr(self, "_dump_" + dump_type, None)
         if not handler:
@@ -373,7 +394,6 @@ class SpatsTool(object):
         run_name = self._run_file()
         if not os.path.exists(run_name):
             raise Exception("Run must be run before attempting dump")
-
         spats = Spats()
         spats.load(run_name)
         countinfo = spats.counters.counts_dict()
@@ -384,6 +404,19 @@ class SpatsTool(object):
                 prefixes.append((key[12:], float(countinfo[key]) / total, countinfo[key]))
             output_path = os.path.join(self.path, 'prefixes_{}.csv'.format(mask))
             self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
+
+    def _dump_mut_counts(self):
+        run_name = self._run_file()
+        if not os.path.exists(run_name):
+            raise Exception("Run must be run before attempting dump")
+        spats = Spats()
+        spats.load(run_name)
+        countinfo = spats.counters.counts_dict()
+        mut_cnts = []
+        for muts in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mut_count_')]):
+            mut_cnts.append((muts, countinfo["mut_count_{}".format(muts)]))
+        output_path = os.path.join(self.path, 'mut_counts.csv')
+        self._write_csv(output_path, [ "Mutation Count", "Reads" ], mut_cnts)
 
     def _dump_reads(self):
         reads_name = self._reads_file()
@@ -476,6 +509,204 @@ class SpatsTool(object):
         self._skip_log = True
         files = fastq_handle_filter(self.r1, self.r2)
         self._add_note("Pairs filtered to: {}".format(", ".join(files)))
+
+
+    def compare(self):
+
+        from spats_shape_seq import Spats
+        from spats_shape_seq.pair import Pair
+
+        json_base = { 'target' : self.config['target'], 'config' : { 'algorithm' : 'find_partial', 'debug' : True }, 'expect' : {}}
+
+        spats_fp = Spats(cotrans = self.cotrans)
+        spats_lookup = Spats(cotrans = self.cotrans)
+        self._update_run_config(spats_fp.run)
+        self._update_run_config(spats_lookup.run, json_base['config'])
+        spats_fp.run.algorithm = 'find_partial'
+        spats_lookup.run.algorithm = 'lookup'
+
+        spats_fp.addTargets(self.config['target'])
+        spats_lookup.addTargets(self.config['target'])
+
+        count = 0
+        match = 0
+        with FastFastqParser(self.r1, self.r2) as parser:
+            total = parser.appx_number_of_pairs()
+            for batch in parser.iterator(5000):
+                for item in batch:
+                    pair_fp = Pair()
+                    pair_lookup = Pair()
+                    pair_fp.set_from_data(str(item[0]), item[1], item[2])
+                    pair_lookup.set_from_data(str(item[0]), item[1], item[2])
+                    try:
+                        spats_fp.process_pair(pair_fp)
+                        spats_lookup.process_pair(pair_lookup)
+                    except:
+                        print('Error after {}/{}'.format(match, count))
+                        raise
+                    if (pair_fp.has_site == pair_lookup.has_site):
+                        if not pair_fp.has_site:
+                            count += 1
+                            continue
+                        elif (pair_fp.target.name == pair_lookup.target.name and
+                              pair_fp.end == pair_lookup.end and
+                              pair_fp.site == pair_lookup.site and
+                              pair_fp.mutations == pair_lookup.mutations):
+                            count += 1
+                            match += 1
+                            continue
+                    json_base["id"] = str(item[0])
+                    json_base["R1"] = str(item[1])
+                    json_base["R2"] = str(item[2])
+                    print('After {}/{} matches; mismatched pair: {} != {}\n{}'.format(match, count, pair_fp, pair_lookup,
+                                                                                      json.dumps(json_base, sort_keys = True,indent = 4, separators = (',', ': '))))
+                    return
+                print('{}/{}-{}...'.format(match, count, total))
+        spats_fp.counters.total_pairs = count
+        spats_lookup.counters.total_pairs = count
+        print('All match {}/{}.'.format(match, count))
+        print(spats_fp._report_counts())
+        print(spats_lookup._report_counts())
+
+    def _test_case_registry(self):
+        import spats_shape_seq.tests.test_harness
+        return spats_shape_seq.tests.test_harness.registry()
+
+    def extract_case(self):
+        """Extracts a test case from the registry.
+        """
+
+        self._skip_log = True
+        if not self._command_args or len(self._command_args) < 2:
+            raise Exception("extract requires a test case id and an output filename")
+        case_id = self._command_args[0]
+        test_case_file = self._command_args[1]
+
+        reg = self._test_case_registry()
+        case = reg.extract_case(case_id)
+        if not case:
+            raise Exception('Unknown case id: {}'.format(case_id))
+
+        open(test_case_file, 'w').write(json.dumps(case.jsonDict(), sort_keys = True, indent = 4, separators = (',', ': ')))
+        print("Extracted case '{}' to '{}'".format(case_id, test_case_file))
+
+    def add_case(self):
+        """Adds a test case from the registry.
+        """
+
+        self._skip_log = True
+        if not self._command_args:
+            raise Exception("add requires a test case file")
+
+        test_case_file = self._command_args[0]
+        test_case = json.loads(open(test_case_file, 'r').read())
+
+        reg = self._test_case_registry()
+        reg.add_case(test_case)
+        print("Added case '{}' to set '{}' in the test case registry.".format(test_case['id'], test_case['set_name']))
+
+    def show_test_case(self):
+        """Shows the diagram and result for analysis of a unit test case.
+        """
+
+        self._skip_log = True
+        if not self._command_args:
+            raise Exception("show_test_case requires a test id")
+
+        test_case_id = self._command_args[0]
+        print(test_case_id)
+        reg = self._test_case_registry()
+        test_case = reg.extract_case(test_case_id)
+        test_case.run_opts['debug'] = True
+        print(json.dumps(test_case.jsonDict(), sort_keys = True, indent = 4, separators = (',', ': ')))
+        self._show_case(test_case)
+
+
+    def show(self):
+        """Shows the diagram and result for analysis of a test case pair.
+        """
+
+        import spats_shape_seq.tests.test_harness
+        self._skip_log = True
+
+        if not self._command_args:
+            raise Exception("show requires the path to a test case")
+
+        test_case_file = self._command_args[0]
+        test_case_dict = json.loads(open(test_case_file, 'r').read())
+        test_case = spats_shape_seq.tests.test_harness.SpatsCase(test_case_dict)
+        self._show_case(test_case)
+
+
+    def _show_case(self, test_case):
+
+        from spats_shape_seq import Spats
+        from spats_shape_seq.diagram import diagram
+
+        alg = test_case.run_opts.get('algorithm')
+        algs = [ alg ] if alg else test_case.run_opts.get('algorithms', [ 'find_partial', 'lookup' ])
+        for algorithm in algs:
+            spats = Spats()
+            spats.run.algorithm = algorithm
+
+            for key, value in test_case.run_opts.items():
+                if str(key) == 'algorithms':
+                    continue
+                if isinstance(value, unicode):
+                    value = str(value)
+                if not hasattr(spats.run, key):
+                    raise Exception('Invalid run_opt: {}'.format(key))
+                setattr(spats.run, key, value)
+
+            for name, seq in test_case.targets.iteritems():
+                spats.addTarget(name, seq)
+
+            pair = test_case.pair()
+            if len(algs) > 1:
+                print('\n[[ ALGORITHM: {} ]]'.format(algorithm))
+            spats.process_pair(pair)
+            if test_case.comment:
+                print('Comment: {}'.format(test_case.comment))
+            print(diagram(pair, spats.run))
+
+            if test_case.expect:
+                # should mirror `_check_expect` in test_harness.py...
+                expects = test_case.expect
+                fail = False
+
+                try:
+
+                    if expects['site'] is None:
+                        if pair.site is not None:
+                            raise Exception("pair.site={} when expecting none.".format(pair.site))
+                    else:
+                        if pair.site is None:
+                            raise Exception("pair.site is none when expecting {}.".format(expects['site']))
+                        if pair.site != expects['site']:
+                            raise Exception("pair.site={} != expect.site={}".format(pair.site, expects['site']))
+                        if 'end' in expects and pair.end != expects['end']:
+                            raise Exception("pair.end={} != expect.end={}".format(pair.end, expects['end']))
+                        if 'muts' in expects:
+                            if expects['muts'] is not None  and  len(expects['muts']) > 0:
+                                if not sorted(expects['muts']) == (sorted(pair.mutations) if pair.mutations else pair.mutations):
+                                    raise Exception("mismatching mutations:  expected={}, pair.mutations={}".format(expects['muts'], pair.mutations))
+                            else:
+                                if not (pair.mutations is None  or len(pair.mutations) == 0):
+                                    raise Exception("unexpected mutations: {}".format(pair.mutations))
+                        if 'counters' in expects:
+                            for counter, value in expects['counters'].iteritems():
+                                if getattr(self.spats.counters, str(counter)) != value:
+                                    raise Exception("counter '{}' value off: expected={} != got={}".format(counter, value, getattr(self.spats.counters, counter)))
+                        if 'pair.target' in expects:
+                            tname = pair.target.name if pair.target else None
+                            if tname != expects['pair.target']:
+                                raise Exception("pair.target={} != expect.pair.target={}".format(tname, expects['pair.target']))
+
+                except Exception as e:
+                    print('FAIL: {}'.format(e))
+                    sys.exit(1)
+
+                print('PASS')
 
     def doc(self):
         """Show the spats documentation.

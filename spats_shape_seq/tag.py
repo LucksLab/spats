@@ -186,7 +186,7 @@ class TagProcessor(PairProcessor):
                 self._tag_targets.index()
                 self._tag_targets_indexed = True
             for t in self._find_tag_names(pair):
-                tname = t.rstrip("_rc")
+                tname = t[:-3] if t.endswith("_rc") else t
                 if tname.startswith("adapter"):
                     tags.append(TAG_ADAPTER)
                 else:

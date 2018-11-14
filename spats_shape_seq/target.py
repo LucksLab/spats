@@ -1,6 +1,6 @@
 
 from mask import longest_match
-from util import reverse_complement, _warn
+from util import reverse_complement, _debug, _warn
 
 class _Target(object):
 
@@ -259,6 +259,7 @@ class Targets(object):
                             r1_table[mutated_match] = entries
 
         self.r1_lookup = r1_table
+        self._build_R1_aliases(adapter_b, r1_match_len)
 
         # we only need to build R2 lookups for full sequences (excepting linker)
         # trim cases are just tested against R1
@@ -269,23 +270,31 @@ class Targets(object):
         use_length = length or 35
         if use_length < 0:
             raise Exception('Cannot build lookups on variable-length inputs. Use find_partial processor.')
-        self._build_R1_lookup(run.adapter_b, use_length - 4, end_only, run.count_mutations)
-        self._build_R2_lookup(use_length - 4, run.count_mutations)
+        self._build_R1_lookup(run.adapter_b, use_length - 4, end_only, run.count_mutations, run.dumbbell)
+        self._build_R2_lookup(use_length - 4, run.count_mutations, run.dumbbell)
 
-    def _build_R1_lookup(self, adapter_b, length = 31, end_only = True, mutations = False):
+    def _build_R1_lookup(self, adapter_b, length = 31, end_only = True, mutations = False, dumbbell = None):
         # we can pre-build the set of all possible (error-free) R1, b/c:
         #  - R1 has to include the right-most nt
-        #  - R1 can include some adapter-b off the end
+        #  - R1 can include some adapter-b (or dumbbell) off the end
         #  - this is done for each target
         #  - note that in cases where R1 includes some (enough) adapter, then position and content of R2 is determined
         # note that this does *not* include the handle.
         r1_table = {}
+        use_aliases = False
         for target in self.targets:
             tlen = target.n
             rc_tgt = reverse_complement(target.seq)
+            rc_dumbbell = reverse_complement(dumbbell) if dumbbell else None
             tcandidates = 0
             for i in range(1, length + 1):
-                r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
+                if rc_dumbbell:
+                    if length - i <= len(rc_dumbbell):
+                        r1_candidate = rc_tgt[:i] + rc_dumbbell[:length - i]
+                    else:
+                        r1_candidate = rc_tgt[:i] + rc_dumbbell + adapter_b[:length - len(rc_dumbbell) - i]
+                else:
+                    r1_candidate = rc_tgt[:i] + adapter_b[:length - i]
                 res = (target, None if i == length else tlen - i, length - i, []) # target, end, amount of adapter to trim, mutations
                 existing = r1_table.get(r1_candidate)
                 if existing:
@@ -310,8 +319,39 @@ class Targets(object):
                 _warn("!! No R1 match candidates for {}".format(target.name))
 
         self.r1_lookup = r1_table
+        self._build_R1_aliases(adapter_b, length)
 
-    def _build_R2_lookup(self, length = 35, mutations = False):
+
+    # if we don't have enough adapter_b, then make aliases for short lookup keys
+    def _build_R1_aliases(self, adapter_b, length):
+
+        self.r1_aliases = None
+        self.r1_lookup_length = length
+
+        use_aliases = False
+        for key in self.r1_lookup.keys():
+            if len(key) < length:
+                use_aliases = True
+                break
+        if not use_aliases:
+            return
+
+        minimum_length = 1 + len(adapter_b)
+        if use_aliases:
+            r1_aliases = {}
+            for key in self.r1_lookup.keys():
+                if len(key) == length:
+                    continue
+                alias = key[:minimum_length]
+                if alias in r1_aliases:
+                    r1_aliases[alias].append(key)
+                else:
+                    r1_aliases[alias] = [ key ]
+            self.r1_aliases = r1_aliases
+            self.r1_lookup_length = minimum_length
+
+
+    def _build_R2_lookup(self, length = 35, mutations = False, dumbbell = None):
         # for the R2 table, we only care about R2's that are in the sequence
         # when R2 needs adapter trimming, R1 will determine that
         self_matches = self.longest_target_self_matches()
@@ -321,6 +361,8 @@ class Targets(object):
         r2_match_lengths = {}
         for target in self.targets:
             mlen = length if mutations else self_matches[target.name] + 1
+            if dumbbell:
+                mlen += len(dumbbell)
             if length < mlen:
                 raise Exception("R2 length not long enough for target self-match ({} / {})".format(length, mlen))
             r2_table = {}
@@ -329,7 +371,10 @@ class Targets(object):
             tlen = target.n
             tgt_seq = target.seq
             for i in range(tlen - mlen + 1):
-                r2_candidate = tgt_seq[i:i+mlen]
+                if dumbbell:
+                    r2_candidate = dumbbell + tgt_seq[i:i+mlen-len(dumbbell)]
+                else:
+                    r2_candidate = tgt_seq[i:i+mlen]
                 if r2_table.get(r2_candidate):
                     raise Exception("indeterminate R2 candidate {} in target?".format(r2_candidate))
                 r2_table[r2_candidate] = (i, [])
@@ -347,3 +392,19 @@ class Targets(object):
 
         self.r2_lookup = r2_full_table
         self.r2_match_lengths = r2_match_lengths
+
+    def lookup_r1(self, seq):
+        res = self.r1_lookup.get(seq)
+        if not res and self.r1_aliases:
+            keylist = self.r1_aliases.get(seq[:self.r1_lookup_length])
+            if keylist:
+                for key in keylist:
+                    if key and seq.startswith(key):
+                        res = self.r1_lookup.get(key)
+                        break
+        return res
+
+    def lookup_r2(self, target_name, seq):
+        lookup = self.r2_lookup[target_name]
+        r2_match_len = self.r2_match_lengths[target_name]
+        return lookup.get(seq[:r2_match_len])

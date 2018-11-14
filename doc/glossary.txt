@@ -6,7 +6,7 @@ some terms defined:
   - 3' end === right end
     - R1 is (in non-cotrans) on the right/3' end
 
-- fragment: thing in the machine
+- fragment: thing in the machine (a.k.a "read")
 
 - segment: what code calls sequence, one of the two ends of the fragment
 
@@ -23,13 +23,17 @@ some terms defined:
 
 - adapter: sequence added to the right end of target to sequence short fragments
   - "adapter trimming": handling this in the code
+  - adapter_b is for R1, adapter_t is for R2
+
+- prefix:  part of segment (typically R2 since on left side) that precedes the part where the segment matches the target
+    - prefixes can be counted or "collapsed" (pretend it's not there so that we can still match the target)
 
 - cotrans: different analysis that doesn't require R1 on the very right edge
   - linker: fixed sequence, appended to right of end, part of R1
 
 - end: the right end of a fragment (variable in cotrans, fixed to the right end of the target otherwise)
 
-- site: when an r1/r2 pair is matched to the target, the left end of r2 is the site
+- site: when an r1/r2 pair is matched to the target, the left end of r2 is the site/stop (counted as "f")
 
 - stats:
   - counts: counters that track the number of r1/r2 pairs that matched an end/site

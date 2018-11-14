@@ -25,7 +25,7 @@ class PartialFindProcessor(PairProcessor):
         # if we're here, we know that R2 hangs over the right edge. first, figure out by how much
 
         r2_seq = pair.r2.subsequence
-        r2_start_in_target = pair.r2.match_index - pair.r2.match_start
+        r2_start_in_target = pair.r2.match_index - pair.r2.match_start + pair.r2._ltrim
         r2_len_should_be = pair.target.n - r2_start_in_target
         r2_length_to_trim = pair.r2.seq_len - r2_len_should_be
         pair.r2.trim(r2_length_to_trim)
@@ -56,7 +56,7 @@ class PartialFindProcessor(PairProcessor):
         pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self._run.adapter_b)
         _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
         if len(pair.r1.adapter_errors) > self._run.allowed_adapter_errors:
-             return False
+            return False
 
         if r1_match_trimmed and len(self._targets.targets) > 1:
             # ok, we trimmed down our R1 due to adapters. need to see if that means the leftover matches
@@ -65,8 +65,8 @@ class PartialFindProcessor(PairProcessor):
             if not target or isinstance(target, list):
                 # note that target may be None if pair.r1.match_len is less than the index word length
                 _debug("dropping pair due to multiple R1 match after adapter trim")
-                print("multiple R1 trim: " + pair.r1.original_seq)
-                print("{}".format([r1_match_trimmed, r1_adapter_match, r1_length_to_trim]))
+                #print("multiple R1 trim: " + pair.r1.original_seq)
+                #print("{}".format([r1_match_trimmed, r1_adapter_match, r1_length_to_trim]))
                 pair.target = None
                 pair.failure = Failures.multiple_R1
                 self.counters.multiple_R1_match += pair.multiplicity
@@ -90,9 +90,27 @@ class PartialFindProcessor(PairProcessor):
 
         run = self._run
 
-        # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
-        r2_start_in_target = pair.r2.match_index - pair.r2.match_start
+        if run.dumbbell:
+            if not pair.r2.original_seq.startswith(run.dumbbell):
+                pair.failure = Failures.dumbbell
+                return
+            dumbbell_len = len(run.dumbbell)
+            if pair.r2.match_start < dumbbell_len:
+                delta = dumbbell_len - pair.r2.match_start
+                pair.r2.match_start = dumbbell_len
+                pair.r2.match_len -= delta
+                pair.r2.match_index += delta
+            pair.dumbbell = pair.r2.match_index - pair.r2.match_start
+            r2_start_in_target = pair.dumbbell + dumbbell_len
+            pair.r2._ltrim = dumbbell_len
+            _debug("R2 dumbbell results in: {}".format([r2_start_in_target, pair.r2.match_index, pair.r2.match_start, pair.r2.match_len, dumbbell_len]))
+        else:
+            # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
+            r2_start_in_target = pair.r2.match_index - pair.r2.match_start
+            dumbbell_len = 0
+
         if r2_start_in_target < 0:
+            _debug("prefix check")
             self.counters.left_of_target += pair.multiplicity
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - r2_start_in_target]
@@ -101,12 +119,13 @@ class PartialFindProcessor(PairProcessor):
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
-                pair.r2._ltrim = 0 - r2_start_in_target
+                pair.r2._ltrim -= r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero
                 return
-        elif r2_start_in_target + pair.r2.original_len <= pair.target.n:
+        elif r2_start_in_target + (pair.r2.original_len - dumbbell_len) <= pair.target.n:
             # we're in the middle -- no problem
+            _debug("middle case")
             pass
         elif not self._trim_adapters(pair):
             # we're over the right edge, and adapter trimming failed
@@ -120,10 +139,27 @@ class PartialFindProcessor(PairProcessor):
         # set the match to be the rest of the (possibly trimmed) sequence, and count errors
         pair.r1.match_to_seq(reverse_complement = True)
         pair.r2.match_to_seq()
+
+        if pair.dumbbell != None:
+            _debug("fixing R1 for dumbbell: {}".format([pair.r1.left, pair.r2.left, pair.dumbbell]))
+            if pair.r1.left < pair.dumbbell + dumbbell_len:
+                dumbbell_part = pair.dumbbell + dumbbell_len - pair.r1.left
+                # TODO: match errors on dumbbell?
+                if pair.r1.reverse_complement[:dumbbell_part] != run.dumbbell[-dumbbell_part:]:
+                    _debug("R1 dumbbell failure: {} != {}".format(pair.r1.reverse_complement[0:dumbbell_part], run.dumbbell[-dumbbell_part:]))
+                    pair.failure = Failures.dumbbell
+                    return
+                pair.r1._rtrim += dumbbell_part
+                pair.r1.match_index += dumbbell_part
+                pair.r1.match_len -= dumbbell_part
+                pair.r1.match_start += dumbbell_part
+                _debug("after dumbbell: {}".format([pair.r1._ltrim, pair.r1._rtrim, pair.r1.match_start, pair.r1.match_len, pair.r1.match_index ]))
+
         target_seq = pair.target.seq
         r1_matcher = pair.r1.reverse_complement
         pair.r1.match_errors = string_match_errors(r1_matcher, target_seq[pair.r1.match_index:])
         pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
+        _debug("match errors: {} / {}".format(pair.r1.match_errors, pair.r2.match_errors))
 
         if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
             if pair.r1.match_errors:
@@ -152,11 +188,17 @@ class PartialFindProcessor(PairProcessor):
 
         if run.count_mutations:
             pair.check_mutations()
+            if pair.mutations:
+                self.counters.register_mut_count(pair)
+                if len(pair.mutations) > run.allowed_target_errors:
+                    pair.failure = Failures.match_errors
+                    self.counters.match_errors += pair.multiplicity
+                    return
             self.counters.low_quality_muts += pair.check_mutation_quality(self._run.mutations_require_quality_score)
-            if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
-                pair.failure = Failures.match_errors
-                self.counters.match_errors += pair.multiplicity
-                return
+
+        if run.count_only_full_reads and (pair.site or pair.left) != 0:
+            pair.failure = Failures.not_full_read
+            return
 
         pair.site = pair.site or pair.left
         self.counters.register_count(pair)
@@ -310,6 +352,8 @@ class CotransPartialFindProcessor(PairProcessor):
             pair.r2.match_len = l2index
             pair.r2.match_index = index
 
+            pair.linker = index + (lindex - rtrim)
+
         else:
 
             # (2b)
@@ -319,6 +363,7 @@ class CotransPartialFindProcessor(PairProcessor):
                 return
 
             linker_start = pair.r1.match_index + (lindex - pair.r1.match_start)
+            pair.linker = linker_start
             check_len = 0
             if pair.r2.match_index + (r2_len - pair.r2.match_start) > linker_start:
                 linker_in_r2_idx = linker_start - pair.r2.match_index + pair.r2.match_start
@@ -413,11 +458,17 @@ class CotransPartialFindProcessor(PairProcessor):
 
         if run.count_mutations:
             pair.check_mutations()
+            if pair.mutations:
+                self.counters.register_mut_count(pair)
+                if len(pair.mutations) > run.allowed_target_errors:
+                    pair.failure = Failures.match_errors
+                    self.counters.match_errors += pair.multiplicity
+                    return
             self.counters.low_quality_muts += pair.check_mutation_quality(run.mutations_require_quality_score)
-            if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
-                pair.failure = Failures.match_errors
-                self.counters.match_errors += pair.multiplicity
-                return
+
+        if run.count_only_full_reads and pair.left != 0:
+            pair.failure = Failures.not_full_read
+            return
 
         pair.site = pair.left
         self.counters.register_count(pair)
