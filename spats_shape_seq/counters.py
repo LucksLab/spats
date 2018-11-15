@@ -82,7 +82,7 @@ class Counters(object):
         self.increment_key('prefix_{}_{}'.format(pair.mask.chars, prefix), pair.multiplicity)
 
     def register_mut_count(self, pair):
-        self.increment_key('mut_count_{}'.format(len(pair.mutations)), pair.multiplicity)
+        self.increment_key('mut_count_{}'.format(len(pair.mutations) if pair.mutations else 0), pair.multiplicity)
 
     def count_data(self):
         return (self._counts, self._registered)

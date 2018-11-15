@@ -73,6 +73,9 @@
                     "expect": {
                         "end": 107,
                         "muts": [],
+                        "counters": {
+                            "mut_count_0": 1
+                        },
                         "site": 35
                     },
                     "id": "muts_3",
@@ -84,6 +87,9 @@
                     "expect": {
                         "end": 107,
                         "muts": [],
+                        "counters": {
+                            "mut_count_0": 1
+                        },
                         "site": 36
                     },
                     "id": "muts_4",
@@ -177,6 +183,9 @@
                     "expect": {
                         "end": 107,
                         "muts": [],
+                        "counters": {
+                            "mut_count_0": 1
+                        },
                         "site": 37
                     },
                     "id": "muts_11",
