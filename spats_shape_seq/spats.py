@@ -201,6 +201,7 @@ class Spats(object):
         self._targets = None
         self._masks = None
         self._profiles = None
+        self.force_mask = None
 
 
     @property
