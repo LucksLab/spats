@@ -4,7 +4,7 @@ import Queue
 import sys
 
 from pair import Pair
-from parse import SamWriter
+from parse import FastqWriter, SamWriter
 from util import _debug, _warn
 
 
@@ -189,6 +189,7 @@ class SpatsWorker(object):
         pair_db = self._pair_db
         writeback = bool(self._result_set_id)
         sam = bool(self._run.generate_sam)
+        channel_reads = bool(self._run.generate_channel_reads)
         use_quality = self._run._parse_quality
         total = 0
         if writeback:
@@ -202,6 +203,9 @@ class SpatsWorker(object):
 
         if sam:
             sam_writer = SamWriter(self._run.generate_sam, processor._targets.targets)
+        if channel_reads:
+            plus_writer = FastqWriter('R1_plus.fastq', 'R2_plus.fastq')
+            minus_writer = FastqWriter('R1_minus.fastq', 'R2_minus.fastq')
 
         while more_pairs:
             try:
@@ -222,8 +226,14 @@ class SpatsWorker(object):
                         except:
                             print("**** Error processing pair: {} / {}".format(pair.r1.original_seq, pair.r2.original_seq))
                             raise
+
                         if sam:
                             sam_writer.write(pair)
+                        if channel_reads and pair.has_site:
+                            if pair.mask.chars == self._run.masks[0]:
+                                plus_writer.write(pair)
+                            else:
+                                minus_writer.write(pair)
 
                         total += pair.multiplicity
                         if writeback:
