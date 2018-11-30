@@ -29,6 +29,10 @@ class SpatsTool(object):
         self._temp_files = []
         self._r1 = None
         self._r2 = None
+        self._r1_plus = None
+        self._r2_plus = None
+        self._r1_minus = None
+        self._r2_minus = None
         self._parse_config()
 
     def _parse_config(self):
@@ -64,7 +68,7 @@ class SpatsTool(object):
         self._notes.append(note)
         print(":{}".format(note))
 
-    def _load_r1_r2(self, ret_r1):
+    def _load_r1_r2(self, suffix = ''):
         def decomp(rx):
             base, ext = os.path.splitext(os.path.basename(rx))
             if ext.lower() == '.gz':
@@ -75,16 +79,46 @@ class SpatsTool(object):
                 self._sentinel("decompress {}".format('R1' if ret_r1 else 'R2'))
                 return out
             return rx
-        self._r1, self._r2 = decomp(self.config['r1']), decomp(self.config['r2'])
-        return self._r1 if ret_r1 else self._r2
+        return decomp(self.config['r1' + suffix]), decomp(self.config['r2' + suffix])
 
     @property
     def r1(self):
-        return self._r1 or self._load_r1_r2(True)
+        if not self._r1:
+            self._r1, self._r2 = self._load_r1_r2()
+        return self._r1
 
     @property
     def r2(self):
-        return self._r2 or self._load_r1_r2(False)
+        if not self._r2:
+            self._r1, self._r2 = self._load_r1_r2()
+        return self._r2
+
+    def using_separate_channel_files(self):
+        return bool(self.config.get('r1_plus'))
+
+    @property
+    def r1_plus(self):
+        if not self._r1_plus:
+            self._r1_plus, self._r2_plus = self._load_r1_r2('_plus')
+        return self._r1_plus
+
+    @property
+    def r2_plus(self):
+        if not self._r2_plus:
+            self._r1_plus, self._r2_plus = self._load_r1_r2('_plus')
+        return self._r2_plus
+
+    @property
+    def r1_minus(self):
+        if not self._r1_minus:
+            self._r1_minus, self._r2_minus = self._load_r1_r2('_minus')
+        return self._r1_minus
+
+    @property
+    def r2_minus(self):
+        if not self._r2_minus:
+            self._r1_minus, self._r2_minus = self._load_r1_r2('_minus')
+        return self._r2_minus
 
 
     def _run(self, args):
@@ -223,7 +257,11 @@ class SpatsTool(object):
         else:
             self._add_note("using python processor")
             spats.addTargets(self.config['target'])
-            spats.process_pair_data(self.r1, self.r2)
+            if self.using_separate_channel_files():
+                spats.process_pair_data(self.r1_plus, self.r2_plus, force_mask = spats.run.masks[0])
+                spats.process_pair_data(self.r1_minus, self.r2_minus, force_mask = spats.run.masks[1])
+            else:
+                spats.process_pair_data(self.r1, self.r2)
             spats.store(run_name)
         self._add_note("wrote output to {}".format(os.path.basename(run_name)))
         nb = self._notebook()
@@ -234,7 +272,7 @@ class SpatsTool(object):
         custom_config = False
         sentinel = '_-=*< sEnTiNeL >*-=_'
         for key, value in self.config.iteritems():
-            if key in [ "r1", "r2", "preseq", "target", "cotrans" ]:
+            if key in [ "r1", "r2", "r1_plus", "r2_plus", "r1_minus", "r2_minus", "preseq", "target", "cotrans" ]:
                 continue
             if sentinel != getattr(run, key, sentinel):
                 try:

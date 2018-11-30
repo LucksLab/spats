@@ -35,6 +35,7 @@ class SpatsWorker(object):
     def _worker(self, worker_id):
         try:
             processor = self._processor
+            processor.reset_counts()
             if self._pair_db:
                 self._pair_db.worker_id = worker_id
             writeback = bool(self._result_set_id)
@@ -51,6 +52,8 @@ class SpatsWorker(object):
                     if use_quality:
                         pair.r1.quality = str(lines[4])
                         pair.r2.quality = str(lines[5])
+                    if self.force_mask:
+                        pair.mask = self.force_mask
                     processor.process_pair(pair)
                     #if pair.failure:
                     #    print('FAIL: {}'.format(pair.failure))
@@ -220,6 +223,8 @@ class SpatsWorker(object):
                         if use_quality:
                             pair.r1.quality = str(lines[4])
                             pair.r2.quality = str(lines[5])
+                        if self.force_mask:
+                            pair.mask = self.force_mask
 
                         try:
                             processor.process_pair(pair)

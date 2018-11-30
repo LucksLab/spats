@@ -292,7 +292,7 @@ class Spats(object):
         return db
 
 
-    def process_pair_data(self, data_r1_path, data_r2_path):
+    def process_pair_data(self, data_r1_path, data_r2_path, force_mask = None):
         """Used to read and process a pair of FASTQ data files.
 
         Note that this parses the pair data into an in-memory SQLite
@@ -308,6 +308,7 @@ class Spats(object):
         :param data_r2_path: path to matching R2 fragments.
         """
         self.run.apply_config_restrictions()
+        self.force_mask = Mask(force_mask) if force_mask else None
         use_quality = self.run._parse_quality
         if not self.run.skip_database and not use_quality:
             self.process_pair_db(self._memory_db_from_pairs(data_r1_path, data_r2_path))
@@ -363,6 +364,7 @@ class Spats(object):
         if not self.run.quiet:
             print("Processing pairs...")
 
+        worker.force_mask = self.force_mask
         worker.run(pair_iter)
 
         if not self.run.quiet:
