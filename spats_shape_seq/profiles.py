@@ -134,6 +134,7 @@ class TargetProfiles(object):
         treated_sum = 0.0    # keep a running sum
         untreated_sum = 0.0  # for both channels
         running_c_sum = 0.0  # can also do it for c
+        running_c_alt_sum = 0.0
 
         # NOTE: there is an index discrepancy here between indices
         # used in the code, and the indices used in the Aviran paper
@@ -160,6 +161,7 @@ class TargetProfiles(object):
                 Ybit = (Y_k / untreated_sum)
                 betas[k] = (Xbit - Ybit) / (1 - Ybit)
                 thetas[k] = math.log(1.0 - Ybit) - math.log(1.0 - Xbit)
+                running_c_alt_sum -= math.log(1.0 - betas[k])
                 if not self.owner._run.allow_negative_values:
                     betas[k] = max(0.0, betas[k])
                     thetas[k] = max(0.0, thetas[k])
@@ -177,6 +179,7 @@ class TargetProfiles(object):
         self.thetas = thetas
         self.rhos = [ n * th for th in thetas ]
         self.c = c
+        self.c_alt = running_c_alt_sum
 
         self.compute_mutated_profiles()
 
@@ -196,6 +199,7 @@ class TargetProfiles(object):
         depth_t = 0.0    # keep a running sum
         depth_u = 0.0  # for both channels
         running_c_sum = 0.0
+        running_c_alt_sum = 0.0
 
         # NOTE: there is an index discrepancy here between indices
         # used in the code, and the indices used in the derivation:
@@ -213,12 +217,13 @@ class TargetProfiles(object):
 
             mut_j_t = float(treated_muts[j])     # mut_j^+
             mut_j_u = float(untreated_muts[j])   # mut_j^-
-            depth_t += s_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + i)]))
+            depth_t += s_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + 1)]))
             depth_u += s_j_u  #running sum equivalent to: depth_u = float(sum(untreated_counts[:(j + 1)]))
+            curmu = 0.0
             try:
                 Tbit = (mut_j_t / depth_t)
                 Ubit = (mut_j_u / depth_u)
-                mu[j] = (Tbit - Ubit) / (1 - Ubit)
+                curmu = mu[j] = (Tbit - Ubit) / (1 - Ubit)
                 if not self.owner._run.allow_negative_values:
                     mu[j] = max(0.0, mu[j])
             except:
@@ -226,12 +231,14 @@ class TargetProfiles(object):
                 mu[j] = 0.0
 
             running_c_sum -= math.log(1.0 - mu[j]) # xref Yu_Estimating_Reactivities pdf, p24
+            running_c_alt_sum -= math.log(1.0 - curmu)
 
             r_mut[j] = self.betas[j] + mu[j]
 
         self.mu = mu
         self.r_mut = r_mut
         self.c += running_c_sum
+        self.c_alt += running_c_alt_sum
 
 
     def write(self, outfile):

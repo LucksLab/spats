@@ -48,6 +48,9 @@ class PairProcessor(object):
     def exists(self):
         return True
 
+    def reset_counts(self):
+        self.counters = Counters(self._run)
+
     @property
     def _adapter_t_rc(self):
         if not self.__adapter_t_rc:
@@ -55,6 +58,9 @@ class PairProcessor(object):
         return self.__adapter_t_rc
 
     def _match_mask_general(self, pair):
+        if pair.mask:
+            self.counters.increment_mask(pair.mask, pair.multiplicity)
+            return True
         seq = pair.r1.original_seq
         for mask in self._masks:
             if mask.matches(seq):
@@ -67,6 +73,9 @@ class PairProcessor(object):
 
     # optimized version for RRRY/YYYR
     def _match_mask_optimized(self, pair):
+        if pair.mask:
+            self.counters.increment_mask(pair.mask, pair.multiplicity)
+            return True
         mask = match_mask_optimized(pair.r1.original_seq[:4], self._masks)
         if mask:
             pair.set_mask(mask)

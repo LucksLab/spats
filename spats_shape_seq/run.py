@@ -174,6 +174,10 @@ class Run(object):
         #: for the spats run.
         self.generate_sam = None
 
+        #: Default ``False``, set to ``True`` to generate R1/R2 outputs
+        #: for all matching reads, separated by channel (with handles stripped).
+        self.generate_channel_reads = False
+
         #: Default ``None``, set to a string sequence for analyses which use
         #: a dumbbell sequence (on the front of R2).
         self.dumbbell = None
@@ -210,7 +214,7 @@ class Run(object):
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
         if self.count_mutations and self.mutations_require_quality_score is not None:
             self._parse_quality = True
-        if self.generate_sam:
+        if self.generate_sam or self.generate_channel_reads:
             self.algorithm = 'find_partial'
             self.num_workers = 1
             self._parse_quality = True

@@ -175,6 +175,30 @@ class FastFastqParser(object):
             pass
         return pairs, count
 
+class FastqWriter(object):
+
+    def __init__(self, r1_path, r2_path):
+        self.r1_path = r1_path
+        self.r2_path = r2_path
+        self.r1_out = open(self.r1_path, 'w')
+        self.r2_out = open(self.r2_path, 'w')
+
+    def _write_seq(self, out, pair, seq, trim_handle):
+        out.write('{}{}\n{}\n+\n{}\n'.format('' if pair.identifier.startswith('@') else '@', pair.identifier,
+                                             seq.original_seq[4:] if trim_handle else seq.original_seq,
+                                             seq.quality[4:] if trim_handle else seq.quality))
+
+    def write(self, pair):
+        self._write_seq(self.r1_out, pair, pair.r1, trim_handle = True)
+        self._write_seq(self.r2_out, pair, pair.r2, trim_handle = False)
+
+    def close(self):
+        if self.r1_out:
+            self.r1_out.close()
+            self.r2_out.close()
+            self.r1_out = None
+            self.r2_out = None
+
 
 def _prependFilename(path, prefix):
     outpath = os.path.dirname(path) 
