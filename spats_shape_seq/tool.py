@@ -479,9 +479,9 @@ class SpatsTool(object):
         profiles = spats.compute_profiles()
         mutations = spats.run.count_mutations
         if mutations:
-            headers = [ "L", "site", "nt", "f+", "f-", "mut+", "mut-", "beta", "mu", "r", "c" ]
+            headers = [ "L", "site", "nt", "f+", "f-", "mut+", "mut-", "beta", "mu", "r", "c", "c alt" ]
         else:
-            headers = [ "L", "site", "nt", "f+", "f-", "beta", "theta", "rho", "c" ]
+            headers = [ "L", "site", "nt", "f+", "f-", "beta", "theta", "rho", "c", "c alt" ]
         data = []
 
         if self.cotrans:
@@ -492,9 +492,9 @@ class SpatsTool(object):
                 prof = profiles.profilesForTargetAndEnd(tgt.name, end)
                 for i in range(end + 1):
                     if mutations:
-                        data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.treated_muts[i], prof.untreated_muts[i], prof.beta[i], prof.mu[i], prof.r_mut[i], prof.c ])
+                        data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.treated_muts[i], prof.untreated_muts[i], prof.beta[i], prof.mu[i], prof.r_mut[i], prof.c, prof.c_alt ])
                     else:
-                        data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i], prof.c ])
+                        data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i], prof.c, prof.c_alt ])
             output_path = os.path.join(self.path, '{}.csv'.format(tgt.name))
             self._write_csv(output_path, headers, data)
             empty_cell = ''
@@ -524,9 +524,9 @@ class SpatsTool(object):
                 data = []
                 for i in range(end + 1):
                     if mutations:
-                        data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.treated_muts[i], prof.untreated_muts[i], prof.beta[i], prof.mu[i], prof.r_mut[i], prof.c ])
+                        data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.treated_muts[i], prof.untreated_muts[i], prof.beta[i], prof.mu[i], prof.r_mut[i], prof.c, prof.c_alt ])
                     else:
-                        data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i], prof.c ])
+                        data.append([ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i], prof.beta[i], prof.theta[i], prof.rho[i], prof.c, prof.c_alt ])
                 output_path = os.path.join(self.path, '{}.csv'.format(tgt.name))
                 self._write_csv(output_path, headers, data)
 
