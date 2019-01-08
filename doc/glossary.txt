@@ -19,7 +19,7 @@ some terms defined:
 - handle: first four bp of R1 -> indicates which experimental condition
   - treated = positive = RRRY
   - untreated = negative = YYYR (= control)
-  - also known as "mask"
+  - also known as "mask" or "4mers"
 
 - adapter: sequence added to the right end of target to sequence short fragments
   - "adapter trimming": handling this in the code

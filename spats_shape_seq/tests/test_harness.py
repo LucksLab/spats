@@ -44,6 +44,8 @@ class SpatsCase(object):
             info["r2_quality"] = self.r2_quality
         if self.expect:
             info["expect"] = { k : v for k, v in self.expect.iteritems() }
+        if self.comment:
+            info["comment"] = self.comment
         return info
 
     def pair(self):

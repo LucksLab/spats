@@ -16,3 +16,4 @@ native/bin
 project.xcworkspace
 xcuserdata
 *.tmp
+*.swp

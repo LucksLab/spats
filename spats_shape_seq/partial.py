@@ -50,7 +50,8 @@ class PartialFindProcessor(PairProcessor):
 
         # now, same thing on r1 (smaller trim b/c of no handle, hence -4)
         r1_seq = pair.r1.subsequence
-        r1_length_to_trim = r2_length_to_trim - 4
+        r1_length_to_trim = len(r1_seq) - r2_len_should_be - pair.r2._ltrim
+        _debug("R1 trim: {}".format(r1_length_to_trim))
         r1_adapter_match = r1_seq[-r1_length_to_trim:]
         r1_match_trimmed = pair.r1.trim(r1_length_to_trim, reverse_complement = True)
         pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self._run.adapter_b)

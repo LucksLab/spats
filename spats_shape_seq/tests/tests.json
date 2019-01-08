@@ -39,13 +39,13 @@
                 {
                     "comment": "basic test case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             16
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_1",
@@ -55,13 +55,13 @@
                 {
                     "comment": "basic test case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             96
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 2
                     },
                     "id": "muts_2",
@@ -71,11 +71,11 @@
                 {
                     "comment": "r1/r2 nearly overlap",
                     "expect": {
-                        "end": 107,
-                        "muts": [],
                         "counters": {
                             "mut_count_0": 1
                         },
+                        "end": 107,
+                        "muts": [],
                         "site": 35
                     },
                     "id": "muts_3",
@@ -85,11 +85,11 @@
                 {
                     "comment": "r1/r2 overlap",
                     "expect": {
-                        "end": 107,
-                        "muts": [],
                         "counters": {
                             "mut_count_0": 1
                         },
+                        "end": 107,
+                        "muts": [],
                         "site": 36
                     },
                     "id": "muts_4",
@@ -108,13 +108,13 @@
                 {
                     "comment": "r1 mutation case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             78
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_6",
@@ -124,13 +124,13 @@
                 {
                     "comment": "r1 mutation with adapter trim",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             54
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 53
                     },
                     "id": "muts_7",
@@ -140,13 +140,13 @@
                 {
                     "comment": "r1 mutation on edge with trim",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             78
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 44
                     },
                     "id": "muts_8",
@@ -156,13 +156,13 @@
                 {
                     "comment": "trim/mut edge case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             80
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 53
                     },
                     "id": "muts_9",
@@ -181,11 +181,11 @@
                 {
                     "comment": "trim/mut edge case",
                     "expect": {
-                        "end": 107,
-                        "muts": [],
                         "counters": {
                             "mut_count_0": 1
                         },
+                        "end": 107,
+                        "muts": [],
                         "site": 37
                     },
                     "id": "muts_11",
@@ -209,13 +209,13 @@
                 {
                     "comment": "basic quality check test case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             16
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_q1",
@@ -227,13 +227,13 @@
                 {
                     "comment": "basic quality check test case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             96
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 2
                     },
                     "id": "muts_q2",
@@ -245,13 +245,13 @@
                 {
                     "comment": "r1 mutation quality check case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             78
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_q3",
@@ -328,13 +328,13 @@
                 {
                     "comment": "basic quality check test case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             16
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_q9",
@@ -346,13 +346,13 @@
                 {
                     "comment": "basic quality check test case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             96
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 2
                     },
                     "id": "muts_q10",
@@ -379,13 +379,13 @@
                 {
                     "comment": "indexing convention, xref https://trello.com/c/2qIGo9ZR/201-stop-map-mutation-indexing-convention",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 103,
                         "muts": [
                             52
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 44
                     },
                     "id": "muts_cotrans_1",
@@ -412,13 +412,13 @@
                 },
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 127,
                         "muts": [
                             44
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 43
                     },
                     "id": "muts_cotrans_4",
@@ -436,13 +436,13 @@
                 {
                     "comment": "this one is slightly ambiguous due to mutation at the site. the code reports it the same as the rest for consistency, \nbut it's counted separately in counters for further analysis \nxref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 78,
                         "muts": [
                             69
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 68
                     },
                     "id": "muts_cotrans_6",
@@ -452,13 +452,13 @@
                 {
                     "comment": "relatively short target match with one bp toggle",
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 50,
                         "muts": [
                             47
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 44
                     },
                     "id": "muts_cotrans_7",
@@ -519,14 +519,14 @@
             "tests": [
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_2": 1
+                        },
                         "end": 107,
                         "muts": [
                             2,
                             16
                         ],
-                        "counters": {
-                            "mut_count_2": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_multi_1",
@@ -535,15 +535,15 @@
                 },
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_3": 1
+                        },
                         "end": 107,
                         "muts": [
                             2,
                             5,
                             16
                         ],
-                        "counters": {
-                            "mut_count_3": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_multi_2",
@@ -552,6 +552,9 @@
                 },
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_4": 1
+                        },
                         "end": 107,
                         "muts": [
                             2,
@@ -559,9 +562,6 @@
                             12,
                             16
                         ],
-                        "counters": {
-                            "mut_count_4": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_multi_3",
@@ -570,6 +570,9 @@
                 },
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_5": 1
+                        },
                         "end": 107,
                         "muts": [
                             2,
@@ -578,9 +581,6 @@
                             12,
                             16
                         ],
-                        "counters": {
-                            "mut_count_5": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_multi_4",
@@ -614,13 +614,13 @@
             "tests": [
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 137,
                         "muts": [
                             117
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 81
                     },
                     "id": "muts_mismatched_overlap_1",
@@ -629,13 +629,13 @@
                 },
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 137,
                         "muts": [
                             117
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 92
                     },
                     "id": "muts_mismatched_overlap_2",
@@ -644,13 +644,13 @@
                 },
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 137,
                         "muts": [
                             117
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 116
                     },
                     "id": "muts_mismatched_overlap_3",
@@ -772,13 +772,13 @@
             "tests": [
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 87,
                         "muts": [
                             75
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 0
                     },
                     "id": "muts_prefix_1",
@@ -2410,13 +2410,13 @@
                 },
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             72
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 0
                     },
                     "id": "dd_p11_1",
@@ -2427,13 +2427,13 @@
                 },
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             72
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 0
                     },
                     "id": "dd_p11_2",
@@ -2456,13 +2456,13 @@
                 },
                 {
                     "expect": {
+                        "counters": {
+                            "mut_count_1": 1
+                        },
                         "end": 107,
                         "muts": [
                             72
                         ],
-                        "counters": {
-                            "mut_count_1": 1
-                        },
                         "site": 0
                     },
                     "id": "dd_p13",
@@ -2523,6 +2523,43 @@
                     "r1_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                     "r2": "ACAAGCAATGCTTGCCTTGATGTTGAACTTTTGAATAGTGATTCAGGAGGTTAATGATGAGCAAAGGAGAAGAAC",
                     "r2_quality": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "algorithms": [
+                    "find_partial"
+                ],
+                "allow_negative_values": false,
+                "allowed_target_errors": 8,
+                "count_edge_mutations": "stop_and_mut",
+                "count_mutations": true,
+                "mutations_require_quality_score": 30
+            },
+            "set_name": "uneven_read_lens",
+            "comment": "uneven read length bugs from Lee",
+            "targets": [
+                "SRP"
+            ],
+            "tests": [
+                {
+                    "expect": {
+                        "site": 11
+                    },
+                    "id": "uneven_read_lens_1",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGGGGTGGGGGCCCTGCCAGCTACATCCCGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGGGAGAACCAACAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r2": "TGTTGGTTCTCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCCTGACTCGGGCACCAAGGACGCCCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATTTTTTTTTTTTTT"
+                },
+                {
+                    "expect": {
+                        "site": 0
+                    },
+                    "id": "uneven_read_lens_2",
+                    "r1": "GGGCGTCCTTGGTGCCCGAGTCAGGGGTGGGGGCCCTGCCAGCTACATCCCGGCACACGCGTCATCTGCCTTGGCTGCTTCCTTCCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGGGAGAACCAACAGCGCCCCCGATAGATCGGAAGAGCACACGTCTGAACTCCAGTCACAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    "r1_quality": "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+                    "r2": "ATCGGGGGCGCTGTTGGTTCTCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCCTGACTCGGGCACCAAGGACGCCCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATTT",
+                    "r2_quality": "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
                 }
             ]
         }
