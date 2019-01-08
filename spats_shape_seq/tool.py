@@ -196,6 +196,8 @@ class SpatsTool(object):
         data = ReadsData(db_name)
         if not native_tool:
             self._add_note("using python reads")
+            if self.using_seperate_channel_files():
+                raise Exception('reads tool not supported with separate channel files')
             data.parse(self.config['target'], self.r1, self.r2)
 
         analyzer = ReadsAnalyzer(data, cotrans = self.cotrans)

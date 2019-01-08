@@ -53,7 +53,7 @@ class SpatsWorker(object):
                         pair.r1.quality = str(lines[4])
                         pair.r2.quality = str(lines[5])
                     if self.force_mask:
-                        pair.mask = self.force_mask
+                        pair.set_mask(self.force_mask)
                     processor.process_pair(pair)
                     #if pair.failure:
                     #    print('FAIL: {}'.format(pair.failure))
@@ -224,7 +224,7 @@ class SpatsWorker(object):
                             pair.r1.quality = str(lines[4])
                             pair.r2.quality = str(lines[5])
                         if self.force_mask:
-                            pair.mask = self.force_mask
+                            pair.set_mask(self.force_mask)
 
                         try:
                             processor.process_pair(pair)

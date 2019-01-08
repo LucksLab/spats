@@ -363,7 +363,7 @@ class Spats(object):
         worker = SpatsWorker(self.run, self._processor, pair_db, result_set_id)
 
         if not self.run.quiet:
-            print("Processing pairs...")
+            print("Processing pairs{}...".format(" with mask={}".format(self.force_mask.chars) if self.force_mask else ""))
 
         worker.force_mask = self.force_mask
         worker.run(pair_iter)
