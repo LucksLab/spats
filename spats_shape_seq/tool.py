@@ -76,7 +76,7 @@ class SpatsTool(object):
                 out = os.path.join(self.path, base + ".tmp")
                 subprocess.check_call('gzip -d -c "{}" > "{}"'.format(rx, out), cwd = self.path, shell = True)
                 self._temp_files.append(out)
-                self._sentinel("decompress {}".format('R1' if ret_r1 else 'R2'))
+                self._sentinel("decompress {}".format(rx))
                 return out
             return rx
         return decomp(self.config['r1' + suffix]), decomp(self.config['r2' + suffix])
