@@ -76,7 +76,8 @@ class PairProcessor(object):
         if pair.mask:
             self.counters.increment_mask(pair.mask, pair.multiplicity)
             return True
-        mask = match_mask_optimized(pair.r1.original_seq[:4], self._masks)
+        maxmasklen = max([m.length() for m in self._masks])
+        mask = match_mask_optimized(pair.r1.original_seq[:maxmasklen], self._masks)
         if mask:
             pair.set_mask(mask)
             self.counters.increment_mask(mask, pair.multiplicity)

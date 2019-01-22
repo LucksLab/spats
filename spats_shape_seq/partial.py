@@ -24,6 +24,7 @@ class PartialFindProcessor(PairProcessor):
 
         # if we're here, we know that R2 hangs over the right edge. first, figure out by how much
 
+        masklen = pair.mask.length()
         r2_seq = pair.r2.subsequence
         r2_start_in_target = pair.r2.match_index - pair.r2.match_start + pair.r2._ltrim
         r2_len_should_be = pair.target.n - r2_start_in_target
@@ -31,18 +32,18 @@ class PartialFindProcessor(PairProcessor):
         pair.r2.trim(r2_length_to_trim)
         _debug("R2 trim: {}, {}, {}".format(r2_start_in_target, r2_len_should_be, r2_length_to_trim))
 
-        if self._run.minimum_adapter_len and r2_length_to_trim - 4 < self._run.minimum_adapter_len:
-            _debug("  !! v102 minimum adapter len {}".format(r2_length_to_trim - 4))
+        if self._run.minimum_adapter_len and r2_length_to_trim - masklen < self._run.minimum_adapter_len:
+            _debug("  !! v102 minimum adapter len {}".format(r2_length_to_trim - masklen))
             return False
 
-        if r2_length_to_trim <= 4:
+        if r2_length_to_trim <= masklen:
             # TODO: should we verify that this matches RC of R1 handle, and register errors for bp that don't?
             # for now, just ignore this part
             # also, this means that there's nothing to trim from R1, so we're done
             return True
 
         # find out how good of a match the end of R2 is for adapter_t_rc
-        r2_adapter_match = r2_seq[4-r2_length_to_trim:]
+        r2_adapter_match = r2_seq[masklen - r2_length_to_trim:]
         pair.r2.adapter_errors = string_match_errors(r2_adapter_match, self._adapter_t_rc)
         _debug("  check = {}, errors = {}".format(r2_adapter_match, pair.r2.adapter_errors))
         if len(pair.r2.adapter_errors) > self._run.allowed_adapter_errors:
@@ -167,7 +168,7 @@ class PartialFindProcessor(PairProcessor):
                 _debug("R1 errors: {}".format(pair.r1.match_errors))
             if pair.r2.match_errors:
                 _debug("R2 errors: {}".format(pair.r2.match_errors))
-            if run._p_v102_compat and not (pair.r1.match_errors + [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]):
+            if run._p_v102_compat and not (pair.r1.match_errors + [e for e in pair.r2.match_errors if e < pair.r2.original_len - pair.mask.length()]):
                 _debug("** v102 compat, allowing")
             else:
                 pair.failure = Failures.match_errors
@@ -342,7 +343,7 @@ class CotransPartialFindProcessor(PairProcessor):
                 return
 
             # (2a2)
-            rtrim = r2_len - l2index - linker_len - 4
+            rtrim = r2_len - l2index - linker_len - pair.mask.length()
 
             pair.r1.match_start = rtrim
             pair.r1.match_len = lindex - rtrim
@@ -370,14 +371,14 @@ class CotransPartialFindProcessor(PairProcessor):
                 linker_check = r2_seq[linker_in_r2_idx:]
                 pair.r2.linker_errors = string_match_errors(linker_check, linker)
                 if len(pair.r2.linker_errors) > run.allowed_adapter_errors:
-                    if run._p_v102_compat and not [e for e in pair.r2.linker_errors if e + linker_in_r2_idx < pair.r2.original_len - 4]:
+                    if run._p_v102_compat and not [e for e in pair.r2.linker_errors if e + linker_in_r2_idx < pair.r2.original_len - pair.mask.length()]:
                         _debug("** v102 compat, allowing")
                     else:
                         pair.failure = Failures.linker
                         return
                 check_len = len(linker_check)
-                if check_len > linker_len + 4:
-                    rtrim = check_len - linker_len - 4
+                if check_len > linker_len + pair.mask.length():
+                    rtrim = check_len - linker_len - pair.mask.length()
 
             delta = pair.r1.match_start - rtrim
             pair.r1.match_start -= delta
@@ -398,13 +399,13 @@ class CotransPartialFindProcessor(PairProcessor):
             pair.r1.adapter_errors = string_match_errors(pair.r1.original_seq[-rtrim:], run.adapter_b)
             pair.r2.adapter_errors = string_match_errors(pair.r2.original_seq[-rtrim:], self._adapter_t_rc)
             if max(len(pair.r2.adapter_errors), len(pair.r1.adapter_errors)) > self._run.allowed_adapter_errors:
-                if run._p_v102_compat and not [e for e in (pair.r1.adapter_errors + pair.r2.adapter_errors) if e < rtrim - 4]:
+                if run._p_v102_compat and not [e for e in (pair.r1.adapter_errors + pair.r2.adapter_errors) if e < rtrim - pair.mask.length()]:
                     _debug("** v102 compat, allowing adapter errors in last 4")
                 else:
                     pair.failure = Failures.adapter_trim
                     return
             pair.r1.trim(rtrim)
-            pair.r2.trim(rtrim + 4) # also trim rc of handle
+            pair.r2.trim(rtrim + pair.mask.length()) # also trim rc of handle
 
         if pair.right > target.n  or  pair.right < pair.left:
             pair.failure = Failures.right_edge
@@ -444,7 +445,7 @@ class CotransPartialFindProcessor(PairProcessor):
                 _debug("R1 errors: {}".format(pair.r1.match_errors))
             if len(pair.r2.match_errors) > run.allowed_target_errors:
                 _debug("R2 errors: {}".format(pair.r2.match_errors))
-            if run._p_v102_compat and not pair.r1.match_errors and not [e for e in pair.r2.match_errors if e < pair.r2.original_len - 4]:
+            if run._p_v102_compat and not pair.r1.match_errors and not [e for e in pair.r2.match_errors if e < pair.r2.original_len - pair.mask.length()]:
                 _debug("** v102 compat, allowing")
             else:
                 pair.failure = Failures.match_errors

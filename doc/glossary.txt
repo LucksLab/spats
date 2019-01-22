@@ -13,8 +13,8 @@ some terms defined:
 - pair: pair of segments are the ends of the fragment
 
 - R1/R2: names of the right and left segments
-  - R1 is right end (and reverse-complemented)
-  - R2 is left end
+  - R1 is right end (and reverse-complemented) - "reverse read"
+  - R2 is left end - "forward read"
 
 - handle: first four bp of R1 -> indicates which experimental condition
   - treated = positive = RRRY

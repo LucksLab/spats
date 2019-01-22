@@ -46,7 +46,7 @@ class Pair(object):
 
     def set_mask(self, mask):
         self.mask = mask
-        self.r1._ltrim = len(mask.chars)
+        self.r1._ltrim = mask.length()
 
     def check_mutations(self):
         mutations = set()

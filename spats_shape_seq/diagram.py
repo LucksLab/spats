@@ -71,19 +71,20 @@ class Diagram(object):
             d += sp(spaces)
         else:
             d = d[0:spaces]
+        masklen = self.pair.mask.length()
         if is_R1:
-            d += (part.original_seq[:4] + ".")
-            if part._ltrim > 4:
-                d += part.original_seq[4:part._ltrim]
+            d += (part.original_seq[:masklen] + ".")
+            if part._ltrim > masklen:
+                d += part.original_seq[masklen:part._ltrim]
         else:
             d += part.original_seq[:part._ltrim]
         d += part.subsequence
         if part._rtrim:
             trimmed = part.original_seq[-part._rtrim:]
-            if is_R1 or len(trimmed) < 4:
+            if is_R1 or len(trimmed) < masklen:
                 d += ("." + trimmed)
             else:
-                d += ("." + trimmed[:4] + "." + trimmed[4:])
+                d += ("." + trimmed[:masklen] + "." + trimmed[masklen:])
         self._add_line(d)
 
         if part.matched:
@@ -91,7 +92,7 @@ class Diagram(object):
         elif self.pair.failure == "indeterminate sequence failure":
             d = sp(spaces)
             if is_R1:
-                d += part.original_seq[:4].translate(indeterminate_translator) + "." + part.original_seq[4:].translate(indeterminate_translator)
+                d += part.original_seq[:masklen].translate(indeterminate_translator) + "." + part.original_seq[masklen:].translate(indeterminate_translator)
             else:
                 d += part.original_seq.translate(indeterminate_translator)
             self._add_line(self._make_prefix("") + d)
@@ -99,7 +100,7 @@ class Diagram(object):
         else:
             d = sp(spaces)
             if is_R1:
-                d += sp(5)
+                d += sp(masklen + 1)
             d += sp(part.seq_len, "?")
             self._add_line(self._make_prefix("") + d)
             return []
@@ -114,15 +115,16 @@ class Diagram(object):
             if part._rtrim <= len(self.run.dumbbell):
                 return
 
+        masklen = self.pair.mask.length()
         d = label
         d += sp(self.prefix_len + part.match_index + part.match_len + 1 - len(d))
         if not is_R1:
-            d += sp(5)
+            d += sp(masklen + 1)
         elif self.pair.dumbbell:
             d += sp(len(self.run.dumbbell))
         if self.run.cotrans:
             d += sp(len(self.run.cotrans_linker))
-        d += (adapter[:part._rtrim - (0 if is_R1 else 4)] + "..")
+        d += (adapter[:part._rtrim - (0 if is_R1 else masklen)] + "..")
         self._add_line(d)
 
     def _make_part_errors(self, part):
@@ -141,8 +143,9 @@ class Diagram(object):
         if part.adapter_errors:
             d += " "
             if (part == self.pair.r2):
-                d += sp(5)
-                errors = sp(part._rtrim - 4)
+                masklen = self.pair.mask.length()
+                d += sp(masklen + 1)
+                errors = sp(part._rtrim - masklen)
             else:
                 errors = sp(part._rtrim)
             for e in part.adapter_errors:
@@ -194,11 +197,12 @@ class Diagram(object):
         d = sp(part.match_index)
         l = "l={}".format(part.match_index)
         r = "r={}".format(part.match_index + part.match_len)
-        leftover = part.match_len - len(l) - len(r) - 4
+        masklen = self.pair.mask.length()
+        leftover = part.match_len - len(l) - len(r) - masklen
         if leftover < 0:
             l = l[2:]
             r = r[2:]
-            leftover = max(0, part.match_len - len(l) - len(r) - 4)
+            leftover = max(0, part.match_len - len(l) - len(r) - masklen)
         halfish = (leftover >> 1)
         bit = "^{}{}, {}{}^".format("-"*halfish,l,r,"-"*(leftover - halfish))
         d += bit
@@ -247,8 +251,9 @@ class Diagram(object):
         self.lines = [ ]
 
         # handling left-of-target matches
-        if self.pair.r2._ltrim > 4 or self.pair.r1.match_index < 0 or self.pair.r2.match_index < 0:
-            self.prefix_len += 4 - min(self.pair.r1.match_index or 0, self.pair.r2.match_index or 0, 0 - self.pair.r2._ltrim)
+        masklen = self.pair.mask.length()
+        if self.pair.r2._ltrim > masklen or self.pair.r1.match_index < 0 or self.pair.r2.match_index < 0:
+            self.prefix_len += masklen - min(self.pair.r1.match_index or 0, self.pair.r2.match_index or 0, 0 - self.pair.r2._ltrim)
 
         self._add_line("@" + self.pair.identifier)
         

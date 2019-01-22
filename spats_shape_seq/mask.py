@@ -27,6 +27,9 @@ class Mask(object):
         self.chars = chars.upper()
         self.values = [ char_to_mask[ch] for ch in chars ]
 
+    def length(self):
+        return len(self.chars)
+
     def matches(self, seq):
         # raises if len(seq) < len(self.values)
         maskvals = self.values

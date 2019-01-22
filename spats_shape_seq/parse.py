@@ -17,6 +17,7 @@ class FastqRecord(object):
 
     def reset(self):
         self.identifier = None
+        self.tag = None
         self.sequence = None
         self.identifier2 = None
         self.quality = None
@@ -30,13 +31,14 @@ class FastqRecord(object):
         return True
 
     def parse(self, lines):
-        self.identifier = lines[0].lstrip('@').split(' ')[0]
+        self.identifier, self.tag = lines[0].lstrip('@').rstrip('\r\n').split(' ')
         self.sequence = lines[1].rstrip('\r\n')
         self.identifier2 = lines[2].rstrip('\r\n')
         self.quality = lines[3].rstrip('\r\n')
 
     def write(self, outfile):
-        for line in [ self.identifier, self.sequence, self.identifier2, self.quality ]:
+        outfile.write("@{} {}\n".format(self.identifier, self.tag))
+        for line in [ self.sequence, self.identifier2, self.quality ]:
             outfile.write(line)
             outfile.write('\n')
 
@@ -185,8 +187,8 @@ class FastqWriter(object):
 
     def _write_seq(self, out, pair, seq, trim_handle):
         out.write('{}{}\n{}\n+\n{}\n'.format('' if pair.identifier.startswith('@') else '@', pair.identifier,
-                                             seq.original_seq[4:] if trim_handle else seq.original_seq,
-                                             seq.quality[4:] if trim_handle else seq.quality))
+                                             seq.original_seq[pair.mask.length():] if trim_handle else seq.original_seq,
+                                             seq.quality[pair.mask.length():] if trim_handle else seq.quality))
 
     def write(self, pair):
         self._write_seq(self.r1_out, pair, pair.r1, trim_handle = True)

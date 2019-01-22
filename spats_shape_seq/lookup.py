@@ -65,7 +65,7 @@ class LookupProcessor(PairProcessor):
         if not self._match_mask(pair):
             return
 
-        r1_res = self._targets.lookup_r1(pair.r1.original_seq[4:])
+        r1_res = self._targets.lookup_r1(pair.r1.original_seq[pair.mask.length():])
         if not r1_res:
             pair.failure = Failures.nomatch
             return
@@ -86,6 +86,7 @@ class LookupProcessor(PairProcessor):
 
         targets = self._targets
         run = self._run
+        masklen = pair.mask.length()
 
         site = -1
         target = r1_res[0]
@@ -122,7 +123,7 @@ class LookupProcessor(PairProcessor):
             pair.failure = Failures.match_errors
             return
 
-        adapter_len = r2len - match_len - r2_match_start - 4
+        adapter_len = r2len - match_len - r2_match_start - masklen
         if adapter_len > 0:
             pair.r2.adapter_errors = string_match_errors(self._adapter_t_rc[:adapter_len], pair.r2.original_seq[-adapter_len:])
             if len(pair.r2.adapter_errors) > run.allowed_adapter_errors:
@@ -132,9 +133,9 @@ class LookupProcessor(PairProcessor):
 
         # in rare cases, need to double-check what R1 should be based on R2
         if site != r1_res[1]:
-            match_len = min(pair.r1.original_len - 4, target.n - match_site)
-            adapter_len = pair.r1.original_len - match_len - 4
-            pair.r1.match_errors = string_match_errors(reverse_complement(target.seq[-match_len:]), pair.r1.original_seq[4:4+match_len])
+            match_len = min(pair.r1.original_len - masklen, target.n - match_site)
+            adapter_len = pair.r1.original_len - match_len - masklen
+            pair.r1.match_errors = string_match_errors(reverse_complement(target.seq[-match_len:]), pair.r1.original_seq[masklen:masklen+match_len])
             if len(pair.r1.match_errors) > run.allowed_target_errors:
                 pair.failure = Failures.match_errors
                 return
@@ -158,7 +159,7 @@ class LookupProcessor(PairProcessor):
         if not self._check_indeterminate(pair):
             return
 
-        pair.r1.match_len = min(pair.r1.original_len - 4, target.n - match_site)
+        pair.r1.match_len = min(pair.r1.original_len - masklen, target.n - match_site)
         pair.r1.match_index = r1_res[1] or (target.n - pair.r1.match_len)
         pair.r1._rtrim = r1_res[2]
         pair.r2.match_index = site
@@ -205,7 +206,7 @@ class CotransLookupProcessor(PairProcessor):
         if not self._match_mask(pair):
             return
 
-        r1_res = self._targets.lookup_r1(pair.r1.original_seq[4:])
+        r1_res = self._targets.lookup_r1(pair.r1.original_seq[pair.mask.length():])
         if not r1_res:
             pair.failure = Failures.nomatch
             return
@@ -226,6 +227,7 @@ class CotransLookupProcessor(PairProcessor):
     def _try_lookup_hit(self, pair, r1_res):
 
         run = self._run
+        masklen = pair.mask.length()
         linker = run.cotrans_linker
         linker_len = len(linker)
         r2_seq = pair.r2.original_seq
@@ -247,7 +249,7 @@ class CotransLookupProcessor(PairProcessor):
                 pair.failure = Failures.nomatch
                 return
         else:
-            site = L - (pair_len - linker_len - 4) + trim
+            site = L - (pair_len - linker_len - masklen) + trim
 
         # now need to verify R2 contents
         # R2: [target][linker][handle][adapter]
@@ -270,17 +272,17 @@ class CotransLookupProcessor(PairProcessor):
             if trim > 0 and r2_seq[-trim:] != self._adapter_t_rc[:trim]:
                 pair.failure = Failures.adapter_trim
                 return
-            if pair_len - target_match_len - linker_len - 4 > trim:
+            if pair_len - target_match_len - linker_len - masklen > trim:
                 pair.failure = Failures.adapter_trim
                 return
-            pair.r2._rtrim = trim + min(4, pair_len - target_match_len)
+            pair.r2._rtrim = trim + min(masklen, pair_len - target_match_len)
 
         if not self._check_indeterminate(pair):
             return
 
-        pair.r1.match_index = L - (pair_len - linker_len - 4) + trim
+        pair.r1.match_index = L - (pair_len - linker_len - masklen) + trim
         pair.r1._rtrim = trim
-        pair.r1.match_len = (pair_len - linker_len - 4 - trim)
+        pair.r1.match_len = (pair_len - linker_len - masklen - trim)
         pair.r2.match_index = site
         pair.r2.match_len = target_match_len
         if run.ignore_stops_with_mismatched_overlap and not pair.check_overlap():

@@ -230,7 +230,8 @@ class Targets(object):
         adapter_b = run.adapter_b
         pair_len = run.pair_length
         assert(0 < pair_len)
-        r1_match_len = pair_len - 4
+        masklen = 4    # TODO
+        r1_match_len = pair_len - masklen
 
         for end in range(minimum_target_length, tlen + 1):
             target_subseq = tseq[:end]
@@ -263,15 +264,16 @@ class Targets(object):
 
         # we only need to build R2 lookups for full sequences (excepting linker)
         # trim cases are just tested against R1
-        self._build_R2_lookup(pair_len - linker_len - 4, run.count_mutations)
+        self._build_R2_lookup(pair_len - linker_len - masklen, run.count_mutations)
 
 
     def build_lookups(self, run, length = None, end_only = True):
         use_length = length or 35
         if use_length < 0:
             raise Exception('Cannot build lookups on variable-length inputs. Use find_partial processor.')
-        self._build_R1_lookup(run.adapter_b, use_length - 4, end_only, run.count_mutations, run.dumbbell)
-        self._build_R2_lookup(use_length - 4, run.count_mutations, run.dumbbell)
+        masklen = 4  # TODO
+        self._build_R1_lookup(run.adapter_b, use_length - masklen, end_only, run.count_mutations, run.dumbbell)
+        self._build_R2_lookup(use_length - masklen, run.count_mutations, run.dumbbell)
 
     def _build_R1_lookup(self, adapter_b, length = 31, end_only = True, mutations = False, dumbbell = None):
         # we can pre-build the set of all possible (error-free) R1, b/c:

@@ -80,11 +80,11 @@ class TagProcessor(PairProcessor):
 
     def _find_tags(self, pair):
         # this pair wasn't a match, we want to all long-enough subsequences found (even if overlaps)
-        for seq, start, tags in [ (pair.r1.original_seq, 4, pair.r1.tags), (pair.r2.original_seq, 0, pair.r2.tags) ]:
+        for seq, start, tags in [ (pair.r1.original_seq, pair.mask.length(), pair.r1.tags), (pair.r2.original_seq, 0, pair.r2.tags) ]:
             tagmap = {}
             for target, match_start, match_len, match_index in self._tag_targets.find_partial_all(seq):
                 if (0 == start and target.name == "adapter_b") or \
-                   (4 == start and target.name == "adapter_t_rc"):
+                   (pair.mask.length() == start and target.name == "adapter_t_rc"):
                     continue
                 tag = (target.name, match_start, match_len, match_index)
                 cur = tagmap.get(target.name)
@@ -103,9 +103,9 @@ class TagProcessor(PairProcessor):
     def _find_tags_old(self, pair):
         targets = self._targets
         unknown_tag = "???"
-        pair.r1.tags = [ (pair.mask.chars, 0, 4, 0) ]
+        pair.r1.tags = [ (pair.mask.chars, 0, pair.mask.length(), 0) ]
         pair.r2.tags = []
-        for seq, start, tags in [ (pair.r1.original_seq, 4, pair.r1.tags), (pair.r2.original_seq, 0, pair.r2.tags) ]:
+        for seq, start, tags in [ (pair.r1.original_seq, pair.mask.length(), pair.r1.tags), (pair.r2.original_seq, 0, pair.r2.tags) ]:
             index = start
             length = len(seq)
             while True:
@@ -130,7 +130,7 @@ class TagProcessor(PairProcessor):
         #if 0
         if True:
             return
-        for seq, start, tags in [ (pair.r1.original_seq, 4, pair.r1.tags), (pair.r2.original_seq, 0, pair.r2.tags) ]:
+        for seq, start, tags in [ (pair.r1.original_seq, pair.mask.length(), pair.r1.tags), (pair.r2.original_seq, 0, pair.r2.tags) ]:
             index = start
             length = len(seq)
             while index < length:
@@ -147,10 +147,10 @@ class TagProcessor(PairProcessor):
         #endif
 
     def _tag_handles(self, pair):
-        pair.r1.tags.append( (pair.mask.chars, 0, 4, 0) )
+        pair.r1.tags.append( (pair.mask.chars, 0, pair.mask.length(), 0) )
         if pair.r2._rtrim > 0:
             start = pair.r2.original_len - pair.r2._rtrim
-            pair.r2.tags.append( (pair.mask.chars, start, min(4, pair.r2._rtrim), 0) )
+            pair.r2.tags.append( (pair.mask.chars, start, min(pair.mask.length(), pair.r2._rtrim), 0) )
 
     def _tag_match(self, pair):
         if self._run.cotrans:
@@ -162,8 +162,8 @@ class TagProcessor(PairProcessor):
         if pair.r1._rtrim > 0:
             pair.r1.tags.append( ("adapter_b", pair.r1.original_len - pair.r1._rtrim, pair.r1._rtrim, 0) )
         pair.r2.tags.insert(0, (pair.target.name, pair.r2._ltrim, pair.r2.seq_len, pair.r2.match_index) )
-        if pair.r2._rtrim > 4:
-            pair.r2.tags.append( ("adapter_t_rc", pair.r2.original_len - pair.r2._rtrim + 4, pair.r2._rtrim - 4, 0) )
+        if pair.r2._rtrim > pair.mask.length():
+            pair.r2.tags.append( ("adapter_t_rc", pair.r2.original_len - pair.r2._rtrim + pair.mask.length(), pair.r2._rtrim - pair.mask.length(), 0) )
 
     def process_pair(self, pair):
         self._base_processor.process_pair(pair)
