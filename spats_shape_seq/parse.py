@@ -5,7 +5,7 @@ import struct
 from sys import version_info
 
 import spats_shape_seq
-from mask import match_mask_optimized
+from mask import match_mask_optimized, Mask
 
 
 # not currently used in spats, but potentially useful for tools
@@ -36,9 +36,9 @@ class FastqRecord(object):
         self.identifier2 = lines[2].rstrip('\r\n')
         self.quality = lines[3].rstrip('\r\n')
 
-    def write(self, outfile):
+    def write(self, outfile, skiplen = 0):
         outfile.write("@{} {}\n".format(self.identifier, self.tag))
-        for line in [ self.sequence, self.identifier2, self.quality ]:
+        for line in [ self.sequence[skiplen:], self.identifier2, self.quality ]:
             outfile.write(line)
             outfile.write('\n')
 
@@ -202,38 +202,58 @@ class FastqWriter(object):
             self.r2_out = None
 
 
-def _prependFilename(path, prefix):
-    outpath = os.path.dirname(path) 
-    if len(outpath) > 0:
-        outpath += os.path.sep
-    return outpath + prefix + '_' + os.path.basename(path)
+class _MaskMatcher:
+    def __init__(self, masks):
+        if len(masks) == 2  and  'RRRY' in masks  and  'YYYR' in masks:
+            self.match_mask = match_mask_optimized
+        else:
+            self.match_mask = self._match_mask
+            self.masks = []
+            for mask in masks:
+                self.masks.append(Mask(mask))
 
+    def _match_mask(self, seq):
+        for mask in self.masks:
+            if mask.matches(seq):
+                return mask.chars
+        return None
 
-def fastq_handle_filter(r1_path, r2_path, masks = [ 'RRRY', 'YYYR' ]):
+def fastq_handle_filter(r1_path, r2_path, masks = [ 'RRRY', 'YYYR' ], strip_mask = False, outpath = '.', counters = None):
     # creates 4 files, one for each mask for r1_path and r2_path.
     # output filenames are the originals with the mask name prefixed (nukes them if they exist already)
     # returns the list of output files
-    if masks != ['RRRY', 'YYYR']:
-        raise Exception("fastq_handle_filter cannot yet be used with masks other than 'RRRY' and 'YYYR'.")
     result = None if len(masks) == 0 else []
     r1of = {}
     r2of = {}
+    def _channelFilename(combined_path, handle, outpath):
+        comboname = os.path.basename(combined_path)
+        if comboname.endswith(".tmp"):
+            comboname = comboname[:-4]
+        return os.path.abspath(os.path.join(outpath, handle + '-' + comboname))
     for mask in masks:
-        outpath = _prependFilename(r1_path, mask)
-        r1of[mask] = open(outpath, 'w+')
-        result.append(outpath)
-        outpath = _prependFilename(r2_path, mask)
-        r2of[mask] = open(outpath, 'w+')
-        result.append(outpath)
+        if len(mask) == 0:
+            raise Exception("handle_filter cannot be used with a handle/mask length of 0.")
+        r1fpath = _channelFilename(r1_path, mask, outpath)
+        r1of[mask] = open(r1fpath, 'w+')
+        result.append(r1fpath)
+        r2fpath = _channelFilename(r2_path, mask, outpath)
+        r2of[mask] = open(r2fpath, 'w+')
+        result.append(r2fpath)
+    mm = _MaskMatcher(masks)
     try:
         fqr1 = FastqRecord()
         fqr2 = FastqRecord()
         with open(r1_path, 'r') as r1if, open(r2_path, 'r') as r2if:
             while fqr1.read(r1if) and fqr2.read(r2if):
-                mask = match_mask_optimized(fqr1.sequence, masks)   # currently assumes masks are the default
+                mask = mm.match_mask(fqr1.sequence)
                 if mask:
-                    fqr1.write(r1of[mask])
+                    striplen = len(mask) if strip_mask else 0
+                    fqr1.write(r1of[mask], striplen)
                     fqr2.write(r2of[mask])
+                    if counters:
+                        counters.increment_key(mask)
+                elif counters:
+                    counters.increment_key('no_mask')
     finally:
         for mask in masks:
             r1of[mask].close()

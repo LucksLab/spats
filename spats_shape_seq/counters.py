@@ -4,7 +4,7 @@ def _dict_incr(d, key, m = 1):
 
 class Counters(object):
 
-    def __init__(self, run):
+    def __init__(self, run = None):
         self._run = run
         self.reset()
 

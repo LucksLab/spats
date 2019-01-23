@@ -10,11 +10,13 @@ import shutil
 import subprocess
 import sys
 import time
+from shutil import copyfile
 
 import spats_shape_seq
 from spats_shape_seq import Spats
 from spats_shape_seq.parse import abif_parse, fastq_handle_filter, FastFastqParser
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
+from counters import Counters
 
 
 class SpatsTool(object):
@@ -547,9 +549,60 @@ class SpatsTool(object):
            fastq files for R1 and R2.
         """
         self._skip_log = True
-        files = fastq_handle_filter(self.r1, self.r2)
-        self._add_note("Pairs filtered to: {}".format(", ".join(files)))
+        counters = Counters()
+        files = fastq_handle_filter(self.r1, self.r2, counters=counters)
+        self._add_note("{} pairs filtered to:\n   {}".format(counters.RRRY + counters.YYYR, "\n   ".join(files)))
+        self._add_note("{} RRRY pairs included.".format(counters.RRRY))
+        self._add_note("{} YYYR pairs included.".format(counters.YYYR))
+        self._add_note("{} pairs without matching handle were not included.".format(counters.no_mask))
 
+    def _pp_channel_files(self, channel_files):
+        treated = "RRRY"
+        untreated = "YYYR"
+        for cfp in channel_files:
+            cf = os.path.basename(cfp)
+            subprocess.check_call('gzip "{}"'.format(cfp), cwd = os.path.dirname(cfp), shell = True)
+            if cf.startswith('RRRY'):
+                treated = cf.split('_')[0]
+            elif cf.startswith('YYYR'):
+                untreated = cf.split('_')[0]
+        return treated, untreated
+
+    def to_shapeware(self):
+        """Create a folder from a spats dataset suitable for running
+           with the SHAPEware tool produced by Arrakis.
+        """
+        self._skip_log = True
+        if not self._command_args:
+            raise Exception("to_shapeware requires a path be specified for the ouptut folder.")
+        output_folder = self._command_args[0]
+        if os.path.exists(output_folder):
+            raise Exception("to_shapeware output folder already exists at {}".format(output_folder))
+        data_dir = os.path.join(output_folder, "raw_data")
+        os.makedirs(data_dir)
+        counters = Counters()
+        channel_files = fastq_handle_filter(self.r1, self.r2, strip_mask=True, outpath=data_dir, counters=counters)
+        treated, untreated = self._pp_channel_files(channel_files)
+        ## Note: the denatured sample is used as a "baseline" in SHAPEware, 
+        ## for example:  reactivity = (mutr_treated - mutr_untreated) / mutr_denatured
+        ## Since we don't have denatured, we'll use the untreated sample as the baseline.
+        denatured = untreated
+        experiment_name = self.r1.split('_')[0]
+        target_file = self.config['target']
+        with open(target_file, 'r') as TF:
+            target_name = TF.readline().strip()
+            if target_name[0] == ">":
+                target_name = target_name[1:]
+        copyfile(target_file, os.path.join(output_folder, "ref_seqs.fa"))
+        copyfile(target_file, os.path.join(output_folder, "ref_masks.fa"))
+        input_sheet = os.path.join(output_folder, "input_sheet.csv")
+        with open(input_sheet, 'w') as IS:
+            IS.write("Experiment name,Replicate,Reference sequence,Ligand,Sample with SHAPE reagent,Sample without SHAPE reagent,Denatured sample\n")
+            IS.write("{},1,{},None,{},{},{}\n".format(experiment_name, target_name, treated, untreated, denatured))
+        self._add_note("Created SHAPEware folder at {}.".format(output_folder))
+        self._add_note("   {} treated pairs included.".format(counters.RRRY))
+        self._add_note("   {} untreated pairs included.".format(counters.YYYR))
+        self._add_note("   {} pairs without matching handle were not included.".format(counters.no_mask))
 
     def compare(self):
 
