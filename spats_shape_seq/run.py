@@ -218,6 +218,10 @@ class Run(object):
             self.algorithm = 'find_partial'
             self.num_workers = 1
             self._parse_quality = True
+        for mask in self.masks:
+            if len(mask) != 4:
+                self.algorithm = 'find_partial'
+                break
         self._applied_restrictions = True
         self.validate_config()
 
