@@ -27,7 +27,7 @@ class SpatsTool(object):
         self.cotrans = False
         self._skip_log = False
         self._no_config_required_commands = [ "doc", "help", "init", "viz", "show", "extract_case", "add_case", "show_test_case" ]
-        self._private_commands = [ "viz" ]
+        self._private_commands = [ "viz", "to_shapeware" ]
         self._temp_files = []
         self._r1 = None
         self._r2 = None
