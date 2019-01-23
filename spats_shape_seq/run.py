@@ -197,6 +197,7 @@ class Run(object):
         self._process_all_pairs = False  # skip uniq'ing step, force all pairs to process (sometimes useful on large pair DB)
         self._parse_quality = False
         self._applied_restrictions = False
+        self._force_mask = None
 
 
     def apply_config_restrictions(self):
@@ -218,6 +219,8 @@ class Run(object):
             self.algorithm = 'find_partial'
             self.num_workers = 1
             self._parse_quality = True
+        if self._force_mask:
+            self.algorithm = 'find_partial'
         for mask in self.masks:
             if len(mask) != 4:
                 self.algorithm = 'find_partial'

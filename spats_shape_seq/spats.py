@@ -308,6 +308,7 @@ class Spats(object):
         :param data_r1_path: path to R1 fragments
         :param data_r2_path: path to matching R2 fragments.
         """
+        self.run._force_mask = force_mask
         self.run.apply_config_restrictions()
         self.force_mask = Mask(force_mask) if force_mask else None
         use_quality = self.run._parse_quality
