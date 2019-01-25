@@ -212,7 +212,10 @@ def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cos
      @param  mismatch_cost       Penalty for each mismatching spot (should be non-negative)
      @param  gap_open_cost       Penalty for opening a gap (should be non-negative)
      @param  gap_extend_cost     Penalty for extending an already-open gap (should be non-negative)
-     @return a dictionary mapping indices in the target string to Indel objects
+     @return a tuple of:
+         - a dictionary mapping indices in the target string to Indel objects
+         - the first indice in target to which source maps ("site")
+         - the last indice in target to which source maps ("end")
     """
     m = len(source) + 1
     n = len(target) + 1
@@ -263,7 +266,8 @@ def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cos
                 indels[cur_idj] = Indel(False, delj)
         else:
             raise Exception("alignment failed")
-    return indels
+
+    return indels, j, maxs[1] - 1
 
 
 class Colors(object):
