@@ -200,11 +200,12 @@ def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cos
     """
      Find the indels (insertions and deletions) in a source string relative to a target string.
      First, heuristically tries to find the best alignment of two strings of length M and N, 
-     allowing for insertions and deletions using the affine-gap Smith-Waterman algorithm.
+     allowing for insertions and deletions using the affine-gap Smith-Waterman (SW) algorithm.
      Once an alignment is found, returns the indel mutations with respect to the target.
      Deletions are indexed at the last item deleted in target.
      Insertions are indexed at the first spot in the target to be moved.
      Warning:  This function has not been optimized; use with care on long strings.
+     TAI:  Consider option to produce CIGAR format.
 
      @param  source              Source string
      @param  target              Target string
@@ -216,6 +217,7 @@ def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cos
          - a dictionary mapping indices in the target string to Indel objects
          - the first indice in target to which source maps ("site")
          - the last indice in target to which source maps ("end")
+         - SW alignment score
     """
     m = len(source) + 1
     n = len(target) + 1
@@ -229,7 +231,7 @@ def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cos
     for i in xrange(1, m):
         for j in xrange(1, n):
             choices[1] = H[i-1][j-1] + (match_value if source[i-1] == target[j-1] else -mismatch_cost)
-            ## TAI:  The next two lines should be considered for # optimization...
+            ## TAI:  The next two lines should be considered for optimization...
             ki, choices[2] = max_element([(H[k][j] - (gap_open_cost + gap_extend_cost * (i - k - 1))) for k in xrange(i)])
             kj, choices[3] = max_element([(H[i][k] - (gap_open_cost + gap_extend_cost * (j - k - 1))) for k in xrange(j)])
             c, H[i][j] = max_element(choices)
@@ -267,7 +269,7 @@ def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cos
         else:
             raise Exception("alignment failed")
 
-    return indels, j, maxs[1] - 1
+    return indels, j, maxs[1] - 1, maxH
 
 
 class Colors(object):
