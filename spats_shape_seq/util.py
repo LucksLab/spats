@@ -15,13 +15,13 @@ def _debug(stuff):
     if _debug_run and _debug_run.debug:
         _debug_run.log.write(str(stuff) + "\n")
 
-def max_element(l, zero_based = True):
+def max_element(l, base = 0):
     ''' @return pair containing the index and value respectively of the maximum element of list l '''
-    return max(enumerate(l, 0 if zero_based else 1), key=lambda x:x[1])
+    return max(enumerate(l, base), key=lambda x:x[1])
 
-def min_element(l, zero_based = True):
+def min_element(l, base = 0):
     ''' @return pair containing the index and value respectively of the minimum element of list l '''
-    return min(enumerate(l, 0 if zero_based else 1), key=lambda x:x[1])
+    return min(enumerate(l, base), key=lambda x:x[1])
 
 rev_comp_complementor = string.maketrans("ATCGatcg", "TAGCtagc")
 
@@ -160,7 +160,7 @@ def string_edit_distance2(s1, s2, substitution_cost = 2, insert_delete_cost = 1)
             if s1[i-1] == s2[j-1]:
                 cur_row[j] = prev_row[j-1]
             else:
-                B[i][j], cur_row[j] = min_element([ insert_delete_cost + prev_row[j], insert_delete_cost + cur_row[j-1], substitution_cost + prev_row[j-1] ], False)
+                B[i][j], cur_row[j] = min_element([ insert_delete_cost + prev_row[j], insert_delete_cost + cur_row[j-1], substitution_cost + prev_row[j-1] ], 1)
         cur_row, prev_row = prev_row, cur_row
 
     num_consecutive_edits = 0
@@ -253,14 +253,16 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
     maxs = [0, 0]
     choices = [0.0] * 4
     for i in xrange(1, m):
+        imo = i -1
         for j in xrange(1, n):
-            choices[1] = H[i-1][j-1] + simfn(source[i-1], target[j-1])
+            jmo = j - 1
+            choices[1] = H[imo][jmo] + simfn(source[imo], target[jmo])
             ## TAI:  The next two lines should be considered for optimization...
-            ki, choices[2] = max_element([(H[k][j] - (gap_open_cost + gap_extend_cost * (i - k - 1))) for k in xrange(i)])
-            kj, choices[3] = max_element([(H[i][k] - (gap_open_cost + gap_extend_cost * (j - k - 1))) for k in xrange(j)])
+            ki, choices[2] = max_element([(H[k][j] - (gap_open_cost + gap_extend_cost * (imo - k))) for k in xrange(i)])
+            kj, choices[3] = max_element([(H[i][k] - (gap_open_cost + gap_extend_cost * (jmo - k))) for k in xrange(j)])
             c, H[i][j] = max_element(choices)
             if c == 1:
-                P[i][j] = (i-1, j-1)
+                P[i][j] = (imo, jmo)
             elif c == 2:
                 P[i][j] = (ki, j)
             elif c == 3:

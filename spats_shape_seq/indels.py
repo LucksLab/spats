@@ -56,13 +56,17 @@ class IndelsProcessor(PairProcessor):
                 best_align_r2 = align_r2
                 max_r1prefix = r1prefix
                 pair.target = target
+        if max_score <= 0:
+            self.counters.unmatched += pair.multiplicity
+            pair.failure = Failures.nomatch
+            return
 
         pair.r1.matched_alignment(best_align_r1, pair.target, prefix=len(max_r1prefix))
         pair.r2.matched_alignment(best_align_r2, pair.target, suffix=len(r2suffix))
         if run.dumbbell:
             pair.dumbbell = pair.r2.match_index - len(run.dumbbell)
 
-        if max_score <= 0  or  pair.r1.match_len == 0  or  pair.r2.match_len == 0:
+        if pair.r1.match_len == 0  or  pair.r2.match_len == 0:
             self.counters.unmatched += pair.multiplicity
             pair.failure = Failures.nomatch
             return
