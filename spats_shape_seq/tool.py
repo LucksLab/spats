@@ -737,7 +737,7 @@ class SpatsTool(object):
         from spats_shape_seq.diagram import diagram
 
         alg = test_case.run_opts.get('algorithm')
-        algs = [ alg ] if alg else test_case.run_opts.get('algorithms', [ 'find_partial', 'lookup' ])
+        algs = [ alg ] if alg else test_case.run_opts.get('algorithms', [ 'find_partial', 'lookup', 'indels' ])
         for algorithm in algs:
             spats = Spats()
             spats.run.algorithm = algorithm
@@ -786,10 +786,24 @@ class SpatsTool(object):
                             else:
                                 if not (pair.mutations is None  or len(pair.mutations) == 0):
                                     raise Exception("unexpected mutations: {}".format(pair.mutations))
+                        if 'r1_indels' in expects:
+                            r1inds = dict(zip(map(str, pair.r1.indels.keys()), map(vars, pair.r1.indels.values())))
+                            if expects['r1_indels']:
+                                if expects['r1_indels'] != r1inds:
+                                    raise Exception("mismatching R1 indels:  expected={}, pair.r1.indels={}".format(expects['r1_indels'], r1inds))
+                            elif pair.r1.indels:
+                                raise Exception("unexpected R1 indels:  pair.r1.indels={}".format(pair.r1.indels))
+                        if 'r2_indels' in expects:
+                            r2inds = dict(zip(map(str, pair.r2.indels.keys()), map(vars, pair.r2.indels.values())))
+                            if expects['r2_indels']:
+                                if expects['r2_indels'] != r2inds:
+                                    raise Exception("mismatching R2 indels:  expected={}, pair.r2.indels={}".format(expects['r2_indels'], r2inds))
+                            elif pair.r2.indels:
+                                raise Exception("unexpected R2 indels:  pair.r2.indels={}".format(r2inds))
                         if 'counters' in expects:
                             for counter, value in expects['counters'].iteritems():
-                                if getattr(self.spats.counters, str(counter)) != value:
-                                    raise Exception("counter '{}' value off: expected={} != got={}".format(counter, value, getattr(self.spats.counters, counter)))
+                                if getattr(spats.counters, str(counter)) != value:
+                                    raise Exception("counter '{}' value off: expected={} != got={}".format(counter, value, getattr(spats.counters, counter)))
                         if 'pair.target' in expects:
                             tname = pair.target.name if pair.target else None
                             if tname != expects['pair.target']:

@@ -2527,6 +2527,7 @@
             ]
         },
         {
+            "comment": "uneven read length bugs from Lee",
             "run_opts": {
                 "algorithms": [
                     "find_partial"
@@ -2538,7 +2539,6 @@
                 "mutations_require_quality_score": 30
             },
             "set_name": "uneven_read_lens",
-            "comment": "uneven read length bugs from Lee",
             "targets": [
                 "SRP"
             ],
@@ -2560,6 +2560,133 @@
                     "r1_quality": "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
                     "r2": "ATCGGGGGCGCTGTTGGTTCTCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCCTGACTCGGGCACCAAGGACGCCCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATTT",
                     "r2_quality": "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+                }
+            ]
+        },
+        {
+            "set_name": "indels",
+            "comment": "testing insertions and deletions",
+            "run_opts": {
+                "algorithms": [ "indels" ],
+                "count_mutations": true,
+                "allowed_target_errors": 3,
+                "ignore_stops_with_mismatched_overlap": false
+            },
+            "targets": [ "HairpinC_SS2" ],
+            "tests": [
+                {
+                    "id": "indels_1",
+                    "r1": "GGGTGAGCGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGGGCATAGTTGATGCTCGGACTTTCG",
+                    "r2": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGCCAAAAGACGATAAT",
+                    "expect": {
+                        "site": 0,
+                        "muts": [ 26 ],
+                        "counters": { "mut_count_1": 1 },
+                        "r2_indels": {
+                            "40": { "insert_type": false, "seq": "T" },
+                            "65": { "insert_type": true, "seq": "AAAA" }
+                        }
+                    }
+                },
+                {
+                    "id": "indels_2",
+                    "r1": "GGGTGAGCGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGGGCATAGTTGATGCTCGGACTTTCG",
+                    "r2": "GGACCCGATGCCGGACGATTTAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGTTTCCAAAAGACGATAAT",
+                    "expect": {
+                        "site": 0,
+                        "muts": [ 26 ],
+                        "counters": { "mut_count_1": 1 },
+                        "r2_indels": {
+                            "18": { "insert_type": true, "seq": "TTT" },
+                            "40": { "insert_type": false, "seq": "T" },
+                            "63": { "insert_type": true, "seq": "TTT" },
+                            "65": { "insert_type": true, "seq": "AAAA" }
+                        }
+                    }
+                },
+                {
+                    "id": "indels_3",
+                    "r1": "GGGTGAGCGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGGGCATAGTTGATGCTCGGACTTTCG",
+                    "r2": "GGACCCGATGCCGGACGATTTAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGCTTTCAAAAGACGATAAT",
+                    "expect": { 
+                        "site": 0,
+                        "muts": [ 26, 65 ],
+                        "counters": { "mut_count_2": 1 },
+                        "r2_indels": { 
+                            "18": { "insert_type": true, "seq": "TTT" }, 
+                            "40": { "insert_type": false, "seq": "T" }, 
+                            "64": { "insert_type": true, "seq": "TTTCAAA" }
+                        }
+                    }
+                },
+                {
+                    "id": "indels_4",
+                    "r1": "GGGTGAGCGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGGGCATAGTTGATGCTCGGACTTTCG",
+                    "r2": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGTCAAAAGACGATAAT",
+                    "expect": { 
+                        "site": 0,
+                        "muts": [ 26, 64 ],
+                        "counters": { "mut_count_2": 1 },
+                        "r2_indels": { 
+                            "40": { "insert_type": false, "seq": "T" }, 
+                            "65": { "insert_type": true, "seq": "AAAA" }
+                        }
+                    }
+                },
+                {
+                    "id": "indels_5",
+                    "r1": "GGGTGAGCGTGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGTGCATAGTTGATGCTCGGACTTTCG",
+                    "r2": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGCCAAAAGACGATAAT",
+                    "expect": { 
+                        "site": 0,
+                        "muts": [ 26, 41, 86 ],
+                        "counters": { "mut_count_3": 1 },
+                        "r1_indels": { 
+                            "38": { "insert_type": false, "seq": "C" }
+                        },
+                        "r2_indels": { 
+                            "40": { "insert_type": false, "seq": "T" }, 
+                            "65": { "insert_type": true, "seq": "AAAA" }
+                        }
+                    }
+                },
+                {
+                    "id": "indels_6",
+                    "r1": "GGGTGAGCGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAATCAGGTAGGGCATAGTTGATGCTCGGACTTTCG",
+                    "r2": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGCCAAAAGACGATAAT",
+                    "expect": { 
+                        "site": 0,
+                        "muts": [ 26, 49 ],
+                        "counters": { "mut_count_2": 1 },
+                        "r2_indels": { "40": { "insert_type": false, "seq": "T" }, "65": { "insert_type": true, "seq": "AAAA" } }
+                    }
+                }
+            ]
+        },
+        {
+            "set_name": "indels_dumbbell",
+            "comment": "testing insertions and deletions with dumbbells and adapters",
+            "run_opts": {
+                "algorithms": [ "indels" ],
+                "count_mutations": true,
+                "allowed_target_errors": 2,
+                "ignore_stops_with_mismatched_overlap": false,
+                "allowed_adapter_errors": 1,
+                "dumbbell": "TGAACAGCGACTAGGCTCTTCA"
+            },
+            "targets": [ "HairpinC_SS2" ],
+            "tests": [
+                {
+                    "id": "indels_dumbbell_1",
+                    "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGCCGAATGAAGAGCCTAGTCGCTGTTCAAGATCTGAAGAGCACACGTCTGAACTCCAGTCACCC",
+                    "r2": "TGAACAGCGACTAGGCTCTTCATTCGGAAACCGATAAAGCCGACGATAATACTCCCAAAGCCCACCCAGATCTGAAGAGCGTCGTGTAGGGAAAGAGTGTAGA",
+                    "comment": "one mutation in the adapter",
+                    "expect": { 
+                        "site": 49,
+                        "muts": [ ],
+                        "r1_indels": { "54": { "insert_type": false, "seq": "C" } },
+                        "r2_indels": { "54": { "insert_type": true, "seq": "AAA" } }
+                    }
                 }
             ]
         }

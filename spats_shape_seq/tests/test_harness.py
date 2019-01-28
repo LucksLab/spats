@@ -108,9 +108,9 @@ class SpatsCaseRegistry(object):
                 break
         if testset:
             if case.run_opts != testset['run_opts']:
-                raise Exception('Case options do not match set options {}'.format(testset('run_opts')))
+                raise Exception('Case options do not match set options {}'.format(testset['run_opts']))
             if case.targets.keys() != testset['targets']:
-                raise Exception('Case targets do not match set targets {}'.format(testset('targets')))
+                raise Exception('Case targets do not match set targets {}'.format(testset['targets']))
             testset['tests'].append(case.caseDict())
         else:
             print("Creating new test_set '{}'...".format(case.set_name))
@@ -264,19 +264,36 @@ class TestHarness:
             msg = "testset='{}', test id='{}', algorithm='{}' failed: ".format(self.test_set.name, case.id, self.spats.run.algorithm)
             if expects['site'] is None:
                 self.assertIs(pair.site, None, msg + "pair.site={} when expecting none.".format(pair.site))
+
             else:
                 self.assertIsNot(pair.site, None, msg + "pair.site is none when expecting {}.".format(expects['site']))
                 self.assertEqual(expects['site'], pair.site, msg + "pair.site={} != expect.site={}".format(pair.site, expects['site']))
                 if 'end' in expects:
                     self.assertEqual(expects['end'], pair.end, msg + "pair.end={} != expect.end={}".format(pair.end, expects['end']))
+
                 if 'muts' in expects:
                     if expects['muts'] is not None  and  len(expects['muts']) > 0:
                         self.assertEqual(sorted(expects['muts']), sorted(pair.mutations) if pair.mutations else pair.mutations, msg + "mismatching mutations:  expected={}, pair.mutations={}".format(expects['muts'], pair.mutations))
                     else:
                         self.assertTrue(pair.mutations is None  or len(pair.mutations) == 0, msg + "unexpected mutations: {}".format(pair.mutations))
+
+                if 'r1_indels' in expects:
+                    r1inds = dict(zip(map(str, pair.r1.indels.keys()), map(vars, pair.r1.indels.values())))
+                    if expects['r1_indels']:
+                        self.assertEqual(expects['r1_indels'], r1inds)
+                    else:
+                        self.assertTrue(not pair.r1.indels, msg + "unexpected R1 indels: {}".format(r1inds))
+                if 'r2_indels' in expects:
+                    r2inds = dict(zip(map(str, pair.r2.indels.keys()), map(vars, pair.r2.indels.values())))
+                    if expects['r2_indels']:
+                        self.assertEqual(expects['r2_indels'], r2inds)
+                    else:
+                        self.assertTrue(not pair.r2.indels, msg + "unexpected R2 indels: {}".format(r2inds))
+
             if 'counters' in expects:
                 for counter, value in expects['counters'].iteritems():
                     self.assertEqual(getattr(self.spats.counters, str(counter)), value, msg + "counter '{}' value off: expected={} != got={}".format(counter, value, getattr(self.spats.counters, counter)))
+
             if 'pair.target' in expects:
                 tname = pair.target.name if pair.target else None
                 self.assertEqual(tname, expects['pair.target'], msg + "pair.target={} != expect.pair.target={}".format(tname, expects['pair.target']))

@@ -4,6 +4,7 @@ import sys
 
 from lookup import LookupProcessor, CotransLookupProcessor
 from partial import PartialFindProcessor, CotransPartialFindProcessor
+from indels import IndelsProcessor
 from native import CotransNativeProcessor
 from tag import TagProcessor
 
@@ -146,6 +147,8 @@ class Run(object):
         self.minimum_tag_match_length = 8
 
         #: Default ``lookup``, set to ``find_partial`` to use the partial find algorithm.
+        #: Set to ``indels`` to use the (experimental) algorithm to report indels. 
+        #: Warning: ``indels`` is expected to be at least an order of magnitude slower.
         self.algorithm = "lookup"
 
         #: Default ``False``, set to ``True`` to allow beta, theta,
@@ -186,6 +189,26 @@ class Run(object):
         #: stops.
         self.count_only_full_reads = False
 
+        #: Defaults to ``2``, set to the value to reward matching
+        #: characters in the Smith-Waterman alignment algorithm
+        #: Only applies when the ``indels`` algorithm is used.
+        self.indel_match_value = 2
+
+        #: Defaults to ``2``, set to the value to penalize mismatching
+        #: characters in the Smith-Waterman alignment algorithm
+        #: Only applies when the ``indels`` algorithm is used.
+        self.indel_mismatch_cost = 2
+
+        #: Defaults to ``6``, set to the value to penalize the initiation of
+        #: indel (insertion or deletion) gaps in the Smith-Waterman alignment algorithm
+        #: Only applies when the ``indels`` algorithm is used.
+        self.indel_gap_open_cost = 6
+
+        #: Defaults to ``1``, set to the value to penalize the extension of
+        #: indel (insertion or deletion) gaps in the Smith-Waterman alignment algorithm
+        #: Only applies when the ``indels`` algorithm is used.
+        self.indel_gap_extend_cost = 1
+
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
         self._p_processor_class = None
@@ -210,7 +233,8 @@ class Run(object):
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
         if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1 or not self.ignore_stops_with_mismatched_overlap:
-            self.algorithm = 'find_partial'
+            if self.algorithm not in ['find_partial', 'indels']:
+                self.algorithm = 'find_partial'
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
         if self.count_mutations and self.mutations_require_quality_score is not None:
@@ -250,6 +274,7 @@ class Run(object):
             "cotrans_lookup" : CotransLookupProcessor,
             "cotrans_find_partial" : CotransPartialFindProcessor,
             "cotrans_native" : CotransNativeProcessor,
+            "indels" : IndelsProcessor
         }
         return implementations[("cotrans_" if self.cotrans else "") + self.algorithm]
 

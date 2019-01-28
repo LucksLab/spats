@@ -104,3 +104,10 @@ def longest_match(s1, range1, s2, range2):
         right += 1
 
     return left - 1, right
+
+
+def base_similarity_ind(nt1, nt2, match_value = 2, mismatch_cost = 2, indeterminate_value = 1):
+    if nt1 == nt2:
+        return match_value
+    return indeterminate_value if (char_to_mask[nt1] & char_to_mask[nt2]) != 0 else -mismatch_cost
+

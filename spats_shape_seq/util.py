@@ -26,12 +26,11 @@ def min_element(l, zero_based = True):
 rev_comp_complementor = string.maketrans("ATCGatcg", "TAGCtagc")
 
 def reverse_complement(seq):
-    return seq.translate(rev_comp_complementor)[::-1]
+    return str(seq).translate(rev_comp_complementor)[::-1]
 
 # hamming distance with tracking and shortcut-out
 def string_match_errors(substr, target_str, max_errors = None):
     errors = []
-    # TODO: do we need this "min" here?
     for i in xrange(min(len(substr), len(target_str))):
         if substr[i] != target_str[i]:
             errors.append(i)
@@ -191,12 +190,40 @@ def string_edit_distance2(s1, s2, substitution_cost = 2, insert_delete_cost = 1)
     return prev_row[n-1], max_possible, num_consecutive_edits
 
 
-class Indel:
-    def __init__(self, insert_type, length = 1):
-        self.insert_type = insert_type    # True for inserts, False for deletes
-        self.length = length
 
-def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cost = 6, gap_extend_cost = 1):
+class Indel:
+    def __init__(self, insert_type, seq = ""):
+        self.insert_type = insert_type    # True for inserts, False for deletes
+        self.seq = seq
+
+
+class Alignment:
+    def __init__(self, score, target_start, target_end, src_start, src_end, indels, mismatched):
+        self.score = score                      # Smith-Waterman alignment score
+        self.target_match_start = target_start  # the first indice in target to which source maps ("site")
+        self.target_match_end = target_end      # the last indice in target to which source maps ("end")
+        self.target_match_len = target_end - target_start + 1
+        self.src_match_start = src_start        # the first indice in source to match the target
+        self.src_match_end = src_end            # the last indice in source to match the target
+        self.indels = indels                    # dict mapping indices in the target string to Indel objects
+        self.mismatched = mismatched            # list of indices in target that don't match source 
+
+    @property
+    def indels_delta(self):
+        return (self.src_match_end - self.src_match_start) - (self.target_match_end - self.target_match_start)
+
+
+def char_sim(sc, tc, match_value = 2, mismatch_cost = 2): 
+    """
+     @param  sc             source character
+     @param  tc             target character
+     @param  match_value    Score bump/reward if they match
+     @param  mismatch_cost  Penalty if they don't match (should be non-negative)
+     @return similarity between sc and tc
+    """
+    return match_value if sc == tc else -mismatch_cost
+
+def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_extend_cost = 1, penalize_ends = True):
     """
      Find the indels (insertions and deletions) in a source string relative to a target string.
      First, heuristically tries to find the best alignment of two strings of length M and N, 
@@ -204,20 +231,17 @@ def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cos
      Once an alignment is found, returns the indel mutations with respect to the target.
      Deletions are indexed at the last item deleted in target.
      Insertions are indexed at the first spot in the target to be moved.
+     NOTE: all indices returned are 0-based.
      Warning:  This function has not been optimized; use with care on long strings.
      TAI:  Consider option to produce CIGAR format.
 
      @param  source              Source string
      @param  target              Target string
-     @param  match_value         Score bump/reward for each matching spot
-     @param  mismatch_cost       Penalty for each mismatching spot (should be non-negative)
+     @param  simfn               Similarity function for string elements
      @param  gap_open_cost       Penalty for opening a gap (should be non-negative)
      @param  gap_extend_cost     Penalty for extending an already-open gap (should be non-negative)
-     @return a tuple of:
-         - a dictionary mapping indices in the target string to Indel objects
-         - the first indice in target to which source maps ("site")
-         - the last indice in target to which source maps ("end")
-         - SW alignment score
+     @param  penalize_ends       If true, will penalize regions before/after alignment for mismatches
+     @return an Alignment object
     """
     m = len(source) + 1
     n = len(target) + 1
@@ -226,11 +250,11 @@ def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cos
     P = [[(r-1, c-1) for c in xrange(n)] for r in xrange(m)]
 
     maxH = 0.0
-    maxs = (0, 0)
+    maxs = [0, 0]
     choices = [0.0] * 4
     for i in xrange(1, m):
         for j in xrange(1, n):
-            choices[1] = H[i-1][j-1] + (match_value if source[i-1] == target[j-1] else -mismatch_cost)
+            choices[1] = H[i-1][j-1] + simfn(source[i-1], target[j-1])
             ## TAI:  The next two lines should be considered for optimization...
             ki, choices[2] = max_element([(H[k][j] - (gap_open_cost + gap_extend_cost * (i - k - 1))) for k in xrange(i)])
             kj, choices[3] = max_element([(H[i][k] - (gap_open_cost + gap_extend_cost * (j - k - 1))) for k in xrange(j)])
@@ -242,34 +266,57 @@ def find_indels(source, target, match_value = 2, mismatch_cost = 2, gap_open_cos
             elif c == 3:
                 P[i][j] = (i, kj)
             if H[i][j] >= maxH:
-                maxs = (i, j)
+                maxs = [i, j]
                 maxH = H[i][j]
 
     i, j = maxs
     indels = {}
+    mismatches = []
     cur_idj = -1
     while i > 0  and  j > 0  and  H[i][j] > 0.0:
         lasti, lastj = i, j
         i, j = P[i][j]
         deli, delj = lasti - i, lastj - j
-        if deli and  delj:
+        if deli and delj:
             cur_idj = -1
+            if simfn(source[i], target[j]) <= 0.0:
+                mismatches.append(j)
         elif deli:
             if cur_idj >= 0  and  indels[cur_idj].insert_type:
-                indels[cur_idj].length += deli
+                indels[cur_idj].seq = source[i:lasti] + indels[cur_idj].seq
             else:
                 cur_idj = lastj                         # count insertion at first index in target to be moved
-                indels[cur_idj] = Indel(True, deli)
+                indels[cur_idj] = Indel(True, source[i:lasti])
         elif delj:
             if cur_idj >= 0  and  not indels[cur_idj].insert_type:
-                indels[cur_idj].length += delj
+                indels[cur_idj].seq = target[j:lastj] + indels[cur_idj].seq
             else:
                 cur_idj = lastj - 1                     # count deletion at index of last item deleted in target
-                indels[cur_idj] = Indel(False, delj)
+                indels[cur_idj] = Indel(False, target[j:lastj])
         else:
             raise Exception("alignment failed")
 
-    return indels, j, maxs[1] - 1, maxH
+    i = min(i, m - 2)
+    j = min(j, n - 2)
+
+    if penalize_ends:
+        while i > 0 and j > 0:
+            s = simfn(source[i], target[j])
+            maxH += s
+            if s <= 0.0:
+                mismatches.append(j)
+            i -= 1
+            j -= 1
+
+        while maxs[0] < m - 1 and maxs[1] < n - 1:
+            s = simfn(source[i], target[j])
+            maxH += s
+            if s <= 0.0:
+                mismatches.append(j)
+            maxs[0] += 1
+            maxs[1] += 1
+
+    return Alignment(maxH, j, maxs[1] - 1, i, maxs[0] - 1, indels, mismatches)
 
 
 class Colors(object):

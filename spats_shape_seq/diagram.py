@@ -47,6 +47,30 @@ class Diagram(object):
         d += seq
         self._add_line(d)
 
+    def _add_indels(self, part, offset, seq):
+        if part.indels:
+            for index in sorted(part.indels.keys()):
+                indel = part.indels[index]
+                ind = index - offset
+                if indel.insert_type:
+                    seq = seq[:ind] + seq[ind + len(indel.seq):]
+                else:
+                    il = len(indel.seq)
+                    seq = seq[:ind-il+1] + '*' * len(indel.seq) + seq[ind-il+1:]
+                    part.match_errors.append(ind)
+        return seq
+
+    def _adj_seq_len(self, part):
+        sl = part.seq_len
+        if part.indels:
+            for indel in part.indels.values():
+                indellen = len(indel.seq)
+                if indel.insert_type:
+                    sl -= indellen
+                else:
+                    sl += indellen
+        return sl
+
     def _make_part(self, part):
         is_R1 = (part == self.pair.r1)
         match_index = part.match_index if part.matched else (((self.target.n - part.original_len) >> 1) + (40 if is_R1 else -40))
@@ -76,9 +100,10 @@ class Diagram(object):
             d += (part.original_seq[:masklen] + ".")
             if part._ltrim > masklen:
                 d += part.original_seq[masklen:part._ltrim]
+            d += part.subsequence
         else:
             d += part.original_seq[:part._ltrim]
-        d += part.subsequence
+            d += self._add_indels(part, match_index, part.subsequence)
         if part._rtrim:
             trimmed = part.original_seq[-part._rtrim:]
             if is_R1 or len(trimmed) < masklen:
@@ -101,7 +126,7 @@ class Diagram(object):
             d = sp(spaces)
             if is_R1:
                 d += sp(masklen + 1)
-            d += sp(part.seq_len, "?")
+            d += sp(self._adj_seq_len(part), "?")
             self._add_line(self._make_prefix("") + d)
             return []
 
@@ -127,9 +152,42 @@ class Diagram(object):
         d += (adapter[:part._rtrim - (0 if is_R1 else masklen)] + "..")
         self._add_line(d)
 
+    def _make_part_ins(self, part):
+        label = "ins"
+        d = label
+        d += sp(self.prefix_len - len(d))
+        ci = 0
+        instodo = []
+        for index in sorted(part.indels.keys()):
+            indel = part.indels[index]
+            if indel.insert_type:
+                d += sp(index - ci)
+                d += "V"
+                ci = index + 1
+                instodo.append((index, indel.seq))
+        if not instodo:
+            return
+        lines_to_add = [ d ]
+        while instodo:
+            stilltodo = []
+            d = label
+            d += sp(self.prefix_len - len(d))
+            ci = 0
+            for ins in instodo:
+                if ins[0] >= ci:
+                    d += sp(ins[0] - ci)
+                    d += ins[1]
+                    ci = ins[0] + len(ins[1])
+                else:
+                    stilltodo.append(ins)
+            lines_to_add.insert(0, d)
+            instodo = stilltodo
+        for line in lines_to_add:
+            self._add_line(line)
+
     def _make_part_errors(self, part):
         d = sp(part.match_index)
-        errors = sp(part.seq_len)
+        errors = sp(self._adj_seq_len(part))
         error_bars = []
         for e in part.match_errors:
             q = part.quality
@@ -176,7 +234,7 @@ class Diagram(object):
         r1 = self.pair.r1
         d = "revcomp(R1)"
         d += sp(r1.match_index + self.prefix_len - len(d))
-        d += r1.reverse_complement
+        d += self._add_indels(r1, r1.match_index, r1.reverse_complement)
         self._add_line(d)
 
     def _make_linker(self):
@@ -264,6 +322,8 @@ class Diagram(object):
 
         if self.pair.mask and self.pair.r1.matched:
             self._add_line("")
+            if self.pair.r1.indels:
+                self._make_part_ins(self.pair.r1)
             self._make_r1_rev()
 
         if self.pair.r1.match_errors or self.pair.r1.adapter_errors:
@@ -278,6 +338,8 @@ class Diagram(object):
 
         self._add_line("")
 
+        if self.pair.r2.indels:
+            self._make_part_ins(self.pair.r2)
         r2_bars = self._make_part(self.pair.r2)
         self.bars.append(r2_bars)
         if self.pair.r2.match_errors or self.pair.r2.adapter_errors:

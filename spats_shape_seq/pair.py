@@ -94,7 +94,7 @@ class Pair(object):
                 else:
                     # xref https://trello.com/c/usT0vTiG/308-discordant-mutations-case-handling-and-unit-tests
                     #    and associated test cases
-                    ref = self.target.seq[mut]
+                    ref = self.target.seq[mut]     # TODO STEVE:  why isn't this mut-1?  (unit tests still pass)
                     if q1 < min_quality and q2 >= min_quality:
                         if nt2 == ref:
                             q = q1 # signals to ignore the mutation from low-quality q1
