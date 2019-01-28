@@ -125,8 +125,8 @@ class Sequence(object):
                     new_indels[newind] = self.indels[indind]
                     indlen = len(new_indels[newind].seq)
                     if not new_indels[newind].insert_type and newind - indlen < 0:
-                        self.match_index += indlen
-                        self.match_len -= indlen
+                        self.match_index += newind + 1
+                        self.match_len -= newind + 1
             self.indels = new_indels
             for i in xrange(len(self.match_errors)):
                 self.match_errors[i] -= prefix
@@ -140,7 +140,10 @@ class Sequence(object):
         nme = []
         for err in self.match_errors:
             if err < target_len:
-                nme.append(err - self.match_index) 
+                if err >= self.match_index:
+                    nme.append(err - self.match_index) 
+                else:
+                    self.adapter_errors.append(abs(err - self.match_index))
             else:
                 self.adapter_errors.append(err - target_len)
         self.match_errors = nme
