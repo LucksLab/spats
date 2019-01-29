@@ -198,7 +198,7 @@ class Indel:
 
 
 class Alignment:
-    def __init__(self, score, target_start, target_end, src_start, src_end, indels, mismatched):
+    def __init__(self, score, target_start, target_end, src_start, src_end, indels, mismatched, max_run):
         self.score = score                      # Smith-Waterman alignment score
         self.target_match_start = target_start  # the first indice in target to which source maps ("site")
         self.target_match_end = target_end      # the last indice in target to which source maps ("end")
@@ -207,6 +207,7 @@ class Alignment:
         self.src_match_end = src_end            # the last indice in source to match the target
         self.indels = indels                    # dict mapping indices in the target string to Indel objects
         self.mismatched = mismatched            # list of indices in target that don't match source 
+        self.max_run = max_run                  # longest sequence where target matched source in aligned region
 
     @property
     def indels_delta(self):
@@ -275,6 +276,8 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
     indels = {}
     mismatches = []
     cur_idj = -1
+    cur_run = 0
+    max_run = 0
     while i > 0  and  j > 0  and  H[i][j] > 0.0:
         lasti, lastj = i, j
         i, j = P[i][j]
@@ -283,20 +286,34 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
             cur_idj = -1
             if simfn(source[i], target[j]) <= 0.0:
                 mismatches.append(j)
+                if cur_run > max_run:
+                    max_run = cur_run
+                cur_run = 0
+            else:
+                cur_run += 1
         elif deli:
             if cur_idj >= 0  and  indels[cur_idj].insert_type:
                 indels[cur_idj].seq = source[i:lasti] + indels[cur_idj].seq
             else:
                 cur_idj = lastj                         # count insertion at first index in target to be moved
                 indels[cur_idj] = Indel(True, source[i:lasti])
+            if cur_run > max_run:
+                max_run = cur_run
+            cur_run = 0
         elif delj:
             if cur_idj >= 0  and  not indels[cur_idj].insert_type:
                 indels[cur_idj].seq = target[j:lastj] + indels[cur_idj].seq
             else:
                 cur_idj = lastj - 1                     # count deletion at index of last item deleted in target
                 indels[cur_idj] = Indel(False, target[j:lastj])
+            if cur_run > max_run:
+                max_run = cur_run
+            cur_run = 0
         else:
             raise Exception("alignment failed")
+
+    if cur_run > max_run:
+        max_run = cur_run
 
     i = min(i, m - 2)
     j = min(j, n - 2)
@@ -318,7 +335,7 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
             maxs[0] += 1
             maxs[1] += 1
 
-    return Alignment(maxH, j, maxs[1] - 1, i, maxs[0] - 1, indels, mismatches)
+    return Alignment(maxH, j, maxs[1] - 1, i, maxs[0] - 1, indels, mismatches, max_run)
 
 
 class Colors(object):

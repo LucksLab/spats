@@ -102,54 +102,28 @@ class Sequence(object):
             self.match_len = self.seq_len
         _debug(["M2S:", self.match_index, self.match_len, self.match_start, "-- ", self._rtrim])
 
-    def matched_alignment(self, alignment, target, prefix = 0, suffix = 0):
+    def matched_alignment(self, alignment, target):
         self.match_index = alignment.target_match_start
         self.match_len = alignment.target_match_len
         self.match_start = alignment.src_match_start
         self.indels = alignment.indels
         self.match_errors = alignment.mismatched
         self.indels_delta = alignment.indels_delta
-        if prefix:
-            ## Hack for adapter_b
-            if self.match_index < prefix:
-                delta = prefix - self.match_index
-                self.match_len -= delta
-                self.match_start += delta
-                self.match_index += delta
-                self._rtrim = self.match_start
-            self.match_index -= prefix
-            new_indels = {}
-            for indind in self.indels.keys():
-                newind = indind - prefix
-                if newind > 0:
-                    new_indels[newind] = self.indels[indind]
-                    indlen = len(new_indels[newind].seq)
-                    if not new_indels[newind].insert_type and newind - indlen < 0:
-                        self.match_index += newind + 1
-                        self.match_len -= newind + 1
-            self.indels = new_indels
-            for i in xrange(len(self.match_errors)):
-                self.match_errors[i] -= prefix
-        if suffix  and  self.match_index + self.match_len > target.n:
-            ## Hack for adapter_t and mask
-            self.trim(self.match_index + self.match_len - target.n)
-            self.match_len = target.n - self.match_index
-            self.trim_indels(target.n)
 
     def shift_errors(self, target_len):
         nme = []
         for err in self.match_errors:
             if err < target_len:
-                if err >= self.match_index:
-                    nme.append(err - self.match_index) 
-                else:
-                    self.adapter_errors.append(abs(err - self.match_index))
+                assert(err >= self.match_index)
+                nme.append(err - self.match_index) 
             else:
                 self.adapter_errors.append(err - target_len)
         self.match_errors = nme
 
     def trim_indels(self, maxind):
-        ## TAI: trim match_errors too?
+        trimmed = 0
         for indind in self.indels.keys():
             if indind >= maxind:
                 del self.indels[indind]
+                trimmed += 1
+        return trimmed

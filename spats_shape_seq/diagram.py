@@ -140,6 +140,8 @@ class Diagram(object):
             if part._rtrim <= len(self.run.dumbbell):
                 return
 
+        if not part.right:
+            return
         masklen = self.pair.mask.length()
         d = label
         d += sp(self.prefix_len + part.match_index + part.match_len + 1 - len(d))

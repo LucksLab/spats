@@ -69,7 +69,7 @@ class Pair(object):
         return True
 
     def check_mutation_quality(self, minimum_quality_score):
-        if minimum_quality_score is None  or  not self.mutations:
+        if minimum_quality_score is None  or  not self.mutations or (not self.r1.quality and not self.r2.quality):
             return 0
         removed = []
         r1_start = self.r1.match_index
@@ -81,12 +81,14 @@ class Pair(object):
             nt1 = nt2 = None
             if mut < r2_start + seq_len + 1 - self.r2._ltrim:
                 idx = mut - r2_start + self.r2._ltrim - 1
-                q2 = ord(self.r2.quality[idx])
-                nt2 = self.r2.original_seq[idx]
+                if idx >= 0:
+                    q2 = ord(self.r2.quality[idx])
+                    nt2 = self.r2.original_seq[idx]
             if mut > r1_start:
                 idx = mut - r1_start - 1
-                q1 = ord(self.r1.quality[::-1][idx + self.r1._rtrim])
-                nt1 = self.r1.reverse_complement[idx]
+                if idx >= 0:
+                    q1 = ord(self.r1.quality[::-1][idx + self.r1._rtrim])
+                    nt1 = self.r1.reverse_complement[idx]
             if q1 and q2:
                 # check for agreement
                 if nt1 == nt2:
@@ -126,10 +128,11 @@ class Pair(object):
         # note: in the case that overlaps disagree, we may decide it one way or the other via quality
         # xref https://trello.com/c/35mBHvPA/197-stop-map-r1-r2-disagree-case
         r2_match_len = self.r2.match_len
-        overlap_index = self.r1.match_index
+        overlap_index = max(self.r1.match_index, self.r2.match_index)
         overlap_len = self.r2.match_index + r2_match_len - overlap_index
         if overlap_len > 0:
-            r1_part = self.r1.reverse_complement[:overlap_len]
+            r1start = max(self.r2.match_index - self.r1.match_index, 0)
+            r1_part = self.r1.reverse_complement[r1start:r1start+overlap_len]
             r2_part = self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]
             #print('O: {} / {}'.format(r1_part, r2_part))
             if r1_part != r2_part:
