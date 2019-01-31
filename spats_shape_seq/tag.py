@@ -13,6 +13,8 @@ TAG_MASK_FAILURE = "mask_failure"
 TAG_ADAPTER_ERRORS = "adapter_errors"
 TAG_MATCH_ERRORS = "match_errors"
 TAG_LINKER = "linker_cotrans"
+TAG_INDELS_R1 = "indels_r1"
+TAG_INDELS_R2 = "indels_r2"
 TAG_UNKNOWN = "unknown"
 ALL_TAGS = [ TAG_MATCH,
              TAG_ADAPTER,
@@ -23,6 +25,8 @@ ALL_TAGS = [ TAG_MATCH,
              TAG_ADAPTER_ERRORS,
              TAG_MATCH_ERRORS,
              TAG_LINKER,
+             TAG_INDELS_R1,
+             TAG_INDELS_R2,
              TAG_UNKNOWN,
 ]
 MASK_TO_TAG = { "RRRY" : TAG_TREATED, "YYYR" : TAG_UNTREATED }
@@ -201,6 +205,10 @@ class TagProcessor(PairProcessor):
             tags.append(MASK_TO_TAG[pair.mask.chars])
         else:
             tags.append(TAG_MASK_FAILURE)
+        if pair.r1.indels:
+            tags.append(TAG_INDELS_R1)
+        if pair.r2.indels:
+            tags.append(TAG_INDELS_R2)
 
         pair.tags = [self._tagmap[t] for t in set(tags)]
 

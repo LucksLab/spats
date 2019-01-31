@@ -208,6 +208,18 @@ class PairDB(object):
                                       WHERE r.rowid IS NULL AND u.rowid >= {}
                                       ORDER BY u.rowid LIMIT {}''', batch_size, (result_set_id,))
 
+    def unique_pairs_with_counts_and_tag(self, set_id, tag, batch_size = 0):
+        self._cache_unique_pairs()
+        self.index_results()    # TODO:  is this needed?
+        return self._batch_results('''SELECT u.multiplicity, p.r1, p.r2, p.rowid, u.rowid
+                                      FROM unique_pair u
+                                      INNER JOIN pair p ON p.rowid=u.pair_id
+                                      INNER JOIN result r ON r.pair_id=u.pair_id
+                                      INNER JOIN result_tag rt ON r.rowid=rt.result_id
+                                      INNER JOIN tag t ON t.rowid=rt.tag_id
+                                      WHERE u.rowid >= {} AND r.set_id=? AND t.name=?
+                                      ORDER BY u.rowid LIMIT {}''', batch_size, (set_id, tag))
+
     def all_pairs(self, batch_size = 0):
         return self._batch_results("SELECT 1, r1, r2, rowid, rowid FROM pair WHERE rowid >= {} ORDER BY rowid LIMIT {}", batch_size)
 
@@ -235,7 +247,7 @@ class PairDB(object):
 
     # results storing
     def _prepare_results(self):
-        self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, mask TEXT, site INT, end INT, mut INT, multiplicity INT, failure TEXT, tag_mask INT)")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS result (set_id INT, pair_id INT, target INT, mask TEXT, site INT, end INT, muts INT, multiplicity INT, failure TEXT, tag_mask INT)")
         self.conn.execute("DROP INDEX IF EXISTS pair_result_idx")
         self.conn.execute("DROP INDEX IF EXISTS result_site_idx")
         self.conn.execute("CREATE TABLE IF NOT EXISTS result_set (set_id TEXT)")
@@ -267,7 +279,7 @@ class PairDB(object):
     def add_results_with_tags(self, result_set_id, results):
         # grab a new connection since this might be in a new process (due to multiprocessing)
         conn = self._get_connection()
-        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, mut, multiplicity, failure, tag_mask)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, muts, multiplicity, failure, tag_mask)
                   VALUES ({}, ?, ?, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
         rstmt_template = 'INSERT INTO result_tag (set_id, result_id, tag_id) VALUES ({}, {}, ?)'
         for res in results:
@@ -286,7 +298,7 @@ class PairDB(object):
         # grab a new connection since this might be in a new process (due to multiprocessing)
         #print " --> Thd in AR {}".format(self.worker_id)
         conn = sqlite3.connect(self._dbpath)
-        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, mut, multiplicity, failure)
+        stmt = '''INSERT INTO result (set_id, pair_id, target, mask, site, end, muts, multiplicity, failure)
                   VALUES ({}, ?, ?, ?, ?, ?, ?, ?, ?)'''.format(result_set_id)
         cursor = conn.executemany(stmt, results)
         if cursor.rowcount != len(results):
@@ -303,10 +315,10 @@ class PairDB(object):
     def differing_results(self, result_set_name_1, result_set_name_2):
         id1 = self.result_set_id_for_name(result_set_name_1)
         id2 = self.result_set_id_for_name(result_set_name_2)
-        return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.end, s1.site, s1.mut, s1.failure, s2.target, s2.end, s2.site, s2.mut, s2.failure
+        return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.end, s1.site, s1.muts, s1.failure, s2.target, s2.end, s2.site, s2.muts, s2.failure
                                     FROM result s1 JOIN result s2 ON s2.set_id=? AND s2.pair_id=s1.pair_id
                                     JOIN pair p ON p.rowid=s1.pair_id
-                                    WHERE s1.set_id=? AND (s1.site != s2.site OR s1.end != s2.end OR s1.target != s2.target OR s1.mut != s2.mut) AND (s1.site != -1 OR s2.site != -1)''', (id2, id1))
+                                    WHERE s1.set_id=? AND (s1.site != s2.site OR s1.end != s2.end OR s1.target != s2.target OR s1.muts != s2.muts) AND (s1.site != -1 OR s2.site != -1)''', (id2, id1))
 
 
     def result_sites(self, result_set_id, target_id):
@@ -361,7 +373,7 @@ class PairDB(object):
             mask = _mask(incl_tags)
             tag_clause += " AND (tag_mask & {} == {})".format(mask, mask)
         if excl_tags:
-            mask = _mask(excl_tags)
+            mask = _mask(excl_tags)    # TODO STEVE:  delete this?
             mask = sum([ 1 << tagmap[t] for t in excl_tags ])
             tag_clause += " AND (tag_mask & {} == 0)".format(mask)
         query = '''SELECT p.rowid, p.identifier, p.r1, p.r2, r.multiplicity as mult, r.rowid AS rrid, r.tag_mask

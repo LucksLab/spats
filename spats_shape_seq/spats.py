@@ -342,6 +342,8 @@ class Spats(object):
 
         if self.run.resume_processing:
             db_iter = pair_db.unique_pairs_with_counts_and_no_results(result_set_id, batch_size = batch_size)
+        elif self.run._redo_tag:
+            db_iter = pair_db.unique_pairs_with_counts_and_tag(self.run.cmp_set_id, self.run._redo_tag, batch_size = batch_size)
         elif self.run._process_all_pairs:
             if not self.run.quiet:
                 print("Using all_pairs...")

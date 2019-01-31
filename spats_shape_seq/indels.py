@@ -82,14 +82,15 @@ class IndelsProcessor(PairProcessor):
             assert(pair.r2.match_index == 0)    # align_strings() will ensure this if penalize_ends is True
             r2_start_in_target = pair.r2.match_index - pair.r2.match_start    # will be negative
             self.counters.left_of_target += pair.multiplicity
+            prefix = pair.r2.original_seq[dumblen:dumblen - r2_start_in_target]
             if run.count_left_prefixes:
-                prefix = pair.r2.original_seq[dumblen:dumblen - r2_start_in_target]
                 if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(0 - r2_start_in_target, run.mutations_require_quality_score):
                     self.counters.register_prefix(prefix, pair)
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
                 pair.r2._ltrim -= r2_start_in_target
+                pair.r2.match_start += r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero
                 return
@@ -104,13 +105,14 @@ class IndelsProcessor(PairProcessor):
             else:
                 pair.failure = Failures.match_errors
                 self.counters.match_errors += pair.multiplicity
+                return
 
         if pair.right != pair.target.n and not run.allow_multiple_rt_starts:
             pair.failure = Failures.right_edge
             self.counters.r1_not_on_right_edge += pair.multiplicity
             return
 
-        if run.ignore_stops_with_mismatched_overlap  and  not pair.check_overlap():
+        if run.ignore_stops_with_mismatched_overlap  and  not pair.check_overlap(True):
             pair.failure = Failures.r1_r2_overlap
             self.counters.r1_r2_overlap += pair.multiplicity
             return
@@ -127,6 +129,11 @@ class IndelsProcessor(PairProcessor):
         if run.count_only_full_reads and pair.left != 0:
             pair.failure = Failures.not_full_read
             return
+
+        self.counters.r1_indels += (pair.multiplicity * len(pair.r1.indels))
+        self.counters.r2_indels += (pair.multiplicity * len(pair.r2.indels))
+        if pair.r1.indels != pair.r2.indels:
+            self.counters.mismatching_indel_pairs += pair.multiplicity
 
         pair.site = pair.left
         self.counters.register_count(pair)

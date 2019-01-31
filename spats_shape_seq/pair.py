@@ -124,7 +124,8 @@ class Pair(object):
             self.removed_mutations = removed
         return len(removed)
 
-    def check_overlap(self):
+
+    def check_overlap(self, ignore_indels = False):
         # note: in the case that overlaps disagree, we may decide it one way or the other via quality
         # xref https://trello.com/c/35mBHvPA/197-stop-map-r1-r2-disagree-case
         r2_match_len = self.r2.match_len
@@ -136,7 +137,11 @@ class Pair(object):
             r2_part = self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]
             #print('O: {} / {}'.format(r1_part, r2_part))
             if r1_part != r2_part:
-                return False
+                if not ignore_indels or (not self.r1.indels and not self.r2.indels):
+                    return False
+                newr1 = self.r1.apply_indels(True)
+                newr2 = self.r2.apply_indels()
+                return newr1[r1start:r1start+overlap_len] == newr2[r2_match_len-overlap_len:r2_match_len]
         return True
 
     @property

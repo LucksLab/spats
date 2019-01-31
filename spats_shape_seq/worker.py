@@ -25,7 +25,7 @@ class SpatsWorker(object):
                 pair.mask.chars if pair.mask else None,
                 pair.site if pair.has_site else -1,
                 pair.end if pair.has_site else -1,
-                pair.mutations[0] if pair.mutations else -1,
+                len(pair.mutations) if pair.mutations else -1,
                 pair.multiplicity,
                 pair.failure ]
         if tagged:

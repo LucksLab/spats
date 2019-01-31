@@ -2670,7 +2670,6 @@
                 "algorithms": [ "indels" ],
                 "count_mutations": true,
                 "allowed_target_errors": 2,
-                "ignore_stops_with_mismatched_overlap": false,
                 "allowed_adapter_errors": 1,
                 "dumbbell": "TGAACAGCGACTAGGCTCTTCA"
             },

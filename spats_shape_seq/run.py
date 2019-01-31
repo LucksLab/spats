@@ -148,7 +148,7 @@ class Run(object):
 
         #: Default ``lookup``, set to ``find_partial`` to use the partial find algorithm.
         #: Set to ``indels`` to use the (experimental) algorithm to report indels. 
-        #: Warning: ``indels`` is expected to be at least an order of magnitude slower.
+        #: Warning: ``indels`` is expected to be at least two orders of magnitude slower.
         self.algorithm = "lookup"
 
         #: Default ``False``, set to ``True`` to allow beta, theta,
@@ -221,6 +221,7 @@ class Run(object):
         self._parse_quality = False
         self._applied_restrictions = False
         self._force_mask = None
+        self._redo_tag = None
 
 
     def apply_config_restrictions(self):

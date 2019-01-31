@@ -18,6 +18,7 @@ class Sequence(object):
         self.match_errors = []
         self.indels = {}
         self.indels_delta = 0
+        self._seq_with_indels = None
         self.quality = None
 
     def set_seq(self, seq):
@@ -127,3 +128,29 @@ class Sequence(object):
                 del self.indels[indind]
                 trimmed += 1
         return trimmed
+
+    def apply_indels(self, reverse_complement = False):
+        seq = self.subsequence if not reverse_complement else self.reverse_complement
+        if not self.indels:
+            return seq
+        if not self._seq_with_indels:
+            nsl = []
+            sind = self.match_start
+            lind = self.match_start + self.match_len + self.indels_delta
+            for i in xrange(self.match_index, self.match_index + self.match_len):
+                if sind >= lind:
+                    break
+                indel = self.indels.get(i, None)
+                if indel:
+                    if indel.insert_type:
+                        sind += len(indel.seq)
+                        nsl.append(seq[sind])
+                        sind += 1
+                    else:
+                        for c in indel.seq:
+                            nsl.append(c)
+                else:
+                    nsl.append(seq[sind])
+                    sind += 1
+            self._seq_with_indels = "".join(nsl)
+        return self._seq_with_indels

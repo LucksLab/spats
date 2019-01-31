@@ -27,7 +27,7 @@ class SpatsTool(object):
         self.cotrans = False
         self._skip_log = False
         self._no_config_required_commands = [ "doc", "help", "init", "viz", "show", "extract_case", "add_case", "show_test_case" ]
-        self._private_commands = [ "viz", "to_shapeware" ]
+        self._private_commands = [ "viz", "to_shapeware", "rerun" ]
         self._temp_files = []
         self._r1 = None
         self._r2 = None
@@ -212,6 +212,79 @@ class SpatsTool(object):
 
         analyzer.process_tags()
         self._add_note("tags processed to {}".format(os.path.basename(db_name)))
+
+    def rerun(self):
+        """ Re-does reads analysis for pairs that have a tag into a new result set to allow comparing results across config options.
+        """
+        if not self._command_args  or  len(self._command_args) != 4:
+            raise Exception("usage: spats_tool rerun tag spats_run result_set_name cmp_set_name\n\t- tag indicating the pairs to rerun\n\t- path to a spats database file\n\t- name for the new result set\n\t- name of result set to compare against.")
+        tag = self._command_args[0]
+        spatsdb = self._command_args[1]
+        result_set_name = self._command_args[2]
+        cmp_set_name = self._command_args[3]
+        if not os.path.exists(spatsdb):
+            raise Exception("spats_run file does not exist at path {}".format(spatsdb))
+
+        native_tool = self._native_tool('reads')
+        if native_tool:
+            self._add_note("using native reads")
+            subprocess.check_call([native_tool, self.config['target'], self.r1, self.r2, db_name], cwd = self.path)
+
+        data = ReadsData(spatsdb)
+        if data.pair_db.result_set_id_for_name(result_set_name):
+            raise Exception("result_set_name '{}' already exists in spats db".format(result_set_name))
+        cmp_set_id = data.pair_db.result_set_id_for_name(cmp_set_name)
+        if not cmp_set_id:
+            raise Exception("cmp_set_name '{}' does not exist in spats db".format(cmp_set_name))
+        if not native_tool:
+            self._add_note("using python reads")
+            if self.using_separate_channel_files():
+                raise Exception('rerun tool not supported with separate channel files')
+
+        analyzer = ReadsAnalyzer(data, cotrans = self.cotrans)
+        data.pair_db.load_run(analyzer.run)
+        self._update_run_config(analyzer.run)
+
+        analyzer.run._redo_tag = tag
+        analyzer.run.result_set_name = result_set_name
+        analyzer.run.cmp_set_id = cmp_set_id
+
+        # xref https://trello.com/c/VMFyZjjg/286-handle-quality-parsing-in-reads-tool-if-configured
+        # to do this, we'd need to parse quality to the db (nontrivial)
+        # for now just force-disable this, as it's not required to do reads analysis
+        analyzer.run.mutations_require_quality_score = None
+
+        redo_tags = data.pair_db.tag_counts(cmp_set_id, [ tag ])
+        self._add_note("rerunning {} pairs (incl. multiples) with tag '{}'...".format(redo_tags[tag], tag))
+        analyzer.process_tags()
+        self._add_note("tags processed to {}".format(os.path.basename(spatsdb)))
+
+        num_done = data.pair_db.num_results(result_set_name)
+        diff_failures = 0
+        new_failures = 0
+        fixed_failures = 0
+        diff_sites = 0
+        diff_ends = 0
+        for res in data.pair_db.differing_results(result_set_name, cmp_set_name):
+            if res[7] != res[12]:
+                diff_failures += 1
+                if res[7] and not res[12]:
+                    new_failures += 1
+                elif res[12] and not res[7]:
+                    fixed_failures += 1
+            else:
+                if res[5] != res[10]:
+                    diff_sites += 1
+                if res[4] != res[9]:
+                    diff_ends += 1
+        print("New result set '{}' for tagged pairs added to {}.".format(result_set_name, spatsdb))
+        print("Quick comparison of {} unique tagged pairs with result_set '{}' yielded:  ".format(num_done, cmp_set_name))
+        print("\t- {} pairs with different failures".format(diff_failures))
+        print("\t    - {} failures were fixed".format(fixed_failures))
+        print("\t    - {} failures were new".format(new_failures))
+        print("\t- {} pairs with different sites".format(diff_sites))
+        print("\t- {} pairs with different ends".format(diff_ends))
+
 
     def pre(self):
         """Process the pre-sequence data file.
