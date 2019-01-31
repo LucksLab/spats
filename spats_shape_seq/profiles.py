@@ -10,6 +10,7 @@ class Profiles(object):
         self._cotrans = run.cotrans
         self._run = run
         count_muts = run.count_mutations
+        count_indels = run.count_indels
         masks = run.masks
         profiles = {}
         for target in self._targets.targets:
@@ -24,7 +25,11 @@ class Profiles(object):
                                                                                 counters.mask_edge_muts(target, masks[0], end) if count_muts else None,
                                                                                 counters.mask_edge_muts(target, masks[1], end) if count_muts else None,
                                                                                 counters.mask_removed_muts(target, masks[0], end) if count_muts else None,
-                                                                                counters.mask_removed_muts(target, masks[1], end) if count_muts else None)
+                                                                                counters.mask_removed_muts(target, masks[1], end) if count_muts else None,
+                                                                                counters.mask_inserts(target, masks[0], end) if count_indels else None,
+                                                                                counters.mask_inserts(target, masks[1], end) if count_indels else None,
+                                                                                counters.mask_deletes(target, masks[0], end) if count_indels else None,
+                                                                                counters.mask_deletes(target, masks[1], end) if count_indels else None)
             else:
                 profiles[target.name] = TargetProfiles(self, target,
                                                        counters.mask_counts(target, masks[0], n),
@@ -34,7 +39,11 @@ class Profiles(object):
                                                        counters.mask_edge_muts(target, masks[0], n) if count_muts else None,
                                                        counters.mask_edge_muts(target, masks[1], n) if count_muts else None,
                                                        counters.mask_removed_muts(target, masks[0], n) if count_muts else None,
-                                                       counters.mask_removed_muts(target, masks[1], n) if count_muts else None)
+                                                       counters.mask_removed_muts(target, masks[1], n) if count_muts else None,
+                                                       counters.mask_inserts(target, masks[0], n) if count_indels else None,
+                                                       counters.mask_inserts(target, masks[1], n) if count_indels else None,
+                                                       counters.mask_deletes(target, masks[0], n) if count_indels else None,
+                                                       counters.mask_deletes(target, masks[1], n) if count_indels else None)
 
         self._profiles = profiles
 
@@ -81,7 +90,7 @@ class Profiles(object):
 
 class TargetProfiles(object):
 
-    def __init__(self, owner, target, treated_counts, untreated_counts, treated_muts, untreated_muts, treated_edge_muts, untreated_edge_muts, treated_removed_muts, untreated_removed_muts):
+    def __init__(self, owner, target, treated_counts, untreated_counts, treated_muts, untreated_muts, treated_edge_muts, untreated_edge_muts, treated_removed_muts, untreated_removed_muts, treated_inserts, treated_deletes, untreated_inserts, untreated_deletes):
         self.owner = owner
         self._target = target
         self.treated_counts = treated_counts
@@ -92,6 +101,10 @@ class TargetProfiles(object):
         self.untreated_edge_muts = untreated_edge_muts
         self.treated_removed_muts = treated_removed_muts
         self.untreated_removed_muts = untreated_removed_muts
+        self.treated_inserts = treated_inserts
+        self.treated_deletes = treated_deletes
+        self.untreated_inserts = untreated_inserts
+        self.untreated_deletes = untreated_deletes
 
     @property
     def treated(self):
@@ -108,6 +121,22 @@ class TargetProfiles(object):
     @property
     def untreated_mut(self):
         return self.untreated_muts
+
+    @property
+    def treated_insertions(self):
+        return self.treated_inserts
+
+    @property
+    def untreated_insertion(self):
+        return self.untreated_inserts
+
+    @property
+    def treated_deletions(self):
+        return self.treated_deletes
+
+    @property
+    def untreated_deletions(self):
+        return self.untreated_deletes
 
     @property
     def beta(self):

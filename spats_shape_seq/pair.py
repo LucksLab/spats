@@ -1,5 +1,6 @@
 
 from sequence import Sequence
+from util import reverse_complement
 
 class Pair(object):
 
@@ -143,6 +144,15 @@ class Pair(object):
                 newr2 = self.r2.apply_indels()
                 return newr1[r1start:r1start+overlap_len] == newr2[r2_match_len-overlap_len:r2_match_len]
         return True
+
+    def indels_match(self):
+        if not self.r1.indels and not self.r2.indels:
+            return True
+        elif len(self.r1.indels) != len(self.r2.indels):
+            return False
+        r1indels = dict(zip(self.r1.indels.keys(), map(vars, self.r1.indels.values())))
+        r2indels = dict(zip(self.r2.indels.keys(), map(vars, self.r2.indels.values())))
+        return r1indels == r2indels
 
     @property
     def matched(self):

@@ -53,6 +53,13 @@ class Run(object):
         #: this will force ``allowed_target_errors`` to be ``1``.
         self.count_mutations = False
 
+        #: Defaults to ``False``. If set to ``True``, will count both
+        #: insertions and deletions, and incorporate this indel information
+        #: into the reactivity profile computations (TODO). 
+        #: Setting this will force ``algorithm`` to be ``indels``.
+        #: Warning: this is expected to be at least two orders of magnitude slower.
+        self.count_indels = False
+
         #: Defaults to ``None``. If set to a phred-score integer value (0 - 42), and
         #: ``count_mutations`` is ``True``, then this will require the
         #: quality score on any mutation to be greater than or equal
@@ -231,6 +238,8 @@ class Run(object):
             self.count_mutations = False
         if self.count_mutations:
             self.allowed_target_errors = max(self.allowed_target_errors, 1)
+        if self.count_indels:
+            self.algorithm = 'indels'
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
         if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1 or not self.ignore_stops_with_mismatched_overlap:
@@ -241,15 +250,17 @@ class Run(object):
         if self.count_mutations and self.mutations_require_quality_score is not None:
             self._parse_quality = True
         if self.generate_sam or self.generate_channel_reads:
-            self.algorithm = 'find_partial'
+            if self.algorithm not in ['find_partial', 'indels']:
+                self.algorithm = 'find_partial'
             self.num_workers = 1
             self._parse_quality = True
         if self._force_mask:
             self.algorithm = 'find_partial'
-        for mask in self.masks:
-            if len(mask) != 4:
-                self.algorithm = 'find_partial'
-                break
+        if self.algorithm not in ['find_partial', 'indels']:
+            for mask in self.masks:
+                if len(mask) != 4:
+                    self.algorithm = 'find_partial'
+                    break
         self._applied_restrictions = True
         self.validate_config()
 

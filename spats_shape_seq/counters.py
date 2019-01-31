@@ -42,6 +42,12 @@ class Counters(object):
     def _mut_edge_key(self, pair, mut):
         return "{}:{}:S{}M{}:{}".format(pair.target.rowid, pair.mask.chars, pair.site, mut, pair.end)
 
+    def _indel_key(self, pair, spot, indel):
+        if indel.insert_type:
+            return "{}:{}:I{}:{}".format(pair.target.rowid, pair.mask.chars, spot + 1, pair.end)
+        else:
+            return "{}:{}:D{}:{}".format(pair.target.rowid, pair.mask.chars, spot + 1, pair.end)
+
     def register_count(self, pair):
         if pair.mutations:
             for mut in pair.mutations:
@@ -68,6 +74,11 @@ class Counters(object):
         if pair.removed_mutations:
             for mut in pair.removed_mutations:
                 _dict_incr(self._registered, self._low_quality_mut_key(pair), pair.multiplicity)
+        if pair.r1.indels or pair.r2.indels:
+            # only count one indel at a spot per pair 
+            for spot in set(pair.r1.indels.keys() + pair.r2.indels.keys()):
+                indel = pair.r1.indels.get(spot, pair.r2.indels.get(spot))   # assumes types match at spot
+                _dict_incr(self._registered, self._indel_key(pair, spot, indel), pair.multiplicity)
         _dict_incr(self._registered, self._count_key(pair), pair.multiplicity)
         self.registered_pairs += pair.multiplicity
         _dict_incr(self._counts, pair.mask.chars + "_kept", pair.multiplicity)
@@ -122,6 +133,14 @@ class Counters(object):
     def mask_removed_muts(self, target, mask, end):
         c = self._registered
         return [ c.get("{}:{}:Mq{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
+
+    def mask_inserts(self, target, mask, end):
+        c = self._registered
+        return [ c.get("{}:{}:I{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
+
+    def mask_deletes(self, target, mask, end):
+        c = self._registered
+        return [ c.get("{}:{}:D{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
 
     def site_count(self, target_id, mask, end, site):
         return self._registered.get("{}:{}:{}:{}".format(target_id, mask, site, end), 0)

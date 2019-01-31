@@ -16,7 +16,7 @@ class Sequence(object):
         self._rtrim = 0
         self.adapter_errors = []
         self.match_errors = []
-        self.indels = {}
+        self.indels = {}              # note: .seq in Indel objects will be reverse-complemented for R1
         self.indels_delta = 0
         self._seq_with_indels = None
         self.quality = None
@@ -148,7 +148,7 @@ class Sequence(object):
                         sind += 1
                     else:
                         for c in indel.seq:
-                            nsl.append(c)
+                            nsl.append(c)     # already reverse-complemented for R1
                 else:
                     nsl.append(seq[sind])
                     sind += 1

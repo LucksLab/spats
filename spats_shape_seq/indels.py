@@ -130,10 +130,11 @@ class IndelsProcessor(PairProcessor):
             pair.failure = Failures.not_full_read
             return
 
-        self.counters.r1_indels += (pair.multiplicity * len(pair.r1.indels))
-        self.counters.r2_indels += (pair.multiplicity * len(pair.r2.indels))
-        if pair.r1.indels != pair.r2.indels:
-            self.counters.mismatching_indel_pairs += pair.multiplicity
+        if run.count_indels:
+            self.counters.r1_indels += (pair.multiplicity * len(pair.r1.indels))
+            self.counters.r2_indels += (pair.multiplicity * len(pair.r2.indels))
+            if not pair.indels_match():
+                self.counters.mismatching_indel_pairs += pair.multiplicity
 
         pair.site = pair.left
         self.counters.register_count(pair)
