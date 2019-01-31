@@ -225,11 +225,8 @@ class Diagram(object):
         if not part.quality:
             return
         d = sp(part.match_index)
-        q = part.quality
-        if q:
-            if part == self.pair.r1:
-                q = q[::-1]
-            q = q[part.match_start:(part.match_start or 0) + part.match_len]
+        _,q = part.apply_indels(part == self.pair.r1)
+        q = q[part.match_start:(part.match_start or 0) + part.match_len]
         self._add_line(self._make_prefix("-allQ30") + d + (q or ""))
 
     def _make_r1_rev(self):

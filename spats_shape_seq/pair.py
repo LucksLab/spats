@@ -26,6 +26,7 @@ class Pair(object):
         self.linker = None
         self.edge_mut = None
         self.dumbbell = None
+        self._indels_match = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()
@@ -69,27 +70,36 @@ class Pair(object):
                 return False
         return True
 
-    def check_mutation_quality(self, minimum_quality_score):
+    def check_mutation_quality(self, minimum_quality_score, indels = False):
         if minimum_quality_score is None  or  not self.mutations or (not self.r1.quality and not self.r2.quality):
             return 0
         removed = []
         r1_start = self.r1.match_index
-        r2_start = self.r2.match_index
-        seq_len = self.r2.original_len
+        if indels:
+            r2_start = self.r2.match_index + 1
+            r2_end = r2_start + self.r2.match_len
+            # appky_indels() uses subsequence, so no need to correct for _ltrim above
+            r1rcseq, r1rcqual = self.r1.apply_indels(True) 
+            r2seq, r2qual = self.r2.apply_indels() 
+        else:
+            r2_start = self.r2.match_index - self.r2._ltrim + 1
+            r2_end = r2_start + self.r2.original_len
+            r1rcseq, r1rqual = self.r1.reverse_complement, self.r1.subquality[::-1]
+            r2seq, r2qual = self.r2.original_seq, self.r2.quality
         min_quality = minimum_quality_score + ord('!')
         for mut in self.mutations:
             q1 = q2 = None
             nt1 = nt2 = None
-            if mut < r2_start + seq_len + 1 - self.r2._ltrim:
-                idx = mut - r2_start + self.r2._ltrim - 1
+            if mut < r2_end:
+                idx = mut - r2_start
                 if idx >= 0:
-                    q2 = ord(self.r2.quality[idx])
-                    nt2 = self.r2.original_seq[idx]
+                    q2 = ord(r2qual[idx])
+                    nt2 = r2seq[idx]
             if mut > r1_start:
                 idx = mut - r1_start - 1
                 if idx >= 0:
-                    q1 = ord(self.r1.quality[::-1][idx + self.r1._rtrim])
-                    nt1 = self.r1.reverse_complement[idx]
+                    q1 = ord(r1rqual[idx])
+                    nt1 = r1rcseq[idx]
             if q1 and q2:
                 # check for agreement
                 if nt1 == nt2:
@@ -97,7 +107,7 @@ class Pair(object):
                 else:
                     # xref https://trello.com/c/usT0vTiG/308-discordant-mutations-case-handling-and-unit-tests
                     #    and associated test cases
-                    ref = self.target.seq[mut]     # TODO STEVE:  why isn't this mut-1?  (unit tests still pass)
+                    ref = self.target.seq[mut - 1]
                     if q1 < min_quality and q2 >= min_quality:
                         if nt2 == ref:
                             q = q1 # signals to ignore the mutation from low-quality q1
@@ -140,19 +150,10 @@ class Pair(object):
             if r1_part != r2_part:
                 if not ignore_indels or (not self.r1.indels and not self.r2.indels):
                     return False
-                newr1 = self.r1.apply_indels(True)
-                newr2 = self.r2.apply_indels()
+                newr1,_ = self.r1.apply_indels(True)
+                newr2,_ = self.r2.apply_indels()
                 return newr1[r1start:r1start+overlap_len] == newr2[r2_match_len-overlap_len:r2_match_len]
         return True
-
-    def indels_match(self):
-        if not self.r1.indels and not self.r2.indels:
-            return True
-        elif len(self.r1.indels) != len(self.r2.indels):
-            return False
-        r1indels = dict(zip(self.r1.indels.keys(), map(vars, self.r1.indels.values())))
-        r2indels = dict(zip(self.r2.indels.keys(), map(vars, self.r2.indels.values())))
-        return r1indels == r2indels
 
     @property
     def matched(self):
@@ -181,3 +182,17 @@ class Pair(object):
     @end.setter
     def end(self, val):
         self._end = val
+
+    @property
+    def indels_match(self):
+        if self._indels_match is None:
+            if not self.r1.indels and not self.r2.indels:
+                self._indels_match = True
+            elif len(self.r1.indels) != len(self.r2.indels):
+                self._indels_match = False
+            else:
+                r1indels = dict(zip(self.r1.indels.keys(), map(vars, self.r1.indels.values())))
+                r2indels = dict(zip(self.r2.indels.keys(), map(vars, self.r2.indels.values())))
+                self._indels_match = (r1indels == r2indels)
+        return self._indels_match
+

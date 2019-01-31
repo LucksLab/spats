@@ -247,30 +247,29 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
     m = len(source) + 1
     n = len(target) + 1
 
-    H = [[0.0 for c in xrange(n)] for r in xrange(m)]
-    P = [[(r-1, c-1) for c in xrange(n)] for r in xrange(m)]
+    H = [[0.0]*n for r in xrange(m)]
+    P = [[(0, 0)]*n for r in xrange(m)]
 
     maxH = 0.0
     maxs = [0, 0]
-    choices = [0.0] * 4
     for i in xrange(1, m):
         imo = i -1
         for j in xrange(1, n):
             jmo = j - 1
-            choices[1] = H[imo][jmo] + simfn(source[imo], target[jmo])
-            ## TAI:  The next two lines should be considered for optimization...
-            ki, choices[2] = max_element([(H[k][j] - (gap_open_cost + gap_extend_cost * (imo - k))) for k in xrange(i)])
-            kj, choices[3] = max_element([(H[i][k] - (gap_open_cost + gap_extend_cost * (jmo - k))) for k in xrange(j)])
-            c, H[i][j] = max_element(choices)
-            if c == 1:
-                P[i][j] = (imo, jmo)
-            elif c == 2:
+            h = H[imo][jmo] + simfn(source[imo], target[jmo])
+            P[i][j] = (imo, jmo)
+            ki, h2 = max_element([(H[k][j] - gap_open_cost - gap_extend_cost * (imo - k)) for k in xrange(i)])
+            if h2 > h:
+                h = h2
                 P[i][j] = (ki, j)
-            elif c == 3:
+            kj, h3 = max_element([(H[i][k] - gap_open_cost - gap_extend_cost * (jmo - k)) for k in xrange(j)])
+            if h3 > h:
+                h = h3
                 P[i][j] = (i, kj)
-            if H[i][j] >= maxH:
+            if h >= maxH:
+                maxH = h
                 maxs = [i, j]
-                maxH = H[i][j]
+            H[i][j] = h
 
     i, j = maxs
     indels = {}

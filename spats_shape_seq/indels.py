@@ -69,7 +69,7 @@ class IndelsProcessor(PairProcessor):
         pair.r2._rtrim += best_r2_adapter_trim
         pair.r2.match_len -= best_r2_adapter_trim
         adapter_indels = pair.r2.trim_indels(pair.target.n)
-        pair.r2.shift_errors(pair.target.n + masklen)   # note: assuming no errors in the mask on R2
+        pair.r2.shift_errors(pair.target.n, masklen)
         if run.dumbbell:
             pair.dumbbell = pair.r2.match_index - dumblen
 
@@ -133,7 +133,7 @@ class IndelsProcessor(PairProcessor):
         if run.count_indels:
             self.counters.r1_indels += (pair.multiplicity * len(pair.r1.indels))
             self.counters.r2_indels += (pair.multiplicity * len(pair.r2.indels))
-            if not pair.indels_match():
+            if not pair.indels_match:
                 self.counters.mismatching_indel_pairs += pair.multiplicity
 
         pair.site = pair.left

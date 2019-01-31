@@ -19,6 +19,7 @@ class Sequence(object):
         self.indels = {}              # note: .seq in Indel objects will be reverse-complemented for R1
         self.indels_delta = 0
         self._seq_with_indels = None
+        self._quality_with_indels = None
         self.quality = None
 
     def set_seq(self, seq):
@@ -111,14 +112,14 @@ class Sequence(object):
         self.match_errors = alignment.mismatched
         self.indels_delta = alignment.indels_delta
 
-    def shift_errors(self, target_len):
+    def shift_errors(self, target_len, mask_suffix_len = 0):
         nme = []
         for err in self.match_errors:
             if err < target_len:
                 assert(err >= self.match_index)
                 nme.append(err - self.match_index) 
-            else:
-                self.adapter_errors.append(err - target_len)
+            elif err >= target_len + mask_suffix_len:
+                self.adapter_errors.append(err - target_len - mask_suffix_len)
         self.match_errors = nme
 
     def trim_indels(self, maxind):
@@ -130,27 +131,43 @@ class Sequence(object):
         return trimmed
 
     def apply_indels(self, reverse_complement = False):
-        seq = self.subsequence if not reverse_complement else self.reverse_complement
+        if self._seq_with_indels:
+            return self._seq_with_indels, self._quality_with_indels
+        if reverse_complement:
+            seq = self.reverse_complement
+            qual = self.subquality[::-1] if self.quality else None
+        else:
+            seq = self.subsequence
+            qual = self.subquality if self.quality else None
         if not self.indels:
-            return seq
-        if not self._seq_with_indels:
-            nsl = []
-            sind = self.match_start
-            lind = self.match_start + self.match_len + self.indels_delta
-            for i in xrange(self.match_index, self.match_index + self.match_len):
-                if sind >= lind:
-                    break
-                indel = self.indels.get(i, None)
-                if indel:
-                    if indel.insert_type:
-                        sind += len(indel.seq)
-                        nsl.append(seq[sind])
-                        sind += 1
-                    else:
-                        for c in indel.seq:
-                            nsl.append(c)     # already reverse-complemented for R1
-                else:
+            self._seq_with_indels = seq
+            self._quality_with_indels = qual
+            return seq, qual
+        nsl = []
+        nql = []
+        sind = self.match_start
+        lind = self.match_start + self.match_len + self.indels_delta
+        for i in xrange(self.match_index, self.match_index + self.match_len):
+            if sind >= lind:
+                break
+            indel = self.indels.get(i, None)
+            if indel:
+                if indel.insert_type:
+                    sind += len(indel.seq)
                     nsl.append(seq[sind])
+                    if qual:
+                       nql.append(qual[sind])
                     sind += 1
-            self._seq_with_indels = "".join(nsl)
-        return self._seq_with_indels
+                else:
+                    for c in indel.seq:
+                        nsl.append(c)      # already reverse-complemented for R1
+                        if qual:
+                            nql.append('!')    # quality shouldn't matter b/c this can never be a mut
+            else:
+                nsl.append(seq[sind])
+                if qual:
+                    nql.append(qual[sind])
+                sind += 1
+        self._seq_with_indels = "".join(nsl)
+        self._quality_with_indels = "".join(nql) if qual else None
+        return self._seq_with_indels, self._quality_with_indels
