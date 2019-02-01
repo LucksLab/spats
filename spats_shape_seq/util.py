@@ -213,6 +213,13 @@ class Alignment:
     def indels_delta(self):
         return (self.src_match_end - self.src_match_start) - (self.target_match_end - self.target_match_start)
 
+    def _indels_as_dict(self):
+        return dict(zip(self.indels.keys(), map(vars, self.indels.values())))
+
+    def __str__(self):
+        """ convenience for debugging """
+        return "score={}\ntarget_match_start={}, target_match_end={} (len={})\nsrc_match_start={}, src_match_end={}\nmax_run={}\nindels_delta={}\nindels={}\nmismatched={}".format(self.score, self.target_match_start, self.target_match_end, self.target_match_len, self.src_match_start, self.src_match_end, self.max_run, self.indels_delta, self._indels_as_dict(), self.mismatched)
+
 
 def char_sim(sc, tc, match_value = 2, mismatch_cost = 2): 
     """
@@ -224,7 +231,7 @@ def char_sim(sc, tc, match_value = 2, mismatch_cost = 2):
     """
     return match_value if sc == tc else -mismatch_cost
 
-def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_extend_cost = 1, penalize_ends = True):
+def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_extend_cost = 1, front_biased = True, penalize_ends = True):
     """
      Find the indels (insertions and deletions) in a source string relative to a target string.
      First, heuristically tries to find the best alignment of two strings of length M and N, 
@@ -241,7 +248,8 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
      @param  simfn               Similarity function for string elements
      @param  gap_open_cost       Penalty for opening a gap (should be non-negative)
      @param  gap_extend_cost     Penalty for extending an already-open gap (should be non-negative)
-     @param  penalize_ends       If true, will penalize regions before/after alignment for mismatches
+     @param  front_biased        Set to True to bias towards aligning fronts
+     @param  penalize_ends       If True, will penalize regions before/after alignment for mismatches
      @return an Alignment object
     """
     m = len(source) + 1
@@ -266,10 +274,10 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
             if h3 > h:
                 h = h3
                 P[i][j] = (i, kj)
-            if h >= maxH:
+            if h >= maxH  and  (h > maxH  or  not front_biased  or  abs(i - j) < abs(maxs[0] - maxs[1])):
                 maxH = h
                 maxs = [i, j]
-            H[i][j] = h
+            H[i][j] = max(h, 0.0)    # omit the max0 (and backtrack from corner) for Needleman-Wunsch instead
 
     i, j = maxs
     indels = {}
@@ -319,18 +327,18 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
 
     if penalize_ends:
         while i > 0 and j > 0:
-            s = simfn(source[i], target[j])
-            maxH += s
-            if s <= 0.0:
-                mismatches.append(j)
             i -= 1
             j -= 1
-
-        while maxs[0] < m - 1 and maxs[1] < n - 1:
             s = simfn(source[i], target[j])
             maxH += s
             if s <= 0.0:
                 mismatches.append(j)
+
+        while maxs[0] < m - 1 and maxs[1] < n - 1:
+            s = simfn(source[maxs[0]], target[maxs[1]])
+            maxH += s
+            if s <= 0.0:
+                mismatches.append(maxs[1])
             maxs[0] += 1
             maxs[1] += 1
 

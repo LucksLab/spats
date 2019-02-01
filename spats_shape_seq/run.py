@@ -199,17 +199,17 @@ class Run(object):
         #: Defaults to ``2``, set to the value to reward matching
         #: characters in the Smith-Waterman alignment algorithm
         #: Only applies when the ``indels`` algorithm is used.
-        self.indel_match_value = 1
+        self.indel_match_value = 3
 
         #: Defaults to ``2``, set to the value to penalize mismatching
         #: characters in the Smith-Waterman alignment algorithm
         #: Only applies when the ``indels`` algorithm is used.
-        self.indel_mismatch_cost = 4
+        self.indel_mismatch_cost = 2
 
         #: Defaults to ``6``, set to the value to penalize the initiation of
         #: indel (insertion or deletion) gaps in the Smith-Waterman alignment algorithm
         #: Only applies when the ``indels`` algorithm is used.
-        self.indel_gap_open_cost = 6
+        self.indel_gap_open_cost = 5
 
         #: Defaults to ``1``, set to the value to penalize the extension of
         #: indel (insertion or deletion) gaps in the Smith-Waterman alignment algorithm
