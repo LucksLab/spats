@@ -74,7 +74,7 @@ class Diagram(object):
     def _make_part(self, part):
         is_R1 = (part == self.pair.r1)
         match_index = part.match_index if part.matched else (((self.target.n - part.original_len) >> 1) + (40 if is_R1 else -40))
-        hdr = sp(match_index - part._ltrim - (1 if is_R1 else 0))
+        hdr = sp(match_index - part.ltrim - (1 if is_R1 else 0))
         dumbbell_len = 0
         if is_R1:
             if self.pair.dumbbell:
@@ -90,7 +90,7 @@ class Diagram(object):
         self._add_line(self._make_prefix("") + hdr)
 
         d = self._make_prefix("R1" if is_R1 else "R2")
-        spaces = match_index - part._ltrim - (1 if is_R1 else 0)
+        spaces = match_index - part.ltrim - (1 if is_R1 else 0)
         if spaces >= 0:
             d += sp(spaces)
         else:
@@ -98,14 +98,14 @@ class Diagram(object):
         masklen = self.pair.mask.length()
         if is_R1:
             d += (part.original_seq[:masklen] + ".")
-            if part._ltrim > masklen:
-                d += part.original_seq[masklen:part._ltrim]
+            if part.ltrim > masklen:
+                d += part.original_seq[masklen:part.ltrim]
             d += part.subsequence
         else:
-            d += part.original_seq[:part._ltrim]
+            d += part.original_seq[:part.ltrim]
             d += self._add_indels(part, match_index, part.subsequence)
-        if part._rtrim:
-            trimmed = part.original_seq[-part._rtrim:]
+        if part.rtrim:
+            trimmed = part.original_seq[-part.rtrim:]
             if is_R1 or len(trimmed) < masklen:
                 d += ("." + trimmed)
             else:
@@ -133,11 +133,11 @@ class Diagram(object):
     def _make_adapter_line(self, part, adapter, label):
         is_R1 = (part == self.pair.r1)
         if self.pair.dumbbell and is_R1:
-            dumbbell_part = min(part._rtrim, len(self.run.dumbbell))
+            dumbbell_part = min(part.rtrim, len(self.run.dumbbell))
             d = self._make_prefix('rc(DUMBBELL)')
             d += sp(part.right + 1) + reverse_complement(self.run.dumbbell)[:dumbbell_part]
             self._add_line(d)
-            if part._rtrim <= len(self.run.dumbbell):
+            if part.rtrim <= len(self.run.dumbbell):
                 return
 
         if not part.right:
@@ -151,7 +151,7 @@ class Diagram(object):
             d += sp(len(self.run.dumbbell))
         if self.run.cotrans:
             d += sp(len(self.run.cotrans_linker))
-        d += (adapter[:part._rtrim - (0 if is_R1 else masklen)] + "..")
+        d += (adapter[:part.rtrim - (0 if is_R1 else masklen)] + "..")
         self._add_line(d)
 
     def _make_part_ins(self, part):
@@ -191,10 +191,8 @@ class Diagram(object):
         d = sp(part.match_index)
         errors = sp(self._adj_seq_len(part))
         error_bars = []
+        _,q = part.apply_indels()
         for e in part.match_errors:
-            q = part.quality
-            if q and part == self.pair.r1:
-                q = q[::-1]
             bit = q[e] if q else "!"
             errors = errors[:e] + bit + errors[e+1:]
             error_bars.append(self.prefix_len + part.match_index + e)
@@ -205,9 +203,9 @@ class Diagram(object):
             if (part == self.pair.r2):
                 masklen = self.pair.mask.length()
                 d += sp(masklen + 1)
-                errors = sp(part._rtrim - masklen)
+                errors = sp(part.rtrim - masklen)
             else:
-                errors = sp(part._rtrim)
+                errors = sp(part.rtrim)
             for e in part.adapter_errors:
                 errors = errors[:e] + "!" + errors[e+1:]
             if errors[0] == " ":
@@ -225,7 +223,7 @@ class Diagram(object):
         if not part.quality:
             return
         d = sp(part.match_index)
-        _,q = part.apply_indels(part == self.pair.r1)
+        _,q = part.apply_indels()
         q = q[part.match_start:(part.match_start or 0) + part.match_len]
         self._add_line(self._make_prefix("-allQ30") + d + (q or ""))
 
@@ -309,8 +307,8 @@ class Diagram(object):
 
         # handling left-of-target matches
         masklen = self.pair.mask.length()
-        if self.pair.r2._ltrim > masklen or self.pair.r1.match_index < 0 or self.pair.r2.match_index < 0:
-            self.prefix_len += masklen - min(self.pair.r1.match_index or 0, self.pair.r2.match_index or 0, 0 - self.pair.r2._ltrim)
+        if self.pair.r2.ltrim > masklen or self.pair.r1.match_index < 0 or self.pair.r2.match_index < 0:
+            self.prefix_len += masklen - min(self.pair.r1.match_index or 0, self.pair.r2.match_index or 0, 0 - self.pair.r2.ltrim)
 
         self._add_line("@" + self.pair.identifier)
         

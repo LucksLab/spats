@@ -152,22 +152,22 @@ class TagProcessor(PairProcessor):
 
     def _tag_handles(self, pair):
         pair.r1.tags.append( (pair.mask.chars, 0, pair.mask.length(), 0) )
-        if pair.r2._rtrim > 0:
-            start = pair.r2.original_len - pair.r2._rtrim
-            pair.r2.tags.append( (pair.mask.chars, start, min(pair.mask.length(), pair.r2._rtrim), 0) )
+        if pair.r2.rtrim > 0:
+            start = pair.r2.original_len - pair.r2.rtrim
+            pair.r2.tags.append( (pair.mask.chars, start, min(pair.mask.length(), pair.r2.rtrim), 0) )
 
     def _tag_match(self, pair):
         if self._run.cotrans:
             linker_len = len(self._run.cotrans_linker)
-            pair.r1.tags.append( (pair.target.name + "_rc", pair.r1._ltrim + linker_len, pair.r1.seq_len - linker_len, pair.target.n - pair.r1.match_index - pair.r1.match_len + linker_len) )
-            pair.r1.tags.append( (TAG_LINKER, pair.r1._ltrim, linker_len, 0) )
+            pair.r1.tags.append( (pair.target.name + "_rc", pair.r1.ltrim + linker_len, pair.r1.seq_len - linker_len, pair.target.n - pair.r1.match_index - pair.r1.match_len + linker_len) )
+            pair.r1.tags.append( (TAG_LINKER, pair.r1.ltrim, linker_len, 0) )
         else:
-            pair.r1.tags.append( (pair.target.name + "_rc", pair.r1._ltrim, pair.r1.seq_len, pair.target.n - pair.r1.match_index - pair.r1.match_len) )
-        if pair.r1._rtrim > 0:
-            pair.r1.tags.append( ("adapter_b", pair.r1.original_len - pair.r1._rtrim, pair.r1._rtrim, 0) )
-        pair.r2.tags.insert(0, (pair.target.name, pair.r2._ltrim, pair.r2.seq_len, pair.r2.match_index) )
-        if pair.r2._rtrim > pair.mask.length():
-            pair.r2.tags.append( ("adapter_t_rc", pair.r2.original_len - pair.r2._rtrim + pair.mask.length(), pair.r2._rtrim - pair.mask.length(), 0) )
+            pair.r1.tags.append( (pair.target.name + "_rc", pair.r1.ltrim, pair.r1.seq_len, pair.target.n - pair.r1.match_index - pair.r1.match_len) )
+        if pair.r1.rtrim > 0:
+            pair.r1.tags.append( ("adapter_b", pair.r1.original_len - pair.r1.rtrim, pair.r1.rtrim, 0) )
+        pair.r2.tags.insert(0, (pair.target.name, pair.r2.ltrim, pair.r2.seq_len, pair.r2.match_index) )
+        if pair.r2.rtrim > pair.mask.length():
+            pair.r2.tags.append( ("adapter_t_rc", pair.r2.original_len - pair.r2.rtrim + pair.mask.length(), pair.r2.rtrim - pair.mask.length(), 0) )
 
     def process_pair(self, pair):
         self._base_processor.process_pair(pair)
@@ -177,7 +177,7 @@ class TagProcessor(PairProcessor):
             tags.append(pair.target.name)
             if pair.r1.match_errors or pair.r2.match_errors:
                 tags.append(TAG_MATCH_ERRORS)
-            if pair.r1._rtrim or pair.r2._rtrim:
+            if pair.r1.rtrim or pair.r2.rtrim:
                 tags.append(TAG_ADAPTER)
             if pair.r1.adapter_errors or pair.r2.adapter_errors:
                 tags.append(TAG_ADAPTER_ERRORS)

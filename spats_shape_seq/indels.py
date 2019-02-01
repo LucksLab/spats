@@ -1,17 +1,36 @@
 
 from processor import PairProcessor, Failures
 from mask import base_similarity_ind
-from util import _warn, _debug, reverse_complement, char_sim, align_strings
+from util import _warn, _debug, reverse_complement, char_sim
 
 
 class IndelsProcessor(PairProcessor):
     ''' This will be slow. '''
 
     def prepare(self):
-        pass
+        self._targets.index()
+
+    def _find_matches(self, pair):
+        # use R1 to determine which target
+        target = pair.r1.find_in_targets(self._targets)
+        if isinstance(target, list):
+            _debug("dropping pair due to multiple R1 match")
+            pair.failure = Failures.multiple_R1
+            self.counters.multiple_R1_match += pair.multiplicity
+            return
+        if target:
+            pair.target = pair.r2.find_in_targets(self._targets, force_target = target)
+        _debug([pair.r1.match_start, pair.r1.match_len, pair.r1.match_index, "--", pair.r2.match_start, pair.r2.match_len, pair.r2.match_index])
+
 
     def process_pair(self, pair):
         if not self._check_indeterminate(pair) or not self._match_mask(pair):
+            return
+
+        self._find_matches(pair)
+        if not pair.matched:
+            self.counters.unmatched += pair.multiplicity
+            pair.failure = Failures.nomatch
             return
 
         run = self._run
@@ -22,52 +41,47 @@ class IndelsProcessor(PairProcessor):
                 pair.failure = Failures.dumbbell
                 return
             dumblen = len(run.dumbbell)
-            pair.r2._ltrim += dumblen
+            pair.r2.ltrim += dumblen
             dbi = pair.r1.original_seq.find(reverse_complement(run.dumbbell))
             if -1 == dbi:
                 pair.failure = Failures.dumbbell
                 return
-            pair.r1._rtrim = pair.r1.original_len - dbi
+            pair.r1.rtrim += pair.r1.original_len - dbi
 
         if run.cotrans:
             if run.dumbbell:
                 raise Exception("can't use Indel algorithm with both cotrans and a dumbbell")
-            pair.r1._ltrim += len(run.cotrans_linker)
-            pair.r2._rtrim += len(run.cotrans_linker)
+            pair.r1.ltrim += len(run.cotrans_linker)
+            pair.r2.rtrim += len(run.cotrans_linker)
+
+        pair.r1.match_start -= pair.r1.rtrim
+        pair.r2.match_start -= pair.r2.ltrim
 
         masklen = pair.mask.length()
-        simfn = char_sim if not run.allow_indeterminate else lambda nt1, nt2: base_similarity_ind(nt1, nt2, run.indel_match_value, run.indel_mismatch_cost, .5 * run.indel_match_value)
-        r2suffix =  reverse_complement(pair.r1.original_seq[:masklen]) + reverse_complement(run.adapter_t) 
-        max_score = -1
-        for target in self._targets.targets:
-            align_r2 = align_strings(pair.r2.subsequence, target.seq + r2suffix, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost)
-            r2_adapter_trim = max(0, align_r2.target_match_end - target.n + 1)
-            r1_adapter_trim = max(0, pair.r1.seq_len - (target.n - align_r2.target_match_start)) if not dumblen else 0
-            align_r1 = align_strings(pair.r1.reverse_complement[r1_adapter_trim:], target.seq, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost)
-            score = align_r1.score + align_r2.score
-            if score > max_score:
-                max_score = score
-                best_align_r1, best_align_r2 = align_r1, align_r2
-                best_r1_adapter_trim, best_r2_adapter_trim = r1_adapter_trim, r2_adapter_trim
-                pair.target = target
+        r2suffix = reverse_complement(pair.r1.original_seq[:masklen]) + reverse_complement(run.adapter_t) 
+        if run.allow_indeterminate:
+            simfn = lambda nt1, nt2: base_similarity_ind(nt1, nt2, run.indel_match_value, run.indel_mismatch_cost, .5 * run.indel_match_value)
+        else:
+            simfn = lambda nt1, nt2: char_sim(nt1, nt2, run.indel_match_value, run.indel_mismatch_cost) 
 
-        if max_score <= 0  or  best_align_r1.target_match_len == 0  or  best_align_r2.target_match_len <= best_r2_adapter_trim  or  min(best_align_r1.max_run, best_align_r2.max_run) < run.minimum_target_match_length:
-            pair.failure = Failures.nomatch
-            self.counters.unmatched += pair.multiplicity
-            return
-        if run.minimum_adapter_len and best_r1_adapter_trim < run.minimum_adapter_len:
-            _debug("  !! v102 minimum adapter len {}".format(best_r1_adapter_trim))
+        pair.r2.align_with_target(pair.target, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost, r2suffix)
+        r2_adapter_trim = max(0, pair.r2.match_index + pair.r2.match_len - pair.target.n)
+        r1_adapter_trim = pair.r1.seq_len - (pair.target.n - pair.r2.match_index)
+        if r1_adapter_trim > 0 and not dumblen:
+            pair.r1.rtrim += r1_adapter_trim
+            pair.r1.match_start -= r1_adapter_trim    # TODO:  why do we not also change match_len here?
+        pair.r1.align_with_target(pair.target, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost)
+
+        if run.minimum_adapter_len and r1_adapter_trim < run.minimum_adapter_len:
+            _debug("  !! v102 minimum adapter len {}".format(r1_adapter_trim))
             pair.failure = Failures.adapter_trim
             self.counters.adapter_trim_failure += pair.multiplicity
             return 
 
-        pair.r1.matched_alignment(best_align_r1, pair.target)
-        pair.r1._rtrim += best_r1_adapter_trim
         pair.r1.shift_errors(pair.target.n)   # make errors relative to match_index, not 0
 
-        pair.r2.matched_alignment(best_align_r2, pair.target)
-        pair.r2._rtrim += best_r2_adapter_trim
-        pair.r2.match_len -= best_r2_adapter_trim
+        pair.r2.rtrim += r2_adapter_trim
+        pair.r2.match_len -= r2_adapter_trim
         adapter_indels = pair.r2.trim_indels(pair.target.n)
         pair.r2.shift_errors(pair.target.n, masklen)
         if run.dumbbell:
@@ -89,7 +103,7 @@ class IndelsProcessor(PairProcessor):
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
-                pair.r2._ltrim -= r2_start_in_target
+                pair.r2.ltrim -= r2_start_in_target
                 pair.r2.match_start += r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero

@@ -112,7 +112,7 @@ class LookupProcessor(PairProcessor):
                 return
             pair.dumbbell = match_site - r2_match_start
             match_len = min(r2len - r2_match_start, target.n - match_site)
-            pair.r2._ltrim = r2_match_start
+            pair.r2.ltrim = r2_match_start
 
         # need to check R2 against expectation
         if match_len > 0:
@@ -161,7 +161,7 @@ class LookupProcessor(PairProcessor):
 
         pair.r1.match_len = min(pair.r1.original_len - masklen, target.n - match_site)
         pair.r1.match_index = r1_res[1] or (target.n - pair.r1.match_len)
-        pair.r1._rtrim = r1_res[2]
+        pair.r1.rtrim = r1_res[2]
         pair.r2.match_index = site
         pair.r2.match_len = match_len
 
@@ -275,13 +275,13 @@ class CotransLookupProcessor(PairProcessor):
             if pair_len - target_match_len - linker_len - masklen > trim:
                 pair.failure = Failures.adapter_trim
                 return
-            pair.r2._rtrim = trim + min(masklen, pair_len - target_match_len)
+            pair.r2.rtrim = trim + min(masklen, pair_len - target_match_len)
 
         if not self._check_indeterminate(pair):
             return
 
         pair.r1.match_index = L - (pair_len - linker_len - masklen) + trim
-        pair.r1._rtrim = trim
+        pair.r1.rtrim = trim
         pair.r1.match_len = (pair_len - linker_len - masklen - trim)
         pair.r2.match_index = site
         pair.r2.match_len = target_match_len

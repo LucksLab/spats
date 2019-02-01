@@ -31,7 +31,7 @@ class Pair(object):
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()
         self.identifier = identifier
-        self.r1.set_seq(r1_seq)
+        self.r1.set_seq(r1_seq, True)
         self.r2.set_seq(r2_seq)
         self.multiplicity = multiplicity
 
@@ -40,7 +40,7 @@ class Pair(object):
             raise Exception("Invalid record IDs for pair: {}, {}".format(r1_record.identifier, r2_record.identifier))
         self.reset()
         self.identifier = r1_record.identifier
-        self.r1.set_seq(r1_record.sequence)
+        self.r1.set_seq(r1_record.sequence, True)
         self.r2.set_seq(r2_record.sequence)
 
     def is_determinate(self):
@@ -48,7 +48,7 @@ class Pair(object):
 
     def set_mask(self, mask):
         self.mask = mask
-        self.r1._ltrim = mask.length()
+        self.r1.ltrim = mask.length()
 
     def check_mutations(self):
         mutations = set()
@@ -78,13 +78,13 @@ class Pair(object):
         if indels:
             r2_start = self.r2.match_index + 1
             r2_end = r2_start + self.r2.match_len
-            # appky_indels() uses subsequence, so no need to correct for _ltrim above
-            r1rcseq, r1rcqual = self.r1.apply_indels(True) 
+            # appky_indels() uses subsequence, so no need to correct for ltrim above
+            r1rcseq, r1rcqual = self.r1.apply_indels() 
             r2seq, r2qual = self.r2.apply_indels() 
         else:
-            r2_start = self.r2.match_index - self.r2._ltrim + 1
+            r2_start = self.r2.match_index - self.r2.ltrim + 1
             r2_end = r2_start + self.r2.original_len
-            r1rcseq, r1rqual = self.r1.reverse_complement, self.r1.subquality[::-1]
+            r1rcseq, r1rqual = self.r1.reverse_complement, self.r1.reverse_quality
             r2seq, r2qual = self.r2.original_seq, self.r2.quality
         min_quality = minimum_quality_score + ord('!')
         for mut in self.mutations:
@@ -150,7 +150,7 @@ class Pair(object):
             if r1_part != r2_part:
                 if not ignore_indels or (not self.r1.indels and not self.r2.indels):
                     return False
-                newr1,_ = self.r1.apply_indels(True)
+                newr1,_ = self.r1.apply_indels()
                 newr2,_ = self.r2.apply_indels()
                 return newr1[r1start:r1start+overlap_len] == newr2[r2_match_len-overlap_len:r2_match_len]
         return True

@@ -332,7 +332,7 @@ class SamWriter(object):
         r2_seq = pair.r2.subsequence
         r1_seq = pair.r1.reverse_complement
         r2_q = pair.r2.subquality
-        r1_q = pair.r1.reverse_complement_quality
+        r1_q = pair.r1.reverse_quality
         if pair.failure:
             r2_flag = 141
             r1_flag = 77

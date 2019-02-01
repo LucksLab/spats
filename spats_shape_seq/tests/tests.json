@@ -2591,7 +2591,7 @@
                 {
                     "id": "indels_2",
                     "r1": "GGGTGAGCGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGGGCATAGTTGATGCTCGGACTTTCG",
-                    "r2": "GGACCCGATGCCGGACGATTTAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGTTTCCAAAAGACGATAAT",
+                    "r2": "GGACCCGATGCCGGACGATTTAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCTTTCGATAAAGCCAAAAGACGATAAT",
                     "expect": {
                         "site": 0,
                         "muts": [ 26 ],
@@ -2599,7 +2599,7 @@
                         "r2_indels": {
                             "18": { "insert_type": true, "seq": "TTT" },
                             "40": { "insert_type": false, "seq": "T" },
-                            "63": { "insert_type": true, "seq": "TTT" },
+                            "55": { "insert_type": true, "seq": "TTT" },
                             "65": { "insert_type": true, "seq": "AAAA" }
                         }
                     }
@@ -2639,10 +2639,10 @@
                     "r2": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGCCAAAAGACGATAAT",
                     "expect": { 
                         "site": 0,
-                        "muts": [ 26, 41, 86 ],
+                        "muts": [ 26, 40, 86 ],
                         "counters": { "mut_count_3": 1 },
                         "r1_indels": { 
-                            "38": { "insert_type": false, "seq": "C" }
+                            "40": { "insert_type": false, "seq": "T" }
                         },
                         "r2_indels": { 
                             "40": { "insert_type": false, "seq": "T" }, 

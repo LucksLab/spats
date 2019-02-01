@@ -10,7 +10,7 @@ class PartialFindProcessor(PairProcessor):
 
     def _find_matches(self, pair):
         # use R1 to determine which target
-        target = pair.r1.find_in_targets(self._targets, reverse_complement = True)
+        target = pair.r1.find_in_targets(self._targets)
         if isinstance(target, list):
             _debug("dropping pair due to multiple R1 match")
             pair.failure = Failures.multiple_R1
@@ -26,7 +26,7 @@ class PartialFindProcessor(PairProcessor):
 
         masklen = pair.mask.length()
         r2_seq = pair.r2.subsequence
-        r2_start_in_target = pair.r2.match_index - pair.r2.match_start + pair.r2._ltrim
+        r2_start_in_target = pair.r2.match_index - pair.r2.match_start + pair.r2.ltrim
         r2_len_should_be = pair.target.n - r2_start_in_target
         r2_length_to_trim = pair.r2.seq_len - r2_len_should_be
         pair.r2.trim(r2_length_to_trim)
@@ -51,10 +51,10 @@ class PartialFindProcessor(PairProcessor):
 
         # now, same thing on r1 (smaller trim b/c of no handle, hence -4)
         r1_seq = pair.r1.subsequence
-        r1_length_to_trim = len(r1_seq) - r2_len_should_be - pair.r2._ltrim
+        r1_length_to_trim = len(r1_seq) - r2_len_should_be - pair.r2.ltrim
         _debug("R1 trim: {}".format(r1_length_to_trim))
         r1_adapter_match = r1_seq[-r1_length_to_trim:]
-        r1_match_trimmed = pair.r1.trim(r1_length_to_trim, reverse_complement = True)
+        r1_match_trimmed = pair.r1.trim(r1_length_to_trim)
         pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self._run.adapter_b)
         _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
         if len(pair.r1.adapter_errors) > self._run.allowed_adapter_errors:
@@ -63,7 +63,7 @@ class PartialFindProcessor(PairProcessor):
         if r1_match_trimmed and len(self._targets.targets) > 1:
             # ok, we trimmed down our R1 due to adapters. need to see if that means the leftover matches
             # multiple targets; if so, need to reject this pair.
-            target = pair.r1.find_in_targets(self._targets, reverse_complement = True, min_length_override = pair.r1.match_len)
+            target = pair.r1.find_in_targets(self._targets, min_length_override = pair.r1.match_len)
             if not target or isinstance(target, list):
                 # note that target may be None if pair.r1.match_len is less than the index word length
                 _debug("dropping pair due to multiple R1 match after adapter trim")
@@ -74,7 +74,7 @@ class PartialFindProcessor(PairProcessor):
                 self.counters.multiple_R1_match += pair.multiplicity
                 return False
 
-        _debug("successful adapter trim of {}/{} bp from R1/R2".format(pair.r1._rtrim, pair.r2._rtrim))
+        _debug("successful adapter trim of {}/{} bp from R1/R2".format(pair.r1.rtrim, pair.r2.rtrim))
 
         return True
 
@@ -104,7 +104,7 @@ class PartialFindProcessor(PairProcessor):
                 pair.r2.match_index += delta
             pair.dumbbell = pair.r2.match_index - pair.r2.match_start
             r2_start_in_target = pair.dumbbell + dumbbell_len
-            pair.r2._ltrim = dumbbell_len
+            pair.r2.ltrim = dumbbell_len
             _debug("R2 dumbbell results in: {}".format([r2_start_in_target, pair.r2.match_index, pair.r2.match_start, pair.r2.match_len, dumbbell_len]))
         else:
             # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
@@ -121,7 +121,7 @@ class PartialFindProcessor(PairProcessor):
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
-                pair.r2._ltrim -= r2_start_in_target
+                pair.r2.ltrim -= r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero
                 return
@@ -139,7 +139,7 @@ class PartialFindProcessor(PairProcessor):
             self.counters.adapter_trimmed += pair.multiplicity
 
         # set the match to be the rest of the (possibly trimmed) sequence, and count errors
-        pair.r1.match_to_seq(reverse_complement = True)
+        pair.r1.match_to_seq()
         pair.r2.match_to_seq()
 
         if pair.dumbbell != None:
@@ -151,11 +151,11 @@ class PartialFindProcessor(PairProcessor):
                     _debug("R1 dumbbell failure: {} != {}".format(pair.r1.reverse_complement[0:dumbbell_part], run.dumbbell[-dumbbell_part:]))
                     pair.failure = Failures.dumbbell
                     return
-                pair.r1._rtrim += dumbbell_part
+                pair.r1.rtrim += dumbbell_part
                 pair.r1.match_index += dumbbell_part
                 pair.r1.match_len -= dumbbell_part
                 pair.r1.match_start += dumbbell_part
-                _debug("after dumbbell: {}".format([pair.r1._ltrim, pair.r1._rtrim, pair.r1.match_start, pair.r1.match_len, pair.r1.match_index ]))
+                _debug("after dumbbell: {}".format([pair.r1.ltrim, pair.r1.rtrim, pair.r1.match_start, pair.r1.match_len, pair.r1.match_index ]))
 
         target_seq = pair.target.seq
         r1_matcher = pair.r1.reverse_complement
@@ -358,7 +358,7 @@ class CotransPartialFindProcessor(PairProcessor):
         else:
 
             # (2b)
-            pair.r1.find_in_targets(self._targets, reverse_complement = True, force_target = target)
+            pair.r1.find_in_targets(self._targets, force_target = target)
             if not pair.r1.match_len:
                 pair.failure = Failures.nomatch
                 return
@@ -404,7 +404,7 @@ class CotransPartialFindProcessor(PairProcessor):
                 else:
                     pair.failure = Failures.adapter_trim
                     return
-            pair.r1.trim(rtrim)
+            pair.r1.rtrim = rtrim
             pair.r2.trim(rtrim + pair.mask.length()) # also trim rc of handle
 
         if pair.right > target.n  or  pair.right < pair.left:
@@ -420,7 +420,7 @@ class CotransPartialFindProcessor(PairProcessor):
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
-                pair.r2._ltrim = 0 - pair.left
+                pair.r2.ltrim = 0 - pair.left
                 pair.r2.match_to_seq()
             else:
                 pair.failure = Failures.left_of_zero
