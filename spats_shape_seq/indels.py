@@ -69,7 +69,7 @@ class IndelsProcessor(PairProcessor):
         r1_adapter_trim = pair.r1.seq_len - (pair.target.n - pair.r2.match_index)
         if r1_adapter_trim > 0 and not dumblen:
             pair.r1.rtrim += r1_adapter_trim
-            pair.r1.match_start -= r1_adapter_trim    # TODO:  why do we not also change match_len here?
+            pair.r1.match_start -= r1_adapter_trim
         pair.r1.align_with_target(pair.target, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost)
 
         if run.minimum_adapter_len and r1_adapter_trim < run.minimum_adapter_len:

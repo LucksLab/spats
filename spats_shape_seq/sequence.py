@@ -131,7 +131,9 @@ class Sequence(object):
         if self.match_start > 0  and  self.match_index > 0:
             front_read = self.reverse_complement[:self.match_start] if self._needs_rc else self.subsequence[:self.match_start]
             front_target = target.seq[:self.match_index]
-            align_front = align_strings(front_read, front_target, simfn, gap_open_cost, gap_extend_cost)
+            # Reverse strings for front-bias since their ends are more likely to align...
+            align_front = align_strings(front_read[::-1], front_target[::-1], simfn, gap_open_cost, gap_extend_cost)
+            align_front.flip()
 
             good_alignment = True
             tlen = len(front_target)
@@ -167,7 +169,7 @@ class Sequence(object):
         if read_end < self.seq_len and target_end < target.n:
             back_read = self.reverse_complement[read_end:] if self._needs_rc else self.subsequence[read_end:]
             back_target = target.seq[target_end:] + suffix
-            align_back = align_strings(back_read, back_target, simfn, gap_open_cost, gap_extend_cost, True)
+            align_back = align_strings(back_read, back_target, simfn, gap_open_cost, gap_extend_cost)
 
             good_alignment = True
             if align_back.target_match_start > 0:

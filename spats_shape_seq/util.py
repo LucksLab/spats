@@ -198,11 +198,13 @@ class Indel:
 
 
 class Alignment:
-    def __init__(self, score, target_start, target_end, src_start, src_end, indels, mismatched, max_run):
+    def __init__(self, score, target_len, target_start, target_end, src_len, src_start, src_end, indels, mismatched, max_run):
         self.score = score                      # Smith-Waterman alignment score
+        self.orig_target_len = target_len       # the full length of the original target string
         self.target_match_start = target_start  # the first indice in target to which source maps ("site")
         self.target_match_end = target_end      # the last indice in target to which source maps ("end")
         self.target_match_len = target_end - target_start + 1
+        self.orig_source_len = src_len          # the full length of the original source string 
         self.src_match_start = src_start        # the first indice in source to match the target
         self.src_match_end = src_end            # the last indice in source to match the target
         self.indels = indels                    # dict mapping indices in the target string to Indel objects
@@ -219,6 +221,26 @@ class Alignment:
     def __str__(self):
         """ convenience for debugging """
         return "score={}\ntarget_match_start={}, target_match_end={} (len={})\nsrc_match_start={}, src_match_end={}\nmax_run={}\nindels_delta={}\nindels={}\nmismatched={}".format(self.score, self.target_match_start, self.target_match_end, self.target_match_len, self.src_match_start, self.src_match_end, self.max_run, self.indels_delta, self._indels_as_dict(), self.mismatched)
+
+    def flip(self):
+        """
+         Flip alignment results for strings that were aligned in reverse.
+         @param  slen   Length of the original source string
+         @param  tlen   Length of the original target string
+        """
+        tlen = self.orig_target_len
+        slen = self.orig_source_len
+        self.target_match_start, self.target_match_end = tlen - self.target_match_end - 1, tlen - self.target_match_start - 1
+        self.src_match_start, self.src_match_end = slen - self.src_match_end - 1, slen - self.src_match_start - 1
+        self.mismatched = [ (tlen - m - 1) for m in self.mismatched ]
+        newindels = {}
+        for i, indel in self.indels.iteritems():
+            indel.seq = indel.seq[::-1]
+            if indel.insert_type:
+                newindels[tlen - i] = indel
+            else:
+                newindels[len(indel.seq) + tlen - i - 2] = indel
+        self.indels = newindels
 
 
 def char_sim(sc, tc, match_value = 2, mismatch_cost = 2): 
@@ -342,7 +364,7 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
             maxs[0] += 1
             maxs[1] += 1
 
-    return Alignment(maxH, j, maxs[1] - 1, i, maxs[0] - 1, indels, mismatches, max_run)
+    return Alignment(maxH, n - 1, j, maxs[1] - 1, m - 1, i, maxs[0] - 1, indels, mismatches, max_run)
 
 
 class Colors(object):
