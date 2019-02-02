@@ -157,7 +157,7 @@ pstats:
 
 # use @profile on the function that you want line profiled
 lp.%:
-	@${PYENV} kernprof -l $(patsubst lp.%, ${TOOLS_DIR}/misc.py %, $@)
+	@${PYENV} kernprof -b -l $(patsubst lp.%, ${TOOLS_DIR}/misc.py %, $@)
 
 lprof:
 	@${PYENV} python -m line_profiler misc.py.lprof

@@ -15,10 +15,6 @@ def _debug(stuff):
     if _debug_run and _debug_run.debug:
         _debug_run.log.write(str(stuff) + "\n")
 
-def max_element(l, base = 0):
-    ''' @return pair containing the index and value respectively of the maximum element of list l '''
-    return max(enumerate(l, base), key=lambda x:x[1])
-
 def min_element(l, base = 0):
     ''' @return pair containing the index and value respectively of the minimum element of list l '''
     return min(enumerate(l, base), key=lambda x:x[1])
@@ -160,6 +156,7 @@ def string_edit_distance2(s1, s2, substitution_cost = 2, insert_delete_cost = 1)
             if s1[i-1] == s2[j-1]:
                 cur_row[j] = prev_row[j-1]
             else:
+                # TAI:  can optimize away min_element here...
                 B[i][j], cur_row[j] = min_element([ insert_delete_cost + prev_row[j], insert_delete_cost + cur_row[j-1], substitution_cost + prev_row[j-1] ], 1)
         cur_row, prev_row = prev_row, cur_row
 
@@ -288,14 +285,16 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
             jmo = j - 1
             h = H[imo][jmo] + simfn(source[imo], target[jmo])
             P[i][j] = (imo, jmo)
-            ki, h2 = max_element([(H[k][j] - gap_open_cost - gap_extend_cost * (imo - k)) for k in xrange(i)])
-            if h2 > h:
-                h = h2
-                P[i][j] = (ki, j)
-            kj, h3 = max_element([(H[i][k] - gap_open_cost - gap_extend_cost * (jmo - k)) for k in xrange(j)])
-            if h3 > h:
-                h = h3
-                P[i][j] = (i, kj)
+            for ki in xrange(i):
+                h2 = H[ki][j] - gap_open_cost - gap_extend_cost * (imo - ki)
+                if h2 > h:
+                    h = h2
+                    P[i][j] = (ki, j)
+            for kj in xrange(j):
+                h3 = H[i][kj] - gap_open_cost - gap_extend_cost * (jmo - kj)
+                if h3 > h:
+                    h = h3
+                    P[i][j] = (i, kj)
             if h >= maxH  and  (h > maxH  or  not front_biased  or  abs(i - j) < abs(maxs[0] - maxs[1])):
                 maxH = h
                 maxs = [i, j]

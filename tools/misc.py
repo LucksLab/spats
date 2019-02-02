@@ -668,6 +668,64 @@ def tmut_case():
     else:
         print "FAIL: {}".format(pair.failure)
     
+def indels_run():
+    from spats_shape_seq import Spats
+    s = Spats()
+    s.run.algorithm = True
+    s.run.count_indels = True
+    s.run.count_mutations = True
+    s.run.allowed_target_errors = 8
+    s.collapse_left_prefixes = True
+    s.run.ignore_stops_with_mismatched_overlap = True
+    s.run.allow_negative_values = True
+    s.mutations_require_quality_score = 30
+    bp = "/Users/steve/mos/tasks/oughxX/code"
+    s.addTargets(bp + "/test/hairpin/hairpinA_circ.fa")
+    rp = bp + "/TESTING/cmp_muts_favored/steve_test"
+    s.process_pair_data(rp + "/R1_match_failures.fastq",
+                        rp + "/R2_match_failures.fastq")
+    exit(0)
+
+def align_pairs():
+    from spats_shape_seq.pair import Pair
+    from spats_shape_seq.target import Targets
+    from spats_shape_seq.util import reverse_complement
+    from spats_shape_seq.mask import Mask, match_mask_optimized, base_similarity_ind
+
+    target_seq = "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC"  # HairpinC_SS2
+    r1_seq = "GGGTGAGCGTGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGTGCATAGTTGATGCTCGGACTTTCG"
+    r2_seq = "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGCCAAAAGACGATAAT"
+
+    pair = Pair()
+    pair.set_from_data("TEST_PAIR", r1_seq, r2_seq)
+    targets = Targets()
+    targets.minimum_match_length = 10
+    targets.addTarget("TEST_TARGET", target_seq, 0)
+    targets.index()
+
+    mask = match_mask_optimized(pair.r1.original_seq)
+    assert(mask)
+    pair.set_mask(Mask(mask))
+    target = pair.r1.find_in_targets(targets)
+    pair.target = pair.r2.find_in_targets(targets, force_target = target)
+    assert(pair.matched)
+
+    masklen = pair.mask.length()
+    adapter_t = "AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"
+    r2suffix = reverse_complement(pair.r1.original_seq[:masklen]) + reverse_complement(adapter_t)
+    simfn = lambda nt1, nt2: base_similarity_ind(nt1, nt2, 3, 2, 1.5)
+
+    pair.r2.align_with_target(pair.target, simfn, 5, 1, r2suffix)
+    r2_adapter_trim = max(0, pair.r2.match_index + pair.r2.match_len - pair.target.n)
+    r1_adapter_trim = pair.r1.seq_len - (pair.target.n - pair.r2.match_index)
+    if r1_adapter_trim > 0:
+        pair.r1.rtrim += r1_adapter_trim
+        pair.r1.match_start -= r1_adapter_trim
+    pair.r1.align_with_target(pair.target, simfn, 5, 1)
+
+    exit(0)
+
+
 
 if __name__ == "__main__":
     import sys
