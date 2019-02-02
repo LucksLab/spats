@@ -189,6 +189,7 @@ def string_edit_distance2(s1, s2, substitution_cost = 2, insert_delete_cost = 1)
 
 
 class Indel:
+    ''' deltas from target to source string '''
     def __init__(self, insert_type, seq = ""):
         self.insert_type = insert_type    # True for inserts, False for deletes
         self.seq = seq
@@ -347,21 +348,47 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
     j = min(j, n - 2)
 
     if penalize_ends:
-        while i > 0 and j > 0:
-            i -= 1
-            j -= 1
-            s = simfn(source[i], target[j])
-            maxH += s
-            if s <= 0.0:
-                mismatches.append(j)
+        if i > 0 and j > 0:
+            prei, prej = i, j
+            prefix_match_score = 0
+            prefix_mismatches = []
+            while i > 0 and j > 0:
+                i -= 1
+                j -= 1
+                s = simfn(source[i], target[j])
+                prefix_match_score += s
+                if s <= 0.0:
+                    prefix_mismatches.append(j)
+            in_del_cost = -2 * gap_open_cost - gap_extend_cost * max(prei + prej - 2, 0)
+            if prefix_match_score > in_del_cost:
+                maxH +=prefix_match_score
+                mismatches += prefix_mismatches
+            else:
+                maxH += in_del_cost
+                indels[0] = Indel(True, source[:prei])
+                indels[prej - 1] = Indel(False, target[:prej])
 
-        while maxs[0] < m - 1 and maxs[1] < n - 1:
-            s = simfn(source[maxs[0]], target[maxs[1]])
-            maxH += s
-            if s <= 0.0:
-                mismatches.append(maxs[1])
-            maxs[0] += 1
-            maxs[1] += 1
+        if maxs[0] < m - 1 and maxs[1] < n - 1:
+            suffi, suffj = maxs
+            suffix_match_score = 0
+            suffix_mismatches = []
+            while maxs[0] < m - 1 and maxs[1] < n - 1:
+                s = simfn(source[maxs[0]], target[maxs[1]])
+                suffix_match_score += s
+                if s <= 0.0:
+                    suffix_mismatches.append(maxs[1])
+                maxs[0] += 1
+                maxs[1] += 1
+            il = m - 1 - suffi
+            jl = n - 1 - suffj
+            in_del_cost = -2 * gap_open_cost - gap_extend_cost * max(il + jl - 2, 0)
+            if suffix_match_score > in_del_cost:
+                maxH += suffix_match_score
+                mismatches += suffix_mismatches
+            else:
+                maxH += in_del_cost
+                indels[suffj] = Indel(True, source[suffi:])
+                indels[n - 2] = Indel(False, target[suffj:])
 
     return Alignment(maxH, n - 1, j, maxs[1] - 1, m - 1, i, maxs[0] - 1, indels, mismatches, max_run)
 

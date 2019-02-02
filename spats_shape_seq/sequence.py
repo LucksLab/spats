@@ -140,6 +140,11 @@ class Sequence(object):
             if tlen - align_front.target_match_end - 1 > 0:
                 delseq = front_target[align_front.target_match_end + 1:]
                 if 0.0 < align_front.score - gap_open_cost - (len(delseq) - 1) * gap_extend_cost:
+                    existing_del = align_front.indels.get(align_front.target_match_end)
+                    if existing_del:
+                        assert(not existing_del.insert_type)
+                        delseq = existing_del.seq + delseq
+                        del align_front.indels[align_front.target_match_end]
                     self.indels[tlen - 1] = Indel(False, delseq)
                     self.indels_delta -= len(delseq)
                 else:
@@ -182,7 +187,7 @@ class Sequence(object):
             elif align_back.src_match_start > 0:
                 insseq = back_read[:align_back.src_match_start]
                 if 0.0 < align_back.score - gap_open_cost - (len(insseq) - 1) * gap_extend_cost:
-                    align_back.indels[0] = Indel(True, insseq)
+                    align_back.indels.setdefault(0, Indel(True, "")).seq += insseq
                     align_back.indels_delta += len(insseq)
                 else:
                     good_alignment = False
