@@ -64,6 +64,7 @@ class IndelsProcessor(PairProcessor):
         else:
             simfn = lambda nt1, nt2: char_sim(nt1, nt2, run.indel_match_value, run.indel_mismatch_cost) 
 
+        # TAI: probably better way of doing adapter alignment.  (see indels_7 testcase)
         pair.r2.align_with_target(pair.target, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost, r2suffix)
         r2_adapter_trim = max(0, pair.r2.match_index + pair.r2.match_len - pair.target.n)
         r1_adapter_trim = pair.r1.seq_len - (pair.target.n - pair.r2.match_index)
@@ -107,6 +108,7 @@ class IndelsProcessor(PairProcessor):
                 pair.r2.match_start += r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero
+                self.counters.left_of_zero += pair.multiplicity
                 return
 
         if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
@@ -144,11 +146,9 @@ class IndelsProcessor(PairProcessor):
             pair.failure = Failures.not_full_read
             return
 
-        if run.count_indels:
-            self.counters.r1_indels += (pair.multiplicity * len(pair.r1.indels))
-            self.counters.r2_indels += (pair.multiplicity * len(pair.r2.indels))
-            if not pair.indels_match:
-                self.counters.mismatching_indel_pairs += pair.multiplicity
+        if run.count_indels_towards_reactivity and not pair.indels_match:
+            self.counters.mismatching_indel_pairs += pair.multiplicity
+            # TAI:  might bail on these
 
         pair.site = pair.left
         self.counters.register_count(pair)

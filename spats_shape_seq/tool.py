@@ -555,7 +555,7 @@ class SpatsTool(object):
         spats.load(run_name)
         profiles = spats.compute_profiles()
         mutations = spats.run.count_mutations
-        indels = spats.run.count_indels
+        indels = spats.run.count_indels_towards_reactivity
         headers = [ "L", "site", "nt", "f+", "f-" ]
         if indels:
             headers += [ "ins+", "ins-", "del+", "del-" ]

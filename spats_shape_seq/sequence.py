@@ -166,7 +166,7 @@ class Sequence(object):
                 self.match_errors += [ e + self.match_index for e in xrange(m) ]
 
         target_end = self.match_index + self.match_len
-        if read_end < self.seq_len and target_end < target.n:
+        if read_end < self.seq_len and (target_end < target.n  or  len(suffix) > 0):
             back_read = self.reverse_complement[read_end:] if self._needs_rc else self.subsequence[read_end:]
             back_target = target.seq[target_end:] + suffix
             align_back = align_strings(back_read, back_target, simfn, gap_open_cost, gap_extend_cost)
@@ -232,9 +232,8 @@ class Sequence(object):
         nql = []
         sind = self.match_start
         lind = self.match_start + self.match_len + self.indels_delta
+        delta = 0
         for i in xrange(self.match_index, self.match_index + self.match_len):
-            if sind >= lind:
-                break
             indel = self.indels.get(i, None)
             if indel:
                 if indel.insert_type:
@@ -245,15 +244,17 @@ class Sequence(object):
                             nql.append(qual[sind])
                         sind += 1
                 else:
-                    dind = len(nsl) - len(indel.seq) + 1
+                    dind = delta + len(nsl) - len(indel.seq) + 1
                     nsl = nsl[:dind] + list(indel.seq)       # already reverse-complemented for R1
                     nql = nql[:dind] + ['!']*len(indel.seq)  # quality shouldn't matter b/c this can never be a mut
                     sind -= (len(indel.seq) - 1)
-            else:
+            elif sind < lind:
                 nsl.append(seq[sind])
                 if qual:
                     nql.append(qual[sind])
                 sind += 1
+            else:
+                delta += 1
         self._seq_with_indels = "".join(nsl)
         self._quality_with_indels = "".join(nql) if qual else None
         return self._seq_with_indels, self._quality_with_indels

@@ -70,21 +70,23 @@ class Pair(object):
                 return False
         return True
 
-    def check_mutation_quality(self, minimum_quality_score, indels = False):
+    def check_mutation_quality(self, minimum_quality_score):
         if minimum_quality_score is None  or  not self.mutations or (not self.r1.quality and not self.r2.quality):
             return 0
         removed = []
         r1_start = self.r1.match_index
-        if indels:
+        if self.r1.indels:
+            r1rcseq, r1rqual = self.r1.apply_indels()
+        else:
+            r1rcseq, r1rqual = self.r1.reverse_complement, self.r1.reverse_quality
+        if self.r2.indels:
             r2_start = self.r2.match_index + 1
             r2_end = r2_start + self.r2.match_len
-            # appky_indels() uses subsequence, so no need to correct for ltrim above
-            r1rcseq, r1rcqual = self.r1.apply_indels() 
+            # apply_indels() uses subsequence, so no need to correct for ltrim above
             r2seq, r2qual = self.r2.apply_indels() 
         else:
             r2_start = self.r2.match_index - self.r2.ltrim + 1
             r2_end = r2_start + self.r2.original_len
-            r1rcseq, r1rqual = self.r1.reverse_complement, self.r1.reverse_quality
             r2seq, r2qual = self.r2.original_seq, self.r2.quality
         min_quality = minimum_quality_score + ord('!')
         for mut in self.mutations:
@@ -92,14 +94,12 @@ class Pair(object):
             nt1 = nt2 = None
             if mut < r2_end:
                 idx = mut - r2_start
-                if idx >= 0:
-                    q2 = ord(r2qual[idx])
-                    nt2 = r2seq[idx]
+                q2 = ord(r2qual[idx])
+                nt2 = r2seq[idx]
             if mut > r1_start:
                 idx = mut - r1_start - 1
-                if idx >= 0:
-                    q1 = ord(r1rqual[idx])
-                    nt1 = r1rcseq[idx]
+                q1 = ord(r1rqual[idx])
+                nt1 = r1rcseq[idx]
             if q1 and q2:
                 # check for agreement
                 if nt1 == nt2:

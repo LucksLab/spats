@@ -53,12 +53,12 @@ class Run(object):
         #: this will force ``allowed_target_errors`` to be ``1``.
         self.count_mutations = False
 
-        #: Defaults to ``False``. If set to ``True``, will count both
-        #: insertions and deletions, and incorporate this indel information
-        #: into the reactivity profile computations (TODO). 
+        #: Defaults to ``False``. If set to ``True``, will incorporate
+        #: both insertions and deletions counts into the 
+        #: reactivity profile computations (TODO). 
         #: Setting this will force ``algorithm`` to be ``indels``.
         #: Warning: this is expected to be at least two orders of magnitude slower.
-        self.count_indels = False
+        self.count_indels_towards_reactivity = False
 
         #: Defaults to ``None``. If set to a phred-score integer value (0 - 42), and
         #: ``count_mutations`` is ``True``, then this will require the
@@ -196,7 +196,7 @@ class Run(object):
         #: stops.
         self.count_only_full_reads = False
 
-        #: Defaults to ``2``, set to the value to reward matching
+        #: Defaults to ``3``, set to the value to reward matching
         #: characters in the Smith-Waterman alignment algorithm
         #: Only applies when the ``indels`` algorithm is used.
         self.indel_match_value = 3
@@ -206,7 +206,7 @@ class Run(object):
         #: Only applies when the ``indels`` algorithm is used.
         self.indel_mismatch_cost = 2
 
-        #: Defaults to ``6``, set to the value to penalize the initiation of
+        #: Defaults to ``5``, set to the value to penalize the initiation of
         #: indel (insertion or deletion) gaps in the Smith-Waterman alignment algorithm
         #: Only applies when the ``indels`` algorithm is used.
         self.indel_gap_open_cost = 5
@@ -238,7 +238,7 @@ class Run(object):
             self.count_mutations = False
         if self.count_mutations:
             self.allowed_target_errors = max(self.allowed_target_errors, 1)
-        if self.count_indels:
+        if self.count_indels_towards_reactivity:
             self.algorithm = 'indels'
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True

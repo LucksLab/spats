@@ -179,7 +179,6 @@ from db import PairDB
 from mask import Mask
 from pair import Pair
 from parse import fasta_parse, FastFastqParser
-from processor import PairProcessor
 from profiles import Profiles
 from run import Run
 from target import Targets
