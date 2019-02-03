@@ -96,6 +96,9 @@ class Counters(object):
     def register_prefix(self, prefix, pair):
         self.increment_key('prefix_{}_{}'.format(pair.mask.chars, prefix), pair.multiplicity)
 
+    def register_mapped_prefix(self, prefix, pair):
+        self.increment_key('mapped_prefix_{}_{}'.format(pair.mask.chars, prefix), pair.multiplicity)
+
     def register_mut_count(self, pair):
         self.increment_key('mut_count_{}'.format(len(pair.mutations) if pair.mutations else 0), pair.multiplicity)
 

@@ -93,6 +93,7 @@ class IndelsProcessor(PairProcessor):
             self.counters.adapter_trim_failure += pair.multiplicity
             return
 
+        counted_prefix = None
         if pair.r2.match_start > pair.r2.match_index:
             assert(pair.r2.match_index == 0)    # align_strings() will ensure this if penalize_ends is True
             r2_start_in_target = pair.r2.match_index - pair.r2.match_start    # will be negative
@@ -101,6 +102,7 @@ class IndelsProcessor(PairProcessor):
             if run.count_left_prefixes:
                 if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(0 - r2_start_in_target, run.mutations_require_quality_score):
                     self.counters.register_prefix(prefix, pair)
+                    counted_prefix = prefix
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
@@ -110,6 +112,9 @@ class IndelsProcessor(PairProcessor):
                 pair.failure = Failures.left_of_zero
                 self.counters.left_of_zero += pair.multiplicity
                 return
+        elif run.count_left_prefixes:
+            counted_prefix = "NONE"
+            self.counters.register_prefix(counted_prefix, pair)
 
         if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
             if pair.r1.match_errors:
@@ -152,4 +157,6 @@ class IndelsProcessor(PairProcessor):
 
         pair.site = pair.left
         self.counters.register_count(pair)
+        if counted_prefix:
+            self.counters.register_mapped_prefix(counted_prefix, pair)
 

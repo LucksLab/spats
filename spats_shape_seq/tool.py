@@ -517,9 +517,18 @@ class SpatsTool(object):
         total = float(countinfo['total_pairs']) / 100.0
         for mask in spats.run.masks:
             prefixes = []
-            for key in sorted([k for k in countinfo.keys() if k.startswith('prefix_{}_'.format(mask))], key = lambda k : countinfo[k], reverse = True):
-                prefixes.append((key[12:], float(countinfo[key]) / total, countinfo[key]))
+            keyprefix = "prefix_{}_".format(mask)
+            for key in sorted([k for k in countinfo.keys() if k.startswith(keyprefix)], key = lambda k : countinfo[k], reverse = True):
+                prefixes.append((key[len(keyprefix):], float(countinfo[key]) / total, countinfo[key]))
             output_path = os.path.join(self.path, 'prefixes_{}.csv'.format(mask))
+            self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
+        total = float(countinfo['registered_pairs']) / 100.0
+        for mask in spats.run.masks:
+            prefixes = []
+            keyprefix = "mapped_prefix_{}_".format(mask)
+            for key in sorted([k for k in countinfo.keys() if k.startswith(keyprefix)], key = lambda k : countinfo[k], reverse = True):
+                prefixes.append((key[len(keyprefix):], float(countinfo[key]) / total, countinfo[key]))
+            output_path = os.path.join(self.path, 'mapped_prefixes_{}.csv'.format(mask))
             self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
 
     def _dump_mut_counts(self):

@@ -103,7 +103,7 @@ class PartialFindProcessor(PairProcessor):
                 pair.r2.match_len -= delta
                 pair.r2.match_index += delta
             pair.dumbbell = pair.r2.match_index - pair.r2.match_start
-            r2_start_in_target = pair.dumbbell + dumbbell_len
+            r2_start_in_target = pair.dumbbell + dumbbell_len    # TODO STEVE:  this is from the front, but should not be...
             pair.r2.ltrim = dumbbell_len
             _debug("R2 dumbbell results in: {}".format([r2_start_in_target, pair.r2.match_index, pair.r2.match_start, pair.r2.match_len, dumbbell_len]))
         else:
@@ -111,6 +111,7 @@ class PartialFindProcessor(PairProcessor):
             r2_start_in_target = pair.r2.match_index - pair.r2.match_start
             dumbbell_len = 0
 
+        counted_prefix = None
         if r2_start_in_target < 0:
             _debug("prefix check")
             self.counters.left_of_target += pair.multiplicity
@@ -118,6 +119,7 @@ class PartialFindProcessor(PairProcessor):
                 prefix = pair.r2.original_seq[0:0 - r2_start_in_target]
                 if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(0 - r2_start_in_target, run.mutations_require_quality_score):
                     self.counters.register_prefix(prefix, pair)
+                    counted_prefix = prefix
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
@@ -137,6 +139,10 @@ class PartialFindProcessor(PairProcessor):
         else:
             # we're at the right and trimming went ok, cool
             self.counters.adapter_trimmed += pair.multiplicity
+        # also count no prefixes
+        if run.count_left_prefixes and r2_start_in_target >= 0:
+            counted_prefix = "NONE"
+            self.counters.register_prefix(counted_prefix, pair)
 
         # set the match to be the rest of the (possibly trimmed) sequence, and count errors
         pair.r1.match_to_seq()
@@ -203,6 +209,8 @@ class PartialFindProcessor(PairProcessor):
 
         pair.site = pair.site or pair.left
         self.counters.register_count(pair)
+        if counted_prefix:
+            self.counters.register_mapped_prefix(counted_prefix, pair)
 
 
 #
