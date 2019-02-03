@@ -16,6 +16,8 @@ some terms defined:
   - R1 is right end (and reverse-complemented) - "reverse read"
   - R2 is left end - "forward read"
 
+- mapped read:   R1/R2 both map successfully to target
+
 - handle: first four bp of R1 -> indicates which experimental condition
   - treated = positive = RRRY
   - untreated = negative = YYYR (= control)

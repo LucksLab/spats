@@ -211,6 +211,8 @@ class PartialFindProcessor(PairProcessor):
         self.counters.register_count(pair)
         if counted_prefix:
             self.counters.register_mapped_prefix(counted_prefix, pair)
+        if run.count_mutations:
+            self.counters.register_mapped_mut_count(pair)
 
 
 #

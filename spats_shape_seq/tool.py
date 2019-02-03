@@ -543,6 +543,11 @@ class SpatsTool(object):
             mut_cnts.append((muts, countinfo["mut_count_{}".format(muts)]))
         output_path = os.path.join(self.path, 'mut_counts.csv')
         self._write_csv(output_path, [ "Mutation Count", "Reads" ], mut_cnts)
+        mut_cnts = []
+        for muts in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mapped_mut_count_')]):
+            mut_cnts.append((muts, countinfo["mapped_mut_count_{}".format(muts)]))
+        output_path = os.path.join(self.path, 'mapped_mut_counts.csv')
+        self._write_csv(output_path, [ "Mutation Count", "Reads" ], mut_cnts)
 
     def _dump_reads(self):
         reads_name = self._reads_file()

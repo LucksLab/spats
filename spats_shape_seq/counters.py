@@ -102,6 +102,9 @@ class Counters(object):
     def register_mut_count(self, pair):
         self.increment_key('mut_count_{}'.format(len(pair.mutations) if pair.mutations else 0), pair.multiplicity)
 
+    def register_mapped_mut_count(self, pair):
+        self.increment_key('mapped_mut_count_{}'.format(len(pair.mutations) if pair.mutations else 0), pair.multiplicity)
+
     def count_data(self):
         return (self._counts, self._registered)
 
