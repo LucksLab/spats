@@ -213,7 +213,7 @@ class TargetProfiles(object):
         self.compute_mutated_profiles()
 
     def compute_mutated_profiles(self):
-        if not self.treated_muts:
+        if not self.treated_muts and not self.treated_inserts and not self.treated_deletes:
             return
 
         treated_counts = self.treated_counts
@@ -222,6 +222,11 @@ class TargetProfiles(object):
         untreated_muts = self.untreated_muts
         treated_removed_muts = self.treated_removed_muts
         untreated_removed_muts = self.untreated_removed_muts
+        treated_inserts = self.treated_inserts
+        untreated_inserts = self.untreated_inserts
+        treated_deletes = self.treated_deletes
+        untreated_deletes = self.untreated_deletes
+
         n = len(treated_counts) - 1
         mu = [ 0 for x in range(n+1) ]
         r_mut = [ 0 for x in range(n+1) ]
@@ -244,8 +249,24 @@ class TargetProfiles(object):
             s_j_t = float(treated_counts[j] - treated_removed_muts[j])     # s_j^+
             s_j_u = float(untreated_counts[j] - untreated_removed_muts[j]) # s_j^-
 
-            mut_j_t = float(treated_muts[j])     # mut_j^+
-            mut_j_u = float(untreated_muts[j])   # mut_j^-
+            # mut_j^+
+            mut_j_t = 0
+            if treated_muts:
+                mut_j_t += float(treated_muts[j])
+            if treated_inserts:
+                mut_j_t += float(treated_inserts[j])
+            if treated_deletes:
+                mut_j_t += float(treated_deletes[j])
+
+            # mut_j^-
+            mut_j_u = 0
+            if untreated_muts:
+                mut_j_u += float(untreated_muts[j])
+            if untreated_inserts:
+                mut_j_u += float(untreated_inserts[j])
+            if untreated_deletes:
+                mut_j_u += float(untreated_deletes[j])
+
             depth_t += s_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + 1)]))
             depth_u += s_j_u  #running sum equivalent to: depth_u = float(sum(untreated_counts[:(j + 1)]))
             curmu = 0.0
