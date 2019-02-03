@@ -139,8 +139,9 @@ class Sequence(object):
             tlen = len(front_target)
             if tlen - align_front.target_match_end - 1 > 0:
                 delseq = front_target[align_front.target_match_end + 1:]
-                if 0.0 < align_front.score - gap_open_cost - (len(delseq) - 1) * gap_extend_cost:
-                    existing_del = align_front.indels.get(align_front.target_match_end)
+                existing_del = align_front.indels.get(align_front.target_match_end)
+                oc = gap_extend_cost if existing_del else gap_open_cost
+                if 0.0 < align_front.score - oc - (len(delseq) - 1) * gap_extend_cost:
                     if existing_del:
                         assert(not existing_del.insert_type)
                         delseq = existing_del.seq + delseq
@@ -186,8 +187,13 @@ class Sequence(object):
                     good_alignment = False
             elif align_back.src_match_start > 0:
                 insseq = back_read[:align_back.src_match_start]
-                if 0.0 < align_back.score - gap_open_cost - (len(insseq) - 1) * gap_extend_cost:
-                    align_back.indels.setdefault(0, Indel(True, "")).seq += insseq
+                existing_ins = align_back.indels.get(0)
+                oc = gap_extend_cost if existing_ins else gap_open_cost
+                if 0.0 < align_back.score - oc - (len(insseq) - 1) * gap_extend_cost:
+                    if existing_ins:
+                        existing_ins.seq += insseq
+                    else:
+                        align_back.indels[0] = Indel(True, insseq)
                     align_back.indels_delta += len(insseq)
                 else:
                     good_alignment = False

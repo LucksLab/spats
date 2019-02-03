@@ -196,6 +196,18 @@ class Run(object):
         #: stops.
         self.count_only_full_reads = False
 
+
+        # Notes on Indel parameters:  all other things being equal...
+        #   - a series of L consecutive mismatches will be treated as
+        #     an insert and delete indel if:
+        #        L > (gap_open_cost - gap_extend_cost) / (.5*mismatch_cost - gap_extend_cost)
+        #     and there are at least M matches otherwise, where:
+        #        M > (gap_open_cost - gap_extend_cost) / (.5*match_value - gap_extend_cost)
+        #
+        #   - two nearby indels of the same type will be "merged" if
+        #     the length of the gap G of matching bases between them is
+        #        G < (gap_open_cost - gap_extend_cost) / (match_value + gap_extend_cost)
+
         #: Defaults to ``3``, set to the value to reward matching
         #: characters in the Smith-Waterman alignment algorithm
         #: Only applies when the ``indels`` algorithm is used.
