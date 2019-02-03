@@ -44,6 +44,10 @@ class TagProcessor(PairProcessor):
         self._extra_tags = []
         self._plugins = {}
 
+    def reset_counts(self):
+        self._base_processor.reset_counts()
+        self.counters = self._base_processor.counters
+
     def setup_tags(self, pair_db):
         pair_db.setup_tags()
         pair_db.add_tags(ALL_TAGS)
@@ -202,7 +206,9 @@ class TagProcessor(PairProcessor):
         if not pair.is_determinate():
             tags.append(TAG_INDETERMINATE)
         if pair.mask:
-            tags.append(MASK_TO_TAG[pair.mask.chars])
+            masktag = MASK_TO_TAG.get(pair.mask.chars)
+            if masktag:
+                tags.append(masktag)
         else:
             tags.append(TAG_MASK_FAILURE)
         if pair.r1.indels or pair.r2.indels:

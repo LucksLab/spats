@@ -123,12 +123,6 @@ class PairDB(object):
                         sys.stdout.write('.')
                         sys.stdout.flush()
         conn.commit()
-        if sample_size:
-            samples = random.sample(xrange(total), min(sample_size, total))
-            conn.execute("DELETE FROM pair WHERE (1+rowid) NOT IN (" + ",".join(map(str,samples)) + ")")
-            conn.commit()
-            conn.execute("VACUUM")
-            total = sample_size
         return total
 
     def index(self):
