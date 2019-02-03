@@ -198,15 +198,28 @@ class Run(object):
 
 
         # Notes on Indel parameters:  all other things being equal...
-        #   - a series of L consecutive mismatches will be treated as
-        #     an insert and delete indel if:
+        #   - Some papers / implementations of SW make a gap of length 1 cost
+        #     gap_open_cost + gap_extend_cost.  Here, we make it cost just
+        #     gap_open_cost.  This gives more flexibility because you
+        #     can always add the gap_extend_cost into your gap_open_cost to
+        #     achieve scores comparable to the other method.  So for example,
+        #     if you want your gap_open_cost=5 and your gap_extend_cost=1
+        #     but you want to have gaps of length 1 include the extend cost,
+        #     just set your gap_open_cost=6 here instead.  Our formulas may
+        #     differ from published formulas because of this.
+        #
+        #   - In our implementation, series of L consecutive mismatches will be
+        #     treated as an insert and delete indel if:
         #        L > (gap_open_cost - gap_extend_cost) / (.5*mismatch_cost - gap_extend_cost)
         #     and there are at least M matches otherwise, where:
         #        M > (gap_open_cost - gap_extend_cost) / (.5*match_value - gap_extend_cost)
+        #     (This compares to  L > gap_open_cost / (.5*mismatch_cost - gap_extend_cost)
+        #     for the other scoring method.)
         #
-        #   - two nearby indels of the same type will be "merged" if
-        #     the length of the gap G of matching bases between them is
-        #        G < (gap_open_cost - gap_extend_cost) / (match_value + gap_extend_cost)
+        #   - Two nearby indels of the same type will be "merged" if
+        #     the length of the gap G of matching bases between them is:
+        #        G < (gap_open_cost - match_value - gap_extend_cost) / gap_extend_cost
+        #     (This compares to  G < (gap_open_cost - match_value) / gap_extend_cost.)
 
         #: Defaults to ``3``, set to the value to reward matching
         #: characters in the Smith-Waterman alignment algorithm
