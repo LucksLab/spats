@@ -95,6 +95,7 @@ class SpatsTool(object):
             self._r1, self._r2 = self._load_r1_r2()
         return self._r2
 
+    @property
     def using_separate_channel_files(self):
         return bool(self.config.get('r1_plus'))
 
@@ -198,9 +199,10 @@ class SpatsTool(object):
         data = ReadsData(db_name)
         if not native_tool:
             self._add_note("using python reads")
-            if self.using_separate_channel_files():
-                raise Exception('reads tool not supported with separate channel files')
-            data.parse(self.config['target'], self.r1, self.r2)
+            if self.using_separate_channel_files:
+                data.parse(self.config['target'], [self.r1_plus, self.r1_minus], [self.r2_plus, self.r2_minus])
+            else:
+                data.parse(self.config['target'], [self.r1], [self.r2])
 
         analyzer = ReadsAnalyzer(data, cotrans = self.cotrans)
         self._update_run_config(analyzer.run)
@@ -238,7 +240,7 @@ class SpatsTool(object):
             raise Exception("cmp_set_name '{}' does not exist in spats db".format(cmp_set_name))
         if not native_tool:
             self._add_note("using python reads")
-            if self.using_separate_channel_files():
+            if self.using_separate_channel_files:
                 raise Exception('rerun tool not supported with separate channel files')
 
         analyzer = ReadsAnalyzer(data, cotrans = self.cotrans)
@@ -334,7 +336,7 @@ class SpatsTool(object):
         else:
             self._add_note("using python processor")
             spats.addTargets(self.config['target'])
-            if self.using_separate_channel_files():
+            if self.using_separate_channel_files:
                 spats.process_pair_data(self.r1_plus, self.r2_plus, force_mask = spats.run.masks[0])
                 spats.process_pair_data(self.r1_minus, self.r2_minus, force_mask = spats.run.masks[1])
             else:

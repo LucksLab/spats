@@ -62,14 +62,14 @@ class ReadsData(object):
         self.db_path = db_path
         self._pair_db = None
 
-    def parse(self, target_path, r1_path, r2_path, sample_size = 100000, show_progress_every = 1000000):
+    def parse(self, target_path, r1_paths, r2_paths, sample_size = 100000, show_progress_every = 1000000):
         """Used to parse target and r1/r2 reads data for reads processing.
 
            :param target_path: Path to targets file, must be in FASTA format.
 
-           :param r1_path: Path to R1 reads file, must be in FASTQ format.
+           :param r1_paths: List of paths to R1 reads files, must be in FASTQ format.
 
-           :param r2_path: Path to R2 reads file, must be in FASTQ format.
+           :param r2_paths: List of paths to R2 reads files, must be in FASTQ format.
 
            :param sample_size: the number of samples to use for analysis. Samples will be (more or less) uniformly
                                randomly selected from the population of pairs.
@@ -83,7 +83,9 @@ class ReadsData(object):
             pair_db.show_progress_every = show_progress_every
         pair_db.wipe()
         pair_db.add_targets_table(target_path)
-        total = pair_db.parse(r1_path, r2_path, sample_size = sample_size)
+        total = 0
+        for r1_path, r2_path in zip(r1_paths, r2_paths):
+            total += pair_db.parse(r1_path, r2_path, sample_size = sample_size)
         print("Sampled {} records in {:.1f}s".format(total, time.time() - start))
 
     @property
