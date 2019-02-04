@@ -80,7 +80,7 @@ class Diagram(object):
     def _make_part(self, part):
         masklen = self.pair.mask.length() if self.pair.mask else 4
         is_R1 = (part == self.pair.r1)
-        rlab = "rev(R1)" if is_R1 else "R2"
+        rlab = "<--R1--" if is_R1 else "--R2-->"
         _, match_index = self._adj_front(part, "")
         spacer = match_index + ((self.target.n - match_index) >> 1) - (len(rlab) >> 1) 
         hdr = sp(spacer)
@@ -294,8 +294,11 @@ class Diagram(object):
                 if bar <= 0:
                     print('ignoring bad bar: {}'.format(bar))
                     continue
-                if len(line) > bar and line[bar] == ' ':
-                    line = line[:bar] + '|' + line[(bar+1):]
+                if len(line) > bar:
+                    if line[bar] == ' ':
+                        line = line[:bar] + '|' + line[(bar+1):]
+                    elif line[bar] == '-':
+                        line = line[:bar] + '+' + line[(bar+1):]
         if line.startswith("@") or line.startswith("\\"):
             pass
         elif line.startswith(" "):
