@@ -507,7 +507,8 @@
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "allowed_target_errors": 5,
                 "count_mutations": true
@@ -601,7 +602,8 @@
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "allowed_target_errors": 5,
                 "count_mutations": true,
@@ -663,7 +665,8 @@
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "allowed_target_errors": 5,
                 "count_mutations": true,
@@ -717,7 +720,8 @@
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "allowed_target_errors": 2,
                 "count_mutations": true
@@ -757,7 +761,8 @@
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "allowed_target_errors": 8,
                 "collapse_left_prefixes": true,
@@ -1757,7 +1762,8 @@
         {
             "run_opts": {
                 "algorithms": [
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "collapse_left_prefixes": true
             },
@@ -2312,7 +2318,8 @@
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [
                     "lookup",
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "allowed_target_errors": 1,
                 "count_mutations": true,
@@ -2530,7 +2537,8 @@
             "comment": "uneven read length bugs from Lee",
             "run_opts": {
                 "algorithms": [
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "allow_negative_values": false,
                 "allowed_target_errors": 8,
