@@ -66,12 +66,17 @@ class IndelsProcessor(PairProcessor):
 
         # TAI: probably better way of doing adapter alignment.  (see indels_7 testcase)
         pair.r2.align_with_target(pair.target, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost, r2suffix)
-        r2_adapter_trim = max(0, pair.r2.match_index + pair.r2.match_len - pair.target.n)
-        r1_adapter_trim = pair.r1.seq_len - (pair.target.n - pair.r2.match_index)
+        pair.r2.trim_match_to_target(pair.target.n)
+        if run.dumbbell:
+            pair.dumbbell = pair.r2.match_index - dumblen
+
+        # TAI:  shouldn't trim r1 prior to aligning b/c it could have big inserts, so compromize with indels_delta
+        r1_adapter_trim = pair.r1.seq_len - (pair.target.n - pair.r2.match_index) - max(pair.r2.indels_delta, 0)
         if r1_adapter_trim > 0 and not dumblen:
             pair.r1.rtrim += r1_adapter_trim
             pair.r1.match_start -= r1_adapter_trim
         pair.r1.align_with_target(pair.target, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost)
+        pair.r1.trim_match_to_target(pair.target.n)
 
         if run.minimum_adapter_len and r1_adapter_trim < run.minimum_adapter_len:
             _debug("  !! v102 minimum adapter len {}".format(r1_adapter_trim))
@@ -80,14 +85,8 @@ class IndelsProcessor(PairProcessor):
             return 
 
         pair.r1.shift_errors(pair.target.n)   # make errors relative to match_index, not 0
-
-        pair.r2.rtrim += r2_adapter_trim
-        pair.r2.match_len -= r2_adapter_trim
-        adapter_indels = pair.r2.trim_indels(pair.target.n)
         pair.r2.shift_errors(pair.target.n, masklen)
-        if run.dumbbell:
-            pair.dumbbell = pair.r2.match_index - dumblen
-
+        adapter_indels = pair.r2.trim_indels(pair.target.n)
         if adapter_indels + len(pair.r2.adapter_errors) > run.allowed_adapter_errors:
             pair.failure = Failures.adapter_trim
             self.counters.adapter_trim_failure += pair.multiplicity

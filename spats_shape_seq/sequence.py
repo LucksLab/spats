@@ -113,6 +113,15 @@ class Sequence(object):
             return True
         return False
 
+    def trim_match_to_target(self, target_len):
+        overhang = self.original_len - target_len + self.match_index - self.indels_delta - self.match_start
+        if self._needs_rc:
+            self.ltrim = max(0, overhang - self.rtrim)
+        else:
+            self.rtrim = max(0, overhang - self.ltrim)
+        self.match_index + self.match_len + self.indels_delta
+        self.match_len = min(self.match_len, target_len - self.match_index, self.seq_len - self.indels_delta)
+
     def match_to_seq(self):
         if self._needs_rc:
             if 0 == self._rtrim:
