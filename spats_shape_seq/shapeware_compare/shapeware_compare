@@ -1,0 +1,64 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: $0 test.json"
+    exit -1
+fi
+
+json=$1
+
+shapeware="~/Repos/shapeware/analyze_shape-map.py"
+spats="PYTHONPATH=~/Repos/spats ~/Repos/spats/bin/spats_tool"
+
+spats_dir=$(mktemp -d /tmp/$0_XXXX)
+echo "created $spats_dir"
+
+cp spats.config "$spats_dir"
+cp "$json" "$spats_dir"
+
+for m in 1 2; do
+    touch "$spats_dir/test_S3_L001_R1_001.fastq"
+    touch "$spats_dir/test_S3_L001_R2_001.fastq"
+    for i in 1 2; do
+        fastq="$spats_dir/test_S3_L001_R${i}_001.fastq"
+        echo "@M05164:58:000000000-BW2LP:1:1101:1392${m}:502${m} ${i}:N:0:TAGCTT" >> "$fastq"
+        if [ "$m" -eq "1" ]; then 
+            rd=`grep "\"r${i}\"" "$json" | awk -F: '{print $2;}' | sed 's:[", ]::g'`
+            if [ "$i" -eq "1" ]; then
+                mask=`echo $rd | sed 's:^\(.\{4\}\).*$:\1:' | tr "[ACGT]" "[TGCA]"`
+            fi
+        else
+            # incl. mutations/indels only in treated
+            rd=`grep "\"r${i}_good\"" "$json" | awk -F: '{print $2;}' | sed 's:[", ]::g'`
+            if [ "$i" -eq "1" ]; then
+				rd=`echo $rd | sed 's:^\(.\{4\}\)\(.*\)$:\2:'`
+                rd="$mask""$rd"
+            fi
+        fi
+        echo "$rd" >> "$fastq"
+        echo "+" >> "$fastq"
+        grep "r${i}_quality" "$json" | awk -F: '{print $2;}' | sed 's:[", ]::g' >> "$fastq" 
+    done
+done
+
+pushd $spats_dir > /dev/null
+
+eval "${spats}" to_shapeware shapeware
+
+eval "${spats}" show "$json"
+
+if [ -f "/miniconda3/etc/profile.d/conda.sh" ]; then
+    . "/miniconda3/etc/profile.d/conda.sh"
+    CONDA_CHANGEPS1=false conda activate base
+else
+    \export PATH="/miniconda3/bin:$PATH"
+fi
+
+source activate shapeware
+
+eval "$shapeware" shapeware > shapeware.log 2>&1
+
+open shapeware/plots/mut_identities/RRRY-test_YYYR-test_YYYR-test_bwa-mem_mutations.pdf
+
+popd
+

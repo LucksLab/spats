@@ -1,0 +1,20 @@
+{
+    "id": "indel",
+    "set_name": "indels",
+    "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCGCGGACTTTCGTCCTGCATCGGGTCT",
+    "r1_good": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCGCGGACTTTCGTCCGGCATCGGGTCT",
+    "r1_quality": "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+    "r2": "GGACCCGATGCAGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
+    "r2_good": "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
+    "r2_quality": "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+    "targets": { "HairpinC_SS2": "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC" },
+    "run_opts": { 
+        "algorithms": [ "indels" ], 
+        "count_mutations": true, 
+        "allowed_target_errors": 8, 
+        "ignore_stops_with_mismatched_overlap": false,
+        "mutations_require_quality_score": 13
+    },
+    "expect": { }
+}
+
