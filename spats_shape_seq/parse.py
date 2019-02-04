@@ -38,7 +38,7 @@ class FastqRecord(object):
 
     def write(self, outfile, skiplen = 0):
         outfile.write("@{} {}\n".format(self.identifier, self.tag))
-        for line in [ self.sequence[skiplen:], self.identifier2, self.quality ]:
+        for line in [ self.sequence[skiplen:], self.identifier2, self.quality[skiplen:] ]:
             outfile.write(line)
             outfile.write('\n')
 
