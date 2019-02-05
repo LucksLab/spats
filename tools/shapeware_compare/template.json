@@ -1,15 +1,18 @@
 {
     "id": "indel",
     "set_name": "indels",
-    "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCGCGGACTTTCGTCCTGCATCGGGTCT",
-    "r1_good": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCGCGGACTTTCGTCCGGCATCGGGTCT",
-    "r1_quality": "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+
     "r1_good_quality": "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
-    "r2": "GGACCCGATGCAGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
-    "r2_good": "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
-    "r2_quality": "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+    "r1_good":         "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTCGTCCGGCATCGGGTCC",
+    "r1":              "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTCGTCCGGCATCGGGTCT",
+    "r1_quality":      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+
     "r2_good_quality": "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
-    "targets": { "HairpinC_SS2": "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC" },
+    "r2_good":         "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
+    "r2":              "AGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
+    "r2_quality":      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+
+    "targets": { "hairpinA_circ": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC" },
     "run_opts": { 
         "algorithms": [ "indels" ], 
         "count_mutations": true, 
