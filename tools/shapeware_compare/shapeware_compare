@@ -63,6 +63,16 @@ source activate shapeware
 
 eval "$shapeware" shapeware > shapeware.log 2>&1
 
-#(open shapeware/plots/mut_identities/RRRY-test_YYYR-test_YYYR-test_bwa-mem_mutations.pdf && popd > /dev/null && rm -rf $spats_dir) || (echo "SHAPEware error occurred.  See $spats_dir/shapeware.log." && popd > /dev/null)
-(open shapeware/plots/mut_identities/RRRY-test_YYYR-test_YYYR-test_bwa-mem_mutations.pdf && popd > /dev/null) || (echo "SHAPEware error occurred.  See $spats_dir/shapeware.log." && popd > /dev/null)
+popd > /dev/null
+
+if [ -f "$spats_dir/shapeware/output/agg_coverage_bwa-mem.csv" ]; then
+    output_filebase="${json%.*}"
+    cp "$spats_dir/shapeware/output/agg_coverage_bwa-mem.csv" "${output_filebase}.csv"
+    cp "$spats_dir/shapeware/temp/mutation_rates/bwa-mem/RRRY-test_mut_identities.txt" "${output_filebase}_muts.txt"
+    cp "$spats_dir/shapeware/plots/mut_identities/RRRY-test_YYYR-test_YYYR-test_bwa-mem_mutations.pdf" "${output_filebase}.pdf"
+    open "${output_filebase}.pdf"
+    rm -rf $spats_dir
+else
+    echo "SHAPEware error occurred.  See $spats_dir/shapeware.log."
+fi
 
