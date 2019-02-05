@@ -1,7 +1,9 @@
 #!/bin/bash
 
+script_name=`basename $0`
+
 if [ $# -ne 1 ]; then
-    echo "usage: $0 test.json"
+    echo "usage: $script_name test.json"
     exit -1
 fi
 
@@ -10,10 +12,17 @@ json=$1
 shapeware="~/Repos/shapeware/analyze_shape-map.py"
 spats="PYTHONPATH=~/Repos/spats ~/Repos/spats/bin/spats_tool"
 
-spats_dir=$(mktemp -d /tmp/$0_XXXX)
+spats_dir=$(mktemp -d /tmp/${script_name}_XXXX)
 echo "created $spats_dir"
 
-cp spats.config "$spats_dir"
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+if [ -f spats.config ]; then
+    cp spats.config "$spats_dir"
+else
+    cp "$script_dir/spats.config" "$spats_dir"
+fi
+
 cp "$json" "$spats_dir"
 
 

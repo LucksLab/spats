@@ -208,7 +208,7 @@ class Run(object):
         #     just set your gap_open_cost=6 here instead.  Our formulas may
         #     differ from published formulas because of this.
         #
-        #   - In our implementation, series of L consecutive mismatches will be
+        #   - In our implementation, series of L consecutive mismatches will sometimes be
         #     treated as an insert and delete indel if:
         #        L > (gap_open_cost - gap_extend_cost) / (.5*mismatch_cost - gap_extend_cost)
         #     and there are at least M matches otherwise, where:

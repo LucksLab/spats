@@ -18,7 +18,8 @@
         "count_mutations": true, 
         "allowed_target_errors": 8, 
         "ignore_stops_with_mismatched_overlap": false,
-        "mutations_require_quality_score": 13
+        "mutations_require_quality_score": 13,
+        "allow_multiple_rt_starts": true
     },
     "expect": { }
 }
