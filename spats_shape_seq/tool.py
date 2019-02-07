@@ -360,6 +360,7 @@ class SpatsTool(object):
                     val = ast.literal_eval(value)
                 except:
                     val = value
+                print("overwriting with", key, val)
                 setattr(run, key, val)
                 self._add_note("config set {} = {}".format(key, val))
                 if dictionary:
@@ -571,7 +572,7 @@ class SpatsTool(object):
         data = ReadsData(reads_name)
         db = data.pair_db
         counts = db.tag_counts(1)
-        total = float(db.count()) / 100.0
+        total = float(db.count()) / 100.0    # because of this, cannot dump "rerun" data
         keys = sorted(counts.keys(), key = lambda x : counts[x], reverse = True)
         data = [ [ key, float(counts[key])/total, counts[key] ] for key in keys ]
         output_path = os.path.join(self.path, 'reads.csv')

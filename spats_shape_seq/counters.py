@@ -51,7 +51,7 @@ class Counters(object):
     def register_count(self, pair):
         if pair.mutations:
             for mut in pair.mutations:
-                if pair.site == mut + 1:
+                if pair.site == mut + 1:      # TODO STEVE:  Should this be mut-1?
                     # mutation on the edge
                     # xref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case
                     count_muts = self._run.count_edge_mutations

@@ -340,8 +340,8 @@ class PairDB(object):
         return { str(res[1]) : int(res[0]) for res in self.conn.execute("SELECT rowid, name FROM tag") }
 
     def count_tags(self, result_set_id):
-        self.conn.execute("DROP TABLE IF EXISTS tag_count")
-        self.conn.execute("CREATE TABLE tag_count (set_id INT, tag_id INT, count INT)")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS tag_count (set_id INT, tag_id INT, count INT)")
+        self.conn.execute("DELETE FROM tag_count WHERE set_id=?", (result_set_id,))
         self.conn.execute('''INSERT INTO tag_count
                              SELECT ?, t.rowid, SUM(r.multiplicity)
                              FROM result_tag rt
