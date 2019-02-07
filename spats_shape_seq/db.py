@@ -279,7 +279,7 @@ class PairDB(object):
         for res in results:
             cursor = conn.cursor()
             mask = sum([ 1 << t for t in res[-1] ])
-            cursor.execute(stmt, [ mask if i == len(res) - 1 else res[i] for i in range(len(res)) ])
+            cursor.execute(stmt, [ mask if i == len(res) - 1 else res[i] for i in xrange(len(res)) ])
             rstmt = rstmt_template.format(result_set_id, cursor.lastrowid)
             cursor.executemany(rstmt, [ (t,) for t in res[-1] ])
         conn.commit()
@@ -309,7 +309,7 @@ class PairDB(object):
     def differing_results(self, result_set_name_1, result_set_name_2):
         id1 = self.result_set_id_for_name(result_set_name_1)
         id2 = self.result_set_id_for_name(result_set_name_2)
-        return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.end, s1.site, s1.muts, s1.failure, s2.target, s2.end, s2.site, s2.muts, s2.failure
+        return self.conn.execute('''SELECT p.rowid, p.r1, p.r2, s1.target, s1.end, s1.site, s1.muts, s1.failure, s2.target, s2.end, s2.site, s2.muts, s2.failure, s1.multiplicity, s2.multiplicity
                                     FROM result s1 JOIN result s2 ON s2.set_id=? AND s2.pair_id=s1.pair_id
                                     JOIN pair p ON p.rowid=s1.pair_id
                                     WHERE s1.set_id=? AND (s1.site != s2.site OR s1.end != s2.end OR s1.target != s2.target OR s1.muts != s2.muts) AND (s1.site != -1 OR s2.site != -1)''', (id2, id1))
@@ -416,7 +416,7 @@ class PairDB(object):
         self.setup_counters()
         self.conn.execute("DELETE FROM counter WHERE run_key=?", (run_key,))
         count_data = counters.count_data()
-        row_data = [ (run_key, i, key, count_data[i][key]) for i in range(2) for key in count_data[i].keys() ]
+        row_data = [ (run_key, i, key, count_data[i][key]) for i in xrange(2) for key in count_data[i].keys() ]
         self.conn.executemany("INSERT INTO counter VALUES (?, ?, ?, ?)", row_data)
         self.conn.commit()
 

@@ -73,7 +73,7 @@ class SpatsWorker(object):
             raise
 
     def _createWorkers(self, num_workers):
-        for i in range(num_workers):
+        for i in xrange(num_workers):
             worker = multiprocessing.Process(target = self._worker, args = (i,))
             self._workers.append(worker)
             worker.start()
@@ -150,7 +150,7 @@ class SpatsWorker(object):
                 num_batches -= write_results()
 
         # put signal objects to indicate we're done
-        for i in range(num_workers):
+        for i in xrange(num_workers):
             self._pairs_to_do.put(None)
 
         processor = self._processor

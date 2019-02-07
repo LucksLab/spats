@@ -77,9 +77,10 @@ class Counters(object):
         if pair.r1.indels or pair.r2.indels:
             # only count one indel at a spot per pair 
             for spot in set(pair.r1.indels.keys() + pair.r2.indels.keys()):
-                indel = pair.r1.indels.get(spot, pair.r2.indels.get(spot))   # assumes types match at spot
+                indel = pair.r1.indels.get(spot, pair.r2.indels.get(spot))   # assumes types and length match at spot
                 _dict_incr(self._registered, self._indel_key(pair, spot, indel), pair.multiplicity)
                 _dict_incr(self._counts, pair.mask.chars + "_indels", pair.multiplicity)
+                _dict_incr(self._counts, 'mapped_indel_len_{}'.format(len(indel.seq)), pair.multiplicity)
                 self.indels += pair.multiplicity
             self.r1_indels += (pair.multiplicity * len(pair.r1.indels))
             self.r2_indels += (pair.multiplicity * len(pair.r2.indels))

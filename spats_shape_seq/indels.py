@@ -82,6 +82,7 @@ class IndelsProcessor(PairProcessor):
             _debug("  !! v102 minimum adapter len {}".format(r1_adapter_trim))
             pair.failure = Failures.adapter_trim
             self.counters.adapter_trim_failure += pair.multiplicity
+            print(pair.r1.original_seq, pair.r2.original_seq)
             return 
 
         pair.r1.shift_errors(pair.target.n)   # make errors relative to match_index, not 0
@@ -90,6 +91,7 @@ class IndelsProcessor(PairProcessor):
         if adapter_indels + len(pair.r2.adapter_errors) > run.allowed_adapter_errors:
             pair.failure = Failures.adapter_trim
             self.counters.adapter_trim_failure += pair.multiplicity
+            print(pair.r1.original_seq, pair.r2.original_seq)
             return
 
         counted_prefix = None

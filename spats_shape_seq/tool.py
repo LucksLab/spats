@@ -268,17 +268,19 @@ class SpatsTool(object):
         diff_sites = 0
         diff_ends = 0
         for res in data.pair_db.differing_results(result_set_name, cmp_set_name):
+            assert(res[13] == res[14])
+            multiplicity = min(int(res[13]), int(res[14]))
             if res[7] != res[12]:
-                diff_failures += 1
+                diff_failures += multiplicity
                 if res[7] and not res[12]:
-                    new_failures += 1
+                    new_failures += multiplicity
                 elif res[12] and not res[7]:
-                    fixed_failures += 1
+                    fixed_failures += multiplicity
             else:
                 if res[5] != res[10]:
-                    diff_sites += 1
+                    diff_sites += multiplicity
                 if res[4] != res[9]:
-                    diff_ends += 1
+                    diff_ends += multiplicity
         print("New result set '{}' for tagged pairs added to {}.".format(result_set_name, spatsdb))
         print("Quick comparison of {} unique tagged pairs with result_set '{}' yielded:  ".format(num_done, cmp_set_name))
         print("\t- {} pairs with different failures".format(diff_failures))
@@ -495,12 +497,12 @@ class SpatsTool(object):
             uiclient_worker.terminate()
 
     def dump(self):
-        """Dump data. Provide 'reads', 'run', 'prefixes' or 'mut_counts' 
+        """Dump data. Provide 'reads', 'run', 'prefixes', 'mut_counts' or 'indel_lens'
         as an argument to dump the indicated type of data.
         """
         self._skip_log = True
         if not self._command_args:
-            raise Exception("Dump requires a type ('reads', 'run', 'prefixes' or 'mut_counts').")
+            raise Exception("Dump requires a type ('reads', 'run', 'prefixes', 'mut_counts' or 'indel_lens').")
         dump_type = self._command_args[0]
         handler = getattr(self, "_dump_" + dump_type, None)
         if not handler:
@@ -548,6 +550,19 @@ class SpatsTool(object):
             mut_cnts.append((muts, countinfo["mapped_mut_count_{}".format(muts)]))
         output_path = os.path.join(self.path, 'mapped_mut_counts.csv')
         self._write_csv(output_path, [ "Mutation Count", "Reads" ], mut_cnts)
+
+    def _dump_indel_lens(self):
+        run_name = self._run_file()
+        if not os.path.exists(run_name):
+            raise Exception("Run must be run before attempting dump")
+        spats = Spats()
+        spats.load(run_name)
+        countinfo = spats.counters.counts_dict()
+        ilen_cnt = []
+        for lc in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mapped_indel_len_')]):
+            ilen_cnt.append((lc, countinfo["mapped_indel_len_{}".format(lc)]))
+        output_path = os.path.join(self.path, 'mapped_indel_len_counts.csv')
+        self._write_csv(output_path, [ "Indel Length", "Reads" ], ilen_cnt)
 
     def _dump_reads(self):
         reads_name = self._reads_file()

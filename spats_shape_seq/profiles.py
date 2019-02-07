@@ -16,7 +16,7 @@ class Profiles(object):
         for target in self._targets.targets:
             n = len(target.seq)
             if run.cotrans:
-                for end in range(run.cotrans_minimum_length, n + 1):
+                for end in xrange(run.cotrans_minimum_length, n + 1):
                     profiles["{}_{}".format(target.name, end)] = TargetProfiles(self, target,
                                                                                 counters.mask_counts(target, masks[0], end),
                                                                                 counters.mask_counts(target, masks[1], end),
@@ -90,7 +90,7 @@ class Profiles(object):
 
 class TargetProfiles(object):
 
-    def __init__(self, owner, target, treated_counts, untreated_counts, treated_muts, untreated_muts, treated_edge_muts, untreated_edge_muts, treated_removed_muts, untreated_removed_muts, treated_inserts, treated_deletes, untreated_inserts, untreated_deletes):
+    def __init__(self, owner, target, treated_counts, untreated_counts, treated_muts, untreated_muts, treated_edge_muts, untreated_edge_muts, treated_removed_muts, untreated_removed_muts, treated_inserts, untreated_inserts, treated_deletes, untreated_deletes):
         self.owner = owner
         self._target = target
         self.treated_counts = treated_counts
@@ -158,8 +158,8 @@ class TargetProfiles(object):
         treated_counts = self.treated_counts
         untreated_counts = self.untreated_counts
         n = len(treated_counts) - 1
-        betas = [ 0 for x in range(n+1) ]
-        thetas = [ 0 for x in range(n+1) ]
+        betas = [ 0 for x in xrange(n+1) ]
+        thetas = [ 0 for x in xrange(n+1) ]
         treated_sum = 0.0    # keep a running sum
         untreated_sum = 0.0  # for both channels
         running_c_sum = 0.0  # can also do it for c
@@ -180,7 +180,7 @@ class TargetProfiles(object):
         #  // strand.  This convention differs from the paper, where we refer to 
         #  // the 5'-most base as index n, and the 3'-most base as index 1.
 
-        for k in range(n):
+        for k in xrange(n):
             X_k = float(treated_counts[k])
             Y_k = float(untreated_counts[k])
             treated_sum += X_k    #running sum equivalent to: treated_sum = float(sum(treated_counts[:(k + 1)]))
@@ -202,7 +202,7 @@ class TargetProfiles(object):
 
         c = running_c_sum
         c_factor = 1.0 / c if c else 1.0
-        for k in range(n+1):
+        for k in xrange(n+1):
             thetas[k] = max(c_factor * thetas[k], 0)
         self.betas = betas
         self.thetas = thetas
@@ -228,8 +228,8 @@ class TargetProfiles(object):
         untreated_deletes = self.untreated_deletes
 
         n = len(treated_counts) - 1
-        mu = [ 0 for x in range(n+1) ]
-        r_mut = [ 0 for x in range(n+1) ]
+        mu = [ 0 for x in xrange(n+1) ]
+        r_mut = [ 0 for x in xrange(n+1) ]
         depth_t = 0.0    # keep a running sum
         depth_u = 0.0  # for both channels
         running_c_sum = 0.0
@@ -241,7 +241,7 @@ class TargetProfiles(object):
         # \sum_{i=j}^{n+1}, in the code we use \sum_{i=0}^{j+1}, and
         # this is intentional.
 
-        for j in range(n):
+        for j in xrange(n):
 
             # xref https://trello.com/c/10pysbq7/261-mutation-depth-with-quality-filtering-when-calculating-mus
             # if we removed a mut due to low quality, then we want to remove the corresponding stop
@@ -249,7 +249,7 @@ class TargetProfiles(object):
             s_j_t = float(treated_counts[j] - treated_removed_muts[j])     # s_j^+
             s_j_u = float(untreated_counts[j] - untreated_removed_muts[j]) # s_j^-
 
-            # mut_j^+
+            # mut_j^+ - Only one of { mut, insert, delete } is currently possible at a site per pair
             mut_j_t = 0
             if treated_muts:
                 mut_j_t += float(treated_muts[j])
@@ -258,7 +258,7 @@ class TargetProfiles(object):
             if treated_deletes:
                 mut_j_t += float(treated_deletes[j])
 
-            # mut_j^-
+            # mut_j^- - Only one of { mut, insert, delete } is currently possible at a site per pair
             mut_j_u = 0
             if untreated_muts:
                 mut_j_u += float(untreated_muts[j])
@@ -294,7 +294,7 @@ class TargetProfiles(object):
     def write(self, outfile):
         n = len(self.treated_counts)
         format_str = "{name}\t{rt}\t".format(name = self._target.name, rt = n - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = self.c)
-        for i in range(n):
+        for i in xrange(n):
             outfile.write(format_str.format(i = i,
                                             nuc = self._target.seq[i - 1] if i > 0 else '*',
                                             tm = self.treated_counts[i],

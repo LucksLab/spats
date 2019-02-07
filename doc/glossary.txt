@@ -42,7 +42,7 @@ some terms defined:
   - reactivity: relative likelihood of a stop at a spot
     - high reactivity at N --> likely stop at N
   - specific stats:
-    - betas: treated/untreated comparative intermediate stat (~prob of modification at N) (at site N)
+    - betas: treated/untreated comparative intermediate stat (~prob of site at N) (at site N)
     - thetas: treated/untreated comparative intermediate stat (~relative reactivity) (at site N)
     - rhos: reactivity at site N (desired stat)
     - mus: like rho, but counting mutations
