@@ -147,11 +147,24 @@ class Diagram(object):
         dumblen = len(self.run.dumbbell) if self.pair.dumbbell else 0
         if is_R1:
             if part.right and part.rtrim > dumblen:
+                alen = part.rtrim - dumblen
                 d = self._make_prefix(label)
                 d, match_index = self._adj_front(part, d)
-                if part.rtrim - dumblen > len(adapter):
-                    d += sp(part.rtrim - dumblen - len(adapter))
-                d += adapter[:(part.rtrim - dumblen)][::-1]
+                if alen > len(adapter):
+                    d += sp(alen - len(adapter))
+                    alen = len(adapter)
+                if part.adapter_errors:
+                    errors = sp(alen)
+                    for e in part.adapter_errors:
+                        if e < alen:
+                            errors = errors[:e] + "!" + errors[e+1:]
+                    errors = errors[::-1]
+                    if errors[0] == " ":
+                        errors = "|" + errors[1:]
+                    if errors[-1] == " ":
+                        errors = errors[:-1] + "|"
+                    self._add_line(d + errors)
+                d += adapter[:alen][::-1]
                 self._add_line(d)
             if dumblen > 0:
                 dumbbell_part = min(part.rtrim, dumblen)
@@ -221,14 +234,11 @@ class Diagram(object):
             error_bars.append(self.prefix_len + match_index + e)
         d += errors
         d += sp(self.target.n - len(d))
-        if part.adapter_errors:
+        if part == self.pair.r2 and part.adapter_errors:
             d += " "
-            if (part == self.pair.r2):
-                masklen = self.pair.mask.length()
-                d += sp(masklen + 1)
-                errors = sp(part.rtrim - masklen)
-            else:
-                errors = sp(part.rtrim)
+            masklen = self.pair.mask.length()
+            d += sp(masklen + 1)
+            errors = sp(part.rtrim - masklen)
             for e in part.adapter_errors:
                 errors = errors[:e] + "!" + errors[e+1:]
             if errors[0] == " ":
