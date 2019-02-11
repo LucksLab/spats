@@ -20,6 +20,9 @@ class Diagram(object):
         self.bars = []
         self.max_len = 0
         self.error_bars = None
+        self.masklen = self.pair.mask.length() if self.pair.mask else 4
+        self.dumblen = len(self.run.dumbbell) if self.pair.dumbbell else 0
+        self.linkerlen = len(self.run.cotrans_linker) if self.run.cotrans else 0
 
     def match_index(self, part):
         if part.matched:
@@ -84,7 +87,6 @@ class Diagram(object):
         return d, match_index
 
     def _make_part(self, part):
-        masklen = self.pair.mask.length() if self.pair.mask else 4
         is_R1 = (part == self.pair.r1)
         rlab = "<--R1--" if is_R1 else "--R2-->"
         _, match_index = self._adj_front(part, "")
@@ -94,10 +96,10 @@ class Diagram(object):
         hdr += rlab
         if is_R1:
             suffix = part.ltrim + 1
-            hdr += sp(match_index + match_len - spacer - len(rlab) + suffix - masklen)
+            hdr += sp(match_index + match_len - spacer - len(rlab) + suffix - self.masklen)
             if part.indels_delta > 0:
                 hdr += sp(part.indels_delta)
-            hdr += self.pair.mask.chars[::-1] if self.pair.mask else "?" * masklen
+            hdr += self.pair.mask.chars[::-1] if self.pair.mask else "?" * self.masklen
         self._add_line(self._make_prefix("") + hdr)
 
         d = self._make_prefix("rev(R1)" if is_R1 else "R2")
@@ -106,24 +108,22 @@ class Diagram(object):
             if part.rtrim:
                 d += (part.original_seq[-part.rtrim:][::-1] + ".")
             d += part.subsequence[::-1]
-            if part.ltrim > masklen:
-                d += part.original_seq[masklen:part.ltrim][::-1]
+            if part.ltrim > self.masklen:
+                d += part.original_seq[self.masklen:part.ltrim][::-1]
             if part.indels_delta < 0:
                 d += sp(-part.indels_delta)
-            d += ("." + part.original_seq[:min(masklen, part.ltrim)][::-1])
+            d += ("." + part.original_seq[:min(self.masklen, part.ltrim)][::-1])
         else:
             d += part.original_seq[:part.ltrim]
             d += self._add_indels(part, match_index, part.subsequence)
             if part.rtrim:
                 trimmed = part.original_seq[-part.rtrim:]
-                linker_len = 0
                 if self.run.cotrans and self.run._linker_trimmed:
-                    linker_len = len(self.run.cotrans_linker)
-                    d += trimmed[:linker_len]
-                if len(trimmed) > linker_len:
-                    d += ("." + trimmed[linker_len:linker_len + masklen])
-                if len(trimmed) > linker_len + masklen:
-                    d += ("." + trimmed[linker_len + masklen:])
+                    d += trimmed[:self.linkerlen]
+                if len(trimmed) > self.linkerlen:
+                    d += ("." + trimmed[self.linkerlen:self.linkerlen + self.masklen])
+                if len(trimmed) > self.linkerlen + self.masklen:
+                    d += ("." + trimmed[self.linkerlen + self.masklen:])
         self._add_line(d)
 
         if part.matched:
@@ -133,16 +133,16 @@ class Diagram(object):
             if is_R1:
                 d += part.original_seq[-part.rtrim:][::-1].translate(indeterminate_translator) + "." 
                 d += part.original_seq[::-1].translate(indeterminate_translator) + "."
-                d += part.original_seq[:masklen][::-1].translate(indeterminate_translator)
+                d += part.original_seq[:self.masklen][::-1].translate(indeterminate_translator)
             else:
                 d += part.original_seq[:part.ltrim].translate(indeterminate_translator)
                 d += part.subsequence.translate(indeterminate_translator)
                 if part.rtrim:
                     trimmed = part.original_seq[-part.rtrim:].translate(indeterminate_translator)
-                    if len(trimmed) < masklen:
+                    if len(trimmed) < self.masklen:
                         d += ("." + trimmed)
                     else:
-                        d += ("." + trimmed[:masklen] + "." + trimmed[masklen:])
+                        d += ("." + trimmed[:self.masklen] + "." + trimmed[self.masklen:])
             self._add_line(self._make_prefix("") + d)
             return []
         else:
@@ -153,10 +153,9 @@ class Diagram(object):
 
     def _make_adapter_line(self, part, adapter, label):
         is_R1 = (part == self.pair.r1)
-        dumblen = len(self.run.dumbbell) if self.pair.dumbbell else 0
         if is_R1:
-            if part.right and part.rtrim > dumblen:
-                alen = part.rtrim - dumblen
+            if part.right and part.rtrim > self.dumblen:
+                alen = part.rtrim - self.dumblen
                 d = self._make_prefix(label)
                 d, match_index = self._adj_front(part, d)
                 if alen > len(adapter):
@@ -175,27 +174,26 @@ class Diagram(object):
                     self._add_line(d + errors)
                 d += adapter[:alen][::-1]
                 self._add_line(d)
-            if dumblen > 0:
-                dumbbell_part = min(part.rtrim, dumblen)
+            if self.dumblen > 0:
+                dumbbell_part = min(part.rtrim, self.dumblen)
                 d = self._make_prefix('c(DUMBBELL)')
                 d, _ = self._adj_front(part, d)
                 d += sp(part.rtrim - dumbbell_part)
                 d += reverse_complement(self.run.dumbbell[:dumbbell_part])[::-1]
                 self._add_line(d)
-        elif part.left and part.rtrim > dumblen:
+        elif part.left is not None and (part.rtrim > self.masklen + self.linkerlen or self.dumblen > 0):
             d = self._make_prefix(label)
-            adjd, match_index = self._adj_front(part, d)
-            if dumblen > 0:
-                d += sp(self.pair.dumbbell)
+            d, match_index = self._adj_front(part, d)
+            if self.dumblen > 0:
                 d += self.run.dumbbell
+                d += sp(part.ltrim - len(self.run.dumbbell))
             else:
                 d += sp(match_index)
             d += sp(part.match_len + 1)
-            masklen = self.pair.mask.length()
-            d += sp(masklen + 1)
+            d += sp(self.masklen + 1)
             if self.run.cotrans:
-                d += sp(len(self.run.cotrans_linker))
-            d += (adapter[:part.rtrim - masklen] + "..")
+                d += sp(self.linkerlen)
+            d += (adapter[:part.rtrim - self.masklen] + "..")
             self._add_line(d)
 
     def _make_part_ins(self, part):
@@ -245,9 +243,8 @@ class Diagram(object):
         d += sp(self.target.n - len(d))
         if part == self.pair.r2 and part.adapter_errors:
             d += " "
-            masklen = self.pair.mask.length()
-            d += sp(masklen + 1)
-            errors = sp(part.rtrim - masklen)
+            d += sp(self.masklen + 1)
+            errors = sp(part.rtrim - self.masklen)
             for e in part.adapter_errors:
                 errors = errors[:e] + "!" + errors[e+1:]
             if errors[0] == " ":
@@ -287,12 +284,11 @@ class Diagram(object):
         d = sp(match_index)
         l = "l={}".format(match_index)
         r = "r={}".format(match_index + part.match_len)
-        masklen = self.pair.mask.length()
-        leftover = part.match_len - len(l) - len(r) - masklen
+        leftover = part.match_len - len(l) - len(r) - self.masklen
         if leftover < 0:
             l = l[2:]
             r = r[2:]
-            leftover = max(0, part.match_len - len(l) - len(r) - masklen)
+            leftover = max(0, part.match_len - len(l) - len(r) - self.masklen)
         halfish = (leftover >> 1)
         bit = "^{}{}, {}{}^".format("-"*halfish,l,r,"-"*(leftover - halfish))
         d += bit
@@ -344,7 +340,6 @@ class Diagram(object):
         self.lines = [ ]
 
         # handling left-of-target matches
-        masklen = self.pair.mask.length()
         self.prefix_len += max(self.pair.r1.rtrim - (self.pair.r1.match_index or 0) + 1,
                                self.pair.r2.ltrim, max(-self.match_index(self.pair.r2), 0))
 

@@ -206,7 +206,7 @@ def string_edit_distance2(s1, s2, substitution_cost = 2, insert_delete_cost = 1)
 
 def objdict_to_dict(objdict):
     """ convenience for debugging/comparing dictionaries of objects """
-    return dict(zip(objdict.keys(), map(vars, objdict.values())))
+    return dict(zip(map(str, objdict.keys()), map(vars, objdict.values())))
 
 def objdict_as_str(objdict, indent = 3):
     """ convenience for debugging/comparing dictionaries of objects """

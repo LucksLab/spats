@@ -85,6 +85,7 @@ class IndelsProcessor(PairProcessor):
             pair.r2.adapter_errors = string_match_errors(r2_adapter_trimmed, reverse_complement(run.adapter_t))
             if len(pair.r2.adapter_errors) > run.allowed_adapter_errors:
                 return False
+            self.counters.adapter_trimmed += pair.multiplicity
         if not r1too:
             return True
         ## Note: we really shouldn't trim r1 prior to aligning b/c it could have big inserts, but
@@ -109,6 +110,7 @@ class IndelsProcessor(PairProcessor):
                 pair.r1.match_index -= pair.r1.match_start
                 pair.r1.match_len += pair.r1.match_start
                 pair.r1.match_start = 0
+            self.counters.adapter_trimmed += pair.multiplicity
         return True
 
 
@@ -214,6 +216,7 @@ class IndelsProcessor(PairProcessor):
             if -1 != adi:
                 pair.r1.rtrim = pair.r1.original_len - adi
                 r1_fully_rtrimmed = True
+                self.counters.adapter_trimmed += pair.multiplicity
 
         ## Finally, pre-trim any linker from R1
         if run.cotrans:
@@ -248,7 +251,7 @@ class IndelsProcessor(PairProcessor):
             self.counters.left_of_target += pair.multiplicity
             prefix = pair.r2.original_seq[dumblen:dumblen - r2_start_in_target]
             if run.count_left_prefixes:
-                if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(dumblen - r2_start_in_target, run.mutations_require_quality_score):
+                if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(dumblen - r2_start_in_target, run.mutations_require_quality_score, dumblen):
                     self.counters.register_prefix(prefix, pair)
                     counted_prefix = prefix
                 else:
@@ -256,6 +259,9 @@ class IndelsProcessor(PairProcessor):
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
                 pair.r2.ltrim -= r2_start_in_target
                 pair.r2.match_start += r2_start_in_target
+                if pair.r1.rtrim and pair.r1.match_index == pair.r2.match_index:
+                    pair.r1.rtrim -= r2_start_in_target
+                    pair.r1.match_start += r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero
                 self.counters.left_of_zero += pair.multiplicity

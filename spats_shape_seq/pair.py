@@ -60,12 +60,12 @@ class Pair(object):
         if mutations:
             self.mutations = list(mutations)
 
-    def check_prefix_quality(self, prefix_length, minimum_quality_score):
+    def check_prefix_quality(self, prefix_length, minimum_quality_score, offset = 0):
         if minimum_quality_score is None:
             return True
         assert(prefix_length > 0)
         # prefix is always on the left end of R2
-        prefix_quality = self.r2.quality[0:prefix_length]    # TODO STEVE:  incorrect if there's a dumbbell
+        prefix_quality = self.r2.quality[offset:offset + prefix_length]
         for q in prefix_quality:
             if ord(q) < minimum_quality_score + ord('!'):
                 return False

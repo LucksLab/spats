@@ -103,7 +103,7 @@ class PartialFindProcessor(PairProcessor):
                 pair.r2.match_len -= delta
                 pair.r2.match_index += delta
             pair.dumbbell = pair.r2.match_index - pair.r2.match_start
-            r2_start_in_target = pair.dumbbell + dumbbell_len    # TODO STEVE:  this is from the front, but should not be...
+            r2_start_in_target = pair.dumbbell + dumbbell_len
             pair.r2.ltrim = dumbbell_len
             _debug("R2 dumbbell results in: {}".format([r2_start_in_target, pair.r2.match_index, pair.r2.match_start, pair.r2.match_len, dumbbell_len]))
         else:
@@ -116,8 +116,8 @@ class PartialFindProcessor(PairProcessor):
             _debug("prefix check")
             self.counters.left_of_target += pair.multiplicity
             if run.count_left_prefixes:
-                prefix = pair.r2.original_seq[0:0 - r2_start_in_target]
-                if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(0 - r2_start_in_target, run.mutations_require_quality_score):
+                prefix = pair.r2.original_seq[dumbbell_len:dumbbell_len - r2_start_in_target]
+                if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(dumbbell_len - r2_start_in_target, run.mutations_require_quality_score, dumbbell_len):
                     self.counters.register_prefix(prefix, pair)
                     counted_prefix = prefix
                 else:
@@ -127,22 +127,20 @@ class PartialFindProcessor(PairProcessor):
             else:
                 pair.failure = Failures.left_of_zero
                 return
-        elif r2_start_in_target + (pair.r2.original_len - dumbbell_len) <= pair.target.n:
-            # we're in the middle -- no problem
-            _debug("middle case")
-            pass
-        elif not self._trim_adapters(pair):
-            # we're over the right edge, and adapter trimming failed
-            pair.failure = pair.failure or Failures.adapter_trim
-            self.counters.adapter_trim_failure += pair.multiplicity
-            return
-        else:
-            # we're at the right and trimming went ok, cool
-            self.counters.adapter_trimmed += pair.multiplicity
-        # also count no prefixes
-        if run.count_left_prefixes and r2_start_in_target >= 0:
+        elif run.count_left_prefixes:
+            # also count no prefixes
             counted_prefix = "NONE"
             self.counters.register_prefix(counted_prefix, pair)
+
+        if r2_start_in_target + (pair.r2.original_len - dumbbell_len) > pair.target.n:
+            if not self._trim_adapters(pair):
+                # we're over the right edge, and adapter trimming failed
+                pair.failure = pair.failure or Failures.adapter_trim
+                self.counters.adapter_trim_failure += pair.multiplicity
+                return
+            else:
+                # we're at the right and trimming went ok, cool
+                self.counters.adapter_trimmed += pair.multiplicity
 
         # set the match to be the rest of the (possibly trimmed) sequence, and count errors
         pair.r1.match_to_seq()
@@ -152,15 +150,23 @@ class PartialFindProcessor(PairProcessor):
             _debug("fixing R1 for dumbbell: {}".format([pair.r1.left, pair.r2.left, pair.dumbbell]))
             if pair.r1.left < pair.dumbbell + dumbbell_len:
                 dumbbell_part = pair.dumbbell + dumbbell_len - pair.r1.left
+                if dumbbell_part > dumbbell_len:   # can happen if adapter wasn't trimmed so match_index is negative
+                    dboffset = dumbbell_part - dumbbell_len + 1
+                    r1dbpart = pair.r1.reverse_complement[dboffset:dumbbell_part + 1]
+                    dbpart = run.dumbbell
+                else:
+                    r1dbpart = pair.r1.reverse_complement[:dumbbell_part]
+                    dbpart = run.dumbbell[-dumbbell_part:]
                 # TODO: match errors on dumbbell?
-                if pair.r1.reverse_complement[:dumbbell_part] != run.dumbbell[-dumbbell_part:]:
-                    _debug("R1 dumbbell failure: {} != {}".format(pair.r1.reverse_complement[0:dumbbell_part], run.dumbbell[-dumbbell_part:]))
+                if r1dbpart != dbpart:
+                    _debug("R1 dumbbell failure: {} != {}".format(r1dbpart, dbpart))
                     pair.failure = Failures.dumbbell
                     return
-                pair.r1.rtrim += dumbbell_part
-                pair.r1.match_index += dumbbell_part
-                pair.r1.match_len -= dumbbell_part
-                pair.r1.match_start += dumbbell_part
+                dbtrim = dumbbell_part if dumbbell_part >= 0 else -pair.r1.left
+                pair.r1.rtrim += dbtrim
+                pair.r1.match_index += dbtrim
+                pair.r1.match_len -= dbtrim
+                pair.r1.match_start += dbtrim
                 _debug("after dumbbell: {}".format([pair.r1.ltrim, pair.r1.rtrim, pair.r1.match_start, pair.r1.match_len, pair.r1.match_index ]))
 
         target_seq = pair.target.seq
@@ -421,12 +427,14 @@ class CotransPartialFindProcessor(PairProcessor):
             pair.failure = Failures.right_edge
             return
 
+        counted_prefix = None
         if pair.left < 0:
             self.counters.left_of_target += pair.multiplicity
             if run.count_left_prefixes:
                 prefix = pair.r2.original_seq[0:0 - pair.left]
                 if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(0 - pair.left, run.mutations_require_quality_score):
                     self.counters.register_prefix(prefix, pair)
+                    counted_prefix = prefix
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
@@ -435,6 +443,10 @@ class CotransPartialFindProcessor(PairProcessor):
             else:
                 pair.failure = Failures.left_of_zero
                 return
+        # also count no prefixes
+        if run.count_left_prefixes and pair.r2.match_index >= pair.r2.match_start:
+            counted_prefix = "NONE"
+            self.counters.register_prefix(counted_prefix, pair)
 
         if pair.right < run.cotrans_minimum_length:
             pair.failure = Failures.cotrans_min
@@ -482,3 +494,7 @@ class CotransPartialFindProcessor(PairProcessor):
 
         pair.site = pair.left
         self.counters.register_count(pair)
+        if counted_prefix:
+            self.counters.register_mapped_prefix(counted_prefix, pair)
+        if run.count_mutations:
+            self.counters.register_mapped_mut_count(pair)

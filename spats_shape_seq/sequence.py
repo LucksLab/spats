@@ -297,7 +297,6 @@ class Sequence(object):
         sind = self.match_start
         lind = self.match_start + self.match_len + self.indels_delta
         delta = 0
-        self._debug_print()
         for i in xrange(self.match_index, self.match_index + self.match_len):
             indel = self.indels.get(i, None)
             if indel:
