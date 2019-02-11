@@ -1,7 +1,7 @@
 
 import unittest
 
-from spats_shape_seq.util import reverse_complement, string_find_errors, string_match_errors, align_strings, char_sim
+from spats_shape_seq.util import reverse_complement, string_find_errors, string_match_errors, align_strings, char_sim, string_find_with_overlap
 from spats_shape_seq.mask import longest_match, base_similarity_ind
 
 
@@ -23,6 +23,23 @@ class TestUtils(unittest.TestCase):
         self.assertEqual("CGTCCAA", reverse_complement("TTGGACG"))
         self.assertEqual("CAACAGAGCCCCCGAT", reverse_complement("ATCGGGGGCTCTGTTG"))
         self.assertEqual("GATNC", reverse_complement("GNATC"))
+    def test_string_find_with_overlap(self):
+        self.assertEqual(13, string_find_with_overlap("GATC", "GTCATCGAGTCATGATCG"))
+        self.assertEqual(13, string_find_with_overlap("GATC", "GTCATCGAGTCATGATC"))
+        self.assertEqual(13, string_find_with_overlap("GATC", "GTCATCGAGTCATGAT"))
+        self.assertEqual(13, string_find_with_overlap("GATC", "GTCATCGAGTCATGA"))
+        self.assertEqual(13, string_find_with_overlap("GATC", "GTCATCGAGTCATG"))
+        self.assertEqual(-1, string_find_with_overlap("GATC", "GTCATCGAGTCAT"))
+        self.assertEqual(-1, string_find_with_overlap("GATCTAGC", "CC"))
+        self.assertEqual(2, string_find_with_overlap("GATCTAGC", "CCG"))
+        self.assertEqual(2, string_find_with_overlap("GATCTAGC", "CCGA"))
+        self.assertEqual(2, string_find_with_overlap("GATCTAGC", "CCGAT"))
+        self.assertEqual(2, string_find_with_overlap("GATCTAGC", "CCGATC"))
+        self.assertEqual(2, string_find_with_overlap("GATCTAGC", "CCGATCT"))
+        self.assertEqual(2, string_find_with_overlap("GATCTAGC", "CCGATCTA"))
+        self.assertEqual(2, string_find_with_overlap("GATCTAGC", "CCGATCTAG"))
+        self.assertEqual(2, string_find_with_overlap("GATCTAGC", "CCGATCTAGC"))
+        self.assertEqual(2, string_find_with_overlap("GATCTAGC", "CCGATCTAGCG"))
     def test_string_find(self):
         m = string_find_errors("TTTT", "TTATAGGCGATGGAGTTCGCCATAAACGCTGCTTAGCTAATGACTCCTACCAGTATCACTACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATCTATGAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTC", 0, 1)
         self.assertTrue(len(m) == 1  and  len(set(m) & set([75, 76, 77, 78, 115])) == 1)
@@ -63,10 +80,10 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(a.src_match_start, 0)
         self.assertEqual(a.src_match_end, 82)
         self.assertEqual(a.mismatched, [25])
-        self.assertEqual(a._indels_as_dict(), { 18: { "insert_type": True, "seq": "TKT" },
-                                                40: { "insert_type": False, "seq": "T" },
-                                                64: { "insert_type": True, "seq": "TTT" },
-                                                65: { "insert_type": True, "seq": "AAWA" } })
+        self.assertEqual(a._indels_as_dict(), { 18: { "insert_type": True, "seq": "TKT", "src_index": 18 },
+                                                40: { "insert_type": False, "seq": "T", "src_index": 43 },
+                                                64: { "insert_type": True, "seq": "TTT", "src_index": 66 },
+                                                65: { "insert_type": True, "seq": "AAWA", "src_index": 70 } })
 
         ## The following tests exercise the 'penalize_ends' part of align_strings()
 
@@ -85,10 +102,10 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(a.src_match_start, 1)
         self.assertEqual(a.src_match_end, 30)
         self.assertEqual(len(a.mismatched), 0)
-        self.assertEqual(a._indels_as_dict(), { 0: { 'insert_type': True, 'seq': "CCCCC" },
-                                                3: { 'insert_type': False, 'seq': "TTTT" },
-                                               26: { 'insert_type': True, 'seq': "CCCC" },
-                                               30: { 'insert_type': False, 'seq': "TTTTT" } })
+        self.assertEqual(a._indels_as_dict(), { 0: { 'insert_type': True, 'seq': "CCCCC", "src_index": 0 },
+                                                3: { 'insert_type': False, 'seq': "TTTT", "src_index": 5 },
+                                               26: { 'insert_type': True, 'seq': "CCCC", "src_index": 27 },
+                                               30: { 'insert_type': False, 'seq': "TTTTT", "src_index": 31 } })
 
         MMC = 4    # all mismatches
         simfn = lambda a,b: char_sim(a, b, MV, MMC)
@@ -111,5 +128,5 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(a.target_match_end, 13)
         self.assertEqual(a.src_match_start, 3)
         self.assertEqual(a.src_match_end, 20)
-        self.assertEqual(a._indels_as_dict(), { 5: { 'insert_type': True, 'seq': "AAAA" } })
+        self.assertEqual(a._indels_as_dict(), { 5: { 'insert_type': True, 'seq': "AAAA", 'src_index': 8 } })
         self.assertEqual(len(a.mismatched), 0)

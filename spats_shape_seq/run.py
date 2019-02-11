@@ -254,6 +254,7 @@ class Run(object):
         self._applied_restrictions = False
         self._force_mask = None
         self._redo_tag = None
+        self._linker_trimmed = False
 
 
     def apply_config_restrictions(self):
@@ -280,12 +281,15 @@ class Run(object):
             self.num_workers = 1
             self._parse_quality = True
         if self._force_mask:
-            self.algorithm = 'find_partial'
+            if self.algorithm not in ['find_partial', 'indels']:
+                self.algorithm = 'find_partial'
         if self.algorithm not in ['find_partial', 'indels']:
             for mask in self.masks:
                 if len(mask) != 4:
                     self.algorithm = 'find_partial'
                     break
+        if self.algorithm == 'indels':
+            self._linker_trimmed = True
         self._applied_restrictions = True
         self.validate_config()
 
@@ -311,7 +315,8 @@ class Run(object):
             "cotrans_lookup" : CotransLookupProcessor,
             "cotrans_find_partial" : CotransPartialFindProcessor,
             "cotrans_native" : CotransNativeProcessor,
-            "indels" : IndelsProcessor
+            "indels" : IndelsProcessor,
+            "cotrans_indels" : IndelsProcessor
         }
         return implementations[("cotrans_" if self.cotrans else "") + self.algorithm]
 

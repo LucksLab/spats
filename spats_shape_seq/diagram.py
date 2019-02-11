@@ -22,7 +22,13 @@ class Diagram(object):
         self.error_bars = None
 
     def match_index(self, part):
-        return part.match_index if part.matched else (((self.target.n - part.original_len) >> 1) + (30 if is_R1 else -30))
+        if part.matched:
+            return part.match_index
+        elif part == self.pair.r1:
+            margin = (self.target.n - part.original_len) >> 1
+            return max(0, self.target.n - margin - part.original_len + 20)
+        else:
+            return max(0,  (self.target.n - (part.original_len) >> 1) - 20)
 
     def _make_prefix(self, label):
         bit = label[:min(self.prefix_len - 3, len(label))]
@@ -82,12 +88,13 @@ class Diagram(object):
         is_R1 = (part == self.pair.r1)
         rlab = "<--R1--" if is_R1 else "--R2-->"
         _, match_index = self._adj_front(part, "")
-        spacer = match_index + ((self.target.n - match_index) >> 1) - (len(rlab) >> 1) 
+        match_len = part.match_len if part.match_len else part.seq_len
+        spacer = match_index + ((match_len - len(rlab)) >> 1)
         hdr = sp(spacer)
         hdr += rlab
         if is_R1:
-            suffix = part.ltrim + (len(self.run.cotrans_linker) if self.pair.linker else 0) + 1
-            hdr += sp(match_index + part.match_len - spacer - len(rlab) + suffix - masklen)
+            suffix = part.ltrim + 1
+            hdr += sp(match_index + match_len - spacer - len(rlab) + suffix - masklen)
             if part.indels_delta > 0:
                 hdr += sp(part.indels_delta)
             hdr += self.pair.mask.chars[::-1] if self.pair.mask else "?" * masklen
@@ -109,16 +116,20 @@ class Diagram(object):
             d += self._add_indels(part, match_index, part.subsequence)
             if part.rtrim:
                 trimmed = part.original_seq[-part.rtrim:]
-                if len(trimmed) < masklen:
-                    d += ("." + trimmed)
-                else:
-                    d += ("." + trimmed[:masklen] + "." + trimmed[masklen:])
+                linker_len = 0
+                if self.run.cotrans and self.run._linker_trimmed:
+                    linker_len = len(self.run.cotrans_linker)
+                    d += trimmed[:linker_len]
+                if len(trimmed) > linker_len:
+                    d += ("." + trimmed[linker_len:linker_len + masklen])
+                if len(trimmed) > linker_len + masklen:
+                    d += ("." + trimmed[linker_len + masklen:])
         self._add_line(d)
 
         if part.matched:
             return [ self.prefix_len + part.match_index, self.prefix_len + part.match_index + part.match_len - 1 ]
         elif self.pair.failure == "indeterminate sequence failure":
-            d = sp(spaces)
+            d = ""
             if is_R1:
                 d += part.original_seq[-part.rtrim:][::-1].translate(indeterminate_translator) + "." 
                 d += part.original_seq[::-1].translate(indeterminate_translator) + "."
@@ -135,10 +146,8 @@ class Diagram(object):
             self._add_line(self._make_prefix("") + d)
             return []
         else:
-            d = sp(spaces)
-            if is_R1:
-                d += sp(masklen + 1)
-            d += sp(part.seq_len + (0 if is_R1 else part.indels_delta), "?")
+            d = sp(match_index)
+            d += sp(part.seq_len + part.indels_delta, "?")
             self._add_line(self._make_prefix("") + d)
             return []
 
@@ -268,9 +277,8 @@ class Diagram(object):
         self._add_line(d)
 
     def _make_linker(self):
-        l = self.pair.linker
         d = "LINKER"
-        d += sp(l + self.prefix_len - len(d))
+        d += sp(self.pair.linker + self.prefix_len - len(d))
         d += self.run.cotrans_linker
         self._add_line(d)
 
@@ -338,7 +346,7 @@ class Diagram(object):
         # handling left-of-target matches
         masklen = self.pair.mask.length()
         self.prefix_len += max(self.pair.r1.rtrim - (self.pair.r1.match_index or 0) + 1,
-                               self.pair.r2.ltrim, max(-self.pair.r2.match_index, 0))
+                               self.pair.r2.ltrim, max(-self.match_index(self.pair.r2), 0))
 
         self._add_line("@" + self.pair.identifier)
         

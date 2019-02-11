@@ -23,7 +23,7 @@ some terms defined:
   - untreated = negative = YYYR (= control)
   - also known as "mask" or "4mers"
 
-- adapter: sequence added to the right end of target to sequence short fragments
+- adapter: sequence added to the right end of target to sequence short fragments (a.k.a. "primer")
   - "adapter trimming": handling this in the code
   - adapter_b is for R1, adapter_t is for R2
 

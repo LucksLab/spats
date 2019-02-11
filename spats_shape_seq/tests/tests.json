@@ -29,7 +29,8 @@
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "allowed_target_errors": 1,
-                "count_mutations": true
+                "count_mutations": true,
+                "algorithms": [ "find_partial", "indels" ]
             },
             "set_name": "muts",
             "targets": [
@@ -199,7 +200,8 @@
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "allowed_target_errors": 1,
                 "count_mutations": true,
-                "mutations_require_quality_score": 13
+                "mutations_require_quality_score": 13,
+                "algorithms": [ "find_partial", "indels" ]
             },
             "set_name": "muts_quality",
             "targets": [
@@ -369,7 +371,8 @@
                 "allowed_target_errors": 1,
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
-                "count_mutations": true
+                "count_mutations": true,
+                "algorithms": [ "find_partial", "indels" ] 
             },
             "set_name": "muts_cotrans",
             "targets": [
@@ -1686,7 +1689,8 @@
         },
         {
             "run_opts": {
-                "minimum_target_match_length": 11
+                "minimum_target_match_length": 11,
+                "algorithms": [ "find_partial", "indels" ]
             },
             "set_name": "pairs_minimum_length",
             "targets": [
@@ -1724,7 +1728,8 @@
         },
         {
             "run_opts": {
-                "minimum_target_match_length": 10
+                "minimum_target_match_length": 10,
+                "algorithms": [ "find_partial", "indels" ]
             },
             "set_name": "pairs_panel",
             "targets": [
@@ -2074,7 +2079,8 @@
         {
             "run_opts": {
                 "algorithms": [
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "collapse_left_prefixes": true,
                 "cotrans": true,
@@ -2135,7 +2141,8 @@
         {
             "run_opts": {
                 "algorithms": [
-                    "find_partial"
+                    "find_partial",
+                    "indels"
                 ],
                 "collapse_left_prefixes": true,
                 "collapse_only_prefixes": "T,ACGT,CCA",
@@ -2316,15 +2323,11 @@
         {
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "algorithms": [
-                    "lookup",
-                    "find_partial",
-                    "indels"
-                ],
                 "allowed_target_errors": 1,
                 "count_mutations": true,
                 "ignore_stops_with_mismatched_overlap": false,
-                "mutations_require_quality_score": 30
+                "mutations_require_quality_score": 30,
+                "algorithms": [ "find_partial", "indels" ]
             },
             "set_name": "discordant_discussion",
             "targets": [
@@ -2591,8 +2594,8 @@
                         "muts": [ 26 ],
                         "counters": { "mut_count_1": 1 },
                         "r2_indels": {
-                            "40": { "insert_type": false, "seq": "T" },
-                            "65": { "insert_type": true, "seq": "AAAA" }
+                            "40": { "insert_type": false, "seq": "T", "src_index": 40 },
+                            "65": { "insert_type": true, "seq": "AAAA", "src_index": 64 }
                         }
                     }
                 },
@@ -2605,10 +2608,10 @@
                         "muts": [ 26 ],
                         "counters": { "mut_count_1": 1 },
                         "r2_indels": {
-                            "18": { "insert_type": true, "seq": "TTT" },
-                            "40": { "insert_type": false, "seq": "T" },
-                            "55": { "insert_type": true, "seq": "TTT" },
-                            "65": { "insert_type": true, "seq": "AAAA" }
+                            "18": { "insert_type": true, "seq": "TTT", "src_index": 18 },
+                            "40": { "insert_type": false, "seq": "T", "src_index": 43 },
+                            "55": { "insert_type": true, "seq": "TTT", "src_index": 57 },
+                            "65": { "insert_type": true, "seq": "AAAA", "src_index": 70 }
                         }
                     }
                 },
@@ -2621,9 +2624,9 @@
                         "muts": [ 26, 65 ],
                         "counters": { "mut_count_2": 1 },
                         "r2_indels": { 
-                            "18": { "insert_type": true, "seq": "TTT" }, 
-                            "40": { "insert_type": false, "seq": "T" }, 
-                            "64": { "insert_type": true, "seq": "TTTCAAA" }
+                            "18": { "insert_type": true, "seq": "TTT", "src_index": 18 },
+                            "40": { "insert_type": false, "seq": "T", "src_index": 43 },
+                            "64": { "insert_type": true, "seq": "TTTCAAA", "src_index": 66 }
                         }
                     }
                 },
@@ -2636,8 +2639,8 @@
                         "muts": [ 26, 64 ],
                         "counters": { "mut_count_2": 1 },
                         "r2_indels": { 
-                            "40": { "insert_type": false, "seq": "T" }, 
-                            "65": { "insert_type": true, "seq": "AAAA" }
+                            "40": { "insert_type": false, "seq": "T", "src_index": 40 }, 
+                            "65": { "insert_type": true, "seq": "AAAA", "src_index": 64 }
                         }
                     }
                 },
@@ -2650,11 +2653,11 @@
                         "muts": [ 26, 40, 86 ],
                         "counters": { "mut_count_3": 1 },
                         "r1_indels": { 
-                            "40": { "insert_type": false, "seq": "T" }
+                            "40": { "insert_type": false, "seq": "T", "src_index": 25 }
                         },
                         "r2_indels": { 
-                            "40": { "insert_type": false, "seq": "T" }, 
-                            "65": { "insert_type": true, "seq": "AAAA" }
+                            "40": { "insert_type": false, "seq": "T", "src_index": 40 }, 
+                            "65": { "insert_type": true, "seq": "AAAA", "src_index": 64 }
                         }
                     }
                 },
@@ -2666,14 +2669,17 @@
                         "site": 0,
                         "muts": [ 26, 49 ],
                         "counters": { "mut_count_2": 1 },
-                        "r2_indels": { "40": { "insert_type": false, "seq": "T" }, "65": { "insert_type": true, "seq": "AAAA" } }
+                        "r2_indels": { 
+                            "40": { "insert_type": false, "seq": "T", "src_index": 40 }, 
+                            "65": { "insert_type": true, "seq": "AAAA", "src_index": 64 }
+                        }
                     }
                 }
             ]
         },
         {
             "set_name": "indels_dumbbell",
-            "comment": "testing insertions and deletions with dumbbells and adapters",
+            "comment": "testing insertions and deletions with dumbbells and adapters. src_index is relative to trimmed portion only",
             "run_opts": {
                 "algorithms": [ "indels" ],
                 "count_mutations": true,
@@ -2691,8 +2697,8 @@
                     "expect": { 
                         "site": 49,
                         "muts": [ ],
-                        "r1_indels": { "54": { "insert_type": false, "seq": "C" } },
-                        "r2_indels": { "54": { "insert_type": true, "seq": "AAA" } }
+                        "r1_indels": { "54": { "insert_type": false, "seq": "C", "src_index": 5 } },
+                        "r2_indels": { "54": { "insert_type": true, "seq": "AAA", "src_index": 5 } }
                     }
                 }
             ]

@@ -207,7 +207,7 @@ class TestHarness:
             super(TestHarness.SpatsTestSet, self).__init__()
             self.outer = outer
             self.testset = testset
-            self.algorithms = [ "find_partial", "lookup" ]
+            self.algorithms = [ "find_partial", "lookup", "indels" ]
             self._add_all_testcases()
 
         @property
@@ -219,7 +219,7 @@ class TestHarness:
                 self.addTest(TestHarness.SpatsTestCase(self, case))
 
         def spats_setUp(self, spatso):
-            self.algorithms = [ "find_partial", "lookup" ]
+            self.algorithms = [ "find_partial", "lookup", "indels" ]
             for key, value in self.testset.run_opts.iteritems():
                 if key == 'algorithms':
                     self.algorithms = value
@@ -250,6 +250,7 @@ class TestHarness:
 
         def runTest(self):
             for algorithm in self.test_set.algorithms:
+                self.spats.reset_processor()    # Necessary to change algorithm (which determines the processor)
                 self.spats.run.algorithm = algorithm
                 self._run_case(self.case)
 

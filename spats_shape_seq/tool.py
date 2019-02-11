@@ -860,7 +860,7 @@ class SpatsTool(object):
         from spats_shape_seq.diagram import diagram
 
         alg = test_case.run_opts.get('algorithm')
-        algs = [ alg ] if alg else test_case.run_opts.get('algorithms', [ 'find_partial', 'lookup', 'indels' ])
+        algs = [ alg ] if alg else test_case.run_opts.get('algorithms', [ 'find_partial', 'indels', 'lookup' ])
         for algorithm in algs:
             spats = Spats()
             spats.run.algorithm = algorithm

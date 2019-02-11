@@ -11,18 +11,20 @@ class Sequence(object):
         self._needs_rc = needs_rc
         self._seq_rc = None
         self._length = len(seq) if seq else None
+        self._ltrim = 0
+        self._rtrim = 0
+        self.quality = None
         self.match_start = None
         self.match_len = None
         self.match_index = None
-        self._ltrim = 0
-        self._rtrim = 0
+        self.target_len = None
         self.adapter_errors = []
         self.match_errors = []
         self.indels = {}              # note: .seq in Indel objects will be reverse-complemented for R1
         self.indels_delta = 0
         self._seq_with_indels = None
         self._quality_with_indels = None
-        self.quality = None
+        self.auto_adjust_match = False
 
     def set_seq(self, seq, needs_reverse_complement = False):
         self._reset(seq, needs_reverse_complement)
@@ -76,6 +78,11 @@ class Sequence(object):
         return self.match_index + self.match_len if self.match_len else None
 
     @property
+    def right_est(self):
+        ''' Use this if match_len is not correct (cf. after trimming w/ indels) '''
+        return self.match_index - self.match_start + self.seq_len - self.indels_delta
+
+    @property
     def trimmed(self):
         return (0 != self._rtrim)
 
@@ -94,13 +101,24 @@ class Sequence(object):
 
     @rtrim.setter
     def rtrim(self, val):
+        changed = (val != self._rtrim)
         self._rtrim = val
-        self._seq_rc = None
+        if changed:
+            self._seq_rc = None
+            if self.auto_adjust_match:
+                self.trim_indels()          # should only matter for R2 since R1 won't have indels
+                self.match_errors = [ err for err in self.match_errors if err < self.seq_len - self.indels_delta ]
+                if self.match_len and self.target_len:
+                    self.match_len = min(self.match_len, self.target_len - self.match_index, self.seq_len - self.indels_delta)
 
     def find_in_targets(self, targets, force_target = None, min_length_override = 0):
         seq = self.reverse_complement if self._needs_rc else self.subsequence
         target, self.match_start, self.match_len, self.match_index = targets.find_partial(seq, force_target = force_target, min_length_override = min_length_override)
         return target
+
+    @property
+    def fully_matched(self):
+        return self.match_start == 0 and self.match_len == min(self.seq_len + self.indels_delta, self.target_len) 
 
     def trim(self, length):
         self.rtrim = length
@@ -113,14 +131,17 @@ class Sequence(object):
             return True
         return False
 
-    def trim_match_to_target(self, target_len):
-        overhang = self.original_len - target_len + self.match_index - self.indels_delta - self.match_start
+    def trim_to_match(self):
         if self._needs_rc:
-            self.ltrim = max(0, overhang - self.rtrim)
+            if self.match_start > 0:
+                self.rtrim = self.match_start
+                self.match_start = 0
+            self.ltrim += (self.seq_len - self.match_len - self.indels_delta )
         else:
-            self.rtrim = max(0, overhang - self.ltrim)
-        self.match_index + self.match_len + self.indels_delta
-        self.match_len = min(self.match_len, target_len - self.match_index, self.seq_len - self.indels_delta)
+            if self.match_start > 0:
+                self.ltrim = self.match_start
+                self.match_start = 0
+            self.rtrim += (self.seq_len - self.match_len - self.indels_delta )
 
     def match_to_seq(self):
         if self._needs_rc:
@@ -130,6 +151,7 @@ class Sequence(object):
                 self.match_start = self._rtrim
             self.match_len = self.seq_len
         else:
+            # TODO:  The next 2 lines are wrong if match_start is relative to subsequence.
             self.match_index -= (self.match_start - self._ltrim)
             self.match_start = self._ltrim
             self.match_len = self.seq_len
@@ -155,14 +177,14 @@ class Sequence(object):
                         assert(not existing_del.insert_type)
                         delseq = existing_del.seq + delseq
                         del align_front.indels[align_front.target_match_end]
-                    self.indels[tlen - 1] = Indel(False, delseq)
+                    self.indels[tlen - 1] = Indel(False, delseq, self.match_start)
                     self.indels_delta -= len(delseq)
                 else:
                     good_alignment = False
             elif len(front_read) - align_front.src_match_end - 1 > 0:
                 insseq = front_read[align_front.src_match_end + 1:]
                 if 0.0 < align_front.score - gap_open_cost - (len(insseq) - 1) * gap_extend_cost:
-                    self.indels[tlen] = Indel(True, insseq)
+                    self.indels[tlen] = Indel(True, insseq, align_front.src_match_end + 1)
                     self.indels_delta += len(insseq)
                 else:
                     good_alignment = False
@@ -172,13 +194,13 @@ class Sequence(object):
                 self.match_len += tlen - align_front.target_match_start
                 self.indels_delta += align_front.indels_delta
                 self.indels.update(align_front.indels)
-                self.match_errors += align_front.mismatched
+                self.match_errors += [ err - self.match_index for err in align_front.mismatched ]
             else:
                 m = min(self.match_start, self.match_index)
                 self.match_index -= m
                 self.match_start -= m
                 self.match_len += m
-                self.match_errors += [ e + self.match_index for e in xrange(m) ]
+                self.match_errors += [ e for e in xrange(m) if front_read[e + self.match_start] != front_target[e + self.match_index] ]
 
         target_end = self.match_index + self.match_len
         if read_end < self.seq_len and (target_end < target.n  or  len(suffix) > 0):
@@ -190,7 +212,7 @@ class Sequence(object):
             if align_back.target_match_start > 0:
                 delseq = back_target[:align_back.target_match_start]
                 if 0.0 < align_back.score - gap_open_cost - (len(delseq) - 1) * gap_extend_cost:
-                    align_back.indels[align_back.target_match_start - 1] = Indel(False, delseq)
+                    align_back.indels[align_back.target_match_start - 1] = Indel(False, delseq, len(delseq))
                     align_back.indels_delta -= len(delseq)
                 else:
                     good_alignment = False
@@ -202,38 +224,46 @@ class Sequence(object):
                     if existing_ins:
                         existing_ins.seq += insseq
                     else:
-                        align_back.indels[0] = Indel(True, insseq)
+                        align_back.indels[0] = Indel(True, insseq, 0)
                     align_back.indels_delta += len(insseq)
                 else:
                     good_alignment = False
             if good_alignment:
                 self.match_len += align_back.target_match_end + 1
                 self.indels_delta += align_back.indels_delta
-                self.indels.update({ (key + target_end):value for (key,value) in align_back.indels.iteritems() })
-                self.match_errors += [ (err + target_end) for err in align_back.mismatched ]
+                self.update_shifted_indels(align_back.indels, target_end, read_end)
+                self.match_errors += [ (err + target_end - self.match_index) for err in align_back.mismatched if (err + target_end) < self.target_len ]
             else:
                 m = min(len(back_read), len(target.seq[target_end:]))
                 self.match_len += m
-                self.match_errors += [ e + target_end for e in xrange(m) ]
+                self.match_errors += [ e + target_end - self.match_index for e in xrange(m) if back_read[e] != back_target[e] ]
 
-       
-    def shift_errors(self, target_len, mask_suffix_len = 0):
-        nme = []
-        for err in self.match_errors:
-            if err < target_len:
-                assert(err >= self.match_index)
-                nme.append(err - self.match_index) 
-            elif err >= target_len + mask_suffix_len:
-                self.adapter_errors.append(err - target_len - mask_suffix_len)
-        self.match_errors = nme
+    def update_shifted_indels(self, newindels, key_delta, val_delta):
+        for indind,indel in newindels.iteritems():
+            indel.src_index += val_delta
+            self.indels[indind + key_delta] = indel
 
-    def trim_indels(self, maxind):
-        trimmed = 0
-        for indind in self.indels.keys():
-            if indind >= maxind:
-                del self.indels[indind]
-                trimmed += 1
-        return trimmed
+    def trim_indels(self):
+        trim_start = self.seq_len
+        new_indels = {}
+        for indind,indel in self.indels.iteritems():
+            if indel.insert_type:
+                if indel.src_index > trim_start:
+                    self._seq_with_indels = None
+                    self.indels_delta -= len(indel.seq)
+                elif indel.src_index + len(indel.seq) > trim_start:
+                    self._seq_with_indels = None
+                    indel.seq = indel.seq[:trim_start - indel.src_index]
+                    self.indels_delta -= len(indel.seq)
+                    new_indels[indind] = indel    # NOTE: This means we can now have inserts at the end of the target match!
+                else:
+                    new_indels[indind] = indel
+            elif indel.src_index >= trim_start:
+                self._seq_with_indels = None
+                self.indels_delta += len(indel.seq)
+            else:
+                new_indels[indind] = indel
+        self.indels = new_indels
 
     def apply_indels(self):
         if self._seq_with_indels:

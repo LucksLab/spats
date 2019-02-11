@@ -218,6 +218,8 @@ class Spats(object):
         if not self._masks:
             self._masks = [ Mask(m) for m in self.run.masks ]
 
+    def reset_processor(self):
+        self.__processor = None
 
     def addTargets(self, *target_paths):
         """Used to add one or more target files for processing. Can be called multiple 

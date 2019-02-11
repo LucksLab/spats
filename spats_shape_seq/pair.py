@@ -15,7 +15,7 @@ class Pair(object):
         self.r1 = Sequence()
         self.r2 = Sequence()
         self.mask = None
-        self.target = None
+        self._target = None
         self.site = None
         self.failure = None
         self.multiplicity = 1
@@ -26,6 +26,7 @@ class Pair(object):
         self.linker = None
         self.edge_mut = None
         self.dumbbell = None
+        self._fully_matched = False
         self._indels_match = None
 
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
@@ -64,7 +65,7 @@ class Pair(object):
             return True
         assert(prefix_length > 0)
         # prefix is always on the left end of R2
-        prefix_quality = self.r2.quality[0:prefix_length]
+        prefix_quality = self.r2.quality[0:prefix_length]    # TODO STEVE:  incorrect if there's a dumbbell
         for q in prefix_quality:
             if ord(q) < minimum_quality_score + ord('!'):
                 return False
@@ -156,8 +157,34 @@ class Pair(object):
         return True
 
     @property
+    def target(self):
+        return self._target
+
+    @target.setter
+    def target(self, val):
+        self._target = val
+        if val:
+            self.r1.target_len = val.n
+            self.r2.target_len = val.n
+        else:
+            self.r1.target_len = None
+            self.r2.target_len = None
+
+    @property
     def matched(self):
         return (self.target and self.r1.match_len and self.r2.match_len)
+
+    @property
+    def fully_matched(self):
+        if not self._fully_matched and self.r1.fully_matched and self.r2.fully_matched:
+            self.fully_matched = True
+        return self._fully_matched
+
+    @fully_matched.setter
+    def fully_matched(self, val):
+        self._fully_matched = val
+        self.r1.trim_to_match()
+        self.r2.trim_to_match()
 
     @property
     def has_site(self):

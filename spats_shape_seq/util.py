@@ -24,6 +24,22 @@ rev_comp_complementor = string.maketrans("ATCGatcg", "TAGCtagc")
 def reverse_complement(seq):
     return str(seq).translate(rev_comp_complementor)[::-1]
 
+def string_find_with_overlap(needle, haystack):
+    hlen = len(haystack)
+    nlen = len(needle)
+    if hlen >= nlen:
+        h = haystack.find(needle)
+        if -1 != h:
+            return h
+    h = min(hlen - nlen + 1, 0)
+    n = hlen - h
+    while h < hlen and n >= 0:
+        if needle[:n] == haystack[h:]:
+            return h
+        h += 1
+        n -= 1
+    return -1
+
 # hamming distance with tracking and shortcut-out
 def string_match_errors(substr, target_str, max_errors = None):
     errors = []
@@ -74,7 +90,7 @@ def string_find_errors(substr, target_str, max_errors = 0, max_indices = 2):
         errors = string_match_errors(second_half, target_str[index + len(first_half):], me + 1)
         if len(errors) <= me:
             candidates.append(index)
-        index = index + 1
+        index += 1
 
     index = 0
     while len(candidates) < max_indices:
@@ -85,7 +101,7 @@ def string_find_errors(substr, target_str, max_errors = 0, max_indices = 2):
             errors = string_match_errors(first_half, target_str[index - len(first_half):], me + 1)
             if len(errors) <= me:
                 candidates.append(index - len(first_half))
-        index = index + 1
+        index += 1
 
     result = sorted(list(set(candidates)))
 
@@ -190,9 +206,10 @@ def string_edit_distance2(s1, s2, substitution_cost = 2, insert_delete_cost = 1)
 
 class Indel:
     ''' deltas from target to source string '''
-    def __init__(self, insert_type, seq = ""):
+    def __init__(self, insert_type, seq, src_index):
         self.insert_type = insert_type    # True for inserts, False for deletes
         self.seq = seq
+        self.src_index = src_index        # for easy reference into source string (index inserts to *left* side)
 
 
 class Alignment:
@@ -235,8 +252,10 @@ class Alignment:
         for i, indel in self.indels.iteritems():
             indel.seq = indel.seq[::-1]
             if indel.insert_type:
+                indel.src_index = slen - indel.src_index - len(indel.seq)
                 newindels[tlen - i] = indel
             else:
+                indel.src_index = slen - indel.src_index
                 newindels[len(indel.seq) + tlen - i - 2] = indel
         self.indels = newindels
 
@@ -304,7 +323,7 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
     i, j = maxs
     indels = {}
     mismatches = []
-    cur_idj = -1
+    cur_indel = None
     cur_run = 0
     max_run = 0
     while i > 0  and  j > 0  and  H[i][j] > 0.0:
@@ -312,7 +331,7 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
         i, j = P[i][j]
         deli, delj = lasti - i, lastj - j
         if deli and delj:
-            cur_idj = -1
+            cur_indel = None
             if simfn(source[i], target[j]) <= 0.0:
                 mismatches.append(j)
                 if cur_run > max_run:
@@ -321,20 +340,21 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
             else:
                 cur_run += 1
         elif deli:
-            if cur_idj >= 0  and  indels[cur_idj].insert_type:
-                indels[cur_idj].seq = source[i:lasti] + indels[cur_idj].seq
+            if cur_indel  and  cur_indel.insert_type:
+                cur_indel.seq = source[i:lasti] + cur_indel.seq
+                cur_indel.src_index = i
             else:
-                cur_idj = lastj                         # count insertion at first index in target to be moved
-                indels[cur_idj] = Indel(True, source[i:lasti])
+                # count insertion at first index in target to be moved
+                cur_indel = indels[lastj] = Indel(True, source[i:lasti], i)
             if cur_run > max_run:
                 max_run = cur_run
             cur_run = 0
         elif delj:
-            if cur_idj >= 0  and  not indels[cur_idj].insert_type:
-                indels[cur_idj].seq = target[j:lastj] + indels[cur_idj].seq
+            if cur_indel  and  not cur_indel.insert_type:
+                cur_indel.seq = target[j:lastj] + cur_indel.seq
             else:
-                cur_idj = lastj - 1                     # count deletion at index of last item deleted in target
-                indels[cur_idj] = Indel(False, target[j:lastj])
+                # count deletion at index of last item deleted in target
+                cur_indel = indels[lastj - 1] = Indel(False, target[j:lastj], i)
             if cur_run > max_run:
                 max_run = cur_run
             cur_run = 0
@@ -365,8 +385,8 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
                 mismatches += prefix_mismatches
             else:
                 maxH += in_del_cost
-                indels[0] = Indel(True, source[:prei])
-                indels[prej - 1] = Indel(False, target[:prej])
+                indels[0] = Indel(True, source[:prei], 0)
+                indels[prej - 1] = Indel(False, target[:prej], prei)
 
         if maxs[0] < m - 1 and maxs[1] < n - 1:
             suffi, suffj = maxs
@@ -387,8 +407,8 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
                 mismatches += suffix_mismatches
             else:
                 maxH += in_del_cost
-                indels[suffj] = Indel(True, source[suffi:])
-                indels[n - 2] = Indel(False, target[suffj:])
+                indels[suffj] = Indel(True, source[suffi:], suffi)
+                indels[n - 2] = Indel(False, target[suffj:], m - 1)
 
     return Alignment(maxH, n - 1, j, maxs[1] - 1, m - 1, i, maxs[0] - 1, indels, mismatches, max_run)
 
