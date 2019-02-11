@@ -29,6 +29,20 @@ class Sequence(object):
     def set_seq(self, seq, needs_reverse_complement = False):
         self._reset(seq, needs_reverse_complement)
 
+    def _debug_print(self):
+        from util import objdict_as_str
+        print("\nOrig Seq = {}".format(self.original_seq))
+        print("   len={}, needs_RC={}".format(len(self.original_seq), self._needs_rc))
+        print("   ltrim={}, rtrim={}".format(self.ltrim, self.rtrim))
+        print("   sub={}".format(self.reverse_complement if self._needs_rc else self.subsequence))
+        print("   sublen={}".format(self.seq_len))
+        print("Source match_start={}".format(self.match_start))
+        print("Target length={}".format(self.target_len))
+        print("Target match_index={}, match_len={}".format(self.match_index, self.match_len))
+        print("Match Errors at: {}".format(self.match_errors))
+        print("Indels (indels_delta={}):  {}".format(self.indels_delta, objdict_as_str(self.indels)))
+        print(" ")
+
     @property
     def original_seq(self):
         return self._seq
@@ -212,7 +226,7 @@ class Sequence(object):
             if align_back.target_match_start > 0:
                 delseq = back_target[:align_back.target_match_start]
                 if 0.0 < align_back.score - gap_open_cost - (len(delseq) - 1) * gap_extend_cost:
-                    align_back.indels[align_back.target_match_start - 1] = Indel(False, delseq, len(delseq))
+                    align_back.indels[align_back.target_match_start - 1] = Indel(False, delseq, 0)
                     align_back.indels_delta -= len(delseq)
                 else:
                     good_alignment = False
@@ -283,6 +297,7 @@ class Sequence(object):
         sind = self.match_start
         lind = self.match_start + self.match_len + self.indels_delta
         delta = 0
+        self._debug_print()
         for i in xrange(self.match_index, self.match_index + self.match_len):
             indel = self.indels.get(i, None)
             if indel:
@@ -308,3 +323,4 @@ class Sequence(object):
         self._seq_with_indels = "".join(nsl)
         self._quality_with_indels = "".join(nql) if qual else None
         return self._seq_with_indels, self._quality_with_indels
+

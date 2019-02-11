@@ -204,6 +204,16 @@ def string_edit_distance2(s1, s2, substitution_cost = 2, insert_delete_cost = 1)
 
 
 
+def objdict_to_dict(objdict):
+    """ convenience for debugging/comparing dictionaries of objects """
+    return dict(zip(objdict.keys(), map(vars, objdict.values())))
+
+def objdict_as_str(objdict, indent = 3):
+    """ convenience for debugging/comparing dictionaries of objects """
+    import json
+    return json.dumps(objdict_to_dict(objdict), indent=indent, sort_keys=True)
+
+
 class Indel:
     ''' deltas from target to source string '''
     def __init__(self, insert_type, seq, src_index):
@@ -230,12 +240,13 @@ class Alignment:
     def indels_delta(self):
         return (self.src_match_end - self.src_match_start) - (self.target_match_end - self.target_match_start)
 
-    def _indels_as_dict(self):
-        return dict(zip(self.indels.keys(), map(vars, self.indels.values())))
-
     def __str__(self):
         """ convenience for debugging """
-        return "score={}\ntarget_match_start={}, target_match_end={} (len={})\nsrc_match_start={}, src_match_end={}\nmax_run={}\nindels_delta={}\nindels={}\nmismatched={}".format(self.score, self.target_match_start, self.target_match_end, self.target_match_len, self.src_match_start, self.src_match_end, self.max_run, self.indels_delta, self._indels_as_dict(), self.mismatched)
+        return "score={}\ntarget_match_start={}, target_match_end={} (len={})\nsrc_match_start={}, src_match_end={}\nmax_run={}\nmismatched={}\nindels_delta={}\nindels={}".format(self.score, self.target_match_start, self.target_match_end, self.target_match_len, self.src_match_start, self.src_match_end, self.max_run, self.mismatched, self.indels_delta, objdict_as_str(self.indels))
+
+    def indels_as_dict(self):
+        """ convenience for testing """
+        return objdict_to_dict(self.indels)
 
     def flip(self):
         """

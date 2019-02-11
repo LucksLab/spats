@@ -17,6 +17,7 @@ from spats_shape_seq import Spats
 from spats_shape_seq.parse import abif_parse, fastq_handle_filter, FastFastqParser
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
 from counters import Counters
+from util import objdict_to_dict
 
 
 class SpatsTool(object):
@@ -910,14 +911,14 @@ class SpatsTool(object):
                                 if not (pair.mutations is None  or len(pair.mutations) == 0):
                                     raise Exception("unexpected mutations: {}".format(pair.mutations))
                         if 'r1_indels' in expects:
-                            r1inds = dict(zip(map(str, pair.r1.indels.keys()), map(vars, pair.r1.indels.values())))
+                            r1inds = objdict_to_dict(pair.r1.indels)
                             if expects['r1_indels']:
                                 if expects['r1_indels'] != r1inds:
                                     raise Exception("mismatching R1 indels:  expected={}, pair.r1.indels={}".format(expects['r1_indels'], r1inds))
                             elif pair.r1.indels:
                                 raise Exception("unexpected R1 indels:  pair.r1.indels={}".format(pair.r1.indels))
                         if 'r2_indels' in expects:
-                            r2inds = dict(zip(map(str, pair.r2.indels.keys()), map(vars, pair.r2.indels.values())))
+                            r2inds = objdict_to_dict(pair.r2.indels)
                             if expects['r2_indels']:
                                 if expects['r2_indels'] != r2inds:
                                     raise Exception("mismatching R2 indels:  expected={}, pair.r2.indels={}".format(expects['r2_indels'], r2inds))
