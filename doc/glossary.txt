@@ -23,9 +23,11 @@ some terms defined:
   - untreated = negative = YYYR (= control)
   - also known as "mask" or "4mers"
 
-- adapter: sequence added to the right end of target to sequence short fragments (a.k.a. "primer")
+- adapter: sequence added to the right end of target to sequence short fragments
   - "adapter trimming": handling this in the code
   - adapter_b is for R1, adapter_t is for R2
+
+- dumbbell:  sequence added to the 5' end of both reads (similar to a "forward primer"?).  if present, R2 starts with this prior to the target.
 
 - prefix:  part of segment (typically R2 since on left side) that precedes the part where the segment matches the target
     - prefixes can be counted or "collapsed" (pretend it's not there so that we can still match the target)

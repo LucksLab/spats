@@ -1,0 +1,106 @@
+#!/bin/bash
+
+script_name=`basename $0`
+
+if [ $# -ne 1 ]; then
+    echo "usage: $script_name test.json"
+    exit -1
+fi
+
+json=$1
+
+shapemapper="~/Repos/shapemapper-2.1.4/shapemapper"
+spats="PYTHONPATH=~/Repos/spats ~/Repos/spats/bin/spats_tool"
+
+spats_dir=$(mktemp -d /tmp/${script_name}_XXXX)
+echo "created $spats_dir"
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+if [ -f spats.config ]; then
+    cp spats.config "$spats_dir"
+else
+    cp "$script_dir/spats.config" "$spats_dir"
+fi
+
+cp "$json" "$spats_dir"
+
+
+write_fastq() {
+    fastq=$1
+    key=$2
+    rdi=$3
+    pair=$4
+    rd=`grep "\"${key}\"" "$json" | awk -F: '{print $2;}' | sed 's:[", ]::g'`
+    if [[ "$rdi" -eq "1"  &&  "$pair" -eq "2" ]]; then
+        mask=`echo $rd | sed 's:^\(.\{4\}\).*$:\1:' | tr "[ACGT]" "[TGCA]"`
+        rd=`echo $rd | sed 's:^\(.\{4\}\)\(.*\)$:\2:'`
+        rd="$mask""$rd"
+    fi
+    echo "@M05164:58:000000000-BW2LP:1:1101:1392${pair}:502${pair} ${rdi}:N:0:TAGCTT" >> "$fastq"
+    echo "$rd" >> "$fastq"
+    echo "+" >> "$fastq"
+    grep "${key}_quality" "$json" | awk -F: '{print $2;}' | sed 's:[", ]::g' >> "$fastq" 
+}
+
+fastqf=()
+for i in 1 2; do
+    ri="test_S3_L001_R${i}_001.fastq"
+    fastqf+=("${ri}")
+    touch "${spats_dir}/${ri}"
+done
+for i in 1 2; do
+    fastq="${spats_dir}/"${fastqf[$((i-1))]}
+    write_fastq "$fastq" "r${i}" $i 0
+    # always include one good of each handle for denominators not to be 0
+    for m in 1 2; do
+        write_fastq "$fastq" "r${i}_good" $i $m
+    done
+done
+
+
+pushd "$spats_dir" > /dev/null
+
+eval "${spats}" handle_filter > spats.log 2>&1
+
+eval "${spats}" show "$json"
+
+name="${json%.*}"
+output_dir="shapemapper_out"
+target_path=`egrep "^target\s*=" spats.config | awk -F= '{print $NF;}'`
+echo $target_path
+
+args="--name ${name} --target ${target_path} --out ${output_dir} --output-parsed-mutations --output-counted-mutations"
+#args+=" --verbose"
+samples=("(modified RRRY)" "(untreated YYYR)")
+for s in "${samples[@]}"; do
+    eval sample=$s
+    args+=" --${sample[0]} --R1 ${sample[1]}-${fastqf[0]} --R2 ${sample[1]}-${fastqf[1]}"
+done
+echo "Running $shapemapper $args..."
+eval "$shapemapper" "$args" > shapemapper.log 2>&1
+
+popd > /dev/null
+
+if [ ! -d "${spats_dir}/${output_dir}" ]; then
+    echo "ShapeMapper2 error occurred.  See ${spats_dir}/${name}_shapemapper_log.txt."
+    exit -1
+fi
+
+output_folder="${name}"
+mkdir -p "${output_folder}"
+cp "${spats_dir}"/*_log.txt "${output_folder}/"
+cp "${spats_dir}/${output_dir}"/*_profile.txt "${output_folder}/"
+cp "${spats_dir}/${output_dir}"/*_profiles.pdf "${output_folder}/"
+cp "${spats_dir}/${output_dir}"/*_mutation_counts.txt "${output_folder}/"
+cp "${spats_dir}/${output_dir}"/*_parsed.mut "${output_folder}/"
+echo "Output in ./${output_folder}."
+
+rm -rf $spats_dir
+
+echo -e "\nShapeWare2 Mutations parsed in RRRY:  "
+echo -e "\tLeft\tRight\t seq\t ???\t Type"
+head -1 "${output_folder}"/*Modified*_parsed.mut | awk '{print "\t",$10,"\t",$11,"\t",$12,"\t",$13,"\t",$14;}'
+echo -e "\nShapeWare2 Mutations counted at:    "
+egrep -v "0.000000.*0.000000" "${output_folder}"/*_profile.txt  | egrep -v "^87" | awk '{print "\t",$1,$2,$3;}'
+

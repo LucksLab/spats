@@ -70,6 +70,7 @@ fi
 
 source activate shapeware
 
+echo "Running $shapeware shapeware..."
 eval "$shapeware" shapeware > shapeware.log 2>&1
 
 popd > /dev/null
