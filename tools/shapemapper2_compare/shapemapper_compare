@@ -98,9 +98,10 @@ echo "Output in ./${output_folder}."
 
 rm -rf $spats_dir
 
-echo -e "\nShapeWare2 Mutations parsed in RRRY:  "
+echo -e "\nShapeWare2 Mutations parsed in RRRY (0-based):  "
 echo -e "\tLeft\tRight\t seq\t ???\t Type"
-head -1 "${output_folder}"/*Modified*_parsed.mut | awk '{print "\t",$10,"\t",$11,"\t",$12,"\t",$13,"\t",$14;}'
+awk '{ if (NF>10) { print "\t",$10,"\t",$11,"\t",$12,"\t",$13,"\t",$14; }; }' "${output_folder}"/*Modified*_parsed.mut
 echo -e "\nShapeWare2 Mutations counted at:    "
-egrep -v "0.000000.*0.000000" "${output_folder}"/*_profile.txt  | egrep -v "^87" | awk '{print "\t",$1,$2,$3;}'
+egrep -v "0.000000.*0.000000" "${output_folder}"/*_profile.txt  | egrep -v "nan.*nan.*nan.*nan" | awk '{print "\t",$1,$2,$3;}'
+echo " "
 
