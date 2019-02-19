@@ -95,6 +95,7 @@ class PartialFindProcessor(PairProcessor):
         if run.dumbbell:
             if not pair.r2.original_seq.startswith(run.dumbbell):
                 pair.failure = Failures.dumbbell
+                self.counters.dumbbell_failures += pair.multiplicity
                 return
             dumbbell_len = len(run.dumbbell)
             if pair.r2.match_start < dumbbell_len:
@@ -161,6 +162,7 @@ class PartialFindProcessor(PairProcessor):
                 if r1dbpart != dbpart:
                     _debug("R1 dumbbell failure: {} != {}".format(r1dbpart, dbpart))
                     pair.failure = Failures.dumbbell
+                    self.counters.dumbbell_failures += pair.multiplicity
                     return
                 dbtrim = dumbbell_part if dumbbell_part >= 0 else -pair.r1.left
                 pair.r1.rtrim += dbtrim

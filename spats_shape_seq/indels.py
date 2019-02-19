@@ -200,6 +200,7 @@ class IndelsProcessor(PairProcessor):
         if run.dumbbell:
             if not pair.r2.original_seq.startswith(run.dumbbell):
                 pair.failure = Failures.dumbbell
+                self.counters.dumbbell_failures += pair.multiplicity
                 return
             dumblen = len(run.dumbbell)
             pair.r2.ltrim = dumblen
