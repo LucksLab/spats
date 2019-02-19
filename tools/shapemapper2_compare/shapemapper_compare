@@ -6,8 +6,12 @@ if [ $# -ne 1 ]; then
     echo "usage: $script_name test.json"
     exit -1
 fi
+if [ ! -f "$1" ]; then
+    echo "file not found: $1"
+    exit -1
+fi
 
-json=$1
+json="$1"
 
 shapemapper="~/Repos/shapemapper-2.1.4/shapemapper"
 spats="PYTHONPATH=~/Repos/spats ~/Repos/spats/bin/spats_tool"
@@ -24,6 +28,8 @@ else
 fi
 
 cp "$json" "$spats_dir"
+
+grep targets "$json" | sed 's:.*{\s*"\(.*\)"\:\s*"\(.*\)"\s*}.*:>\1\n\2:' > "${spats_dir}/target.fa"
 
 
 write_fastq() {

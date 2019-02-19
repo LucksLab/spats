@@ -6,8 +6,12 @@ if [ $# -ne 1 ]; then
     echo "usage: $script_name test.json"
     exit -1
 fi
+if [ ! -f "$1" ]; then
+    echo "file not found: $1"
+    exit -1
+fi
 
-json=$1
+json="$1"
 
 shapeware="~/Repos/shapeware/analyze_shape-map.py"
 spats="PYTHONPATH=~/Repos/spats ~/Repos/spats/bin/spats_tool"
@@ -24,6 +28,8 @@ else
 fi
 
 cp "$json" "$spats_dir"
+
+grep targets "$json" | sed 's:.*{\s*"\(.*\)"\:\s*"\(.*\)"\s*}.*:>\1\n\2:' > "${spats_dir}/target.fa"
 
 
 write_fastq() {
@@ -75,14 +81,15 @@ eval "$shapeware" shapeware > shapeware.log 2>&1
 
 popd > /dev/null
 
-if [ -f "$spats_dir/shapeware/output/agg_coverage_bwa-mem.csv" ]; then
-    output_filebase="${json%.*}"
-    cp "$spats_dir/shapeware/output/agg_coverage_bwa-mem.csv" "${output_filebase}.csv"
-    cp "$spats_dir/shapeware/temp/mutation_rates/bwa-mem/RRRY-test_mut_identities.txt" "${output_filebase}_muts.txt"
-    cp "$spats_dir/shapeware/plots/mut_identities/RRRY-test_YYYR-test_YYYR-test_bwa-mem_mutations.pdf" "${output_filebase}.pdf"
-    open "${output_filebase}.pdf"
-    rm -rf $spats_dir
-else
+if [ ! -f "$spats_dir/shapeware/output/agg_coverage_bwa-mem.csv" ]; then
     echo "SHAPEware error occurred.  See $spats_dir/shapeware.log."
+    exit -1
 fi
+
+output_filebase="${json%.*}"
+cp "$spats_dir/shapeware/output/agg_coverage_bwa-mem.csv" "${output_filebase}.csv"
+cp "$spats_dir/shapeware/temp/mutation_rates/bwa-mem/RRRY-test_mut_identities.txt" "${output_filebase}_muts.txt"
+cp "$spats_dir/shapeware/plots/mut_identities/RRRY-test_YYYR-test_YYYR-test_bwa-mem_mutations.pdf" "${output_filebase}.pdf"
+open "${output_filebase}.pdf"
+rm -rf $spats_dir
 
