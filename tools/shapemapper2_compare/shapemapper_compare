@@ -29,7 +29,7 @@ fi
 
 cp "$json" "$spats_dir"
 
-grep targets "$json" | sed 's:.*{\s*"\(.*\)"\:\s*"\(.*\)"\s*}.*:>\1\n\2:' > "${spats_dir}/target.fa"
+grep targets "$json" | sed 's:.*{[[:space:]]*"\(.*\)"\:[[:space:]]*"\(.*\)"[[:space:]]*}.*:>\1\'$'\n''\2:' > "${spats_dir}/target.fa"
 
 
 write_fastq() {

@@ -29,7 +29,7 @@ fi
 
 cp "$json" "$spats_dir"
 
-grep targets "$json" | sed 's:.*{\s*"\(.*\)"\:\s*"\(.*\)"\s*}.*:>\1\n\2:' > "${spats_dir}/target.fa"
+grep targets "$json" | sed 's:.*{[[:space:]]*"\(.*\)"\:[[:space:]]*"\(.*\)"[[:space:]]*}.*:>\1\'$'\n''\2:' > "${spats_dir}/target.fa"
 
 
 write_fastq() {
@@ -91,5 +91,5 @@ cp "$spats_dir/shapeware/output/agg_coverage_bwa-mem.csv" "${output_filebase}.cs
 cp "$spats_dir/shapeware/temp/mutation_rates/bwa-mem/RRRY-test_mut_identities.txt" "${output_filebase}_muts.txt"
 cp "$spats_dir/shapeware/plots/mut_identities/RRRY-test_YYYR-test_YYYR-test_bwa-mem_mutations.pdf" "${output_filebase}.pdf"
 open "${output_filebase}.pdf"
-rm -rf $spats_dir
+#rm -rf $spats_dir
 
