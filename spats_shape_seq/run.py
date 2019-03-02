@@ -268,8 +268,6 @@ class Run(object):
     def apply_config_restrictions(self):
         if self._applied_restrictions:
             return
-        if self._p_use_tag_processor:
-            self.count_mutations = False
         if self.count_mutations:
             self.allowed_target_errors = max(self.allowed_target_errors, 1)
         if self.count_indels_towards_reactivity:
@@ -283,8 +281,11 @@ class Run(object):
             if self.algorithm not in ['find_partial', 'indels']:
                 self.algorithm = 'find_partial'
             try:
-                self._p_rois = [ (min(map(int, roi)), max(map(int, roi))) for roi in self.regions_of_interest ]
-            except Exception as e:
+                if len(self.regions_of_interest) == 2  and not isinstance(self.regions_of_interest[0], (list, tuple)):
+                    self._p_rois = [ (min(map(int, self.regions_of_interest)), max(map(int, self.regions_of_interest))) ]
+                else:
+                    self._p_rois = [ (min(map(int, roi)), max(map(int, roi))) for roi in self.regions_of_interest ]
+            except:
                 raise Exception("Invalid regions_of_interest.  Specify as '(min_index, max_index), (min_index, max_index), ...'.")
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
