@@ -171,6 +171,15 @@ class PartialFindProcessor(PairProcessor):
                 pair.r1.match_start += dbtrim
                 _debug("after dumbbell: {}".format([pair.r1.ltrim, pair.r1.rtrim, pair.r1.match_start, pair.r1.match_len, pair.r1.match_index ]))
 
+        if pair.r1.match_index < 0:
+            # if we're here it is due to a prefix in R1 as well
+            assert(run.collapse_left_prefixes)  # we would have failed already for R2 otherwise...
+            r1prefix = -pair.r1.match_index
+            pair.r1.rtrim += r1prefix
+            pair.r1.match_index = 0
+            pair.r1.match_len -= r1prefix
+            pair.r1.match_start += r1prefix
+
         target_seq = pair.target.seq
         r1_matcher = pair.r1.reverse_complement
         pair.r1.match_errors = string_match_errors(r1_matcher, target_seq[pair.r1.match_index:])

@@ -22,7 +22,8 @@
         "hairpinA_circ": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
         "mut_cotrans": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCGGGTCGGCATGGCATCTCCACCTCCTCGCGGT",
         "mut_single": "ggacaagcaatgcttgccttgatgttgaacttttgaatagtgattcaggaggttaatgATGagcaaaggagaagaacttttcactggagttgtcccaattcttgttg",
-        "tRNA": "GGCGGATTTAGCTCAGTTGGGAGAGCGCCAGACTGAAGATCTGGAGGTCCTGTGTTCGATCCACAGAATTCGCACCACACTCGGGCACCAAGGAC"
+        "tRNA": "GGCGGATTTAGCTCAGTTGGGAGAGCGCCAGACTGAAGATCTGGAGGTCCTGTGTTCGATCCACAGAATTCGCACCACACTCGGGCACCAAGGAC",
+        "1AT0": "GGACCCGGCACCTCCTCGCGGTGCCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC"
     },
     "tests": [
         {
@@ -2699,6 +2700,35 @@
                         "muts": [ ],
                         "r1_indels": { "54": { "insert_type": false, "seq": "C", "src_index": 5 } },
                         "r2_indels": { "54": { "insert_type": true, "seq": "AAA", "src_index": 5 } }
+                    }
+                }
+            ]
+        },
+        {
+            "set_name": "dumbbell_prefix",
+            "run_opts": {
+                "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
+                "algorithms": [ "find_partial", "indels" ],
+                "allow_negative_values": true,
+                "allowed_target_errors": 8,
+                "collapse_left_prefixes": true,
+                "count_edge_mutations": "stop_and_mut",
+                "count_left_prefixes": true,
+                "count_mutations": true
+            },
+            "targets": [ "1AT0" ],
+            "tests": [
+                {
+                    "id": "dumbbell_prefix_1",
+                    "r1": "CTTGGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGGCACCGCGAGGAGGTGCCGGGTCCATGAAGAGCCTAGTCGCTGTTCAAG",
+                    "r2": "TGAACAGCGACTAGGCTCTTCATGGACCCGGCACCTCCTCGCGGTGCCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCCCAAGAG",
+                    "expect": {
+                        "counters": {
+                            "prefix_YYYR_T": 1
+                        },
+                        "end": 81,
+                        "muts": [],
+                        "site": 0
                     }
                 }
             ]
