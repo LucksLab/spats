@@ -323,3 +323,10 @@ class Sequence(object):
         self._quality_with_indels = "".join(nql) if qual else None
         return self._seq_with_indels, self._quality_with_indels
 
+    def error_in_region(self, rois):
+        for i in self.match_errors:
+            muti = i + self.match_index + 1
+            for roi in rois:
+                if roi[0] <= muti  and  muti <= roi[1]:
+                    return True
+        return False

@@ -245,6 +245,10 @@ class IndelsProcessor(PairProcessor):
         elif not self._extend_match(pair, r1_fully_rtrimmed):
             return
 
+        if run._p_rois  and  (pair.r1.error_in_region(run._p_rois) or pair.r2.error_in_region(run._p_rois)):
+            pair.interesting = True
+            self.counters.interesting_pairs += pair.multiplicity
+
         counted_prefix = None
         if pair.r2.match_start > pair.r2.match_index:
             assert(pair.r2.match_index == 0)    # align_strings() will ensure this if penalize_ends is True
@@ -317,6 +321,12 @@ class IndelsProcessor(PairProcessor):
             # TAI:  might bail on these
 
         pair.site = pair.left
+        if run._p_rois and not pair.interesting:
+            for roi in run._p_rois:
+                if roi[0] <= pair.site  and  pair.site <= roi[1]:
+                    pair.interesting = True
+                    self.counters.interesting_pairs += pair.multiplicity
+                    break
         self.counters.register_count(pair)
         if counted_prefix:
             self.counters.register_mapped_prefix(counted_prefix, pair)

@@ -153,6 +153,13 @@ class Run(object):
         #: Default ``8``, set to adjust the minimum length for matching tags for the reads analyzer.
         self.minimum_tag_match_length = 8
 
+        #: Default ``None``, specify a list of pairs like (min, max) where each pair 
+        #: specifies a minimum and maximum nucleotide index indicating a region in which 
+        #: to watch for activity.  If a read has a stop and/or mutation within this region, 
+        #: it will be tagged with as ``interesting``.  Only meaningfull when using the 
+        #: `reads` tool and either the ``find_partial`` or ``indels`` algorithms.
+        self.regions_of_interest = None
+
         #: Default ``lookup``, set to ``find_partial`` to use the partial find algorithm.
         #: Set to ``indels`` to use the (experimental) algorithm to report indels. 
         #: Warning: ``indels`` is expected to be at least two orders of magnitude slower.
@@ -246,6 +253,7 @@ class Run(object):
         self._p_processor_class = None
         self._p_v102_compat = False
         self._p_extra_tags = None # used by reads analyzer
+        self._p_rois = None
 
         # private config that should not be persisted (use _ prefix)
         self._run_limit = 0 # for testing, only supported on num_workers=1
@@ -271,6 +279,13 @@ class Run(object):
         if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1 or not self.ignore_stops_with_mismatched_overlap:
             if self.algorithm not in ['find_partial', 'indels']:
                 self.algorithm = 'find_partial'
+        if self.regions_of_interest:
+            if self.algorithm not in ['find_partial', 'indels']:
+                self.algorithm = 'find_partial'
+            try:
+                self._p_rois = [ (min(map(int, roi)), max(map(int, roi))) for roi in self.regions_of_interest ]
+            except Exception as e:
+                raise Exception("Invalid regions_of_interest.  Specify as '(min_index, max_index), (min_index, max_index), ...'.")
         if self.collapse_only_prefixes:
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
         if self.count_mutations and self.mutations_require_quality_score is not None:

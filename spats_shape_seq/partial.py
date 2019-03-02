@@ -176,6 +176,9 @@ class PartialFindProcessor(PairProcessor):
         pair.r1.match_errors = string_match_errors(r1_matcher, target_seq[pair.r1.match_index:])
         pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
         _debug("match errors: {} / {}".format(pair.r1.match_errors, pair.r2.match_errors))
+        if run._p_rois  and  (pair.r1.error_in_region(run._p_rois) or pair.r2.error_in_region(run._p_rois)):
+            pair.interesting = True
+            self.counters.interesting_pairs += pair.multiplicity
 
         if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
             if pair.r1.match_errors:
@@ -216,6 +219,12 @@ class PartialFindProcessor(PairProcessor):
             return
 
         pair.site = pair.site or pair.left
+        if run._p_rois and not pair.interesting:
+            for roi in run._p_rois:
+                if roi[0] <= pair.site  and  pair.site <= roi[1]:
+                    pair.interesting = True
+                    self.counters.interesting_pairs += pair.multiplicity
+                    break
         self.counters.register_count(pair)
         if counted_prefix:
             self.counters.register_mapped_prefix(counted_prefix, pair)
@@ -464,6 +473,10 @@ class CotransPartialFindProcessor(PairProcessor):
 
         pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement[:pair.r1.match_len], tseq[pair.r1.match_index:])
         pair.r2.match_errors = string_match_errors(pair.r2.subsequence[:pair.r2.match_len], tseq[pair.r2.match_index:])
+        if run._p_rois  and  (pair.r1.error_in_region(run._p_rois) or pair.r2.error_in_region(run._p_rois)):
+            pair.interesting = True
+            self.counters.interesting_pairs += pair.multiplicity
+
         if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
             if len(pair.r1.match_errors) > run.allowed_target_errors:
                 _debug("R1 errors: {}".format(pair.r1.match_errors))
@@ -495,6 +508,12 @@ class CotransPartialFindProcessor(PairProcessor):
             return
 
         pair.site = pair.left
+        if run._p_rois and not pair.interesting:
+            for roi in run._p_rois:
+                if roi[0] <= pair.site  and  pair.site <= roi[1]:
+                    pair.interesting = True
+                    self.counters.interesting_pairs += pair.multiplicity
+                    break
         self.counters.register_count(pair)
         if counted_prefix:
             self.counters.register_mapped_prefix(counted_prefix, pair)

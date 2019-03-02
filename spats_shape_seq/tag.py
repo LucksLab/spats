@@ -16,6 +16,7 @@ TAG_LINKER = "linker_cotrans"
 TAG_INDELS = "indels"
 TAG_INDELS_MISMATCHED = "indels_mismatched"
 TAG_UNKNOWN = "unknown"
+TAG_INTERESTING = "interesting"
 ALL_TAGS = [ TAG_MATCH,
              TAG_ADAPTER,
              TAG_INDETERMINATE,
@@ -28,6 +29,7 @@ ALL_TAGS = [ TAG_MATCH,
              TAG_INDELS,
              TAG_INDELS_MISMATCHED,
              TAG_UNKNOWN,
+             TAG_INTERESTING,
 ]
 MASK_TO_TAG = { "RRRY" : TAG_TREATED, "YYYR" : TAG_UNTREATED }
 
@@ -211,6 +213,8 @@ class TagProcessor(PairProcessor):
                 tags.append(masktag)
         else:
             tags.append(TAG_MASK_FAILURE)
+        if pair.interesting:
+            tags.append(TAG_INTERESTING)
         if pair.r1.indels or pair.r2.indels:
             tags.append(TAG_INDELS)
             if not pair.indels_match:

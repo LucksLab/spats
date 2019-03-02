@@ -17,6 +17,7 @@ class Pair(object):
         self.mask = None
         self._target = None
         self.site = None
+        self.interesting = False
         self.failure = None
         self.multiplicity = 1
         self.tags = None
