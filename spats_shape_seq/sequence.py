@@ -171,13 +171,46 @@ class Sequence(object):
             self.match_len = self.seq_len
         _debug(["M2S:", self.match_index, self.match_len, self.match_start, "-- ", self._rtrim])
 
-    def align_with_target(self, target, simfn, gap_open_cost, gap_extend_cost, suffix = ""):
+    def resolve_ambig_indels(self, target, ap):
+        if not self.indels:
+            return
+        newindels = {}
+        prevind = -1
+        for indind,indel in sorted(self.indels.iteritems()):
+            indel.ambiguous = False
+            if indel.insert_type:
+                ## TAI: Busan & Weeks, 2018 is about deletes, but go ahead and do same for inserts.
+                while indind > 0  and  indel.seq[-1] == target[indind - 1]:
+                    indel.seq = target[indind - 1] + indel.seq[:-1]
+                    indind -= 1
+                    indel.src_index -= 1
+                    indel.ambiguous = True
+                if not indel.ambiguous  and  indind < len(target)  and  target[indind] == indel.seq[0]:
+                    # in case it started to the left already (from stitching)
+                    indel.ambiguous = True
+                newindels[indind] = indel
+            else:
+                ## Use heuristic from Busan & Weeks, 2018:  ambiguous deletes aligned to 5' side.
+                ilen = len(indel.seq)
+                while indind >= ilen + prevind  and  target[(indind - ilen):indind] == indel.seq:
+                    indind -= 1
+                    indel.src_index -= 1
+                    indel.ambiguous = True
+                if not indel.ambiguous  and  indind < len(target) - 1  and  target[(indind + 2 - ilen):(indind + 2)] == indel.seq:
+                    # in case it started to the left already (from stitching)
+                    indel.ambiguous = True
+                newindels[indind] = indel
+            prevind = indind
+        self.indels = newindels
+
+    def align_with_target(self, target, ap, suffix = ""):
         read_end = self.match_start + self.match_len
         if self.match_start > 0  and  self.match_index > 0:
+            ## Extend towards left/front/5' end...
             front_read = self.reverse_complement[:self.match_start] if self._needs_rc else self.subsequence[:self.match_start]
             front_target = target.seq[:self.match_index]
             # Reverse strings for front-bias since their ends are more likely to align...
-            align_front = align_strings(front_read[::-1], front_target[::-1], simfn, gap_open_cost, gap_extend_cost)
+            align_front = align_strings(front_read[::-1], front_target[::-1], ap)
             align_front.flip()
 
             good_alignment = True
@@ -185,8 +218,8 @@ class Sequence(object):
             if tlen - align_front.target_match_end - 1 > 0:
                 delseq = front_target[align_front.target_match_end + 1:]
                 existing_del = align_front.indels.get(align_front.target_match_end)
-                oc = gap_extend_cost if existing_del else gap_open_cost
-                if 0.0 < align_front.score - oc - (len(delseq) - 1) * gap_extend_cost:
+                oc = ap.gap_extend_cost if existing_del else ap.gap_open_cost
+                if 0.0 < align_front.score - oc - (len(delseq) - 1) * ap.gap_extend_cost:
                     if existing_del:
                         assert(not existing_del.insert_type)
                         delseq = existing_del.seq + delseq
@@ -197,7 +230,7 @@ class Sequence(object):
                     good_alignment = False
             elif len(front_read) - align_front.src_match_end - 1 > 0:
                 insseq = front_read[align_front.src_match_end + 1:]
-                if 0.0 < align_front.score - gap_open_cost - (len(insseq) - 1) * gap_extend_cost:
+                if 0.0 < align_front.score - ap.gap_open_cost - (len(insseq) - 1) * ap.gap_extend_cost:
                     self.indels[tlen] = Indel(True, insseq, align_front.src_match_end + 1)
                     self.indels_delta += len(insseq)
                 else:
@@ -218,14 +251,15 @@ class Sequence(object):
 
         target_end = self.match_index + self.match_len
         if read_end < self.seq_len and (target_end < target.n  or  len(suffix) > 0):
+            ## Extend towards right/rear/3' end...
             back_read = self.reverse_complement[read_end:] if self._needs_rc else self.subsequence[read_end:]
             back_target = target.seq[target_end:] + suffix
-            align_back = align_strings(back_read, back_target, simfn, gap_open_cost, gap_extend_cost)
+            align_back = align_strings(back_read, back_target, ap)
 
             good_alignment = True
             if align_back.target_match_start > 0:
                 delseq = back_target[:align_back.target_match_start]
-                if 0.0 < align_back.score - gap_open_cost - (len(delseq) - 1) * gap_extend_cost:
+                if 0.0 < align_back.score - ap.gap_open_cost - (len(delseq) - 1) * ap.gap_extend_cost:
                     align_back.indels[align_back.target_match_start - 1] = Indel(False, delseq, 0)
                     align_back.indels_delta -= len(delseq)
                 else:
@@ -233,8 +267,8 @@ class Sequence(object):
             elif align_back.src_match_start > 0:
                 insseq = back_read[:align_back.src_match_start]
                 existing_ins = align_back.indels.get(0)
-                oc = gap_extend_cost if existing_ins else gap_open_cost
-                if 0.0 < align_back.score - oc - (len(insseq) - 1) * gap_extend_cost:
+                oc = ap.gap_extend_cost if existing_ins else ap.gap_open_cost
+                if 0.0 < align_back.score - oc - (len(insseq) - 1) * ap.gap_extend_cost:
                     if existing_ins:
                         existing_ins.seq += insseq
                     else:
@@ -251,6 +285,9 @@ class Sequence(object):
                 m = min(len(back_read), len(target.seq[target_end:]))
                 self.match_len += m
                 self.match_errors += [ e + target_end - self.match_index for e in xrange(m) if back_read[e] != back_target[e] ]
+
+        self.resolve_ambig_indels(target.seq, ap)
+
 
     def update_shifted_indels(self, newindels, key_delta, val_delta):
         for indind,indel in newindels.iteritems():

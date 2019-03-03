@@ -222,8 +222,44 @@ class Indel:
         self.src_index = src_index        # for easy reference into source string (index inserts to *left* side)
 
 
+class AlignmentParams:
+    '''
+     Parameters used for align_strings() algorithm.
+     @param  simfn              Similarity function for string elements
+     @param  gap_open_cost      Penalty for opening a gap (should be non-negative)
+     @param  gap_extend_cost    Penalty for extending an already-open gap (should be non-negative)
+     @param  front_biased       Set to True to bias towards aligning fronts
+     @param  penalize_ends      If True, will penalize regions before/after alignment for mismatches
+    '''
+    def __init__(self, simfn = lambda n1, n2: AlignmentParams.char_sim(n1, n2),
+                       gap_open_cost = 6, gap_extend_cost = 1,
+                       front_biased = True, penalize_ends = True):
+        self.simfn = simfn
+        self.gap_open_cost = gap_open_cost
+        self.gap_extend_cost = gap_extend_cost
+        self.front_biased = front_biased
+        self.penalize_ends = penalize_ends
+
+    @staticmethod
+    def char_sim(sc, tc, match_value = 2, mismatch_cost = 2):
+        """
+         Basic character similarity.
+         @param  sc             source character
+         @param  tc             target character
+         @param  match_value    Score bump/reward if they match
+         @param  mismatch_cost  Penalty if they don't match (should be non-negative)
+         @return similarity between sc and tc
+        """
+        return match_value if sc == tc else -mismatch_cost
+
+    def __str__(self):
+        """ convenience for debugging """
+        return str(vars(self))
+
+
 class Alignment:
-    def __init__(self, score, target_len, target_start, target_end, src_len, src_start, src_end, indels, mismatched, max_run):
+    def __init__(self, params, score, target_len, target_start, target_end, src_len, src_start, src_end, indels, mismatched, max_run):
+        self.params = params                    # AlignmentParams object used
         self.score = score                      # Smith-Waterman alignment score
         self.orig_target_len = target_len       # the full length of the original target string
         self.target_match_start = target_start  # the first indice in target to which source maps ("site")
@@ -242,7 +278,7 @@ class Alignment:
 
     def __str__(self):
         """ convenience for debugging """
-        return "score={}\ntarget_match_start={}, target_match_end={} (len={})\nsrc_match_start={}, src_match_end={}\nmax_run={}\nmismatched={}\nindels_delta={}\nindels={}".format(self.score, self.target_match_start, self.target_match_end, self.target_match_len, self.src_match_start, self.src_match_end, self.max_run, self.mismatched, self.indels_delta, objdict_as_str(self.indels))
+        return "score={}\ntarget_match_start={}, target_match_end={} (len={})\nsrc_match_start={}, src_match_end={}\nmax_run={}\nmismatched={}\nindels_delta={}\nindels={}\nparams={}".format(self.score, self.target_match_start, self.target_match_end, self.target_match_len, self.src_match_start, self.src_match_end, self.max_run, self.mismatched, self.indels_delta, objdict_as_str(self.indels), self.params) 
 
     def indels_as_dict(self):
         """ convenience for testing """
@@ -271,17 +307,7 @@ class Alignment:
         self.indels = newindels
 
 
-def char_sim(sc, tc, match_value = 2, mismatch_cost = 2): 
-    """
-     @param  sc             source character
-     @param  tc             target character
-     @param  match_value    Score bump/reward if they match
-     @param  mismatch_cost  Penalty if they don't match (should be non-negative)
-     @return similarity between sc and tc
-    """
-    return match_value if sc == tc else -mismatch_cost
-
-def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_extend_cost = 1, front_biased = True, penalize_ends = True):
+def align_strings(source, target, params = AlignmentParams()):
     """
      Find the indels (insertions and deletions) in a source string relative to a target string.
      First, heuristically tries to find the best alignment of two strings of length M and N, 
@@ -293,13 +319,9 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
      Warning:  This function has not been optimized; use with care on long strings.
      TAI:  Consider option to produce CIGAR format.
 
-     @param  source              Source string
-     @param  target              Target string
-     @param  simfn               Similarity function for string elements
-     @param  gap_open_cost       Penalty for opening a gap (should be non-negative)
-     @param  gap_extend_cost     Penalty for extending an already-open gap (should be non-negative)
-     @param  front_biased        Set to True to bias towards aligning fronts
-     @param  penalize_ends       If True, will penalize regions before/after alignment for mismatches
+     @param  source  Source string
+     @param  target  Target string
+     @param  params  AlignmentParams object controlling alignment
      @return an Alignment object
     """
     m = len(source) + 1
@@ -308,10 +330,17 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
     H = [[0.0]*n for r in xrange(m)]
     P = [[(0, 0)]*n for r in xrange(m)]
 
+    simfn = params.simfn
+    gap_open_cost = params.gap_open_cost
+    gap_extend_cost = params.gap_extend_cost
+    front_biased = params.front_biased
+
+    ## Dynamic-programming - build up costs from left
     maxH = 0.0
     maxs = [0, 0]
     for i in xrange(1, m):
         imo = i -1
+        Hi = H[i]
         for j in xrange(1, n):
             jmo = j - 1
             h = H[imo][jmo] + simfn(source[imo], target[jmo])
@@ -322,15 +351,16 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
                     h = h2
                     P[i][j] = (ki, j)
             for kj in xrange(j):
-                h3 = H[i][kj] - gap_open_cost - gap_extend_cost * (jmo - kj)
+                h3 = Hi[kj] - gap_open_cost - gap_extend_cost * (jmo - kj)
                 if h3 > h:
                     h = h3
                     P[i][j] = (i, kj)
             if h >= maxH  and  (h > maxH  or  not front_biased  or  abs(i - j) < abs(maxs[0] - maxs[1])):
                 maxH = h
                 maxs = [i, j]
-            H[i][j] = max(h, 0.0)    # omit the max0 (and backtrack from corner) for Needleman-Wunsch instead
+            Hi[j] = max(h, 0.0)    # omit the max0 (and backtrack from corner) for Needleman-Wunsch instead
 
+    ## Now backtrack from max Hij...
     i, j = maxs
     indels = {}
     mismatches = []
@@ -342,6 +372,7 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
         i, j = P[i][j]
         deli, delj = lasti - i, lastj - j
         if deli and delj:
+            #assert(deli == 1  and delj == 1)
             cur_indel = None
             if simfn(source[i], target[j]) <= 0.0:
                 mismatches.append(j)
@@ -378,7 +409,7 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
     i = min(i, m - 2)
     j = min(j, n - 2)
 
-    if penalize_ends:
+    if params.penalize_ends:
         if i > 0 and j > 0:
             prei, prej = i, j
             prefix_match_score = 0
@@ -421,7 +452,7 @@ def align_strings(source, target, simfn = char_sim, gap_open_cost = 6, gap_exten
                 indels[suffj] = Indel(True, source[suffi:], suffi)
                 indels[n - 2] = Indel(False, target[suffj:], m - 1)
 
-    return Alignment(maxH, n - 1, j, maxs[1] - 1, m - 1, i, maxs[0] - 1, indels, mismatches, max_run)
+    return Alignment(params, maxH, n - 1, j, maxs[1] - 1, m - 1, i, maxs[0] - 1, indels, mismatches, max_run)
 
 
 class Colors(object):

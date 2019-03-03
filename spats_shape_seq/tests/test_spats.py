@@ -1,7 +1,7 @@
 
 import unittest
 
-from spats_shape_seq.util import reverse_complement, string_find_errors, string_match_errors, align_strings, char_sim, string_find_with_overlap
+from spats_shape_seq.util import reverse_complement, string_find_errors, string_match_errors, align_strings, AlignmentParams, string_find_with_overlap
 from spats_shape_seq.mask import longest_match, base_similarity_ind
 
 
@@ -70,10 +70,11 @@ class TestUtils(unittest.TestCase):
         GOC = 5
         GEC = 1
         simfn = lambda a,b: base_similarity_ind(a, b, MV, MMC, .5*MV)
+        ap = AlignmentParams(simfn, GOC, GEC)
 
         R = "GGMCSCGATGCCGNACGATKTAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGRCCGATAAAGCTTTCAAWAGACGAYAAT"
         T = "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC"
-        a = align_strings(R, T, simfn, GOC, GEC)
+        a = align_strings(R, T, ap)
         self.assertEqual(a.score, 179.5)
         self.assertEqual(a.target_match_start, 0)
         self.assertEqual(a.target_match_end, 73)
@@ -94,8 +95,8 @@ class TestUtils(unittest.TestCase):
         T =  "TTTTAAAAAAAAAAAAAAAAAAAAAATTTTT"
 
         MMC = 5    # all indels
-        simfn = lambda a,b: char_sim(a, b, MV, MMC)
-        a = align_strings(R, T, simfn, GOC, GEC)
+        ap.simfn = lambda a,b: AlignmentParams.char_sim(a, b, MV, MMC)
+        a = align_strings(R, T, ap)
         self.assertEqual(a.score, 32.0)
         self.assertEqual(a.target_match_start, 0)
         self.assertEqual(a.target_match_end, 29)
@@ -108,8 +109,8 @@ class TestUtils(unittest.TestCase):
                                               '30': { 'insert_type': False, 'seq': "TTTTT", "src_index": 31 } })
 
         MMC = 4    # all mismatches
-        simfn = lambda a,b: char_sim(a, b, MV, MMC)
-        a = align_strings(R, T, simfn, GOC, GEC)
+        ap.simfn = lambda a,b: AlignmentParams.char_sim(a, b, MV, MMC)
+        a = align_strings(R, T, ap)
         self.assertEqual(a.score, 34.0)
         self.assertEqual(a.target_match_start, 0)
         self.assertEqual(a.target_match_end, 29)
@@ -121,8 +122,8 @@ class TestUtils(unittest.TestCase):
         R = "TTTCCCCCAAAAGACGATAAT"
         T = "CCCCCGACGATAATACTCCCAAAGCCCACCCAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
         MMC = 2
-        simfn = lambda a,b: char_sim(a, b, MV, MMC)
-        a = align_strings(R, T, simfn, GOC, GEC)
+        ap.simfn = lambda a,b: AlignmentParams.char_sim(a, b, MV, MMC)
+        a = align_strings(R, T, ap)
         self.assertEqual(a.score, 34.0)
         self.assertEqual(a.target_match_start, 0)
         self.assertEqual(a.target_match_end, 13)

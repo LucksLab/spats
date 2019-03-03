@@ -1,7 +1,7 @@
 
 from processor import PairProcessor, Failures
 from mask import base_similarity_ind
-from util import _warn, _debug, reverse_complement, char_sim, string_match_errors, string_find_errors, string_find_with_overlap
+from util import _warn, _debug, reverse_complement, string_match_errors, string_find_errors, string_find_with_overlap, AlignmentParams
 
 
 class IndelsProcessor(PairProcessor):
@@ -119,7 +119,8 @@ class IndelsProcessor(PairProcessor):
         if run.allow_indeterminate:
             simfn = lambda nt1, nt2: base_similarity_ind(nt1, nt2, run.indel_match_value, run.indel_mismatch_cost, .5 * run.indel_match_value)
         else:
-            simfn = lambda nt1, nt2: char_sim(nt1, nt2, run.indel_match_value, run.indel_mismatch_cost) 
+            simfn = lambda nt1, nt2: AlignmentParams.char_sim(nt1, nt2, run.indel_match_value, run.indel_mismatch_cost) 
+        ap = AlignmentParams(simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost)
 
         masklen = pair.mask.length()
         dumblen = len(run.dumbbell) if run.dumbbell else 0
@@ -127,7 +128,7 @@ class IndelsProcessor(PairProcessor):
         ## Align remaining R2 first to find adapter overhang.
         ## TAI: probably better way of doing adapter alignment  (see indels_7 testcase)
         r2suffix = "" if run.cotrans else reverse_complement(pair.r1.original_seq[:masklen]) + reverse_complement(run.adapter_t)
-        pair.r2.align_with_target(pair.target, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost, r2suffix)
+        pair.r2.align_with_target(pair.target, ap, r2suffix)
         if run.dumbbell:
             pair.dumbbell = pair.r2.match_index - dumblen
 
@@ -139,7 +140,7 @@ class IndelsProcessor(PairProcessor):
 
         ## Now align remaining R1 if necessary
         if not pair.r1.fully_matched:
-            pair.r1.align_with_target(pair.target, simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost)
+            pair.r1.align_with_target(pair.target, ap)
             # we may have not trimmed enough
             r1_overhang = pair.r1.right_est - pair.target.n
             if r1_overhang > 0:
