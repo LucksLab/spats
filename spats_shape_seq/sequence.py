@@ -171,7 +171,7 @@ class Sequence(object):
             self.match_len = self.seq_len
         _debug(["M2S:", self.match_index, self.match_len, self.match_start, "-- ", self._rtrim])
 
-    def resolve_ambig_indels(self, target, ap):
+    def resolve_ambig_indels(self, target):
         if not self.indels:
             return
         newindels = {}
@@ -286,7 +286,7 @@ class Sequence(object):
                 self.match_len += m
                 self.match_errors += [ e + target_end - self.match_index for e in xrange(m) if back_read[e] != back_target[e] ]
 
-        self.resolve_ambig_indels(target.seq, ap)
+        self.resolve_ambig_indels(target.seq + suffix)
 
 
     def update_shifted_indels(self, newindels, key_delta, val_delta):
