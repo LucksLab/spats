@@ -689,7 +689,7 @@ def indels_run():
 def align_pairs():
     from spats_shape_seq.pair import Pair
     from spats_shape_seq.target import Targets
-    from spats_shape_seq.util import reverse_complement
+    from spats_shape_seq.util import reverse_complement, AlignmentParams
     from spats_shape_seq.mask import Mask, match_mask_optimized, base_similarity_ind
 
     target_seq = "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC"  # HairpinC_SS2
@@ -714,14 +714,15 @@ def align_pairs():
     adapter_t = "AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"
     r2suffix = reverse_complement(pair.r1.original_seq[:masklen]) + reverse_complement(adapter_t)
     simfn = lambda nt1, nt2: base_similarity_ind(nt1, nt2, 3, 2, 1.5)
+    ap = AlignmentParams(simfn, 5, 1)
 
-    pair.r2.align_with_target(pair.target, simfn, 5, 1, r2suffix)
+    pair.r2.align_with_target(pair.target, ap, r2suffix)
     r2_adapter_trim = max(0, pair.r2.match_index + pair.r2.match_len - pair.target.n)
     r1_adapter_trim = pair.r1.seq_len - (pair.target.n - pair.r2.match_index)
     if r1_adapter_trim > 0:
         pair.r1.rtrim += r1_adapter_trim
         pair.r1.match_start -= r1_adapter_trim
-    pair.r1.align_with_target(pair.target, simfn, 5, 1)
+    pair.r1.align_with_target(pair.target, ap)
 
     exit(0)
 

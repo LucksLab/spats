@@ -381,7 +381,7 @@ def align_strings(source, target, params = AlignmentParams()):
         if deli and delj:
             #assert(deli == 1  and delj == 1)
             cur_indel = None
-            if simfn(source[i], target[j]) <= 0.0:
+            if H[i][j] >= H[lasti][lastj]:
                 mismatches.append(j)
                 if cur_run > max_run:
                     max_run = cur_run
