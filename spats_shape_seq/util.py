@@ -338,27 +338,34 @@ def align_strings(source, target, params = AlignmentParams()):
     ## Dynamic-programming - build up costs from left
     maxH = 0.0
     maxs = [0, 0]
+    colmax = [0.0]*n
+    colmaxi = [0]*n
     for i in xrange(1, m):
         imo = i -1
         Hi = H[i]
+        rowmax, rowmaxj = 0.0, 0
         for j in xrange(1, n):
             jmo = j - 1
             h = H[imo][jmo] + simfn(source[imo], target[jmo])
+            h2 = colmax[j] - gap_open_cost - gap_extend_cost * (imo - colmaxi[j])
+            h3 = rowmax - gap_open_cost - gap_extend_cost * (jmo - rowmaxj)
             P[i][j] = (imo, jmo)
-            for ki in xrange(i):
-                h2 = H[ki][j] - gap_open_cost - gap_extend_cost * (imo - ki)
-                if h2 > h:
-                    h = h2
-                    P[i][j] = (ki, j)
-            for kj in xrange(j):
-                h3 = Hi[kj] - gap_open_cost - gap_extend_cost * (jmo - kj)
-                if h3 > h:
-                    h = h3
-                    P[i][j] = (i, kj)
+            if h2 > h:
+                h = h2
+                P[i][j] = (colmaxi[j], j)
+            if h3 > h:
+                h = h3
+                P[i][j] = (i, rowmaxj)
+            Hi[j] = max(h, 0.0)    # omit the max0 (and backtrack from corner) for Needleman-Wunsch instead
             if h >= maxH  and  (h > maxH  or  not front_biased  or  abs(i - j) < abs(maxs[0] - maxs[1])):
                 maxH = h
                 maxs = [i, j]
-            Hi[j] = max(h, 0.0)    # omit the max0 (and backtrack from corner) for Needleman-Wunsch instead
+            if Hi[j] >= h2 + gap_open_cost - gap_extend_cost:
+                # above same as:  colmax[j] - gap_extend_cost * (i - colmaxi[j])
+                colmax[j], colmaxi[j] = Hi[j], i
+            if Hi[j] >= h3 + gap_open_cost - gap_extend_cost:
+                # above same as:  rowmax - gap_extend_cost * (j - rowmaxj)
+                rowmax, rowmaxj = Hi[j], j
 
     ## Now backtrack from max Hij...
     i, j = maxs
@@ -423,7 +430,7 @@ def align_strings(source, target, params = AlignmentParams()):
                     prefix_mismatches.append(j)
             in_del_cost = -2 * gap_open_cost - gap_extend_cost * max(prei + prej - 2, 0)
             if prefix_match_score > in_del_cost:
-                maxH +=prefix_match_score
+                maxH += prefix_match_score
                 mismatches += prefix_mismatches
             else:
                 maxH += in_del_cost
