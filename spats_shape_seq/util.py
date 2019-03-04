@@ -360,10 +360,10 @@ def align_strings(source, target, params = AlignmentParams()):
             if h >= maxH  and  (h > maxH  or  not front_biased  or  abs(i - j) < abs(maxs[0] - maxs[1])):
                 maxH = h
                 maxs = [i, j]
-            if Hi[j] >= h2 + gap_open_cost - gap_extend_cost:
+            if Hi[j] > h2 + gap_open_cost - gap_extend_cost:
                 # above same as:  colmax[j] - gap_extend_cost * (i - colmaxi[j])
                 colmax[j], colmaxi[j] = Hi[j], i
-            if Hi[j] >= h3 + gap_open_cost - gap_extend_cost:
+            if Hi[j] > h3 + gap_open_cost - gap_extend_cost:
                 # above same as:  rowmax - gap_extend_cost * (j - rowmaxj)
                 rowmax, rowmaxj = Hi[j], j
 
