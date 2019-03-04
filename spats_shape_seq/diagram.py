@@ -400,7 +400,7 @@ class Diagram(object):
         if self.pair.mutations:
             idx = 1
             for mut in self.pair.mutations:
-                if self.pair.edge_mut and mut + 1 == self.pair.site:
+                if self.pair.edge_mut:
                     # note: decrement to make off-by-one conventions align better
                     # xref 'conventions' above
                     features['EdgeMut{} ({})'.format(idx, self.pair.edge_mut)] = mut - 1

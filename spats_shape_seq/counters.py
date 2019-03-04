@@ -51,7 +51,7 @@ class Counters(object):
     def register_count(self, pair):
         if pair.mutations:
             for mut in pair.mutations:
-                if pair.site == mut + 1:      # TODO STEVE:  Should this be mut-1?
+                if pair.site == mut - 1:
                     # mutation on the edge
                     # xref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case
                     count_muts = self._run.count_edge_mutations
@@ -78,6 +78,7 @@ class Counters(object):
             # only count one indel at a spot per pair 
             for spot in set(pair.r1.indels.keys() + pair.r2.indels.keys()):
                 indel = pair.r1.indels.get(spot, pair.r2.indels.get(spot))   # assumes types and length match at spot
+                spot += 1    # treat indels as 1-based (like mutations) for reactivity computations
                 _dict_incr(self._registered, self._indel_key(pair, spot, indel), pair.multiplicity)
                 _dict_incr(self._counts, pair.mask.chars + "_indels", pair.multiplicity)
                 _dict_incr(self._counts, 'mapped_indel_len_{}'.format(len(indel.seq)), pair.multiplicity)
