@@ -438,10 +438,11 @@
                     "r2": "AGGACTGACTCGGGCACCAAGGACTTTCTCGTTCACCTATTTCTTTCTCTTCCCCCTTTTTCTTTCTCTTTCTCC"
                 },
                 {
-                    "comment": "this one is slightly ambiguous due to mutation at the site. the code reports it the same as the rest for consistency, \nbut it's counted separately in counters for further analysis \nxref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case",
+                    "comment": "this one is slightly ambiguous due to mutation at the site. the code reports it the same as the rest for consistency, \nbut it's counted separately in counters for further analysis \nin this case, the mutation is ignored in reactivity computations.\n xref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case",
                     "expect": {
                         "counters": {
-                            "mut_count_1": 1
+                            "mut_count_1": 1,
+                            "mutations": 0
                         },
                         "end": 78,
                         "muts": [
@@ -793,6 +794,38 @@
                     "id": "muts_prefix_1",
                     "r1": "CTCAGGGCTTTGGGAGCATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTC",
                     "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAT"
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "count_edge_mutations": "stop_and_mut",
+                "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
+                "allowed_target_errors": 1,
+                "cotrans": true,
+                "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
+                "count_mutations": true,
+                "algorithms": [ "find_partial", "indels" ] 
+            },
+            "set_name": "muts_cotrans_ambig",
+            "targets": [
+                "mut_cotrans"
+            ],
+            "tests": [
+                {
+                    "comment": "this one is slightly ambiguous due to mutation at the site. the code reports it the same as the rest for consistency, \nbut it's counted separately in counters for further analysis\n in this case as a mutation. \nxref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case",
+                    "expect": {
+                        "counters": { 
+                            "mut_count_1": 1,
+                            "mutations": 1
+                        },
+                        "end": 78,
+                        "muts": [ 69 ],
+                        "site": 68
+                    },
+                    "id": "muts_cotrans_ambig_1",
+                    "r1": "AAATGTCCTTGGTGCCCGAGTCAGATCTGCCTTAAGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGA",
+                    "r2": "TAAGGCAGATCTGACTCGGGCACCAAGGACATTTAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCG"
                 }
             ]
         },
