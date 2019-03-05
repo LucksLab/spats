@@ -318,8 +318,6 @@ class Run(object):
             raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
         if self.count_edge_mutations and (self.count_edge_mutations != 'stop_only' and self.count_edge_mutations != 'stop_and_mut'):
             raise Exception('Invalid count_edge_mutations value: {}'.format(self.count_edge_mutations))
-        if self.dumbbell and self.cotrans:
-            raise Exception('Use of dumbbell in cotrans NYI')
 
     def _get_processor_class(self):
         self.apply_config_restrictions()
