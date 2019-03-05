@@ -112,7 +112,7 @@ class IndelsProcessor(PairProcessor):
         if run.cotrans:
             possible_matchlen = r2_linker_start if -1 != r2_linker_start else pair.r2.match_len
         else:
-            possible_matchlen = pair.target.n - max(0, pair.r2.match_index - pair.r2.match_start)
+            possible_matchlen = min(pair.target.n - max(0, pair.r2.match_index - pair.r2.match_start), pair.r1.seq_len + pair.r1.match_index - pair.r1.match_start)
         r1_adapter_trim = pair.r1.seq_len - possible_matchlen - max(pair.r2.indels_delta, 0)
         dumblen = len(run.dumbbell) if run.dumbbell else 0
         if run.minimum_adapter_len  and  r1_adapter_trim - dumblen < run.minimum_adapter_len:
