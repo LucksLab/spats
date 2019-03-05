@@ -132,7 +132,8 @@ class Sequence(object):
 
     @property
     def fully_matched(self):
-        return self.match_start == 0 and self.match_len == min(self.seq_len + self.indels_delta, self.target_len) 
+        return ((self.match_start == 0 and self.match_len == min(self.seq_len + self.indels_delta, self.target_len))  or
+               (self.match_index == 0 and ((self.match_start + self.match_len == self.seq_len) or self.match_len == self.target_len)))
 
     def trim(self, length):
         self.rtrim = length
@@ -158,18 +159,29 @@ class Sequence(object):
             self.rtrim += (self.seq_len - self.match_len - self.indels_delta )
 
     def match_to_seq(self):
+        ## Note:  this is to be used when using the convention of match_start relative to original_seq
         if self._needs_rc:
             if 0 == self._rtrim:
                 # we've already done this if we've trimmed
                 self.match_index -= self.match_start
                 self.match_start = self._rtrim
-            self.match_len = self.seq_len
         else:
-            # TODO:  The next 2 lines are wrong if match_start is relative to subsequence.
             self.match_index -= (self.match_start - self._ltrim)
             self.match_start = self._ltrim
-            self.match_len = self.seq_len
+        self.match_len = self.seq_len
         _debug(["M2S:", self.match_index, self.match_len, self.match_start, "-- ", self._rtrim])
+
+    def match_to_seq_2(self):
+        ## Note:  this is to be used when using the convention of match_start relative to subsequence
+        self.match_index -= self.match_start
+        self.match_start = 0
+        if self.match_index < 0:
+            if self._needs_rc:
+                self._rtrim -= self.match_index
+            else:
+                self._ltrim -= self.match_index
+            self.match_index = 0
+        self.match_len = self.seq_len
 
     def resolve_ambig_indels(self, target):
         if not self.indels:

@@ -178,7 +178,7 @@ class Pair(object):
     @property
     def fully_matched(self):
         if not self._fully_matched and self.r1.fully_matched and self.r2.fully_matched:
-            self.fully_matched = True
+            self._fully_matched = True
         return self._fully_matched
 
     @fully_matched.setter

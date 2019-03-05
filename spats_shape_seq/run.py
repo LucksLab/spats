@@ -263,6 +263,7 @@ class Run(object):
         self._force_mask = None
         self._redo_tag = None
         self._linker_trimmed = False
+        self._p_handle_indels = True     # Temporary until indels algorithm supercedes find_partial
 
 
     def apply_config_restrictions(self):
@@ -272,6 +273,9 @@ class Run(object):
             self.allowed_target_errors = max(self.allowed_target_errors, 1)
         if self.count_indels_towards_reactivity:
             self.algorithm = 'indels'
+        if self.dumbbell and self.cotrans and self.algorithm != 'indels':
+            self.algorithm = 'indels'
+            self._p_handle_indels = False    # Temporary
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
         if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1 or not self.ignore_stops_with_mismatched_overlap:
