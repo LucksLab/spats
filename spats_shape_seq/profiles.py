@@ -233,7 +233,9 @@ class TargetProfiles(object):
         depth_t = 0.0    # keep a running sum
         depth_u = 0.0  # for both channels
         running_c_sum = 0.0
+        c_zero = False
         running_c_alt_sum = 0.0
+        c_alt_zero = False
 
         # NOTE: there is an index discrepancy here between indices
         # used in the code, and the indices used in the derivation:
@@ -280,15 +282,27 @@ class TargetProfiles(object):
                 #print("domain error: {} / {} / {} / {}".format(s_j_t, depth_t, s_j_u, depth_u))
                 mu[j] = 0.0
 
-            running_c_sum -= math.log(1.0 - mu[j]) # xref Yu_Estimating_Reactivities pdf, p24
-            running_c_alt_sum -= math.log(1.0 - curmu)
+            if mu[j] != 1.0:
+                running_c_sum -= math.log(1.0 - mu[j]) # xref Yu_Estimating_Reactivities pdf, p24
+            else:
+                c_zero = True
+            if curmu != 1.0:
+                running_c_alt_sum -= math.log(1.0 - curmu)
+            else:
+                c_alt_zero = True
 
             r_mut[j] = self.betas[j] + mu[j]
 
         self.mu = mu
         self.r_mut = r_mut
-        self.c += running_c_sum
-        self.c_alt += running_c_alt_sum
+        if c_zero:
+            self.c = 0
+        else:
+            self.c += running_c_sum
+        if c_alt_zero:
+            self.c_alt += running_c_alt_sum
+        else:
+            self.c_alt = 0
 
 
     def write(self, outfile):
