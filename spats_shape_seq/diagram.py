@@ -118,7 +118,7 @@ class Diagram(object):
             d += self._add_indels(part, match_index, part.subsequence)
             if part.rtrim:
                 trimmed = part.original_seq[-part.rtrim:]
-                if self.run.cotrans and self.run._linker_trimmed:
+                if self.run.cotrans:
                     d += trimmed[:self.linkerlen]
                 if len(trimmed) > self.linkerlen:
                     d += ("." + trimmed[self.linkerlen:self.linkerlen + self.masklen])

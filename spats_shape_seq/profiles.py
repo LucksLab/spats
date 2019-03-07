@@ -10,7 +10,7 @@ class Profiles(object):
         self._cotrans = run.cotrans
         self._run = run
         count_muts = run.count_mutations
-        count_indels = run.count_indels_towards_reactivity
+        count_indels = run.handle_indels
         masks = run.masks
         profiles = {}
         for target in self._targets.targets:

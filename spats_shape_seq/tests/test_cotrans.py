@@ -14,7 +14,7 @@ cases = [
     # R2 partial linker case
 
     [ "1116:2824:48570", "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT", "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA", None, None ],
-    # 1 bp toggle in last 4 of R2 (xref v102 compat cases)
+    # 1 bp toggle in last 4 of R2 
 
     [ "301028", "AAGTGTCCTTGGTGCCCGAGTCAGAGATAGATCGGA", "ATCTCTGACTCGGGCACCAAGGACACTTAGATCGGA", 96, 92 ],
     # adapter trim case
@@ -122,10 +122,10 @@ cases = [
     # R2 has linker and RC of R1 handle, but no adapter
 ]
 
-v102_compat_cases = [
-    [ "1116:2824:48570", "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT", "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA", 115, 59 ],
-    [ "1011640", "GGACGTCCTTGGTGCCCGAGTCAGTAGCTAAGCAGC", "AACGCTGCTTAGCTACTGACTCGGGCACCAAGTACG", 39, 24 ],
-]
+#v102_compat_cases = [
+#    [ "1116:2824:48570", "GGGTGTCCTTGGTGCCCGAGTCAGGTTCTTCTCCTT", "TACTGGTAGGAGTCTATTTTTTTAGGAGGAAGGATA", 115, 59 ],
+#    [ "1011640", "GGACGTCCTTGGTGCCCGAGTCAGTAGCTAAGCAGC", "AACGCTGCTTAGCTACTGACTCGGGCACCAAGTACG", 39, 24 ],
+#]
 
 class TestPairsPartial(unittest.TestCase):
     
@@ -137,7 +137,6 @@ class TestPairsPartial(unittest.TestCase):
         self.spats.addTargets("test/cotrans/cotrans_single.fa")
 
     def setup_processor(self):
-        self.run_compat = True
         self.spats.run.algorithm = "find_partial"
 
     def tearDown(self):
@@ -164,24 +163,18 @@ class TestPairsPartial(unittest.TestCase):
             return
         for case in cases:
             self.run_case(case)
-        self.spats.run._p_v102_compat = True
-        if self.run_compat:
-            for case in v102_compat_cases:
-                self.run_case(case)
         print("Ran {} pair->site cases.".format(len(cases)))
 
 
 class TestPairsLookup(TestPairsPartial):
     
     def setup_processor(self):
-        self.run_compat = False
         self.spats.run.algorithm = "lookup"
 
 
 class TestPairsNative(TestPairsPartial):
 
     def setup_processor(self):
-        self.run_compat = False
         self.spats.run.algorithm = "native"
 
 prefix_cases = [

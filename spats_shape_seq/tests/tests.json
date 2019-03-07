@@ -31,7 +31,7 @@
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "allowed_target_errors": 1,
                 "count_mutations": true,
-                "algorithms": [ "find_partial", "indels" ]
+                "algorithms": [ "find_partial" ]
             },
             "set_name": "muts",
             "targets": [
@@ -202,7 +202,7 @@
                 "allowed_target_errors": 1,
                 "count_mutations": true,
                 "mutations_require_quality_score": 13,
-                "algorithms": [ "find_partial", "indels" ]
+                "algorithms": [ "find_partial" ]
             },
             "set_name": "muts_quality",
             "targets": [
@@ -373,7 +373,7 @@
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
                 "count_mutations": true,
-                "algorithms": [ "find_partial", "indels" ] 
+                "algorithms": [ "find_partial" ] 
             },
             "set_name": "muts_cotrans",
             "targets": [
@@ -511,10 +511,7 @@
         {
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "algorithms": [
-                    "find_partial",
-                    "indels"
-                ],
+                "algorithms": [ "find_partial" ],
                 "allowed_target_errors": 5,
                 "count_mutations": true
             },
@@ -606,10 +603,7 @@
         {
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "algorithms": [
-                    "find_partial",
-                    "indels"
-                ],
+                "algorithms": [ "find_partial" ],
                 "allowed_target_errors": 5,
                 "count_mutations": true,
                 "ignore_stops_with_mismatched_overlap": false
@@ -669,10 +663,7 @@
         {
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "algorithms": [
-                    "find_partial",
-                    "indels"
-                ],
+                "algorithms": [ "find_partial" ],
                 "allowed_target_errors": 5,
                 "count_mutations": true,
                 "ignore_stops_with_mismatched_overlap": false,
@@ -724,10 +715,7 @@
         {
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "algorithms": [
-                    "find_partial",
-                    "indels"
-                ],
+                "algorithms": [ "find_partial" ],
                 "allowed_target_errors": 2,
                 "count_mutations": true
             },
@@ -765,10 +753,7 @@
         {
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
-                "algorithms": [
-                    "find_partial",
-                    "indels"
-                ],
+                "algorithms": [ "find_partial" ],
                 "allowed_target_errors": 8,
                 "collapse_left_prefixes": true,
                 "count_edge_mutations": "stop_and_mut",
@@ -805,7 +790,7 @@
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
                 "count_mutations": true,
-                "algorithms": [ "find_partial", "indels" ] 
+                "algorithms": [ "find_partial" ] 
             },
             "set_name": "muts_cotrans_ambig",
             "targets": [
@@ -1724,7 +1709,7 @@
         {
             "run_opts": {
                 "minimum_target_match_length": 11,
-                "algorithms": [ "find_partial", "indels" ]
+                "algorithms": [ "find_partial" ]
             },
             "set_name": "pairs_minimum_length",
             "targets": [
@@ -1763,7 +1748,7 @@
         {
             "run_opts": {
                 "minimum_target_match_length": 10,
-                "algorithms": [ "find_partial", "indels" ]
+                "algorithms": [ "find_partial" ]
             },
             "set_name": "pairs_panel",
             "targets": [
@@ -1800,10 +1785,7 @@
         },
         {
             "run_opts": {
-                "algorithms": [
-                    "find_partial",
-                    "indels"
-                ],
+                "algorithms": [ "find_partial" ],
                 "collapse_left_prefixes": true
             },
             "set_name": "pairs_prefix",
@@ -2112,10 +2094,7 @@
         },
         {
             "run_opts": {
-                "algorithms": [
-                    "find_partial",
-                    "indels"
-                ],
+                "algorithms": [ "find_partial" ],
                 "collapse_left_prefixes": true,
                 "cotrans": true,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC"
@@ -2174,10 +2153,7 @@
         },
         {
             "run_opts": {
-                "algorithms": [
-                    "find_partial",
-                    "indels"
-                ],
+                "algorithms": [ "find_partial" ],
                 "collapse_left_prefixes": true,
                 "collapse_only_prefixes": "T,ACGT,CCA",
                 "cotrans": true,
@@ -2361,7 +2337,7 @@
                 "count_mutations": true,
                 "ignore_stops_with_mismatched_overlap": false,
                 "mutations_require_quality_score": 30,
-                "algorithms": [ "find_partial", "indels" ]
+                "algorithms": [ "find_partial" ]
             },
             "set_name": "discordant_discussion",
             "targets": [
@@ -2573,10 +2549,7 @@
         {
             "comment": "uneven read length bugs from Lee",
             "run_opts": {
-                "algorithms": [
-                    "find_partial",
-                    "indels"
-                ],
+                "algorithms": [ "find_partial" ],
                 "allow_negative_values": false,
                 "allowed_target_errors": 8,
                 "count_edge_mutations": "stop_and_mut",
@@ -2612,7 +2585,8 @@
             "set_name": "indels",
             "comment": "testing insertions and deletions",
             "run_opts": {
-                "algorithms": [ "indels" ],
+                "algorithms": [ "find_partial" ],
+                "handle_indels": true,
                 "count_mutations": true,
                 "allowed_target_errors": 3,
                 "ignore_stops_with_mismatched_overlap": false
@@ -2735,7 +2709,8 @@
             "set_name": "indels_dumbbell",
             "comment": "testing insertions and deletions with dumbbells and adapters. src_index is relative to trimmed portion only",
             "run_opts": {
-                "algorithms": [ "indels" ],
+                "algorithms": [ "find_partial" ],
+                "handle_indels": true,
                 "count_mutations": true,
                 "allowed_target_errors": 2,
                 "allowed_adapter_errors": 1,
@@ -2763,7 +2738,7 @@
             "set_name": "dumbbell_prefix",
             "run_opts": {
                 "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
-                "algorithms": [ "find_partial", "indels" ],
+                "algorithms": [ "find_partial" ],
                 "allow_negative_values": true,
                 "allowed_target_errors": 8,
                 "collapse_left_prefixes": true,
@@ -2784,6 +2759,38 @@
                         "end": 81,
                         "muts": [],
                         "site": 0
+                    }
+                }
+            ]
+        },
+        {
+            "run_opts": {
+                "algorithms": [ "find_partial" ],
+                "cotrans": true,
+                "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
+                "pair_length": 36
+            },
+            "set_name": "dataset_extract",
+            "targets": [ "cotrans_single" ],
+            "tests": [
+                {
+                    "id": "dataset_extract_1",
+                    "comment": "final 2-nts of R2 match both linker and target; need to be considered as linker",
+                    "r1": "AGGCGTCCTTGGTGCCCGAGTCAGTGATACTGGTAG", 
+                    "r2": "AACGCTGCTTAGCTAATGACTCCTACCAGTATCACT",
+                    "expect": {
+                        "site": 24,
+                        "end": 58
+                    }
+                },
+                {
+                    "id": "dataset_extract_2",
+                    "comment": "final nt of R2 is wrong",
+                    "r1": "AGATGTCCTTGGTGCCCGAGTCAGATAGATCCTTCC", 
+                    "r2": "AGCTAATGACTCCTACCAGTATCACTACTGGTAGGC", 
+                    "expect": {
+                        "failure": "match_errors",
+                        "site": null
                     }
                 }
             ]

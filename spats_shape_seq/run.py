@@ -2,9 +2,8 @@
 import ast
 import sys
 
+from partial import PartialFindProcessor
 from lookup import LookupProcessor, CotransLookupProcessor
-from partial import PartialFindProcessor, CotransPartialFindProcessor
-from indels import IndelsProcessor
 from native import CotransNativeProcessor
 from tag import TagProcessor
 
@@ -52,13 +51,6 @@ class Run(object):
         #: into the reactivity profile computations. Note that setting
         #: this will force ``allowed_target_errors`` to be ``1``.
         self.count_mutations = False
-
-        #: Defaults to ``False``. If set to ``True``, will incorporate
-        #: both insertions and deletions counts into the 
-        #: reactivity profile computations (TODO). 
-        #: Setting this will force ``algorithm`` to be ``indels``.
-        #: Warning: this is expected to be at least two orders of magnitude slower.
-        self.count_indels_towards_reactivity = False
 
         #: Defaults to ``None``. If set to a phred-score integer value (0 - 42), and
         #: ``count_mutations`` is ``True``, then this will require the
@@ -157,12 +149,10 @@ class Run(object):
         #: specifies a minimum and maximum nucleotide index indicating a region in which 
         #: to watch for activity.  If a read has a stop and/or mutation within this region, 
         #: it will be tagged with as ``interesting``.  Only meaningfull when using the 
-        #: `reads` tool and either the ``find_partial`` or ``indels`` algorithms.
+        #: `reads` tool and the ``find_partial`` algorithms.
         self.regions_of_interest = None
 
         #: Default ``lookup``, set to ``find_partial`` to use the partial find algorithm.
-        #: Set to ``indels`` to use the (experimental) algorithm to report indels. 
-        #: Warning: ``indels`` is expected to be at least two orders of magnitude slower.
         self.algorithm = "lookup"
 
         #: Default ``False``, set to ``True`` to allow beta, theta,
@@ -203,6 +193,12 @@ class Run(object):
         #: stops.
         self.count_only_full_reads = False
 
+        #: Default ``False``, set to ``True`` to look for indels (insertions/deltions)
+        #: and incorporate their counts into the reactivity profile computations.
+        #: Requires using the ``find_partial`` algorithm.  
+        #: Note that looking for indels while processing will be at least an 
+        #: order of magnitude slower, but could give more accurate reactivities.
+        self.handle_indels = False
 
         # Notes on Indel parameters:  all other things being equal...
         #   - Some papers / implementations of SW make a gap of length 1 cost
@@ -230,28 +226,27 @@ class Run(object):
 
         #: Defaults to ``3``, set to the value to reward matching
         #: characters in the Smith-Waterman alignment algorithm
-        #: Only applies when the ``indels`` algorithm is used.
+        #: Only applies when ``handle_indels`` is True.
         self.indel_match_value = 3
 
         #: Defaults to ``2``, set to the value to penalize mismatching
         #: characters in the Smith-Waterman alignment algorithm
-        #: Only applies when the ``indels`` algorithm is used.
+        #: Only applies when ``handle_indels`` is True.
         self.indel_mismatch_cost = 2
 
         #: Defaults to ``5``, set to the value to penalize the initiation of
         #: indel (insertion or deletion) gaps in the Smith-Waterman alignment algorithm
-        #: Only applies when the ``indels`` algorithm is used.
+        #: Only applies when ``handle_indels`` is True.
         self.indel_gap_open_cost = 5
 
         #: Defaults to ``1``, set to the value to penalize the extension of
         #: indel (insertion or deletion) gaps in the Smith-Waterman alignment algorithm
-        #: Only applies when the ``indels`` algorithm is used.
+        #: Only applies when ``handle_indels`` is True.
         self.indel_gap_extend_cost = 1
 
         # private config that should be persisted (use _p_ prefix)
         self._p_use_tag_processor = False
         self._p_processor_class = None
-        self._p_v102_compat = False
         self._p_extra_tags = None # used by reads analyzer
         self._p_rois = None
 
@@ -263,7 +258,6 @@ class Run(object):
         self._force_mask = None
         self._redo_tag = None
         self._linker_trimmed = False
-        self._p_handle_indels = True     # Temporary until indels algorithm supercedes find_partial
 
 
     def apply_config_restrictions(self):
@@ -271,19 +265,16 @@ class Run(object):
             return
         if self.count_mutations:
             self.allowed_target_errors = max(self.allowed_target_errors, 1)
-        if self.count_indels_towards_reactivity:
-            self.algorithm = 'indels'
-        if self.dumbbell and self.cotrans and self.algorithm != 'indels':
-            self.algorithm = 'indels'
-            self._p_handle_indels = False    # Temporary
+        if self.handle_indels:
+            self.algorithm = 'find_partial'
+        if self.dumbbell and self.cotrans:
+            self.algorithm = 'find_partial'
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
         if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1 or not self.ignore_stops_with_mismatched_overlap:
-            if self.algorithm not in ['find_partial', 'indels']:
-                self.algorithm = 'find_partial'
+            self.algorithm = 'find_partial'
         if self.regions_of_interest:
-            if self.algorithm not in ['find_partial', 'indels']:
-                self.algorithm = 'find_partial'
+            self.algorithm = 'find_partial'
             try:
                 if len(self.regions_of_interest) == 2  and not isinstance(self.regions_of_interest[0], (list, tuple)):
                     self._p_rois = [ (min(map(int, self.regions_of_interest)), max(map(int, self.regions_of_interest))) ]
@@ -296,20 +287,16 @@ class Run(object):
         if self.count_mutations and self.mutations_require_quality_score is not None:
             self._parse_quality = True
         if self.generate_sam or self.generate_channel_reads:
-            if self.algorithm not in ['find_partial', 'indels']:
-                self.algorithm = 'find_partial'
+            self.algorithm = 'find_partial'
             self.num_workers = 1
             self._parse_quality = True
         if self._force_mask:
-            if self.algorithm not in ['find_partial', 'indels']:
-                self.algorithm = 'find_partial'
-        if self.algorithm not in ['find_partial', 'indels']:
+            self.algorithm = 'find_partial'
+        if self.algorithm != 'find_partial':
             for mask in self.masks:
                 if len(mask) != 4:
                     self.algorithm = 'find_partial'
                     break
-        if self.algorithm == 'indels':
-            self._linker_trimmed = True
         self._applied_restrictions = True
         self.validate_config()
 
@@ -327,16 +314,15 @@ class Run(object):
             return self._get_base_processor_class()
 
     def _get_base_processor_class(self):
-        implementations = {
-            "lookup" : LookupProcessor,
-            "find_partial" : PartialFindProcessor,
-            "cotrans_lookup" : CotransLookupProcessor,
-            "cotrans_find_partial" : CotransPartialFindProcessor,
-            "cotrans_native" : CotransNativeProcessor,
-            "indels" : IndelsProcessor,
-            "cotrans_indels" : IndelsProcessor
-        }
-        return implementations[("cotrans_" if self.cotrans else "") + self.algorithm]
+        if self.algorithm == 'find_partial':
+            return PartialFindProcessor
+        elif self.algorithm == 'lookup':
+            return CotransLookupProcessor if self.cotrans else LookupProcessor
+        elif self.algorithm == 'native':
+            assert(self.cotrans)
+            return CotransNativeProcessor
+        assert(False)
+        return PartialFindProcessor
 
     def config_dict(self):
         config = {}

@@ -1,12 +1,14 @@
 
 from processor import PairProcessor, Failures
-from util import _warn, _debug, string_match_errors, string_find_errors
+from mask import base_similarity_ind
+from util import _warn, _debug, reverse_complement, string_match_errors, string_find_errors, string_find_with_overlap, AlignmentParams
 
 
 class PartialFindProcessor(PairProcessor):
 
     def prepare(self):
         self._targets.index()
+
 
     def _find_matches(self, pair):
         # use R1 to determine which target
@@ -20,171 +22,326 @@ class PartialFindProcessor(PairProcessor):
             pair.target = pair.r2.find_in_targets(self._targets, force_target = target)
         _debug([pair.r1.match_start, pair.r1.match_len, pair.r1.match_index, "--", pair.r2.match_start, pair.r2.match_len, pair.r2.match_index])
 
-    def _trim_adapters(self, pair):
 
-        # if we're here, we know that R2 hangs over the right edge. first, figure out by how much
-
-        masklen = pair.mask.length()
-        r2_seq = pair.r2.subsequence
-        r2_start_in_target = pair.r2.match_index - pair.r2.match_start + pair.r2.ltrim
-        r2_len_should_be = pair.target.n - r2_start_in_target
-        r2_length_to_trim = pair.r2.seq_len - r2_len_should_be
-        pair.r2.trim(r2_length_to_trim)
-        _debug("R2 trim: {}, {}, {}".format(r2_start_in_target, r2_len_should_be, r2_length_to_trim))
-
-        if self._run.minimum_adapter_len and r2_length_to_trim - masklen < self._run.minimum_adapter_len:
-            _debug("  !! v102 minimum adapter len {}".format(r2_length_to_trim - masklen))
-            return False
-
-        if r2_length_to_trim <= masklen:
-            # TODO: should we verify that this matches RC of R1 handle, and register errors for bp that don't?
-            # for now, just ignore this part
-            # also, this means that there's nothing to trim from R1, so we're done
-            return True
-
-        # find out how good of a match the end of R2 is for adapter_t_rc
-        r2_adapter_match = r2_seq[masklen - r2_length_to_trim:]
-        pair.r2.adapter_errors = string_match_errors(r2_adapter_match, self._adapter_t_rc)
-        _debug("  check = {}, errors = {}".format(r2_adapter_match, pair.r2.adapter_errors))
-        if len(pair.r2.adapter_errors) > self._run.allowed_adapter_errors:
-            return False
-
-        # now, same thing on r1 (smaller trim b/c of no handle, hence -4)
-        r1_seq = pair.r1.subsequence
-        r1_length_to_trim = len(r1_seq) - r2_len_should_be - pair.r2.ltrim
-        _debug("R1 trim: {}".format(r1_length_to_trim))
-        r1_adapter_match = r1_seq[-r1_length_to_trim:]
-        r1_match_trimmed = pair.r1.trim(r1_length_to_trim)
-        pair.r1.adapter_errors = string_match_errors(r1_adapter_match, self._run.adapter_b)
-        _debug("  R1 check = {}, errors = {}".format(r1_adapter_match, pair.r1.adapter_errors))
-        if len(pair.r1.adapter_errors) > self._run.allowed_adapter_errors:
-            return False
-
-        if r1_match_trimmed and len(self._targets.targets) > 1:
-            # ok, we trimmed down our R1 due to adapters. need to see if that means the leftover matches
-            # multiple targets; if so, need to reject this pair.
-            target = pair.r1.find_in_targets(self._targets, min_length_override = pair.r1.match_len)
+    def _recheck_targets(self, pair):
+        if pair.r1.rtrim and len(self._targets.targets) > 1:
+            # since we trimmed down our R1 due to an adapter (or dumbbell) at some point,
+            # need to see if that means the leftover matches multiple targets;
+            # if so, need to reject this pair.
+            target, _, _, _ = self._targets.find_partial(pair.r1.reverse_complement, min_length_override = pair.r1.match_len)
             if not target or isinstance(target, list):
                 # note that target may be None if pair.r1.match_len is less than the index word length
                 _debug("dropping pair due to multiple R1 match after adapter trim")
-                #print("multiple R1 trim: " + pair.r1.original_seq)
-                #print("{}".format([r1_match_trimmed, r1_adapter_match, r1_length_to_trim]))
                 pair.target = None
                 pair.failure = Failures.multiple_R1
                 self.counters.multiple_R1_match += pair.multiplicity
                 return False
+        return True
 
-        _debug("successful adapter trim of {}/{} bp from R1/R2".format(pair.r1.rtrim, pair.r2.rtrim))
+
+    def _cotrans_find_short_matches(self, pair):
+        run = self._run
+        r2li = pair.r2.subsequence.find(run.cotrans_linker)
+        if r2li == -1:
+            self.counters.unmatched += pair.multiplicity
+            pair.failure = Failures.nomatch
+            return False
+        target = self._targets.targets[0]
+        r2spots = string_find_errors(pair.r2.subsequence[:r2li], target.seq, run.allowed_target_errors)
+        r1spots = string_find_errors(reverse_complement(pair.r1.subsequence[:r2li]), target.seq, run.allowed_target_errors)
+        if len(r1spots) == 0 or len(r2spots) == 0 or len(r1spots) != len(r2spots):
+            self.counters.unmatched += pair.multiplicity
+            pair.failure = Failures.nomatch
+            return False
+        elif len(r1spots) > 1 or len(r2spots) > 1:
+            pair.failure = Failures.multiple_R1
+            return False
+        pair.target = target
+        pair.r1.match_index = r1spots[0]
+        pair.r1.match_start = pair.r1.seq_len - r2li
+        pair.r1.match_len = r2li
+        pair.r2.match_index = r2spots[0]
+        pair.r2.match_start = 0
+        pair.r2.match_len = r2li
+        pair.fully_matched = True    # also sets the trim
+        pair.linker = pair.r1.match_index + pair.r1.match_len
+        return True
+
+
+    ## Indels complicate trimming (of R2) greatly!
+    ## For exmaple, prior to trimming linker, we might have:
+    ##    RR*RRRL*LLLll
+    ##    TTTTTTTTTttttttt   -> match_len = 9, indels_delta=-2
+    ## After trimming 6 linker bps, we should get:
+    ##    RR*RRR
+    ##    TTTTTTtttttttttt   -> match_len = 6, indels_delta=-1
+    ## Note that indels_delta for all of r2 is insufficient to compute the delta to match_len!
+    ## So we have to chop and then trim indels.
+    def _trim_adapters(self, pair, r1too):
+        run = self._run
+        r2_adapter_trimmed = None
+        masklen = pair.mask.length()
+        if run.cotrans:
+            r2_linker_start = string_find_with_overlap(run.cotrans_linker, pair.r2.subsequence)
+            if -1 != r2_linker_start  and  pair.r2.match_index + r2_linker_start + pair.r2.indels_delta > pair.r1.match_index:
+                full_trim = pair.r2.seq_len - r2_linker_start
+                r2_adapter_len = full_trim - len(run.cotrans_linker) - masklen
+                if r2_adapter_len > 0:
+                    r2_adapter_trimmed = pair.r2.subsequence[-r2_adapter_len:]
+                pair.r2.rtrim += full_trim    # also updates indels and match_len in r2
+            # TODO:  don't let r2 go beyond (trimmed) r1 end in cotrans case
+        else:
+            # trim everything beyond the end of the target (including mask if there)
+            full_trim = pair.r2.right_est - pair.target.n
+            if full_trim > 0:
+                if full_trim > masklen:
+                    r2_adapter_trimmed = pair.r2.subsequence[masklen - full_trim:]
+                pair.r2.rtrim += full_trim    # also updates indels and match_len in r2
+        if r2_adapter_trimmed:
+            if run.minimum_adapter_len  and  len(r2_adapter_trimmed) < run.minimum_adapter_len:
+                return False
+            pair.r2.adapter_errors = string_match_errors(r2_adapter_trimmed, reverse_complement(run.adapter_t))
+            if len(pair.r2.adapter_errors) > run.allowed_adapter_errors:
+                return False
+            self.counters.adapter_trimmed += pair.multiplicity
+        if not r1too:
+            return True
+        ## Note: we really shouldn't trim r1 prior to aligning b/c it could have big inserts, but
+        ## trimming greatly saves alignment time, so compromise by assuming that indels (mostly) match
+        ## between reads so use R2's indels_delta to buffer trim amount.
+        if run.cotrans:
+            possible_matchlen = r2_linker_start if -1 != r2_linker_start else pair.r2.match_len
+        else:
+            possible_matchlen = min(pair.target.n - max(0, pair.r2.match_index - pair.r2.match_start), pair.r1.seq_len + pair.r1.match_index - pair.r1.match_start)
+        r1_adapter_trim = pair.r1.seq_len - possible_matchlen - max(pair.r2.indels_delta, 0)
+        dumblen = len(run.dumbbell) if run.dumbbell else 0
+        if run.minimum_adapter_len  and  r1_adapter_trim - dumblen < run.minimum_adapter_len:
+            return False
+        if r1_adapter_trim > 0:
+            r1_adapter = pair.r1.subsequence[dumblen - r1_adapter_trim:]
+            pair.r1.adapter_errors = string_match_errors(r1_adapter, run.adapter_b)
+            if len(pair.r1.adapter_errors) > run.allowed_adapter_errors:
+                return False
+            pair.r1.rtrim += r1_adapter_trim
+            pair.r1.match_start -= r1_adapter_trim
+            if pair.r1.match_start < 0:
+                pair.r1.match_index -= pair.r1.match_start
+                pair.r1.match_len += pair.r1.match_start
+                pair.r1.match_start = 0
+            #self.counters.adapter_trimmed += pair.multiplicity   # Note:  only counting R2 trimming 
+        return self._recheck_targets(pair)
+
+
+    def _extend_match(self, pair, r1_fully_rtrimmed):
+        run = self._run
+        if run.allow_indeterminate:
+            simfn = lambda nt1, nt2: base_similarity_ind(nt1, nt2, run.indel_match_value, run.indel_mismatch_cost, .5 * run.indel_match_value)
+        else:
+            simfn = lambda nt1, nt2: AlignmentParams.char_sim(nt1, nt2, run.indel_match_value, run.indel_mismatch_cost) 
+        ap = AlignmentParams(simfn, run.indel_gap_open_cost, run.indel_gap_extend_cost)
+
+        masklen = pair.mask.length()
+        dumblen = len(run.dumbbell) if run.dumbbell else 0
+
+        ## Align remaining R2 first to find adapter overhang.
+        ## TAI: probably better way of doing adapter alignment  (see indels_7 testcase)
+        r2suffix = "" if run.cotrans else reverse_complement(pair.r1.original_seq[:masklen]) + reverse_complement(run.adapter_t)
+        pair.r2.align_with_target(pair.target, ap, r2suffix)
+        if run.dumbbell:
+            pair.dumbbell = pair.r2.match_index - dumblen
+
+        ## Trim the adapters off both R1 and R2, and remaining linker off R2
+        if not self._trim_adapters(pair, not r1_fully_rtrimmed):
+            if not pair.failure:
+                pair.failure = Failures.adapter_trim
+                self.counters.adapter_trim_failure += pair.multiplicity
+            return False
+
+        ## Now align remaining R1 if necessary
+        if not pair.r1.fully_matched:
+            pair.r1.align_with_target(pair.target, ap)
+            # we may have not trimmed enough
+            r1_overhang = pair.r1.right_est - pair.target.n
+            if r1_overhang > 0:
+                pair.r1.ltrim += r1_overhang    # also updates match_len
+            if pair.linker:
+                pair.r1.match_len = pair.linker - pair.r1.match_start - pair.r1.indels_delta
+                pair.linker += pair.r1.match_index - pair.r1.rtrim - pair.r1.indels_delta  # linker now equates to 1 beyond the end of the match in the *target* (where the linker starts)  TAI:  keep in R1 coordinates?
 
         return True
 
-    def process_pair(self, pair):
 
+    def _verify_full_match(self, pair):
+        run = self._run
+        maxmatch =  min(pair.target.n, pair.r1.match_index + pair.r1.match_len)
+        r2_adapter_trimmed = ""
+        if pair.r2.match_index + pair.r2.seq_len > maxmatch:
+            masklen = pair.mask.length()
+            trimmed = pair.r2.right_est - maxmatch
+            if run.cotrans:
+                linker_len = len(run.cotrans_linker)
+                suffix = pair.r2.subsequence[-trimmed:]
+                if ((trimmed <  linker_len and not run.cotrans_linker.startswith(suffix))
+                    or (trimmed > linker_len and not suffix.startswith(run.cotrans_linker))):
+                    pair.failure = Failures.linker
+                    return False
+                if trimmed > linker_len + masklen:
+                    r2_adapter_trimmed = pair.r2.subsequence[masklen + linker_len - trimmed:]
+            elif trimmed > masklen:
+                r2_adapter_trimmed = pair.r2.subsequence[masklen - trimmed:]
+            if trimmed > 0:
+                pair.r2.rtrim = trimmed
+            if r2_adapter_trimmed:
+                if run.minimum_adapter_len  and  len(r2_adapter_trimmed) < run.minimum_adapter_len:
+                    pair.failure = Failures.adapter_trim
+                    self.counters.adapter_trim_failure += pair.multiplicity
+                    return False
+                pair.r2.adapter_errors = string_match_errors(r2_adapter_trimmed, reverse_complement(run.adapter_t))
+                if len(pair.r2.adapter_errors) > run.allowed_adapter_errors:
+                    pair.failure = Failures.adapter_trim
+                    self.counters.adapter_trim_failure += pair.multiplicity
+                    return False
+                self.counters.adapter_trimmed += pair.multiplicity
+        if pair.r1.match_index == 0  and  pair.r1.match_start > 0  and  not run.dumbbell:
+            # Note: if we had a full dumbbell, it would have been entirely trimmed already
+            # So we either have no dumbbell and an adapter or a partial dumbbell only.
+            r1_adapter_trimmed = pair.r1.reverse_complement[-pair.r1.match_start:]
+            pair.r1.rtrim += pair.r1.match_start
+            pair.r1.match_start = 0
+            if r1_adapter_trimmed:
+                if run.minimum_adapter_len  and  len(r1_adapter_trim) < run.minimum_adapter_len:
+                    pair.failure = Failures.adapter_trim
+                    self.counters.adapter_trim_failure += pair.multiplicity
+                    return False
+                pair.r1.adapter_errors = string_match_errors(r1_adapter_trimmed, run.adapter_b)
+                if len(pair.r1.adapter_errors) > run.allowed_adapter_errors:
+                    pair.failure = Failures.adapter_trim
+                    self.counters.adapter_trim_failure += pair.multiplicity
+                    return False
+            #self.counters.adapter_trimmed += pair.multiplicity    # Note: only counting R2 trimming
+        return self._recheck_targets(pair)
+
+
+    ## Generally, experiments look like:
+    ##    R1':    AAAAAAAAAAAAAA.DDDDDDDD.TTTTTTTTTTTTTTTTT.LLLLLLL.MMMM...................
+    ##    R2:     ...............DDDDDDDD.TTTTTTTTTTTTTTTTT.LLLLLLL.MMMM.AAAAAAAAAAAAAAAAAA
+    ## Where:
+    ##    A+ = adapters (adapter_b on left and adapter_t on right)
+    ##    D+ = optional dumbbell (forward/R2 reads will always start here if present)
+    ##    T+ = region to be matched/aligned with a reference target;
+    ##         if no cotrans/linker, then always goes all the way to the right end
+    ##         of the reference target, but does not necessarily start at the beginning.
+    ##    L+ = optionl linker in the case of cotrans experiments (R2 read may end before or during this)
+    ##    M+ = mask/handle designating treatment (reverse/R1 reads will always start here)
+
+    def process_pair(self, pair):
         if not self._check_indeterminate(pair) or not self._match_mask(pair):
             return
 
-        self._find_matches(pair)
-
-        if not pair.matched:
-            self.counters.unmatched += pair.multiplicity
-            pair.failure = Failures.nomatch
-            return
-
         run = self._run
+        masklen = pair.mask.length()
+        pair.r2.auto_adjust_match = True
+        #pair.r1.auto_adjust_match = True
 
+        ## Pre-trim dumbbell from R2 immediately since it won't help with alignment
+        ## and simplifies dealing with match_index, match_start, etc.
+        ## (It's also a bit faster for SW.)
+        r1_fully_rtrimmed = False
+        dumblen = 0
         if run.dumbbell:
             if not pair.r2.original_seq.startswith(run.dumbbell):
                 pair.failure = Failures.dumbbell
                 self.counters.dumbbell_failures += pair.multiplicity
                 return
-            dumbbell_len = len(run.dumbbell)
-            if pair.r2.match_start < dumbbell_len:
-                delta = dumbbell_len - pair.r2.match_start
-                pair.r2.match_start = dumbbell_len
-                pair.r2.match_len -= delta
-                pair.r2.match_index += delta
-            pair.dumbbell = pair.r2.match_index - pair.r2.match_start
-            r2_start_in_target = pair.dumbbell + dumbbell_len
-            pair.r2.ltrim = dumbbell_len
-            _debug("R2 dumbbell results in: {}".format([r2_start_in_target, pair.r2.match_index, pair.r2.match_start, pair.r2.match_len, dumbbell_len]))
-        else:
-            # this is where R2 should start (if not a complete match, then r2.match_start will be > 0)
-            r2_start_in_target = pair.r2.match_index - pair.r2.match_start
-            dumbbell_len = 0
+            dumblen = len(run.dumbbell)
+            pair.r2.ltrim = dumblen
+            pair.dumbbell = -dumblen
+            # Also may as well trim R1 dumbbell if it's there in full...
+            # TAI:  this may get the adapter too. if so, do we need to count that?  (no. only counting R2s.)
+            dbi = pair.r1.original_seq.rfind(reverse_complement(run.dumbbell), masklen + run.minimum_target_match_length)
+            if -1 != dbi:
+                pair.r1.rtrim = pair.r1.original_len - dbi
+                r1_fully_rtrimmed = True
+
+        ## Also pre-trim any (full) adapter on R1 for the same reason
+        if not r1_fully_rtrimmed  and  run.adapter_b:
+            adi = pair.r1.original_seq.rfind(run.adapter_b, masklen + run.minimum_target_match_length)
+            if -1 != adi:
+                pair.r1.rtrim = pair.r1.original_len - adi
+                r1_fully_rtrimmed = True
+                self.counters.adapter_trimmed += pair.multiplicity
+
+        ## Finally, pre-trim any linker from R1
+        if run.cotrans:
+            if pair.r1.subsequence.startswith(reverse_complement(run.cotrans_linker)):
+                pair.r1.ltrim += len(run.cotrans_linker)
+                pair.linker = pair.r1.seq_len   # linker is currently in R1 coordinates
+            else:
+                pair.failure = Failures.linker
+                return
+
+        ## Now find best exactly matching substring with target
+        self._find_matches(pair)
+        if not pair.matched:
+            if not run.cotrans or pair.r1.ltrim == 0:
+                self.counters.unmatched += pair.multiplicity
+                pair.failure = Failures.nomatch
+                return
+            if not self._cotrans_find_short_matches(pair):
+                return
+
+        ## And extend the match if necessary using string alignment on the rest
+        aligned = False
+        if pair.fully_matched:
+            # Don't just trim adapter here b/c in cotrans case it has already been done
+            if not self._verify_full_match(pair):
+                return
+        elif run.handle_indels:
+            if not self._extend_match(pair, r1_fully_rtrimmed):
+                return
+            aligned = True
+        elif not self._trim_adapters(pair, not r1_fully_rtrimmed):
+            if not pair.failure:
+                pair.failure = Failures.adapter_trim
+                self.counters.adapter_trim_failure += pair.multiplicity
+            return
 
         counted_prefix = None
-        if r2_start_in_target < 0:
-            _debug("prefix check")
+        if pair.r2.match_start > pair.r2.match_index:
+            assert(not aligned or pair.r2.match_index == 0)  # align_strings() will ensure this if penalize_ends is True
+            r2_start_in_target = pair.r2.match_index - pair.r2.match_start    # will be negative
             self.counters.left_of_target += pair.multiplicity
+            prefix = pair.r2.original_seq[dumblen:dumblen - r2_start_in_target]
             if run.count_left_prefixes:
-                prefix = pair.r2.original_seq[dumbbell_len:dumbbell_len - r2_start_in_target]
-                if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(dumbbell_len - r2_start_in_target, run.mutations_require_quality_score, dumbbell_len):
+                if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(dumblen - r2_start_in_target, run.mutations_require_quality_score, dumblen):
                     self.counters.register_prefix(prefix, pair)
                     counted_prefix = prefix
                 else:
                     self.counters.low_quality_prefixes += pair.multiplicity
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
                 pair.r2.ltrim -= r2_start_in_target
+                pair.r2.match_start += r2_start_in_target
+                if pair.r1.rtrim and pair.r1.match_index == pair.r2.match_index:
+                    pair.r1.rtrim -= r2_start_in_target
+                    pair.r1.match_start += r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero
+                self.counters.left_of_zero += pair.multiplicity
                 return
         elif run.count_left_prefixes:
-            # also count no prefixes
             counted_prefix = "NONE"
             self.counters.register_prefix(counted_prefix, pair)
 
-        if r2_start_in_target + (pair.r2.original_len - dumbbell_len) > pair.target.n:
-            if not self._trim_adapters(pair):
-                # we're over the right edge, and adapter trimming failed
-                pair.failure = pair.failure or Failures.adapter_trim
-                self.counters.adapter_trim_failure += pair.multiplicity
-                return
-            else:
-                # we're at the right and trimming went ok, cool
-                self.counters.adapter_trimmed += pair.multiplicity
+        if run.cotrans and pair.right < run.cotrans_minimum_length:
+            pair.failure = Failures.cotrans_min
+            return
 
-        # set the match to be the rest of the (possibly trimmed) sequence, and count errors
-        pair.r1.match_to_seq()
-        pair.r2.match_to_seq()
+        if not aligned:
+            pair.r1.match_to_seq_2()
+            pair.r2.match_to_seq_2()
+            pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement, pair.target.seq[pair.r1.match_index:])
+            pair.r2.match_errors = string_match_errors(pair.r2.subsequence, pair.target.seq[pair.r2.match_index:])
 
-        if pair.dumbbell != None:
-            _debug("fixing R1 for dumbbell: {}".format([pair.r1.left, pair.r2.left, pair.dumbbell]))
-            if pair.r1.left < pair.dumbbell + dumbbell_len:
-                dumbbell_part = pair.dumbbell + dumbbell_len - pair.r1.left
-                if dumbbell_part > dumbbell_len:   # can happen if adapter wasn't trimmed so match_index is negative
-                    dboffset = dumbbell_part - dumbbell_len + 1
-                    r1dbpart = pair.r1.reverse_complement[dboffset:dumbbell_part + 1]
-                    dbpart = run.dumbbell
-                else:
-                    r1dbpart = pair.r1.reverse_complement[:dumbbell_part]
-                    dbpart = run.dumbbell[-dumbbell_part:]
-                # TODO: match errors on dumbbell?
-                if r1dbpart != dbpart:
-                    _debug("R1 dumbbell failure: {} != {}".format(r1dbpart, dbpart))
-                    pair.failure = Failures.dumbbell
-                    self.counters.dumbbell_failures += pair.multiplicity
-                    return
-                dbtrim = dumbbell_part if dumbbell_part >= 0 else -pair.r1.left
-                pair.r1.rtrim += dbtrim
-                pair.r1.match_index += dbtrim
-                pair.r1.match_len -= dbtrim
-                pair.r1.match_start += dbtrim
-                _debug("after dumbbell: {}".format([pair.r1.ltrim, pair.r1.rtrim, pair.r1.match_start, pair.r1.match_len, pair.r1.match_index ]))
-
-        if pair.r1.match_index < 0:
-            # if we're here it is due to a prefix in R1 as well
-            assert(run.collapse_left_prefixes)  # we would have failed already for R2 otherwise...
-            r1prefix = -pair.r1.match_index
-            pair.r1.rtrim += r1prefix
-            pair.r1.match_index = 0
-            pair.r1.match_len -= r1prefix
-            pair.r1.match_start += r1prefix
-
-        target_seq = pair.target.seq
-        r1_matcher = pair.r1.reverse_complement
-        pair.r1.match_errors = string_match_errors(r1_matcher, target_seq[pair.r1.match_index:])
-        pair.r2.match_errors = string_match_errors(pair.r2.subsequence, target_seq[pair.r2.match_index:])
-        _debug("match errors: {} / {}".format(pair.r1.match_errors, pair.r2.match_errors))
         if run._p_rois  and  (pair.r1.error_in_region(run._p_rois) or pair.r2.error_in_region(run._p_rois)):
             pair.interesting = True
             self.counters.interesting_pairs += pair.multiplicity
@@ -194,311 +351,18 @@ class PartialFindProcessor(PairProcessor):
                 _debug("R1 errors: {}".format(pair.r1.match_errors))
             if pair.r2.match_errors:
                 _debug("R2 errors: {}".format(pair.r2.match_errors))
-            if run._p_v102_compat and not (pair.r1.match_errors + [e for e in pair.r2.match_errors if e < pair.r2.original_len - pair.mask.length()]):
-                _debug("** v102 compat, allowing")
-            else:
-                pair.failure = Failures.match_errors
-                self.counters.match_errors += pair.multiplicity
-                return
+            pair.failure = Failures.match_errors
+            self.counters.match_errors += pair.multiplicity
+            return
 
-        n = pair.target.n
-        assert(pair.matched and pair.left >= 0 and pair.left <= n)
-
-        if pair.right != n and not run.allow_multiple_rt_starts:
+        if ((not run.cotrans and pair.right != pair.target.n and not run.allow_multiple_rt_starts)  or
+            (run.cotrans  and  (pair.right > pair.target.n or pair.right < pair.left or
+             pair.r1.rtrim + pair.r1.match_start + pair.r1.match_len + pair.r1.indels_delta + pair.r1.ltrim < pair.r1.original_len))):
             pair.failure = Failures.right_edge
             self.counters.r1_not_on_right_edge += pair.multiplicity
             return
 
-        if run.ignore_stops_with_mismatched_overlap  and  not pair.check_overlap():
-            pair.failure = Failures.r1_r2_overlap
-            self.counters.r1_r2_overlap += pair.multiplicity
-            return
-
-        if run.count_mutations:
-            pair.check_mutations()
-            self.counters.register_mut_count(pair)
-            if pair.mutations and len(pair.mutations) > run.allowed_target_errors:
-                pair.failure = Failures.match_errors
-                self.counters.match_errors += pair.multiplicity
-                return
-            self.counters.low_quality_muts += pair.check_mutation_quality(self._run.mutations_require_quality_score)
-
-        if run.count_only_full_reads and (pair.site or pair.left) != 0:
-            pair.failure = Failures.not_full_read
-            return
-
-        pair.site = pair.site or pair.left
-        if run._p_rois and not pair.interesting:
-            for roi in run._p_rois:
-                if roi[0] <= pair.site  and  pair.site <= roi[1]:
-                    pair.interesting = True
-                    self.counters.interesting_pairs += pair.multiplicity
-                    break
-        self.counters.register_count(pair)
-        if counted_prefix:
-            self.counters.register_mapped_prefix(counted_prefix, pair)
-        if run.count_mutations:
-            self.counters.register_mapped_mut_count(pair)
-
-
-#
-# _process_pair_cotrans algorithm
-#
-# overview:
-# (1) find linker in R1
-# (2) find_partial R2 in target
-#   (2a) if no match, find linker in R2
-#     (2a1) if no linker, no match, return
-#     (2a2) if linker, then determine target index, and goto 3
-#   (2b) if match, the find_partial of R1 (w/o linker) in target
-#     (2b1) if no match, return
-#     (2b2) if match, then goto 3
-# (3) R1/R2 are now fully determined, check for match/errors and return
-#
-# details:
-#
-# (1) this is just a string search of rc(R1) for the linker. it has to
-#     be there to be a valid fragment.
-#
-# (2) this is the same algorithm (find_partial) as was used before for
-#     non-cotrans experiments: it finds the longest subsequence of R2
-#     that matches the target (not including any linker).
-#
-#   (2a) if we can't find a long enough match (>=10bp), it could be
-#        because R1 and R2 are not far apart, and therefore R2
-#        contains the linker. so we search for it (simple string
-#        search)
-#
-#     (2a1) if R2 has no linker and doesn't have a long enough
-#           subsequence matching the target, then it's not a match
-#
-#     (2a2) if the linker is found in R2, then everything to the left
-#           of the linker is the part of the target to search. simple
-#           string search will find that. if we don't find it -- or
-#           find it multiple times (can be the case if it's very
-#           short, say 3bp) -- then it's not a match,
-#           return. otherwise, we now know where in the target R2
-#           aligns, and therefore the linker, and therefore R1. go to
-#           step [3]
-#
-#   (2b) in this case, we've found a subsequence match to the target
-#        in R2, so we now know where it aligns. do the same
-#        find_partial on R1 to find out where it aligns.
-#
-#     (2b1) if R1 doesn't have a sufficient-length matching
-#           subsequence in the target, then it's not a match. (it
-#           can't be too short, b/c we've found R2, and the only way
-#           R1 can have a match that's too short is if R1 and R2
-#           overlap, which corresponds to case [2a2] above.)
-#
-#     (2b2) if we do find a match, then we've aligned both R1 and R2
-#           to the target. go to step [3]
-#
-# (3) we now know where R1 and R2 align with the target. if they are
-#     near each other, R2 will include some or all of the linker;
-#     verify that matches properly, if that's the case. if they are
-#     even closer together, then adapter trimming will be required: in
-#     which case, we know exactly how much of the adapters should be
-#     on the end, we can check that it matches and trim it
-#     off. finally, we make sure that R1 and R2 match the target
-#     everywhere they're supposed to based on alignment. if all of
-#     that passes, the a count is registered at the appropriate length
-#     (right side where R1 matches the target) and site (left side of
-#     where R2 matches the target).
-#
-
-
-class CotransPartialFindProcessor(PairProcessor):
-
-    def prepare(self):
-        self._targets.index()
-        if 1 != len(self._targets.targets):
-            raise Exception("multiple cotrans targets?")
-        if 0 != self._run.allowed_adapter_errors:
-            print("Warning: cotrans match w/adapter errors NYI")
-
-    def process_pair(self, pair):
-
-        # algorithm:
-        # (1) find linker in R1
-        # (2) find_partial R2 in target
-        #   (2a) if no match, find linker in R2
-        #     (2a1) if no linker, no match, return
-        #     (2a2) if linker, then determine target index, and goto 3
-        #   (2b) if match, the find_partial of R1 (w/o linker) in target
-        #     (2b1) if no match, return
-        #     (2b2) if match, then goto 3
-        # (3) R1/R2 are now fully determined, check for match/errors and return
-        #
-        # xref full algorithm description at the end of the file for more detail
-        #
-
-        if not self._match_mask(pair)  or  not self._check_indeterminate(pair):
-            return
-
-        run = self._run
-
-        linker = run.cotrans_linker
-        linker_len = len(linker)
-        target = self._targets.targets[0]
-        tseq = target.seq
-
-        r1_len = pair.r1.seq_len
-        r1_rc = pair.r1.reverse_complement
-
-        # (1)
-        lindex = r1_rc.rfind(linker)
-        if -1 == lindex:
-            pair.failure = Failures.linker
-            return
-
-        r2_seq = pair.r2.subsequence
-        r2_len = pair.r2.original_len
-        rtrim = 0
-        # (2)
-        pair.r2.find_in_targets(self._targets, force_target = target)
-        if not pair.r2.match_len:
-            # (2a) if no match, then only chance is short match b/c of linker/trim
-            l2index = r2_seq.rfind(linker)
-            # TODO match errors in linker
-            if -1 == l2index:
-                pair.failure = Failures.nomatch
-                return
-
-            target_match_len = l2index
-            target_match = r2_seq[:l2index]
-
-            indices = string_find_errors(target_match, tseq, run.allowed_target_errors)
-            if 0 == len(indices):
-                pair.failure = Failures.nomatch
-                return
-            elif 1 == len(indices):
-                index = indices[0]
-            else:
-                pair.failure = Failures.multiple_R1
-                return
-
-            # (2a2)
-            rtrim = r2_len - l2index - linker_len - pair.mask.length()
-
-            pair.r1.match_start = rtrim
-            pair.r1.match_len = lindex - rtrim
-            pair.r1.match_index = index
-
-            pair.r2.match_start = 0
-            pair.r2.match_len = l2index
-            pair.r2.match_index = index
-
-            pair.linker = index + (lindex - rtrim)
-
-        else:
-
-            # (2b)
-            pair.r1.find_in_targets(self._targets, force_target = target)
-            if not pair.r1.match_len:
-                pair.failure = Failures.nomatch
-                return
-
-            linker_start = pair.r1.match_index + (lindex - pair.r1.match_start)
-            pair.linker = linker_start
-            check_len = 0
-            if pair.r2.match_index + (r2_len - pair.r2.match_start) > linker_start:
-                linker_in_r2_idx = linker_start - pair.r2.match_index + pair.r2.match_start
-                linker_check = r2_seq[linker_in_r2_idx:]
-                pair.r2.linker_errors = string_match_errors(linker_check, linker)
-                if len(pair.r2.linker_errors) > run.allowed_adapter_errors:
-                    if run._p_v102_compat and not [e for e in pair.r2.linker_errors if e + linker_in_r2_idx < pair.r2.original_len - pair.mask.length()]:
-                        _debug("** v102 compat, allowing")
-                    else:
-                        pair.failure = Failures.linker
-                        return
-                check_len = len(linker_check)
-                if check_len > linker_len + pair.mask.length():
-                    rtrim = check_len - linker_len - pair.mask.length()
-
-            delta = pair.r1.match_start - rtrim
-            pair.r1.match_start -= delta
-            pair.r1.match_len = lindex - pair.r1.match_start
-            pair.r1.match_index -= delta
-
-            delta = pair.r2.match_start
-            pair.r2.match_start = 0
-            pair.r2.match_index -= delta
-            pair.r2.match_len = r2_len - check_len
-
-
-        # (3) R1/R2 are now fully determined, check for match/errors and return
-        pair.target = target
-
-        # trim case
-        if rtrim > 0:
-            pair.r1.adapter_errors = string_match_errors(pair.r1.original_seq[-rtrim:], run.adapter_b)
-            pair.r2.adapter_errors = string_match_errors(pair.r2.original_seq[-rtrim:], self._adapter_t_rc)
-            if max(len(pair.r2.adapter_errors), len(pair.r1.adapter_errors)) > self._run.allowed_adapter_errors:
-                if run._p_v102_compat and not [e for e in (pair.r1.adapter_errors + pair.r2.adapter_errors) if e < rtrim - pair.mask.length()]:
-                    _debug("** v102 compat, allowing adapter errors in last 4")
-                else:
-                    pair.failure = Failures.adapter_trim
-                    return
-            pair.r1.rtrim = rtrim
-            pair.r2.trim(rtrim + pair.mask.length()) # also trim rc of handle
-
-        if pair.right > target.n  or  pair.right < pair.left:
-            pair.failure = Failures.right_edge
-            return
-
-        counted_prefix = None
-        if pair.left < 0:
-            self.counters.left_of_target += pair.multiplicity
-            if run.count_left_prefixes:
-                prefix = pair.r2.original_seq[0:0 - pair.left]
-                if (run.mutations_require_quality_score is None) or pair.check_prefix_quality(0 - pair.left, run.mutations_require_quality_score):
-                    self.counters.register_prefix(prefix, pair)
-                    counted_prefix = prefix
-                else:
-                    self.counters.low_quality_prefixes += pair.multiplicity
-            if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
-                pair.r2.ltrim = 0 - pair.left
-                pair.r2.match_to_seq()
-            else:
-                pair.failure = Failures.left_of_zero
-                return
-        # also count no prefixes
-        if run.count_left_prefixes and pair.r2.match_index >= pair.r2.match_start:
-            counted_prefix = "NONE"
-            self.counters.register_prefix(counted_prefix, pair)
-
-        if pair.right < run.cotrans_minimum_length:
-            pair.failure = Failures.cotrans_min
-            return
-
-        if pair.r1.match_start + pair.r1.match_len + linker_len + rtrim < r1_len:
-            pair.failure = Failures.right_edge
-            return
-
-        if pair.r1.match_len + linker_len != pair.r1.seq_len:
-            pair.failure = Failures.extra_r1
-            return
-
-        pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement[:pair.r1.match_len], tseq[pair.r1.match_index:])
-        pair.r2.match_errors = string_match_errors(pair.r2.subsequence[:pair.r2.match_len], tseq[pair.r2.match_index:])
-        if run._p_rois  and  (pair.r1.error_in_region(run._p_rois) or pair.r2.error_in_region(run._p_rois)):
-            pair.interesting = True
-            self.counters.interesting_pairs += pair.multiplicity
-
-        if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
-            if len(pair.r1.match_errors) > run.allowed_target_errors:
-                _debug("R1 errors: {}".format(pair.r1.match_errors))
-            if len(pair.r2.match_errors) > run.allowed_target_errors:
-                _debug("R2 errors: {}".format(pair.r2.match_errors))
-            if run._p_v102_compat and not pair.r1.match_errors and not [e for e in pair.r2.match_errors if e < pair.r2.original_len - pair.mask.length()]:
-                _debug("** v102 compat, allowing")
-            else:
-                pair.failure = Failures.match_errors
-                self.counters.match_errors += pair.multiplicity
-                return
-
-        if run.ignore_stops_with_mismatched_overlap  and  not pair.check_overlap():
+        if run.ignore_stops_with_mismatched_overlap  and  not pair.check_overlap(True):
             pair.failure = Failures.r1_r2_overlap
             self.counters.r1_r2_overlap += pair.multiplicity
             return
@@ -516,6 +380,10 @@ class CotransPartialFindProcessor(PairProcessor):
             pair.failure = Failures.not_full_read
             return
 
+        if run.handle_indels and not pair.indels_match:
+            self.counters.mismatching_indel_pairs += pair.multiplicity
+            # TAI:  might bail on these
+
         pair.site = pair.left
         if run._p_rois and not pair.interesting:
             for roi in run._p_rois:
@@ -528,3 +396,4 @@ class CotransPartialFindProcessor(PairProcessor):
             self.counters.register_mapped_prefix(counted_prefix, pair)
         if run.count_mutations:
             self.counters.register_mapped_mut_count(pair)
+

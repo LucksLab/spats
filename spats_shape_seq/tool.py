@@ -588,7 +588,7 @@ class SpatsTool(object):
         spats.load(run_name)
         profiles = spats.compute_profiles()
         mutations = spats.run.count_mutations
-        indels = spats.run.count_indels_towards_reactivity
+        indels = spats.run.handle_indels
         headers = [ "L", "site", "nt", "f+", "f-" ]
         if indels:
             headers += [ "ins+", "ins-", "del+", "del-" ]
@@ -861,7 +861,7 @@ class SpatsTool(object):
         from spats_shape_seq.diagram import diagram
 
         alg = test_case.run_opts.get('algorithm')
-        algs = [ alg ] if alg else test_case.run_opts.get('algorithms', [ 'find_partial', 'indels', 'lookup' ])
+        algs = [ alg ] if alg else test_case.run_opts.get('algorithms', [ 'find_partial', 'lookup' ])
         for algorithm in algs:
             spats = Spats()
             spats.run.algorithm = algorithm
