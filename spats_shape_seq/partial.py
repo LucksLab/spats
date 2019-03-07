@@ -342,8 +342,8 @@ class PartialFindProcessor(PairProcessor):
             return
 
         if not aligned:
-            pair.r1.match_to_seq_2()
-            pair.r2.match_to_seq_2()
+            pair.r1.match_to_seq()
+            pair.r2.match_to_seq()
             pair.r1.match_errors = string_match_errors(pair.r1.reverse_complement, pair.target.seq[pair.r1.match_index:])
             pair.r2.match_errors = string_match_errors(pair.r2.subsequence, pair.target.seq[pair.r2.match_index:])
 

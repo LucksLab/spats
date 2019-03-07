@@ -135,17 +135,6 @@ class Sequence(object):
         return ((self.match_start == 0 and self.match_len == min(self.seq_len + self.indels_delta, self.target_len))  or
                (self.match_index == 0 and ((self.match_start + self.match_len == self.seq_len) or self.match_len == self.target_len)))
 
-    def trim(self, length):
-        self.rtrim = length
-        if self._needs_rc:
-            delta = self._rtrim - self.match_start
-            _debug("trim reducing original match_len {} -> {}".format(self.match_len, self.match_len - delta))
-            self.match_len -= delta
-            self.match_start += delta
-            self.match_index += delta
-            return True
-        return False
-
     def trim_to_match(self):
         if self._needs_rc:
             if self.match_start > 0:
@@ -159,20 +148,6 @@ class Sequence(object):
             self.rtrim += (self.seq_len - self.match_len - self.indels_delta )
 
     def match_to_seq(self):
-        ## Note:  this is to be used when using the convention of match_start relative to original_seq
-        if self._needs_rc:
-            if 0 == self._rtrim:
-                # we've already done this if we've trimmed
-                self.match_index -= self.match_start
-                self.match_start = self._rtrim
-        else:
-            self.match_index -= (self.match_start - self._ltrim)
-            self.match_start = self._ltrim
-        self.match_len = self.seq_len
-        _debug(["M2S:", self.match_index, self.match_len, self.match_start, "-- ", self._rtrim])
-
-    def match_to_seq_2(self):
-        ## Note:  this is to be used when using the convention of match_start relative to subsequence
         self.match_index -= self.match_start
         self.match_start = 0
         if self.match_index < 0:
