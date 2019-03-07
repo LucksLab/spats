@@ -120,7 +120,7 @@ class Sequence(object):
         if changed:
             self._seq_rc = None
             if self.auto_adjust_match:
-                self.trim_indels()          # should only matter for R2 since R1 won't have indels
+                self.trim_indels()          # should only matter for R2 since R1 won't have indels when rtrimmed
                 self.match_errors = [ err for err in self.match_errors if err < self.seq_len - self.indels_delta ]
                 if self.match_len and self.target_len:
                     self.match_len = min(self.match_len, self.target_len - self.match_index, self.seq_len - self.indels_delta)
@@ -306,6 +306,10 @@ class Sequence(object):
             indel.src_index += val_delta
             self.indels[indind + key_delta] = indel
 
+    def shift_indels(self, val_delta):
+        for _,indel in self.indels.iteritems():
+            indel.src_index += val_delta
+
     def trim_indels(self):
         trim_start = self.seq_len
         new_indels = {}
@@ -316,8 +320,8 @@ class Sequence(object):
                     self.indels_delta -= len(indel.seq)
                 elif indel.src_index + len(indel.seq) > trim_start:
                     self._seq_with_indels = None
+                    self.indels_delta -= (len(indel.seq) - trim_start + indel.src_index)
                     indel.seq = indel.seq[:trim_start - indel.src_index]
-                    self.indels_delta -= len(indel.seq)
                     new_indels[indind] = indel    # NOTE: This means we can now have inserts at the end of the target match!
                 else:
                     new_indels[indind] = indel
@@ -359,7 +363,8 @@ class Sequence(object):
                 else:
                     dind = delta + len(nsl) - len(indel.seq) + 1
                     nsl = nsl[:dind] + list(indel.seq)       # already reverse-complemented for R1
-                    nql = nql[:dind] + ['!']*len(indel.seq)  # quality shouldn't matter b/c this can never be a mut
+                    if qual:
+                        nql = nql[:dind] + ['!']*len(indel.seq)  # quality shouldn't matter b/c this can never be a mut
                     sind -= (len(indel.seq) - 1)
             elif sind < lind:
                 nsl.append(seq[sind])

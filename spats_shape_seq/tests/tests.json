@@ -2804,12 +2804,14 @@
                 "cotrans": true,
                 "allow_negative_values": false,
                 "count_mutations": true,
+                "mutations_require_quality_score": 30,
                 "allowed_target_errors": 1,
                 "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
                 "cotrans_minimum_length": 55,
                 "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
                 "count_left_prefixes": true,
-                "collapse_left_prefixes": true
+                "collapse_left_prefixes": true,
+                "ignore_stops_with_mismatched_overlap": false
             },
             "targets": [ "thiB55" ],
             "tests": [
@@ -2817,14 +2819,46 @@
                     "id": "indels_works_1",
                     "comment": "prefix before",
                     "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATCCGGATCAGGTTCGACGGGTATTTTCTCAGCGCACGCGTACGCGTGGCA", 
+                    "r1_quality": "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
                     "r2": "TGAACAGCGACTAGGCTCTTCAACCTGTTCTCAACGGGGTGCCACGCGTACGCGTGCGCTGAGAAAATACCCGTC",
+                    "r2_quality": "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
                     "expect": {
                         "site": 0,
                         "end": 66,
-                        "r2_indels": { "2": { "insert_type": true, "seq": "T", "src_index": 3, "ambiguous": false } },
+                        "r2_indels": { "2": { "insert_type": true, "seq": "T", "src_index": 2, "ambiguous": false } },
                         "counters": {
                             "prefix_RRRY_A": 1
                         }
+                    }
+                },
+                {
+                    "id": "indels_works_2",
+                    "r1": "TTTGGTCCTTGGTGCCCGAGTCAGATCCGGATCAGGTTCGACGAGTATTTTCTCAGCGCACGCGTACGCGTGGCA", 
+                    "r1_quality": "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                    "r2": "TGAACAGCGACTAGGCTCTTCATAGTCCGTTCTCAACGGGGTGCCACGCGTACGCGTGCGCTGAGAAAATACTCG",
+                    "r2_quality": "GGGFGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                    "expect": {
+                        "site": 0,
+                        "end": 66,
+                        "muts": [ 47 ],
+                        "r2_indels": { "48": { "insert_type": false, "seq": "CCG", "src_index": 46, "ambiguous": false } },
+                        "counters": {
+                            "prefix_YYYR_TAGT": 1
+                        }
+                    }
+                },
+                {
+                    "id": "indels_works_3",
+                    "comment": "tests trimming of r2 indel.  also shows interaction b/w indels and linker trimming.  when r2 is aligned, we don't know where the linker is so its linker part causes a longer indel than r1's.  ideally, r2's indel should just be 'T' as well.",
+                    "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTTAATCCGGATCAGGTTCGACGGGTATTGAAGAGCCTAGTCGCTGTTCAAG", 
+                    "r1_quality": "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                    "r2": "TGAACAGCGACTAGGCTCTTCAATACCCGTCGAACCTGATCCGGATTAACTGACTCGGGCACCAAGGACACTCAG",
+                    "r2_quality": "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                    "expect": {
+                        "site": 42,
+                        "end": 68,
+                        "r1_indels": { "65": { "insert_type": true, "seq": "T", "src_index": 23, "ambiguous": true } },
+                        "r2_indels": { "65": { "insert_type": true, "seq": "TTAA", "src_index": 23, "ambiguous": true } }
                     }
                 }
             ]

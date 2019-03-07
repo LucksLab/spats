@@ -324,11 +324,11 @@ class PartialFindProcessor(PairProcessor):
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
                 pair.r2.ltrim -= r2_start_in_target
                 pair.r2.match_start += r2_start_in_target
-                pair.r2.match_len += r2_start_in_target
+                pair.r2.shift_indels(r2_start_in_target)
                 if pair.r1.rtrim and pair.r1.match_index == pair.r2.match_index:
                     pair.r1.rtrim -= r2_start_in_target
                     pair.r1.match_start += r2_start_in_target
-                    pair.r1.match_len += r2_start_in_target
+                    pair.r1.shift_indels(r2_start_in_target)
             else:
                 pair.failure = Failures.left_of_zero
                 self.counters.left_of_zero += pair.multiplicity
