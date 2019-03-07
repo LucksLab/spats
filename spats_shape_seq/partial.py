@@ -83,7 +83,10 @@ class PartialFindProcessor(PairProcessor):
         masklen = pair.mask.length()
         if run.cotrans:
             r2_linker_start = string_find_with_overlap(run.cotrans_linker, pair.r2.subsequence)
-            if -1 != r2_linker_start  and  pair.r2.match_index + r2_linker_start + pair.r2.indels_delta > pair.r1.match_index:
+            ## Since we don't know r1.indels_delta yet, use r2's as an estimate,
+            ## but be conservative and only take into account deletes.
+            ## (It's ok if we trim a bit too much of R2.)
+            if -1 != r2_linker_start  and  pair.r2.match_index + r2_linker_start + min(0, pair.r2.indels_delta) >= pair.r1.right_est:
                 full_trim = pair.r2.seq_len - r2_linker_start
                 r2_adapter_len = full_trim - len(run.cotrans_linker) - masklen
                 if r2_adapter_len > 0:
@@ -321,9 +324,11 @@ class PartialFindProcessor(PairProcessor):
             if run.collapse_left_prefixes and (not run.collapse_only_prefixes or prefix in run._p_collapse_only_prefix_list):
                 pair.r2.ltrim -= r2_start_in_target
                 pair.r2.match_start += r2_start_in_target
+                pair.r2.match_len += r2_start_in_target
                 if pair.r1.rtrim and pair.r1.match_index == pair.r2.match_index:
                     pair.r1.rtrim -= r2_start_in_target
                     pair.r1.match_start += r2_start_in_target
+                    pair.r1.match_len += r2_start_in_target
             else:
                 pair.failure = Failures.left_of_zero
                 self.counters.left_of_zero += pair.multiplicity

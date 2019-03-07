@@ -23,7 +23,8 @@
         "mut_cotrans": "ATCGGGGGCTCTGTTGGTTCCCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCGGGTCGGCATGGCATCTCCACCTCCTCGCGGT",
         "mut_single": "ggacaagcaatgcttgccttgatgttgaacttttgaatagtgattcaggaggttaatgATGagcaaaggagaagaacttttcactggagttgtcccaattcttgttg",
         "tRNA": "GGCGGATTTAGCTCAGTTGGGAGAGCGCCAGACTGAAGATCTGGAGGTCCTGTGTTCGATCCACAGAATTCGCACCACACTCGGGCACCAAGGAC",
-        "1AT0": "GGACCCGGCACCTCCTCGCGGTGCCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC"
+        "1AT0": "GGACCCGGCACCTCCTCGCGGTGCCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
+        "thiB55": "CCGTTCTCAACGGGGTGCCACGCGTACGCGTGCGCTGAGAAAATACCCGTCGAACCTGATCCGGATAACGCCGGC"
     },
     "tests": [
         {
@@ -2791,6 +2792,39 @@
                     "expect": {
                         "failure": "match_errors",
                         "site": null
+                    }
+                }
+            ]
+        },
+        {
+            "set_name": "indels_works",
+            "run_opts": {
+                "algorithms": [ "find_partial" ],
+                "handle_indels": true,
+                "cotrans": true,
+                "allow_negative_values": false,
+                "count_mutations": true,
+                "allowed_target_errors": 1,
+                "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
+                "cotrans_minimum_length": 55,
+                "cotrans_linker": "CTGACTCGGGCACCAAGGAC",
+                "count_left_prefixes": true,
+                "collapse_left_prefixes": true
+            },
+            "targets": [ "thiB55" ],
+            "tests": [
+                {
+                    "id": "indels_works_1",
+                    "comment": "prefix before",
+                    "r1": "GGGTGTCCTTGGTGCCCGAGTCAGATCCGGATCAGGTTCGACGGGTATTTTCTCAGCGCACGCGTACGCGTGGCA", 
+                    "r2": "TGAACAGCGACTAGGCTCTTCAACCTGTTCTCAACGGGGTGCCACGCGTACGCGTGCGCTGAGAAAATACCCGTC",
+                    "expect": {
+                        "site": 0,
+                        "end": 66,
+                        "r2_indels": { "2": { "insert_type": true, "seq": "T", "src_index": 3, "ambiguous": false } },
+                        "counters": {
+                            "prefix_RRRY_A": 1
+                        }
                     }
                 }
             ]
