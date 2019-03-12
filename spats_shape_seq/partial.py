@@ -42,7 +42,7 @@ class PartialFindProcessor(PairProcessor):
     def _cotrans_find_short_matches(self, pair):
         run = self._run
         r2li = pair.r2.subsequence.find(run.cotrans_linker)
-        if r2li == -1:
+        if r2li <= 0:
             self.counters.unmatched += pair.multiplicity
             pair.failure = Failures.nomatch
             return False
