@@ -2817,7 +2817,7 @@
                         "site": 0,
                         "end": 87,
                         "muts": [ 23, 24 ],
-                        "r2_indels": { 
+                        "r2_indels": {
                             "17": { "insert_type": false, "seq": "A", "src_index": 17, "ambiguous": true }
                         },
                         "counters": {

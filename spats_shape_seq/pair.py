@@ -92,9 +92,9 @@ class Pair(object):
             r2seq, r2qual = self.r2.original_seq, self.r2.quality
         min_quality = minimum_quality_score + ord('!')
         for mut in self.mutations:
-            q1 = q2 = None
+            q = q1 = q2 = None
             nt1 = nt2 = None
-            if mut < r2_end:
+            if mut < r2_end  and  mut >= r2_start:
                 idx = mut - r2_start
                 q2 = ord(r2qual[idx])
                 nt2 = r2seq[idx]
@@ -129,7 +129,7 @@ class Pair(object):
                 q = q1
             elif q2:
                 q = q2
-            if q < min_quality:
+            if not q or q < min_quality:
                 removed.append(mut)
         for mut in removed:
             self.mutations.remove(mut)
