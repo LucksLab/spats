@@ -2860,6 +2860,23 @@
                         "r1_indels": { "65": { "insert_type": true, "seq": "T", "src_index": 23, "ambiguous": true } },
                         "r2_indels": { "65": { "insert_type": true, "seq": "TTAA", "src_index": 23, "ambiguous": true } }
                     }
+                },
+                {
+                    "comment": "partial dumbbell match in R1",
+                    "expect": {
+                        "site": 22,
+                        "end": 68,
+                        "muts": [ 23 ],
+                        "counters": {
+                            "mut_count_1": 1,
+                            "mutations": 1
+                        }
+                    },
+                    "id": "indels_works_4",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGTCAGTTATCCGGATCAGGTTCGACGGGTATTTTCTCAGCGCACGCGTACATGAAG",
+                    "r1_quality": "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                    "r2": "TGAACAGCGACTAGGCTCTTCATGTACGCGTGCGCTGAGAAAATACCCGTCGAACCTGATCCGGATAACTGACTC",
+                    "r2_quality": "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
                 }
             ]
         }

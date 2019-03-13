@@ -121,12 +121,15 @@ class PartialFindProcessor(PairProcessor):
         if run.minimum_adapter_len  and  r1_adapter_trim - dumblen < run.minimum_adapter_len:
             return False
         if r1_adapter_trim > 0:
-            r1_adapter = pair.r1.subsequence[dumblen - r1_adapter_trim:]
-            pair.r1.adapter_errors = string_match_errors(r1_adapter, run.adapter_b)
-            if len(pair.r1.adapter_errors) > run.allowed_adapter_errors:
-                return False
+            if r1_adapter_trim > dumblen:
+                r1_adapter = pair.r1.subsequence[dumblen - r1_adapter_trim:]
+                pair.r1.adapter_errors = string_match_errors(r1_adapter, run.adapter_b)
+                if len(pair.r1.adapter_errors) > run.allowed_adapter_errors:
+                    return False
             pair.r1.rtrim += r1_adapter_trim
             pair.r1.match_start -= r1_adapter_trim
+            if pair.linker:
+                pair.linker -= r1_adapter_trim
             if pair.r1.match_start < 0:
                 pair.r1.match_index -= pair.r1.match_start
                 pair.r1.match_len += pair.r1.match_start
@@ -169,7 +172,6 @@ class PartialFindProcessor(PairProcessor):
                 pair.r1.ltrim += r1_overhang    # also updates match_len
             if pair.linker:
                 pair.r1.match_len = pair.linker - pair.r1.match_start - pair.r1.indels_delta
-                pair.linker += pair.r1.match_index - pair.r1.rtrim - pair.r1.indels_delta  # linker now equates to 1 beyond the end of the match in the *target* (where the linker starts)  TAI:  keep in R1 coordinates?
 
         return True
 
@@ -210,6 +212,8 @@ class PartialFindProcessor(PairProcessor):
             # So we either have no dumbbell and an adapter or a partial dumbbell only.
             r1_adapter_trimmed = pair.r1.reverse_complement[-pair.r1.match_start:]
             pair.r1.rtrim += pair.r1.match_start
+            if pair.linker:
+                pair.linker -= pair.r1.match_start
             pair.r1.match_start = 0
             if r1_adapter_trimmed:
                 if run.minimum_adapter_len  and  len(r1_adapter_trim) < run.minimum_adapter_len:
@@ -308,6 +312,12 @@ class PartialFindProcessor(PairProcessor):
                 pair.failure = Failures.adapter_trim
                 self.counters.adapter_trim_failure += pair.multiplicity
             return
+
+        if pair.linker:
+            ## shift pair.linker into target coordinates.
+            ## pair.linker now equates to 1 beyond the end of the match in the *target* (where the linker starts)
+            ## TAI:  keep in R1 coordinates?
+            pair.linker += pair.r1.match_index - pair.r1.match_start - pair.r1.indels_delta
 
         counted_prefix = None
         if pair.r2.match_start > pair.r2.match_index:
