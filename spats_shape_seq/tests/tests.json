@@ -2797,6 +2797,37 @@
             ]
         },
         {
+            "set_name": "indels_prefix",
+            "run_opts": {
+                "algorithms": [ "find_partial" ],
+                "handle_indels": true,
+                "count_mutations": true,
+                "allowed_target_errors": 8,
+                "count_left_prefixes": true,
+                "collapse_left_prefixes": true,
+                "ignore_stops_with_mismatched_overlap": false
+            },
+            "targets": [ "hairpinA_circ" ],
+            "tests": [
+                {
+                    "id": "indels_prefix_1",
+                    "r1": "AGGCGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCTTACTTTC",
+                    "r2": "TGGACCCGATGCCGGACGAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGAT",
+                    "expect": {
+                        "site": 0,
+                        "end": 87,
+                        "muts": [ 23, 24 ],
+                        "r2_indels": { 
+                            "17": { "insert_type": false, "seq": "A", "src_index": 17, "ambiguous": true }
+                        },
+                        "counters": {
+                            "prefix_RRRY_T": 1
+                        }
+                    }
+                }
+            ]
+        },
+        {
             "set_name": "indels_works",
             "run_opts": {
                 "algorithms": [ "find_partial" ],

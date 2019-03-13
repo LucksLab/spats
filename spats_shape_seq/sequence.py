@@ -123,7 +123,7 @@ class Sequence(object):
                 self.trim_indels()          # should only matter for R2 since R1 won't have indels when rtrimmed
                 self.match_errors = [ err for err in self.match_errors if err < self.seq_len - self.indels_delta ]
                 if self.match_len and self.target_len:
-                    self.match_len = min(self.match_len, self.target_len - self.match_index, self.seq_len - self.indels_delta)
+                    self.match_len = min(self.match_len, self.target_len - self.match_index, self.seq_len - self.indels_delta - self.match_start)
 
     def find_in_targets(self, targets, force_target = None, min_length_override = 0):
         seq = self.reverse_complement if self._needs_rc else self.subsequence
