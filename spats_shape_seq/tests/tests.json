@@ -2804,6 +2804,7 @@
                 "cotrans": true,
                 "allow_negative_values": false,
                 "count_mutations": true,
+                "count_edge_mutations": "stop_and_mut",
                 "mutations_require_quality_score": 30,
                 "allowed_target_errors": 1,
                 "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
