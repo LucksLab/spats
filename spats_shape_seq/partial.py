@@ -207,15 +207,15 @@ class PartialFindProcessor(PairProcessor):
                     self.counters.adapter_trim_failure += pair.multiplicity
                     return False
                 self.counters.adapter_trimmed += pair.multiplicity
-        if pair.r1.match_index == 0  and  pair.r1.match_start > 0  and  not run.dumbbell:
-            # Note: if we had a full dumbbell, it would have been entirely trimmed already
-            # So we either have no dumbbell and an adapter or a partial dumbbell only.
+        if pair.r1.match_index == 0  and  pair.r1.match_start > 0:
             r1_adapter_trimmed = pair.r1.reverse_complement[-pair.r1.match_start:]
             pair.r1.rtrim += pair.r1.match_start
             if pair.linker:
                 pair.linker -= pair.r1.match_start
             pair.r1.match_start = 0
-            if r1_adapter_trimmed:
+            # Note: if we had a full dumbbell, it would have been entirely trimmed already
+            # So we either have no dumbbell and an adapter or a partial dumbbell only.
+            if not run.dumbbell and r1_adapter_trimmed:
                 if run.minimum_adapter_len  and  len(r1_adapter_trim) < run.minimum_adapter_len:
                     pair.failure = Failures.adapter_trim
                     self.counters.adapter_trim_failure += pair.multiplicity
@@ -225,7 +225,7 @@ class PartialFindProcessor(PairProcessor):
                     pair.failure = Failures.adapter_trim
                     self.counters.adapter_trim_failure += pair.multiplicity
                     return False
-            #self.counters.adapter_trimmed += pair.multiplicity    # Note: only counting R2 trimming
+                #self.counters.adapter_trimmed += pair.multiplicity    # Note: only counting R2 trimming
         return self._recheck_targets(pair)
 
 
