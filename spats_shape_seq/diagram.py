@@ -21,7 +21,7 @@ class Diagram(object):
         self.max_len = 0
         self.error_bars = None
         self.masklen = self.pair.mask.length() if self.pair.mask else 4
-        self.dumblen = len(self.run.dumbbell) if self.pair.dumbbell else 0
+        self.dumblen = len(self.run.dumbbell) if self.pair.dumbbell is not None else 0
         self.linkerlen = len(self.run.cotrans_linker) if self.run.cotrans else 0
 
     def match_index(self, part):
@@ -193,7 +193,8 @@ class Diagram(object):
             d += sp(self.masklen + 1)
             if self.run.cotrans:
                 d += sp(self.linkerlen)
-            d += (adapter[:part.rtrim - self.masklen] + "..")
+            if adapter and part.rtrim > self.masklen + self.linkerlen:
+                d += (adapter[:part.rtrim - self.masklen - self.linkerlen] + "...")
             self._add_line(d)
 
     def _make_part_ins(self, part):
@@ -379,8 +380,10 @@ class Diagram(object):
         if self.show_quality:
             self._make_part_quality(self.pair.r2)
         if self.pair.r2.trimmed:
-            label = "DB+RC(adp_t)" if self.pair.dumbbell else "RC(adapter_t)"
+            label = "DB+RC(adp_t)" if self.pair.dumbbell is not None else "RC(adapter_t)"
             self._make_adapter_line(self.pair.r2, reverse_complement(self.run.adapter_t), label)
+        elif self.pair.dumbbell is not None:
+            self._make_adapter_line(self.pair.r2, None, "DUMBBELL")
 
         self._add_line("")
 
