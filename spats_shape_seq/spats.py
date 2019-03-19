@@ -174,6 +174,7 @@
 
 import os
 import time
+import re
 
 from db import PairDB
 from mask import Mask
@@ -381,8 +382,13 @@ class Spats(object):
         total = counters.total_pairs
         print("Successfully processed {} properly paired fragments:".format(counters.registered_pairs))
         warn_keys = [ "multiple_R1_match", ]
+        skip_keypat = re.compile("(prefix_)|(mut_count_)|(indel_len)")
+        skipped_some = False
         countinfo = counters.counts_dict()
         for key in sorted(countinfo.keys(), key = lambda k : countinfo[k], reverse = True):
+            if skip_keypat.search(key):
+                skipped_some = True
+                continue
             print("  {}{} : {} ({:.1f}%)".format("*** " if key in warn_keys else "", key, countinfo[key], 100.0 * (float(countinfo[key])/float(total)) if total else 0))
         print("Masks:")
         for m in self._masks:
@@ -395,6 +401,8 @@ class Spats(object):
             for tgt in sorted(self._targets.targets, key = lambda t : tmap[t.name], reverse = True):
                 if tmap[tgt.name] > 0:
                     print("  {}: {} ({:.1f}%)".format(tgt.name, tmap[tgt.name], (100.0 * float(tmap[tgt.name])) / float(total) if total else 0))
+        if skipped_some:
+            print("Some counters not printed above; use 'spats_tool dump ...' commands to obtain.")
         if delta:
             print("Total time: ({:.1f}s)".format(delta))
 

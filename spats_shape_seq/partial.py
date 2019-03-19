@@ -1,6 +1,7 @@
 
 from processor import PairProcessor, Failures
 from mask import base_similarity_ind
+from pair import Pair
 from util import _warn, _debug, reverse_complement, string_match_errors, string_find_errors, string_find_with_overlap, AlignmentParams
 
 
@@ -229,6 +230,16 @@ class PartialFindProcessor(PairProcessor):
         return self._recheck_targets(pair)
 
 
+    def _check_targetrc(self, pair):
+        rcpair = Pair()
+        rcpair.set_from_data(pair.identifier,
+                             reverse_complement(pair.r1.original_seq),
+                             reverse_complement(pair.r2.original_seq))
+        self._find_matches(rcpair)
+        if rcpair.matched or (self._run.cotrans and self._cotrans_find_short_matches(rcpair)):
+            self.counters.dna_residual_pairs += 1
+
+
     ## Generally, experiments look like:
     ##    R1':    AAAAAAAAAAAAAA.DDDDDDDD.TTTTTTTTTTTTTTTTT.LLLLLLL.MMMM...................
     ##    R2:     ...............DDDDDDDD.TTTTTTTTTTTTTTTTT.LLLLLLL.MMMM.AAAAAAAAAAAAAAAAAA
@@ -293,8 +304,10 @@ class PartialFindProcessor(PairProcessor):
             if not run.cotrans or pair.r1.ltrim == 0:
                 self.counters.unmatched += pair.multiplicity
                 pair.failure = Failures.nomatch
+                self._check_targetrc(pair)
                 return
             if not self._cotrans_find_short_matches(pair):
+                self._check_targetrc(pair)
                 return
 
         ## And extend the match if necessary using string alignment on the rest
