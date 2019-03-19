@@ -96,7 +96,7 @@ class Run(object):
         self.allowed_adapter_errors = 0
 
         #: Default ``0``, increase to allow the indicated number of
-        #: errors when matching to the target.
+        #: errors (mutations / indels) when matching to the target.
         self.allowed_target_errors = 0
 
         #: Default ``False``, set to ``True`` to write the results back to 

@@ -374,7 +374,7 @@ class PartialFindProcessor(PairProcessor):
             pair.interesting = True
             self.counters.interesting_pairs += pair.multiplicity
 
-        if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) > run.allowed_target_errors:
+        if max(len(pair.r1.match_errors), len(pair.r2.match_errors)) + max(len(pair.r1.indels), len(pair.r1.indels)) > run.allowed_target_errors:
             if pair.r1.match_errors:
                 _debug("R1 errors: {}".format(pair.r1.match_errors))
             if pair.r2.match_errors:
