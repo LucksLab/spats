@@ -2713,9 +2713,11 @@
                 "algorithms": [ "find_partial" ],
                 "handle_indels": true,
                 "count_mutations": true,
-                "allowed_target_errors": 2,
+                "allowed_target_errors": 3,
                 "allowed_adapter_errors": 1,
-                "dumbbell": "TGAACAGCGACTAGGCTCTTCA"
+                "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
+                "count_left_prefixes": true,
+                "collapse_left_prefixes": true
             },
             "targets": [ "HairpinC_SS2" ],
             "tests": [
@@ -2728,9 +2730,24 @@
                     "expect": { 
                         "site": 49,
                         "muts": [ ],
-                        "counters": { "r1_indels": 1, "r1_indels": 1, "r2_indels": 1, "RRRY_indels": 1, "mapped_indel_len_1": 1, "mapped_indel_len_3": 0 },
+                        "counters": { "r1_indels": 1, "r2_indels": 1, "RRRY_indels": 1, "mapped_indel_len_1": 1, "mapped_indel_len_3": 0 },
                         "r1_indels": { "54": { "insert_type": false, "seq": "C", "src_index": 5, "ambiguous": true } },
                         "r2_indels": { "54": { "insert_type": true, "seq": "AAA", "src_index": 5, "ambiguous": false } }
+                    }
+                },
+                {
+                    "id": "indels_dumbbell_2",
+                    "comment": "large prefix on r2, small prefix on r1.  large deletion on r1",
+                    "r1": "AAACGGGCTTTGGGAGTATTATCTGAGGCATAGTTGATGCTCGGACTTTCGTCCGGCATCGGGTCCCCGACGATA",
+                    "r2": "TGAACAGCGACTAGGCTCTTCACATCGGGTCCCAGGGGGGAGTATTATCGTCGGGGACCCGATGCCGGACGAAAG",
+                    "expect": {
+                        "site": 0,
+                        "muts": [ 26 ],
+                        "counters": { "r1_indels": 2, "r2_indels": 0, "RRRY_indels": 2, "mapped_indel_len_1": 1, "mapped_indel_len_24": 1, "prefix_RRRY_CATCGGGTCCCAGGGGGGAGTATTATCGTCGG": 1 },
+                        "r1_indels": {
+                            "42": { "insert_type": false, "seq": "T", "src_index": 42, "ambiguous": false },
+                            "67": { "insert_type": false, "seq": "CCTGCTTCGGCCGATAAAGCCGAC", "src_index": 43, "ambiguous": false }
+                        }
                     }
                 }
             ]

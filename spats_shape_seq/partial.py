@@ -348,10 +348,11 @@ class PartialFindProcessor(PairProcessor):
                 pair.r2.ltrim -= r2_start_in_target
                 pair.r2.match_start += r2_start_in_target
                 pair.r2.shift_indels(r2_start_in_target)
-                if pair.r1.rtrim and pair.r1.match_index == pair.r2.match_index:
-                    pair.r1.rtrim -= r2_start_in_target
-                    pair.r1.match_start += r2_start_in_target
-                    pair.r1.shift_indels(r2_start_in_target)
+                if pair.r1.match_start > 0 and pair.r1.match_index == pair.r2.match_index:
+                    r1prefix = min(-r2_start_in_target, pair.r1.match_start)
+                    pair.r1.rtrim += r1prefix
+                    pair.r1.match_start -= r1prefix
+                    pair.r1.shift_indels(-r1prefix)
             else:
                 pair.failure = Failures.left_of_zero
                 self.counters.left_of_zero += pair.multiplicity
