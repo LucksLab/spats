@@ -2589,7 +2589,7 @@
                 "algorithms": [ "find_partial" ],
                 "handle_indels": true,
                 "count_mutations": true,
-                "allowed_target_errors": 3,
+                "allowed_target_errors": 5,
                 "ignore_stops_with_mismatched_overlap": false
             },
             "targets": [ "HairpinC_SS2" ],
