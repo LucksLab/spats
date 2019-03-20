@@ -200,29 +200,21 @@ class Sequence(object):
             align_front = align_strings(front_read[::-1], front_target[::-1], ap)
             align_front.flip()
 
-            good_alignment = True
-            tlen = len(front_target)
-            if tlen - align_front.target_match_end - 1 > 0:
-                delseq = front_target[align_front.target_match_end + 1:]
-                existing_del = align_front.indels.get(align_front.target_match_end)
-                oc = ap.gap_extend_cost if existing_del else ap.gap_open_cost
-                if 0.0 < align_front.score - oc - (len(delseq) - 1) * ap.gap_extend_cost:
+            if align_front.score > 0.0:
+                tlen = len(front_target)
+                if tlen - align_front.target_match_end - 1 > 0:
+                    delseq = front_target[align_front.target_match_end + 1:]
+                    existing_del = align_front.indels.get(align_front.target_match_end)
                     if existing_del:
                         assert(not existing_del.insert_type)
                         delseq = existing_del.seq + delseq
                         del align_front.indels[align_front.target_match_end]
                     self.indels[tlen - 1] = Indel(False, delseq, self.match_start)
                     self.indels_delta -= len(delseq)
-                else:
-                    good_alignment = False
-            elif len(front_read) - align_front.src_match_end - 1 > 0:
-                insseq = front_read[align_front.src_match_end + 1:]
-                if 0.0 < align_front.score - ap.gap_open_cost - (len(insseq) - 1) * ap.gap_extend_cost:
+                elif len(front_read) - align_front.src_match_end - 1 > 0:
+                    insseq = front_read[align_front.src_match_end + 1:]
                     self.indels[tlen] = Indel(True, insseq, align_front.src_match_end + 1)
                     self.indels_delta += len(insseq)
-                else:
-                    good_alignment = False
-            if good_alignment:
                 self.match_index = align_front.target_match_start
                 self.match_start = align_front.src_match_start
                 self.match_len += tlen - align_front.target_match_start
@@ -243,27 +235,15 @@ class Sequence(object):
             back_target = target.seq[target_end:] + suffix
             align_back = align_strings(back_read, back_target, ap)
 
-            good_alignment = True
-            if align_back.target_match_start > 0:
-                delseq = back_target[:align_back.target_match_start]
-                if 0.0 < align_back.score - ap.gap_open_cost - (len(delseq) - 1) * ap.gap_extend_cost:
+            if align_back.score > 0.0:
+                if align_back.target_match_start > 0:
+                    delseq = back_target[:align_back.target_match_start]
                     align_back.indels[align_back.target_match_start - 1] = Indel(False, delseq, 0)
                     align_back.indels_delta -= len(delseq)
-                else:
-                    good_alignment = False
-            elif align_back.src_match_start > 0:
-                insseq = back_read[:align_back.src_match_start]
-                existing_ins = align_back.indels.get(0)
-                oc = ap.gap_extend_cost if existing_ins else ap.gap_open_cost
-                if 0.0 < align_back.score - oc - (len(insseq) - 1) * ap.gap_extend_cost:
-                    if existing_ins:
-                        existing_ins.seq += insseq
-                    else:
-                        align_back.indels[0] = Indel(True, insseq, 0)
+                elif align_back.src_match_start > 0:
+                    insseq = back_read[:align_back.src_match_start]
+                    align_back.indels.setdefault(0, Indel(True, "", 0)).seq += insseq
                     align_back.indels_delta += len(insseq)
-                else:
-                    good_alignment = False
-            if good_alignment:
                 self.match_len += align_back.target_match_end + 1
                 self.indels_delta += align_back.indels_delta
                 self.update_shifted_indels(align_back.indels, target_end, read_end)

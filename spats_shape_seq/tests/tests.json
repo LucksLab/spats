@@ -2928,6 +2928,37 @@
                     "r2_quality": "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
                 }
             ]
+        },
+        {
+            "set_name": "roi26",
+            "run_opts": {
+                "algorithms": [ "find_partial" ],
+                "handle_indels": true,
+                "allow_negative_values": true,
+                "count_mutations": true,
+                "count_edge_mutations": "stop_and_mut",
+                "allowed_target_errors": 8,
+                "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
+                "count_left_prefixes": true,
+                "collapse_left_prefixes": true
+            },
+            "targets": [ "hairpinA_circ" ],
+            "tests": [
+                {
+                    "id": "roi26_1",
+                    "comment": "tests that r1 trimming takes into account r2 deletes",
+                    "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATTTGATTTGAAGAGCCTAGT",
+                    "r2": "TGAACAGCGACTAGGCTCTTCAAATCAAATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAA",
+                    "expect": {
+                        "site": 27,
+                        "end": 87,
+                        "muts": [ 28 ],
+                        "counters": { "mut_count_1": 1, "mutations": 1 },
+                        "r1_indels": { "34": { "insert_type": false, "seq": "CT", "src_index": 6, "ambiguous": false } },
+                        "r2_indels": { "34": { "insert_type": false, "seq": "CT", "src_index": 6, "ambiguous": false } }
+                    }
+                }
+            ]
         }
     ]
 }

@@ -87,7 +87,7 @@ class PartialFindProcessor(PairProcessor):
             ## Since we don't know r1.indels_delta yet, use r2's as an estimate,
             ## but be conservative and only take into account deletes.
             ## (It's ok if we trim a bit too much of R2.)
-            if -1 != r2_linker_start  and  pair.r2.match_index + r2_linker_start + min(0, pair.r2.indels_delta) >= pair.r1.right_est:
+            if -1 != r2_linker_start  and  pair.r2.match_index + r2_linker_start >= pair.r1.right_est + min(0, pair.r2.indels_delta):
                 full_trim = pair.r2.seq_len - r2_linker_start
                 r2_adapter_len = full_trim - len(run.cotrans_linker) - masklen
                 if r2_adapter_len > 0:
@@ -117,7 +117,7 @@ class PartialFindProcessor(PairProcessor):
             possible_matchlen = r2_linker_start if -1 != r2_linker_start else pair.r2.match_len
         else:
             possible_matchlen = min(pair.target.n - max(0, pair.r2.match_index - pair.r2.match_start), pair.r1.seq_len + pair.r1.match_index - pair.r1.match_start)
-        r1_adapter_trim = pair.r1.seq_len - possible_matchlen - max(pair.r2.indels_delta, 0)
+        r1_adapter_trim = pair.r1.seq_len - possible_matchlen - pair.r2.indels_delta
         dumblen = len(run.dumbbell) if run.dumbbell else 0
         if run.minimum_adapter_len  and  r1_adapter_trim - dumblen < run.minimum_adapter_len:
             return False

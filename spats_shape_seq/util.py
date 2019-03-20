@@ -225,20 +225,25 @@ class Indel:
 class AlignmentParams:
     '''
      Parameters used for align_strings() algorithm.
-     @param  simfn              Similarity function for string elements
-     @param  gap_open_cost      Penalty for opening a gap (should be non-negative)
-     @param  gap_extend_cost    Penalty for extending an already-open gap (should be non-negative)
-     @param  front_biased       Set to True to bias towards aligning fronts
-     @param  penalize_ends      If True, will penalize regions before/after alignment for mismatches
+     @param  simfn                Similarity function for string elements
+     @param  gap_open_cost        Penalty for opening a gap (should be non-negative)
+     @param  gap_extend_cost      Penalty for extending an already-open gap (should be non-negative)
+     @param  front_biased         Set to True to bias towards aligning fronts
+     @param  penalize_ends        If True, will penalize regions before/after alignment for mismatches
+     @param  penalize_front_clip  If True and penalize_ends, will penalize front end if a clip is required
+     @param  penalize_back_clip   If True and penalize_ends, will penalize back end if a clip is required
     '''
     def __init__(self, simfn = lambda n1, n2: AlignmentParams.char_sim(n1, n2),
                        gap_open_cost = 6, gap_extend_cost = 1,
-                       front_biased = True, penalize_ends = True):
+                       front_biased = True, penalize_ends = True,
+                       penalize_front_clip = True, penalize_back_clip = False):
         self.simfn = simfn
         self.gap_open_cost = gap_open_cost
         self.gap_extend_cost = gap_extend_cost
         self.front_biased = front_biased
         self.penalize_ends = penalize_ends
+        self.penalize_front_clip = penalize_front_clip
+        self.penalize_back_clip = penalize_back_clip
 
     @staticmethod
     def char_sim(sc, tc, match_value = 2, mismatch_cost = 2):
@@ -428,6 +433,8 @@ def align_strings(source, target, params = AlignmentParams()):
                 prefix_match_score += s
                 if s <= 0.0:
                     prefix_mismatches.append(j)
+            if params.penalize_front_clip and (i + j) > 0:
+                prefix_match_score -= (gap_open_cost + (i + j - 1) * gap_extend_cost)
             in_del_cost = -2 * gap_open_cost - gap_extend_cost * max(prei + prej - 2, 0)
             if prefix_match_score > in_del_cost:
                 maxH += prefix_match_score
@@ -436,6 +443,9 @@ def align_strings(source, target, params = AlignmentParams()):
                 maxH += in_del_cost
                 indels[0] = Indel(True, source[:prei], 0)
                 indels[prej - 1] = Indel(False, target[:prej], prei)
+                i = j = 0
+        elif params.penalize_front_clip and (i + j) >  0:
+            maxH -= (gap_open_cost + (i + j - 1) * gap_extend_cost)
 
         if maxs[0] < m - 1 and maxs[1] < n - 1:
             suffi, suffj = maxs
@@ -448,6 +458,8 @@ def align_strings(source, target, params = AlignmentParams()):
                     suffix_mismatches.append(maxs[1])
                 maxs[0] += 1
                 maxs[1] += 1
+            if params.penalize_back_clip and (m + n - 2 - maxs[0] - maxs[1]) > 0:
+                suffix_match_score -= (gap_open_cost + (m + n - 3 - maxs[0] - maxs[1]) * gap_extend_cost)
             il = m - 1 - suffi
             jl = n - 1 - suffj
             in_del_cost = -2 * gap_open_cost - gap_extend_cost * max(il + jl - 2, 0)
@@ -458,6 +470,10 @@ def align_strings(source, target, params = AlignmentParams()):
                 maxH += in_del_cost
                 indels[suffj] = Indel(True, source[suffi:], suffi)
                 indels[n - 2] = Indel(False, target[suffj:], m - 1)
+                maxs[0] = m - 1
+                maxs[1] = n - 1
+        elif params.penalize_back_clip and (m + n - 2 - maxs[0] - maxs[1]) > 0:
+            maxH -= (gap_open_cost + (m + n - 3 - maxs[0] - maxs[1]) * gap_extend_cost)
 
     return Alignment(params, maxH, n - 1, j, maxs[1] - 1, m - 1, i, maxs[0] - 1, indels, mismatches, max_run)
 

@@ -70,7 +70,7 @@ class TestUtils(unittest.TestCase):
         GOC = 5
         GEC = 1
         simfn = lambda a,b: base_similarity_ind(a, b, MV, MMC, .5*MV)
-        ap = AlignmentParams(simfn, GOC, GEC)
+        ap = AlignmentParams(simfn, GOC, GEC, penalize_front_clip=False)
 
         R = "GGMCSCGATGCCGNACGATKTAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGRCCGATAAAGCTTTCAAWAGACGAYAAT"
         T = "GGACCCGATGCCGGACGAAAGTCCGCGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC"
@@ -99,8 +99,8 @@ class TestUtils(unittest.TestCase):
         a = align_strings(R, T, ap)
         self.assertEqual(a.score, 32.0)
         self.assertEqual(a.target_match_start, 0)
-        self.assertEqual(a.target_match_end, 29)
-        self.assertEqual(a.src_match_start, 1)
+        self.assertEqual(a.target_match_end, 30)
+        self.assertEqual(a.src_match_start, 0)
         self.assertEqual(a.src_match_end, 30)
         self.assertEqual(len(a.mismatched), 0)
         self.assertEqual(a.indels_as_dict(), { '0': { 'insert_type': True, 'seq': "CCCCC", "src_index": 0 },
