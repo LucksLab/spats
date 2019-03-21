@@ -163,34 +163,44 @@ class Sequence(object):
             return
         newindels = {}
         prevind = -1
+        seq = self.reverse_complement if self._needs_rc else self.subsequence
         for indind,indel in sorted(self.indels.iteritems()):
             indel.ambiguous = False
             if indel.insert_type:
                 ## TAI: Busan & Weeks, 2018 is about deletes, but go ahead and do same for inserts.
-                while indind > 0  and  indel.seq[-1] == target[indind - 1]:
-                    indel.seq = target[indind - 1] + indel.seq[:-1]
+                while indind > 0  and  (indel.seq[-1] == target[indind - 1]  or  (indind - 1 - self.match_index) in self.match_errors):
+                    indel.seq = seq[indel.src_index - 1] + indel.seq[:-1]
                     indind -= 1
                     indel.src_index -= 1
                     indel.ambiguous = True
-                if not indel.ambiguous  and  indind < len(target)  and  target[indind] == indel.seq[0]:
+                if not indel.ambiguous  and  ((indind < len(target)  and  target[indind] == indel.seq[0])  or  (indind - self.match_index) in self.match_errors):
                     # in case it started to the left already (from stitching)
                     indel.ambiguous = True
                 newindels[indind] = indel
             else:
                 ## Use heuristic from Busan & Weeks, 2018:  ambiguous deletes aligned to 5' side.
                 ilen = len(indel.seq)
-                while indind >= ilen + prevind  and  target[(indind - ilen):indind] == indel.seq:
-                    indind -= 1
+                indst = indind - ilen
+                while indind >= ilen + prevind:
+                    if target[indst:indind] == indel.seq:
+                        pass
+                    elif (indst - self.match_index) in self.match_errors:
+                        indel.seq = target[indst:indind]
+                        self.match_errors[self.match_errors.index(indst - self.match_index)] += len(indel.seq)
+                    else:
+                        break
                     indel.src_index -= 1
                     indel.ambiguous = True
-                if not indel.ambiguous  and  indind < len(target) - 1  and  target[(indind + 2 - ilen):(indind + 2)] == indel.seq:
+                    indind -= 1
+                    indst -= 1
+                if not indel.ambiguous  and  ((indind < len(target) - 1  and  target[(indind + 2 - ilen):(indind + 2)] == indel.seq)  or  (indind + 1 - self.match_index) in self.match_errors):
                     # in case it started to the left already (from stitching)
                     indel.ambiguous = True
                 newindels[indind] = indel
             prevind = indind
         self.indels = newindels
 
-    def align_with_target(self, target, ap, suffix = ""):
+    def extend_alignment(self, target, ap, suffix = ""):
         read_end = self.match_start + self.match_len
         if self.match_start > 0  and  self.match_index > 0:
             ## Extend towards left/front/5' end...

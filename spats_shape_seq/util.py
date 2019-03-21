@@ -355,10 +355,10 @@ def align_strings(source, target, params = AlignmentParams()):
             h2 = colmax[j] - gap_open_cost - gap_extend_cost * (imo - colmaxi[j])
             h3 = rowmax - gap_open_cost - gap_extend_cost * (jmo - rowmaxj)
             P[i][j] = (imo, jmo)
-            if h2 > h:
+            if h2 >= h:
                 h = h2
                 P[i][j] = (colmaxi[j], j)
-            if h3 > h:
+            if h3 >= h:
                 h = h3
                 P[i][j] = (i, rowmaxj)
             Hi[j] = max(h, 0.0)    # omit the max0 (and backtrack from corner) for Needleman-Wunsch instead
@@ -379,36 +379,45 @@ def align_strings(source, target, params = AlignmentParams()):
     cur_indel = None
     cur_run = 0
     max_run = 0
-    while i > 0  and  j > 0  and  H[i][j] > 0.0:
+    score = 0.0
+    penalize_ends = params.penalize_ends
+    while i > 0  and  j > 0  and  (H[i][j] > 0.0  or  penalize_ends):
         lasti, lastj = i, j
         i, j = P[i][j]
         deli, delj = lasti - i, lastj - j
         if deli and delj:
             #assert(deli == 1  and delj == 1)
             cur_indel = None
-            if H[i][j] >= H[lasti][lastj]:
+            delscore = H[lasti][lastj] - H[i][j]
+            if delscore <= 0.0:
                 mismatches.append(j)
                 if cur_run > max_run:
                     max_run = cur_run
                 cur_run = 0
+                score += (simfn(source[i], target[j]) if delscore == 0.0 else delscore)
             else:
                 cur_run += 1
+                score += delscore
         elif deli:
             if cur_indel  and  cur_indel.insert_type:
                 cur_indel.seq = source[i:lasti] + cur_indel.seq
                 cur_indel.src_index = i
+                score -= gap_extend_cost * deli
             else:
                 # count insertion at first index in target to be moved
                 cur_indel = indels[lastj] = Indel(True, source[i:lasti], i)
+                score -= (gap_open_cost + gap_extend_cost * (deli - 1))
             if cur_run > max_run:
                 max_run = cur_run
             cur_run = 0
         elif delj:
             if cur_indel  and  not cur_indel.insert_type:
                 cur_indel.seq = target[j:lastj] + cur_indel.seq
+                score -= gap_extend_cost * delj
             else:
                 # count deletion at index of last item deleted in target
                 cur_indel = indels[lastj - 1] = Indel(False, target[j:lastj], i)
+                score -= (gap_open_cost + gap_extend_cost * (delj - 1))
             if cur_run > max_run:
                 max_run = cur_run
             cur_run = 0
@@ -421,7 +430,7 @@ def align_strings(source, target, params = AlignmentParams()):
     i = min(i, m - 2)
     j = min(j, n - 2)
 
-    if params.penalize_ends:
+    if penalize_ends:
         if i > 0 and j > 0:
             prei, prej = i, j
             prefix_match_score = 0
@@ -436,16 +445,24 @@ def align_strings(source, target, params = AlignmentParams()):
             if params.penalize_front_clip and (i + j) > 0:
                 prefix_match_score -= (gap_open_cost + (i + j - 1) * gap_extend_cost)
             in_del_cost = -2 * gap_open_cost - gap_extend_cost * max(prei + prej - 2, 0)
+            #in_del_cost = -gap_open_cost - gap_extend_cost * max(prei - 1, prej - 1, 0)
             if prefix_match_score > in_del_cost:
-                maxH += prefix_match_score
+                score += prefix_match_score
                 mismatches += prefix_mismatches
             else:
-                maxH += in_del_cost
+                score += in_del_cost
                 indels[0] = Indel(True, source[:prei], 0)
                 indels[prej - 1] = Indel(False, target[:prej], prei)
                 i = j = 0
-        elif params.penalize_front_clip and (i + j) >  0:
-            maxH -= (gap_open_cost + (i + j - 1) * gap_extend_cost)
+        elif params.penalize_front_clip:
+            if i > 0:
+                indels[0] = Indel(True, source[:i], 0)
+                score -= (gap_open_cost + (i - 1) * gap_extend_cost)
+                i = 0
+            elif j > 0:
+                indels[j - 1] = Indel(False, target[:j], 0)
+                score -= (gap_open_cost + (j - 1) * gap_extend_cost)
+                j = 0
 
         if maxs[0] < m - 1 and maxs[1] < n - 1:
             suffi, suffj = maxs
@@ -463,19 +480,27 @@ def align_strings(source, target, params = AlignmentParams()):
             il = m - 1 - suffi
             jl = n - 1 - suffj
             in_del_cost = -2 * gap_open_cost - gap_extend_cost * max(il + jl - 2, 0)
+            #in_del_cost = -gap_open_cost - gap_extend_cost * max(il - 1, jl - 1, 0)
             if suffix_match_score > in_del_cost:
-                maxH += suffix_match_score
+                score += suffix_match_score
                 mismatches += suffix_mismatches
             else:
-                maxH += in_del_cost
+                score += in_del_cost
                 indels[suffj] = Indel(True, source[suffi:], suffi)
                 indels[n - 2] = Indel(False, target[suffj:], m - 1)
                 maxs[0] = m - 1
                 maxs[1] = n - 1
-        elif params.penalize_back_clip and (m + n - 2 - maxs[0] - maxs[1]) > 0:
-            maxH -= (gap_open_cost + (m + n - 3 - maxs[0] - maxs[1]) * gap_extend_cost)
+        elif params.penalize_back_clip:
+            if maxs[0] < m - 1:
+                indels[maxs[1]] = Indel(True, source[maxs[0]:], maxs[0])
+                score -= (gap_open_cost + (m - maxs[0] - 2) * gap_extend_cost)
+                maxs[0] = m - 1
+            elif maxs[1] < n - 1:
+                indels[n - 2] = Indel(False, target[maxs[1]:], m - 1)
+                score -= (gap_open_cost + (n - maxs[1] - 2) * gap_extend_cost)
+                maxs[1] = n - 1
 
-    return Alignment(params, maxH, n - 1, j, maxs[1] - 1, m - 1, i, maxs[0] - 1, indels, mismatches, max_run)
+    return Alignment(params, score, n - 1, j, maxs[1] - 1, m - 1, i, maxs[0] - 1, indels, mismatches, max_run)
 
 
 class Colors(object):

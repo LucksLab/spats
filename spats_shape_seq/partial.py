@@ -153,7 +153,7 @@ class PartialFindProcessor(PairProcessor):
         ## Align remaining R2 first to find adapter overhang.
         ## TAI: probably better way of doing adapter alignment  (see indels_7 testcase)
         r2suffix = "" if run.cotrans else reverse_complement(pair.r1.original_seq[:masklen]) + reverse_complement(run.adapter_t)
-        pair.r2.align_with_target(pair.target, ap, r2suffix)
+        pair.r2.extend_alignment(pair.target, ap, r2suffix)
         if run.dumbbell:
             pair.dumbbell = pair.r2.match_index - dumblen
 
@@ -166,7 +166,7 @@ class PartialFindProcessor(PairProcessor):
 
         ## Now align remaining R1 if necessary
         if not pair.r1.fully_matched:
-            pair.r1.align_with_target(pair.target, ap)
+            pair.r1.extend_alignment(pair.target, ap)
             # we may have not trimmed enough
             r1_overhang = pair.r1.right_est - pair.target.n
             if r1_overhang > 0:

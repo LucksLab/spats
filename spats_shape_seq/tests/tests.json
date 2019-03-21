@@ -2638,7 +2638,7 @@
                         "r2_indels": { 
                             "18": { "insert_type": true, "seq": "TTT", "src_index": 18, "ambiguous": false },
                             "40": { "insert_type": false, "seq": "T", "src_index": 43, "ambiguous": false },
-                            "64": { "insert_type": true, "seq": "TTTCAAA", "src_index": 66, "ambiguous": false }
+                            "64": { "insert_type": true, "seq": "TTTCAAA", "src_index": 66, "ambiguous": true }
                         }
                     }
                 },
@@ -2663,9 +2663,9 @@
                     "r2": "GGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCCTACCTGCTTCGGCCGATAAAGCCAAAAGACGATAAT",
                     "expect": { 
                         "site": 0,
-                        "muts": [ 26, 40, 86 ],
-                        "counters": { "mut_count_3": 1, "r1_indels": 1, "r2_indels": 2, "RRRY_indels": 2, "mapped_indel_len_1": 1, "mapped_indel_len_4": 1 },
-                        "r1_indels": { "40": { "insert_type": false, "seq": "T", "src_index": 25, "ambiguous": false } },
+                        "muts": [ 26, 41, 86 ],
+                        "counters": { "mut_count_3": 1, "r1_indels": 1, "r2_indels": 2, "RRRY_indels": 3, "mapped_indel_len_1": 2, "mapped_indel_len_4": 1 },
+                        "r1_indels": { "38": { "insert_type": false, "seq": "C", "src_index": 23, "ambiguous": true } },
                         "r2_indels": { 
                             "40": { "insert_type": false, "seq": "T", "src_index": 40, "ambiguous": false },
                             "65": { "insert_type": true, "seq": "AAAA", "src_index": 64, "ambiguous": false }
@@ -2701,6 +2701,23 @@
                             "17": { "insert_type": false, "seq": "A", "src_index": 17, "ambiguous": true },
                             "37": { "insert_type": true, "seq": "GC", "src_index": 36, "ambiguous": true },
                             "59": { "insert_type": false, "seq": "A", "src_index": 60, "ambiguous": true }
+                        }
+                    }
+                },
+                {
+                    "id": "indels_8",
+                    "comment": "tests that indels next to mutations are treated as ambiguous",
+                    "r1": "GGGTGAGCGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGGGCATAGTTGATGCTCGGACTTTCG",
+                    "r2": "GGACCTAGATGCCGGACGAAAGTCCGAGCATCAACGTGCCTCTACCTGCTTCGGCCGATAATCCGACGATAATACTCC",
+                    "expect": {
+                        "site": 0,
+                        "muts": [ 6, 26, 36, 63 ],
+                        "counters": { "mut_count_4": 1, "r1_indels": 1, "r2_indels": 3, "RRRY_indels": 4, "mapped_indel_len_1": 4 },
+                        "r1_indels": { "40": { "insert_type": false, "seq": "T", "src_index": 25, "ambiguous": false } },
+                        "r2_indels": {
+                            "5": { "insert_type": true, "seq": "T", "src_index": 5, "ambiguous": true },
+                            "34": { "insert_type": false, "seq": "T", "src_index": 35, "ambiguous": true },
+                            "59": { "insert_type": false, "seq": "A", "src_index": 59, "ambiguous": true }
                         }
                     }
                 }
@@ -2743,10 +2760,10 @@
                     "expect": {
                         "site": 0,
                         "muts": [ 26 ],
-                        "counters": { "r1_indels": 2, "r2_indels": 0, "RRRY_indels": 2, "mapped_indel_len_1": 1, "mapped_indel_len_24": 1, "prefix_RRRY_CATCGGGTCCCAGGGGGGAGTATTATCGTCGG": 1 },
+                        "counters": { "r1_indels": 2, "r2_indels": 0, "RRRY_indels": 2, "mapped_indel_len_6": 1, "mapped_indel_len_19": 1, "prefix_RRRY_CATCGGGTCCCAGGGGGGAGTATTATCGTCGG": 1 },
                         "r1_indels": {
-                            "42": { "insert_type": false, "seq": "T", "src_index": 42, "ambiguous": false },
-                            "67": { "insert_type": false, "seq": "CCTGCTTCGGCCGATAAAGCCGAC", "src_index": 43, "ambiguous": false }
+                            "60": { "insert_type": false, "seq": "TACCTGCTTCGGCCGATAA", "src_index": 42, "ambiguous": false },
+                            "68": { "insert_type": false, "seq": "CCGACG", "src_index": 44, "ambiguous": false }
                         }
                     }
                 }
@@ -2956,6 +2973,42 @@
                         "counters": { "mut_count_1": 1, "mutations": 1 },
                         "r1_indels": { "34": { "insert_type": false, "seq": "CT", "src_index": 6, "ambiguous": false } },
                         "r2_indels": { "34": { "insert_type": false, "seq": "CT", "src_index": 6, "ambiguous": false } }
+                    }
+                },
+                {
+                    "id": "roi26_2",
+                    "r1": "TCCGGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATTTTGACTTTCGT",
+                    "r2": "TGAACAGCGACTAGGCTCTTCAGGGACCCGATGCCGGACGAAAGTCAAAATCAACTATGCCTCTACCTGCTTCGG",
+                    "expect": {
+                        "site": 0,
+                        "end": 87,
+                        "muts": [ 24, 25 ],
+                        "counters": { "mut_count_2": 1, "mutations": 2 },
+                        "r1_indels": { "27": { "insert_type": false, "seq": "GC", "src_index": 12, "ambiguous": false } },
+                        "r2_indels": { "27": { "insert_type": false, "seq": "GC", "src_index": 26, "ambiguous": false } }
+                    }
+                },
+                {
+                    "id": "roi26_3",
+                    "r1": "TTCAGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGGTTCGGACTTT",
+                    "r2": "TGAACAGCGACTAGGCTCTTCACCAGGGGGACCCGATGCCGGACGAAAGTCCGAACCATCAACTATGCCTCTACC",
+                    "comment":  "indel could be to subst an 'AC' for the 'G' at site 27",
+                    "expect": {
+                        "site": 0,
+                        "r1_indels": { "25": { "insert_type": true, "seq": "A", "ambiguous": true, "src_index": 8 } },
+                        "r2_indels": { "25": { "insert_type": true, "seq": "A", "ambiguous": true, "src_index": 25 } }
+                    }
+                },
+                {
+                    "id": "roi26_4",
+                    "set_name": "roi26",
+                    "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCACGGGACTTT",
+                    "r2": "TGAACAGCGACTAGGCTCTTCATTTGGACCCGATGCCGGACGAAAGTCCCGTGCATCAACTATGCCTCTACCTGC",
+                    "expect": {
+                        "site": 0,
+                        "muts": [ 26 ],
+                        "r1_indels": { "22": { "insert_type": true, "seq": "C", "ambiguous": true, "src_index": 5 } },
+                        "r2_indels": { "22": { "insert_type": true, "seq": "C", "ambiguous": true, "src_index": 22 } }
                     }
                 }
             ]
