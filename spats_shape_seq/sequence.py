@@ -193,7 +193,7 @@ class Sequence(object):
                     indel.ambiguous = True
                     indind -= 1
                     indst -= 1
-                if not indel.ambiguous  and  ((indind < len(target) - 1  and  target[(indind + 2 - ilen):(indind + 2)] == indel.seq)  or  (indind + 1 - self.match_index) in self.match_errors):
+                if not indel.ambiguous  and  ((indind < len(target) - 1  and  target[(indst + 2):(indind + 2)] == indel.seq)  or  (indind + 1 - self.match_index) in self.match_errors):
                     # in case it started to the left already (from stitching)
                     indel.ambiguous = True
                 newindels[indind] = indel
