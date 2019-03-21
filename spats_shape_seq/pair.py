@@ -26,6 +26,7 @@ class Pair(object):
         self.removed_mutations = None
         self.linker = None
         self.edge_mut = None
+        self.edge_indel = False
         self.dumbbell = None
         self._fully_matched = False
         self._indels_match = None

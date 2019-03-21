@@ -55,6 +55,7 @@ class Counters(object):
                     # mutation on the edge
                     # xref https://trello.com/c/FulYfVjT/200-stop-map-mutation-on-edge-case
                     count_muts = self._run.count_edge_mutations
+                    self.edge_muts += 1
                     if count_muts == 'stop_and_mut':
                         pair.edge_mut = 'stop_and_mut'
                         _dict_incr(self._registered, self._mut_key(pair, mut), pair.multiplicity)
@@ -83,6 +84,10 @@ class Counters(object):
                 _dict_incr(self._counts, pair.mask.chars + "_indels", pair.multiplicity)
                 _dict_incr(self._counts, 'mapped_indel_len_{}'.format(len(indel.seq)), pair.multiplicity)
                 self.indels += pair.multiplicity
+                if spot <= pair.site  or  (not indel.insert_type and (spot - len(indel.seq)) < pair.site):
+                    pair.edge_indel = True
+            if pair.edge_indel:
+                self.edge_indel += 1
             self.r1_indels += (pair.multiplicity * len(pair.r1.indels))
             self.r2_indels += (pair.multiplicity * len(pair.r2.indels))
         _dict_incr(self._registered, self._count_key(pair), pair.multiplicity)
