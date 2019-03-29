@@ -147,12 +147,12 @@ class SectionMatcher(object):
     MATCH_PREFIX     = "prefix"
     MATCH_SUFFIX     = "suffix"
 
-    def __init__(self, seq, required = True, matchType = MATCH_EXACT, maxFragmentLength = 0):
+    def __init__(self, seq, required = True, matchType = MATCH_EXACT, fillToMatchFragmentLength = 0):
         assert(matchType in [ SectionMatcher.MATCH_EXACT, SectionMatcher.MATCH_SUBSTRING, SectionMatcher.MATCH_PREFIX, SectionMatcher.MATCH_SUFFIX ])
         self.sequence = seq
         self.required = required
         self.matchType = matchType
-        self.maxFragmentLength = maxFragmentLength
+        self.fillToMatchFragmentLength = fillToMatchFragmentLength
 
     @property
     def sequenceType(self):
@@ -213,7 +213,7 @@ class Experiment(object):
             fd.addMatcher(SectionMatcher(self.linker, True, SectionMatcher.MATCH_EXACT))
         else:
             fd.addMatcher(SectionMatcher(self.target, True, SectionMatcher.MATCH_SUFFIX))
-        fd.addMatcher(SectionMatcher(self.adapter_t, False, SectionMatcher.MATCH_PREFIX, maxFragmentLength = self.r2Length))
+        fd.addMatcher(SectionMatcher(self.adapter_t, False, SectionMatcher.MATCH_PREFIX, fillToMatchFragmentLength = self.r2Length))
         return fd
 
     # sanity check on an experiment to make sure that perfect matches are not ambiguous
@@ -262,6 +262,7 @@ class FragmentDescriptor(object):
 
     def _recursivePerfectFrags(self, matchersLeft, workingFrag, requiredLengthLeft, fragsSoFar):
         def addFrag(wf, sec, tailHasReqs):
+            assert(sec.length > 0)
             newFrag = wf.clone()
             newFrag.addSection(sec)
             if not tailHasReqs:
@@ -281,11 +282,13 @@ class FragmentDescriptor(object):
             return
         else:
             minLen = 1
-            maxLen = m.sequenceLen
+            maxLen = m.sequenceLen + 1
             if workingFrag.len + maxLen > self.maxLength:
                 maxLen = self.maxLength - workingFrag.len
-            if m.maxFragmentLength  and  (workingFrag.len + maxLen > m.maxFragmentLength):
-                maxLen = m.maxFragmentLength - workingFrag.len
+            if m.fillToMatchFragmentLength:
+                maxLen = 1 + m.fillToMatchFragmentLength - workingFrag.len
+                if maxLen > minLen:
+                    minLen = maxLen - 1
             if maxLen <= minLen:
                 return
             for partial in m.sectionsOfLengths(minLen, maxLen):

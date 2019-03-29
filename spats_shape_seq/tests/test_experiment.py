@@ -269,10 +269,10 @@ class TestFragmentDescriptor(unittest.TestCase):
         fd = FragmentDescriptor(ll + 12, ll + x.target.len)
         fd.addMatcher(SectionMatcher(x.target, True, SectionMatcher.MATCH_SUBSTRING))
         fd.addMatcher(SectionMatcher(x.linker, True, SectionMatcher.MATCH_EXACT))
-        fd.addMatcher(SectionMatcher(x.adapter_t, False, SectionMatcher.MATCH_PREFIX, maxFragmentLength = 36))
+        fd.addMatcher(SectionMatcher(x.adapter_t, False, SectionMatcher.MATCH_PREFIX, fillToMatchFragmentLength = 36))
         pf = fd.perfectFragments()
         #print("\n".join(map(str,pf)))
-        self.assertEqual(6986, len(pf))
+        self.assertEqual(4126, len(pf))
         t = x.target.string
         l = x.linker.string
         ad = x.adapter_t.string
@@ -280,7 +280,7 @@ class TestFragmentDescriptor(unittest.TestCase):
         self.assertTrue(t + l in pfstrs)
         self.assertTrue(t[1:] + l in pfstrs)
         self.assertTrue(t[:-1] + l in pfstrs)
-        self.assertTrue(t[8:11] + l + ad[:9] in pfstrs)
+        self.assertTrue(t[8:11] + l + ad[:36-len(l)-3] in pfstrs)
 
     # i.e., cotrans+dumbbell experiment
     def test_exact_substr_exact_prefix(self):
@@ -291,10 +291,10 @@ class TestFragmentDescriptor(unittest.TestCase):
         fd.addMatcher(SectionMatcher(x.dumbbell, True, SectionMatcher.MATCH_EXACT))
         fd.addMatcher(SectionMatcher(x.target, True, SectionMatcher.MATCH_SUBSTRING))
         fd.addMatcher(SectionMatcher(x.linker, True, SectionMatcher.MATCH_EXACT))
-        fd.addMatcher(SectionMatcher(x.adapter_t, False, SectionMatcher.MATCH_PREFIX, maxFragmentLength = 64))
+        fd.addMatcher(SectionMatcher(x.adapter_t, False, SectionMatcher.MATCH_PREFIX, fillToMatchFragmentLength = 64))
         pf = fd.perfectFragments()
         #print("\n".join(map(str,pf)))
-        self.assertEqual(15246, len(pf))
+        self.assertEqual(4543, len(pf))
         d = x.dumbbell.string
         t = x.target.string
         l = x.linker.string
@@ -303,5 +303,105 @@ class TestFragmentDescriptor(unittest.TestCase):
         self.assertTrue(d + t + l in pfstrs)
         self.assertTrue(d + t[1:] + l in pfstrs)
         self.assertTrue(d + t[:-1] + l in pfstrs)
-        self.assertTrue(d + t[8:11] + l + ad[:9] in pfstrs)
+        self.assertTrue(d + t[8:11] + l + ad[:64-len(l)-len(d)-3] in pfstrs)
 
+
+class TestExperiment(unittest.TestCase):
+
+    def setUp(self):
+        self.experiment = MockExperiment()
+
+    def tearDown(self):
+        self.experiment = None
+
+    def test_single(self):
+        x = self.experiment
+        pf = x.descriptor().perfectFragments()
+        self.assertEqual(91, len(pf))
+        #print("\n".join(map(str,pf)))
+        t = x.target.string
+        ad = x.adapter_t.string
+        pfstrs = [ f.string for f in pf ]
+        r1len = x.r1Length
+        r2len = x.r2Length
+        self.assertTrue(t in pfstrs)
+        self.assertTrue(t[1:] in pfstrs)
+        self.assertTrue(t[-r2len:] in pfstrs)
+        self.assertTrue(t[-r2len:] + ad[:1] not in pfstrs)
+        self.assertTrue(t[-r1len:] in pfstrs)
+        self.assertTrue(t[-r1len:] + ad[:r2len-r1len] in pfstrs)
+        self.assertTrue(t[-r1len + 1:] not in pfstrs)
+        self.assertTrue(t[-r1len + 1:] + ad[:r2len-r1len+1] in pfstrs)
+        self.assertTrue(t[-5:] + ad[:r2len - 5] in pfstrs)
+        self.assertTrue(t[:-1] not in pfstrs)
+
+    def test_single_dumbbell(self):
+        x = self.experiment
+        x.useDumbbell = True
+        pf = x.descriptor().perfectFragments()
+        self.assertEqual(91, len(pf))
+        #print("\n".join(map(str,pf)))
+        d = x.dumbbell.string
+        t = x.target.string
+        ad = x.adapter_t.string
+        pfstrs = [ f.string for f in pf ]
+        r1len = x.r1Length
+        r2len = x.r2Length
+        dlen = x.dumbbell.len
+        self.assertTrue(t not in pfstrs)
+        self.assertTrue(d + t in pfstrs)
+        self.assertTrue(d + t[1:] in pfstrs)
+        self.assertTrue(d + t[-r2len:] in pfstrs)
+        self.assertTrue(d + t[-r2len:] + ad[:1] not in pfstrs)
+        self.assertTrue(d + t[-r1len:] in pfstrs)
+        self.assertTrue(d + t[-(r1len-dlen):] + ad[:r2len-r1len] in pfstrs)
+        self.assertTrue(d + t[-(r1len-dlen) + 1:] not in pfstrs)
+        self.assertTrue(d + t[-(r1len-dlen)+1:] + ad[:r2len-r1len+1] in pfstrs)
+        self.assertTrue(d + t[-5:] + ad[:(r2len - dlen) - 5] in pfstrs)
+        self.assertTrue(d + t[:-1] not in pfstrs)
+
+    def test_cotrans(self):
+        x = self.experiment
+        x.cotrans = True
+        pf = x.descriptor().perfectFragments()
+        self.assertEqual(4126, len(pf))
+        #print("\n".join(map(str,pf)))
+        l = x.linker.string
+        t = x.target.string
+        ad = x.adapter_t.string
+        pfstrs = [ f.string for f in pf ]
+        r1len = x.r1Length
+        r2len = x.r2Length
+        llen = x.linker.len
+        self.assertTrue(t not in pfstrs)
+        self.assertTrue(t + l in pfstrs)
+        self.assertTrue(t[1:] + l in pfstrs)
+        self.assertTrue(t[7:86] + l in pfstrs)
+        self.assertTrue(t[7:12] + l + ad[:r2len-llen-5] in pfstrs)
+        self.assertTrue(t[:-1] + l in pfstrs)
+
+    def test_cotrans_dumbbell(self):
+        x = self.experiment
+        x.cotrans = True
+        x.useDumbbell = True
+        pf = x.descriptor().perfectFragments()
+        self.assertEqual(3828, len(pf))
+        print("\n".join(map(str,pf)))
+        l = x.linker.string
+        d = x.dumbbell.string
+        t = x.target.string
+        ad = x.adapter_t.string
+        pfstrs = [ f.string for f in pf ]
+        r1len = x.r1Length
+        r2len = x.r2Length
+        llen = x.linker.len
+        dlen = x.linker.len
+        self.assertTrue(t not in pfstrs)
+        self.assertTrue(t + l not in pfstrs)
+        self.assertTrue(d + t not in pfstrs)
+        self.assertTrue(d + l not in pfstrs)
+        self.assertTrue(d + t + l in pfstrs)
+        self.assertTrue(d + t[1:] + l in pfstrs)
+        self.assertTrue(d + t[7:86] + l in pfstrs)
+        self.assertTrue(d + t[7:12] + l in pfstrs)
+        self.assertTrue(d + t[:-1] + l in pfstrs)
