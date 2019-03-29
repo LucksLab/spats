@@ -5,7 +5,7 @@
 
 # a sequence represents a fixed string of ACGT used for experimental
 # processing. includes targets, adapters, linkers, dumbbells, etc..
-class Sequence(self):
+class Sequence(object):
 
     TARGET    = "target"
     ADAPTERT  = "adapter_t"
@@ -23,12 +23,23 @@ class Sequence(self):
         self.sequence = seq
         self.type = type
 
+    def __repr__(self):
+        return "S[{}, {}]: {}".format(self.type, self.len, self.string)
+
     @property
     def string(self):
         return self.sequence
 
+    @property
+    def len(self):
+        return len(self.sequence)
 
-class Target(Sequence): pass
+
+class Target(Sequence):
+
+    def __init__(self, seq):
+        Sequence.__init__(self, seq, Sequence.TARGET)
+
 
 
 # core idea: things should be based on fragments, not pairs. a
@@ -48,7 +59,7 @@ class Target(Sequence): pass
 # the 2nd is a substring match, and the last is a prefix match.
 #
 # note that it is easy to read stop data directly off of a fragment
-# (look for the target section and find its sequence_start).
+# (look for the target section and find its sequenceStart).
 
 class Fragment(object):
 
@@ -56,22 +67,29 @@ class Fragment(object):
         self._sections = []
         self._keyedSections = {}
 
+    def __repr__(self):
+        return "F[{}]: {}".format(self.string, ", ".join([s.sequenceType for s in self._sections]))
+
     @property
     def isTransformed(self):
         return False
 
-    def appendSection(self, sec):
+    def addSection(self, sec):
         self._sections.append(sec)
-        self._keyedSections[sec.type] = sec
+        self._keyedSections[sec.sequenceType] = sec
 
     @property
     def string(self):
         return "".join([s.string for s in self._sections ])
 
+    @property
+    def len(self):
+        return sum([ s.length for s in self._sections ])
+
     def clone(self):
         f = Fragment()
         for s in self._sections:
-            f.appendSection(f)
+            f.addSection(s.clone())
         return f
 
     def pair(self, experiment):
@@ -84,16 +102,25 @@ class FragmentSection(object):
 
     def __init__(self, seq, start, length):
         self.sequence = seq
-        self.sequence_start = start
+        self.sequenceStart = start
         self.length = length
+        if start < 0  or  start + length > seq.len:
+            raise Exception("Invalid section: {} / {} / {}".format(seq, start, length))
+
+    def clone(self):
+        return FragmentSection(self.sequence, self.sequenceStart, self.length)
 
     @property
-    def sequence_end(self):
-        return self.sequence_start + length
+    def sequenceEnd(self):
+        return self.sequenceStart + self.length
+
+    @property
+    def sequenceType(self):
+        return self.sequence.type
 
     @property
     def string(self):
-        return self.sequence.string[self.sequence_start:self.sequence_end]
+        return self.sequence.string[self.sequenceStart:self.sequenceEnd]
 
 
 # like usual, showing how to go from a fragment to a pair
@@ -103,7 +130,7 @@ class Pair(object):
         self.r1 = r1
         self.r2 = r2
 
-    def PairFromFragment(fragment, experiment):
+    def FromFragment(fragment, experiment):
         fragmentString = fragment.string
         r2 = fragmentString[:self.experiment.r2Length]
         r1 = reverse_complement(fragmentString[-self.experiment.r1Length:])
@@ -120,47 +147,73 @@ class SectionMatcher(object):
     MATCH_PREFIX     = "prefix"
     MATCH_SUFFIX     = "suffix"
 
-    def __init__(self, seq, required = True, matchType = SectionMatcher.MATCH_EXACT):
+    def __init__(self, seq, required = True, matchType = MATCH_EXACT, maxFragmentLength = 0):
         assert(matchType in [ SectionMatcher.MATCH_EXACT, SectionMatcher.MATCH_SUBSTRING, SectionMatcher.MATCH_PREFIX, SectionMatcher.MATCH_SUFFIX ])
         self.sequence = seq
         self.required = required
         self.matchType = matchType
+        self.maxFragmentLength = maxFragmentLength
 
     @property
     def sequenceType(self):
         return self.sequence.type
 
+    @property
+    def sequenceLen(self):
+        return self.sequence.len
+
+    def sectionsOfLengths(self, minLen, maxLen):
+        return getattr(self, "_sol_{}".format(self.matchType))(minLen, maxLen)
+
+    def _sol_exact(self, minLen, maxLen):
+        ASSERT_NOT_REACHED
+
+    def _sol_prefix(self, minLen, maxLen):
+        return [ FragmentSection(self.sequence, 0, l) for l in range(minLen, maxLen) ]
+
+    def _sol_suffix(self, minLen, maxLen):
+        return [ FragmentSection(self.sequence, self.sequenceLen - l, l) for l in range(minLen, maxLen) ]
+
+    def _sol_substring(self, minLen, maxLen):
+        sections = []
+        for l in range(minLen, maxLen + 1):
+            for start in range(0, self.sequenceLen - l + 1):
+                sections.append(FragmentSection(self.sequence, start, l))
+        return sections
+
 
 # similar to run.py, describes the (user-configurable) metadata for an experiment
 class Experiment(object):
 
-    def __init__(self):
-        self.cotrans = False
-        self.cotrans_linker = Sequence("...")
-        self.use_dumbbell = False
-        self.dumbbell = Sequence("...")
-        self.adapter_t = Sequence("...")
-        self.adapter_b = Sequence("...")
-        self.target = Target("...")
+    def __init__(self, target, r1Length = 32, r2Length = 36, cotrans = False, dumbbell = False):
+        self.r1Length = r1Length
+        self.r2Length = r2Length
+        self.cotrans = cotrans
+        self.useDumbbell = dumbbell
+        self.linker = Sequence("CTGACTCGGGCACCAAGGAC", Sequence.LINKER)
+        self.dumbbell = Sequence("TGAACAGCGACTAGGCTCTTCA", Sequence.DUMBBELL)
+        self.adapter_t = Sequence("AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT", Sequence.ADAPTERT)
+        self.adapter_b = Sequence("AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC", Sequence.ADAPTERB)
+        self.target = Target(target)
 
-        self.r1Length = 32
-        self.r2Length = 36
-        ...
 
     def descriptor(self):
         # core idea: here's where we build our data-driven description
         # of what fragments in this experiment look like
-        maxLen = len(target)
-        if self.cotrans: etc...
-        fd = FragmentDescriptor(self.pairLength, maxLen)
-        if self.use_dumbbell:
+        maxLen = self.target.len
+        if self.cotrans:
+            maxLen += self.linker.len
+        if self.dumbbell:
+            maxLen += self.dumbbell.len
+        fd = FragmentDescriptor(min(self.r1Length, self.r2Length), maxLen)
+        if self.useDumbbell:
             fd.addMatcher(SectionMatcher(self.dumbbell, True, SectionMatcher.MATCH_EXACT))
         if self.cotrans:
             fd.addMatcher(SectionMatcher(self.target, True, SectionMatcher.MATCH_SUBSTRING))
-            fd.addMatcher(SectionMatcher(self.cotrans_linker, True, SectionMatcher.MATCH_EXACT))
+            fd.addMatcher(SectionMatcher(self.linker, True, SectionMatcher.MATCH_EXACT))
         else:
             fd.addMatcher(SectionMatcher(self.target, True, SectionMatcher.MATCH_SUFFIX))
-        fd.addMatcher(SectionMatcher(self.adapter_t, False, SectionMatcher.MATCH_PREFIX))
+        fd.addMatcher(SectionMatcher(self.adapter_t, False, SectionMatcher.MATCH_PREFIX, maxFragmentLength = self.r2Length))
         return fd
 
     # sanity check on an experiment to make sure that perfect matches are not ambiguous
@@ -185,7 +238,7 @@ class FragmentDescriptor(object):
 
     def __init__(self, minLen, maxLen):
         self.minLength = minLen
-        self.maxLength = maxLen
+        self.maxLength = maxLen + 1  # easiest to add the +1 here, generally want the args to be inclusive but then exclusive for coding
         self._matchers = []
         self._keyedMatchers = {}
 
@@ -197,27 +250,48 @@ class FragmentDescriptor(object):
         self._matchers.append(m)
         self._keyedMatchers[m.sequenceType] = m
 
-    def perfectFragments(self, experiment):
+    def perfectFragments(self):
         requiredLength = 0
         for m in self._matchers:
             if m.required:
-                if m.type == SectionMatcher.MATCH_EXACT:
-                    requiredLength += len(m.sequence.string)
+                if m.matchType == SectionMatcher.MATCH_EXACT:
+                    requiredLength += m.sequenceLen
         frags = []
         self._recursivePerfectFrags(self._matchers, Fragment(), requiredLength, frags)
-        return frags
+        return [f for f in frags if (f.len >= self.minLength and f.len < self.maxLength)]
 
-    def _recursivePerfectFrags(self, matchersLeft, workingFrag, requiredLength, fragsSoFar):
-        TODO
+    def _recursivePerfectFrags(self, matchersLeft, workingFrag, requiredLengthLeft, fragsSoFar):
+        def addFrag(wf, sec, tailHasReqs):
+            newFrag = wf.clone()
+            newFrag.addSection(sec)
+            if not tailHasReqs:
+                fragsSoFar.append(newFrag)
+            return newFrag
         if 0 == len(matchersLeft):
             return
         m = matchersLeft[0]
+        tail = matchersLeft[1:]
+        tailHasRequirements = (sum([1 if tm.required else 0 for tm in tail]) > 0)
         if not m.required:
-            _recursivePerfectFrags(matchersLeft[1:], workingFrag, requiredLength, fragsSoFar)
-        if m.type == SectionMatcher.MATCH_EXACT:
-            workingFrag.addsection #...
+            self._recursivePerfectFrags(tail, workingFrag, requiredLengthLeft, fragsSoFar)
+        if m.matchType == SectionMatcher.MATCH_EXACT:
+            if workingFrag.len + m.sequenceLen <= self.maxLength:
+                newFrag = addFrag(workingFrag, FragmentSection(m.sequence, 0, m.sequenceLen), tailHasRequirements)
+                self._recursivePerfectFrags(tail, newFrag, requiredLengthLeft - m.sequenceLen, fragsSoFar)
+            return
         else:
-            # get the possible ranges based on whether it's substring/prefix/suffix
+            minLen = 1
+            maxLen = m.sequenceLen
+            if workingFrag.len + maxLen > self.maxLength:
+                maxLen = self.maxLength - workingFrag.len
+            if m.maxFragmentLength  and  (workingFrag.len + maxLen > m.maxFragmentLength):
+                maxLen = m.maxFragmentLength - workingFrag.len
+            if maxLen <= minLen:
+                return
+            for partial in m.sectionsOfLengths(minLen, maxLen):
+                newFrag = addFrag(workingFrag, partial, tailHasRequirements)
+                self._recursivePerfectFrags(tail, newFrag, requiredLengthLeft, fragsSoFar)
+            return
 
 
 # a tranformation represents a change from a perfect fragment. we
