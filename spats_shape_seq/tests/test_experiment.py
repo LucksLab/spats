@@ -1,7 +1,7 @@
 
 import unittest
 
-from spats_shape_seq.experiment import Experiment, FragmentDescriptor, SectionMatcher, Sequence, Target
+from spats_shape_seq.experiment import Experiment, experimentAmbiguity, FragmentDescriptor, SectionMatcher, Sequence, Target, TransformedFragmentGenerator
 
 
 class MockExperiment(Experiment):
@@ -386,7 +386,7 @@ class TestExperiment(unittest.TestCase):
         x.useDumbbell = True
         pf = x.descriptor().perfectFragments()
         self.assertEqual(3828, len(pf))
-        print("\n".join(map(str,pf)))
+        #print("\n".join(map(str,pf)))
         l = x.linker.string
         d = x.dumbbell.string
         t = x.target.string
@@ -405,3 +405,27 @@ class TestExperiment(unittest.TestCase):
         self.assertTrue(d + t[7:86] + l in pfstrs)
         self.assertTrue(d + t[7:12] + l in pfstrs)
         self.assertTrue(d + t[:-1] + l in pfstrs)
+
+
+class TestTransformedFragmentGenerator(unittest.TestCase):
+
+    def setUp(self):
+        self.experiment = MockExperiment()
+        self.tfg = TransformedFragmentGenerator(self.experiment)
+
+    def tearDown(self):
+        self.experiment = None
+        self.tfg = None
+
+    def test_tfg(self):
+        xfrms = self.tfg.generate()
+        self.assertTrue(100168 == len(xfrms))
+        #print("\n".join([xf.string for xf in xfrms]))
+
+
+class TestAmbiguity(unittest.TestCase):
+
+    def test_amb(self):
+        x = MockExperiment()
+        experimentAmbiguity(x)
+        self.assertTrue(0)

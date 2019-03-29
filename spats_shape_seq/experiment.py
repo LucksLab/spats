@@ -1,3 +1,6 @@
+
+from util import reverse_complement
+
 # large number of objects is intentional: conceptual clarity comes
 # from having each object do its own task. some of these may
 # eventually collapse and/or go away, but useful at least now for
@@ -68,7 +71,7 @@ class Fragment(object):
         self._keyedSections = {}
 
     def __repr__(self):
-        return "F[{}]: {}".format(self.string, ", ".join([s.sequenceType for s in self._sections]))
+        return "F[{}]: {}".format(self.splitString, ", ".join([s.sequenceType for s in self._sections]))
 
     @property
     def isTransformed(self):
@@ -83,6 +86,10 @@ class Fragment(object):
         return "".join([s.string for s in self._sections ])
 
     @property
+    def splitString(self):
+        return " ".join([s.string for s in self._sections ])
+
+    @property
     def len(self):
         return sum([ s.length for s in self._sections ])
 
@@ -93,7 +100,7 @@ class Fragment(object):
         return f
 
     def pair(self, experiment):
-        return Pair.PairFromFragment(self, experiment)
+        return PairFromFragment(self, experiment)
 
 
 # a fragment section defines a known part of a fragment, in reference
@@ -130,11 +137,11 @@ class Pair(object):
         self.r1 = r1
         self.r2 = r2
 
-    def FromFragment(fragment, experiment):
-        fragmentString = fragment.string
-        r2 = fragmentString[:self.experiment.r2Length]
-        r1 = reverse_complement(fragmentString[-self.experiment.r1Length:])
-        return Pair(r1, r2)
+def PairFromFragment(fragment, experiment):
+    fragmentString = fragment.string
+    r2 = fragmentString[:experiment.r2Length]
+    r1 = reverse_complement(fragmentString[-experiment.r1Length:])
+    return Pair(r1, r2)
 
 
 # core idea: we can use data-driven descriptors of the expected
@@ -301,11 +308,12 @@ class FragmentDescriptor(object):
 # handle mutations, inserts, and deletes.
 class Transformation(object):
 
-    XFRM_MUTATION  = "mut"
-    XFRM_INSERT    = "ins"
-    XFRM_DELETE    = "del"
+    MUTATION  = "mut"
+    INSERT    = "ins"
+    DELETE    = "del"
 
     def __init__(self, type, location, parameter):
+        assert(type in [ Transformation.MUTATION, Transformation.INSERT, Transformation.DELETE ])
         self.type = type
         self.location = location
         self.parameter = parameter
@@ -362,7 +370,7 @@ class TransformedFragment(object):
         return string
 
     def pair(self, experiment):
-        return Pair.PairFromFragment(self, experiment)
+        return PairFromFragment(self, experiment)
 
     def mutations(self):
         # TODO: this isn't quite correct, since an insert can affect downstream locations
@@ -377,11 +385,11 @@ class TransformedFragment(object):
 # (lookup algorithm). 
 class TransformedFragmentGenerator(object):
 
-    def __init__(self, experiment):
+    def __init__(self, experiment, maxInsertLength = 2, maxDeleteLength = 2, maxTransformations = 1):
         self.experiment = experiment
-        self.maxInsertLength = 2
-        self.maxDeleteLength = 4
-        self.maxTransformations = 1
+        self.maxInsertLength = maxInsertLength
+        self.maxDeleteLength = maxDeleteLength
+        self.maxTransformations = maxTransformations
         self._cachedPossibles = None
 
 
@@ -395,6 +403,7 @@ class TransformedFragmentGenerator(object):
 
         xfrms = []
 
+        baseFrags = self.experiment.descriptor().perfectFragments()
         for frag in baseFrags:
 
             if includePerfect:
@@ -406,16 +415,16 @@ class TransformedFragmentGenerator(object):
             #    - and, we should be able to answer questions like: "how pairs had muts in the adapter?"
             # for now, this assumes we only care about muts in the target
             fragString = frag.string
-            targetInFragRange = frag.getTargetRange()
+            targetInFragRange = range(0, len(fragString)) #frag.getTargetRange()
 
             for idx in targetInFragRange:
                 cur = fragString[idx]
                 for ch in [ "A", "C", "G", "T" ]:
                     if ch == cur:
                         continue
-                xf = TransformedFragment(frag)
-                xf.addTransformation(Transformation(Transformation.MUTATION, idx, ch))
-                xfrms.append(xf)
+                    xf = TransformedFragment(frag)
+                    xf.addTransformation(Transformation(Transformation.MUTATION, idx, ch))
+                    xfrms.append(xf)
 
                 for insert in self._possibleInsertions():
                     xf = TransformedFragment(frag)
@@ -423,9 +432,9 @@ class TransformedFragmentGenerator(object):
                     xfrms.append(xf)
 
                 for delLen in range(1, self.maxDeleteLength + 1):
-                    if idx + delLen >= targetInFragRange.stop:
+                    if idx + delLen > targetInFragRange[-1]:
                         continue
-                    xf = Transformation(frag)
+                    xf = TransformedFragment(frag)
                     xf.addTransformation(Transformation(Transformation.DELETE, idx, delLen))
                     xfrms.append(xf)
 
@@ -457,6 +466,8 @@ def experimentAmbiguity(exp):
     fd = exp.descriptor()
     tfg = TransformedFragmentGenerator(exp)
     xfrms = tfg.generate()
+    amb_per = 0
+    amb_mut = 0
 
     keyMap = {}
     for xf in xfrms:
@@ -464,13 +475,17 @@ def experimentAmbiguity(exp):
         key = pair.r1 + pair.r2
         if key in keyMap:
             existing = keyMap[key]
-            if not existing.isTransformed:
-                print("Transformed {} is ambiguous with perfect {}".format(xf, existing))
+            if not existing.isTransformed or not xf.isTransformed:
+                amb_per += 1
+                #print("Transformed {} is ambiguous with perfect {}".format(xf, existing))
             else:
-                print("Transformations {} and {} are ambiguous".format(xf, existing))
+                amb_mut += 1
+                #print("Transformations {} and {} are ambiguous".format(xf, existing))
         else:
             keyMap[key] = xf
 
+    print("Ambiguous: {} / {} / {}".format(amb_per, amb_mut, amb_per + amb_mut))
+    return amb_per, amb_mut
 
 class PairResult(object):
 
