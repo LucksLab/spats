@@ -3001,7 +3001,6 @@
                 },
                 {
                     "id": "roi26_4",
-                    "set_name": "roi26",
                     "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCACGGGACTTT",
                     "r2": "TGAACAGCGACTAGGCTCTTCATTTGGACCCGATGCCGGACGAAAGTCCCGTGCATCAACTATGCCTCTACCTGC",
                     "expect": {
@@ -3009,6 +3008,37 @@
                         "muts": [ 26 ],
                         "r1_indels": { "22": { "insert_type": true, "seq": "C", "ambiguous": true, "src_index": 5 } },
                         "r2_indels": { "22": { "insert_type": true, "seq": "C", "ambiguous": true, "src_index": 22 } }
+                    }
+                }
+            ]
+        },
+        {
+            "set_name": "indel_edges",
+            "run_opts": {
+                "algorithms": [ "find_partial" ],
+                "handle_indels": true,
+                "allow_negative_values": true,
+                "count_mutations": true,
+                "count_edge_mutations": "stop_and_mut",
+                "allowed_target_errors": 8,
+                "count_left_prefixes": true,
+                "collapse_left_prefixes": true
+            },
+            "targets": [ "hairpinA_circ" ],
+            "tests": [
+                {
+                    "id": "indel_edges_1",
+                    "comment": "shows ambiguity with mut vs. indel(s) at right edge",
+                    "r1": "TTTGGGGCTTTGGGATTTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCTCGGACTTTCGT",
+                    "r2": "TGGACCCGATGCCGGACGAAAGTCCGAGCATCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAAA",
+                    "expect": {
+                        "site": 0,
+                        "end": 87,
+                        "muts": [ 74 ],
+                        "r1_indels": {
+                            "73": { "insert_type": false, "seq": "T", "ambiguous": false, "src_index": 59 },
+                            "75": { "insert_type": false, "seq": "C", "ambiguous": false, "src_index": 60 }
+                        }
                     }
                 }
             ]
