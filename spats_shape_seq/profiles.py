@@ -300,9 +300,9 @@ class TargetProfiles(object):
         else:
             self.c += running_c_sum
         if c_alt_zero:
-            self.c_alt += running_c_alt_sum
-        else:
             self.c_alt = 0
+        else:
+            self.c_alt += running_c_alt_sum
 
 
     def write(self, outfile):
