@@ -2963,7 +2963,7 @@
             "tests": [
                 {
                     "id": "roi26_1",
-                    "comment": "tests that r1 trimming takes into account r2 deletes",
+                    "comment": "mutation at site (ambiguous with prefix).  also tests that r1 trimming takes into account r2 deletes",
                     "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATTTGATTTGAAGAGCCTAGT",
                     "r2": "TGAACAGCGACTAGGCTCTTCAAATCAAATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAA",
                     "expect": {
@@ -2977,6 +2977,7 @@
                 },
                 {
                     "id": "roi26_2",
+                    "comment": "sequence of 5 ('CGAGC') replaced by 3 ('AAA') in region of interest.  (call ambiguous)",
                     "r1": "TCCGGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATTTTGACTTTCGT",
                     "r2": "TGAACAGCGACTAGGCTCTTCAGGGACCCGATGCCGGACGAAAGTCAAAATCAACTATGCCTCTACCTGCTTCGG",
                     "expect": {
@@ -2990,9 +2991,9 @@
                 },
                 {
                     "id": "roi26_3",
+                    "comment":  "indel could be to subst an 'AC' for the 'G' at site 27, or an ambiguous mut+insert",
                     "r1": "TTCAGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGGTTCGGACTTT",
                     "r2": "TGAACAGCGACTAGGCTCTTCACCAGGGGGACCCGATGCCGGACGAAAGTCCGAACCATCAACTATGCCTCTACC",
-                    "comment":  "indel could be to subst an 'AC' for the 'G' at site 27",
                     "expect": {
                         "site": 0,
                         "r1_indels": { "25": { "insert_type": true, "seq": "A", "ambiguous": true, "src_index": 8 } },
@@ -3001,6 +3002,7 @@
                 },
                 {
                     "id": "roi26_4",
+                    "comment": "ambiguous insert potentially one away from the mutation at site 26",
                     "r1": "GGGTGGGCTTTGGGAGTATTATCGTCGGCTTTATCGGCCGAAGCAGGTAGAGGCATAGTTGATGCACGGGACTTT",
                     "r2": "TGAACAGCGACTAGGCTCTTCATTTGGACCCGATGCCGGACGAAAGTCCCGTGCATCAACTATGCCTCTACCTGC",
                     "expect": {
