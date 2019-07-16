@@ -152,8 +152,8 @@ class Run(object):
         #: `reads` tool and the ``find_partial`` algorithms.
         self.regions_of_interest = None
 
-        #: Default ``lookup``, set to ``find_partial`` to use the partial find algorithm.
-        self.algorithm = "lookup"
+        #: Default ``find_partial``, set to ``lookup`` to use the lookup optimization.
+        self.algorithm = "find_partial"
 
         #: Default ``False``, set to ``True`` to allow beta, theta,
         #: and rho values to be negative (otherwise, negative values are

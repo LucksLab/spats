@@ -105,6 +105,7 @@ class TestPairs(unittest.TestCase):
         # this case only matches if the minimum length is set to 8
         self.spats.run.minimum_target_match_length = 8
         self.spats = Spats()
+        self.spats.run.algorithm = "lookup"
         self.spats.addTargets("test/5s/5s.fa")
         case[3] = 135
         self.run_case(case)
