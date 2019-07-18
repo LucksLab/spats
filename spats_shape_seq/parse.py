@@ -269,7 +269,7 @@ def fasta_parse(target_path):
                 l = infile.readline()
                 if len(l) == 0:
                     return l
-                l = l.strip('>\n')
+                l = l.strip('>\r\n')
                 if 0 < len(l):
                     return l
         while True:
