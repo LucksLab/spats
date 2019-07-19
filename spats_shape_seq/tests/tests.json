@@ -24,7 +24,8 @@
         "mut_single": "ggacaagcaatgcttgccttgatgttgaacttttgaatagtgattcaggaggttaatgATGagcaaaggagaagaacttttcactggagttgtcccaattcttgttg",
         "tRNA": "GGCGGATTTAGCTCAGTTGGGAGAGCGCCAGACTGAAGATCTGGAGGTCCTGTGTTCGATCCACAGAATTCGCACCACACTCGGGCACCAAGGAC",
         "1AT0": "GGACCCGGCACCTCCTCGCGGTGCCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
-        "thiB55": "CCGTTCTCAACGGGGTGCCACGCGTACGCGTGCGCTGAGAAAATACCCGTCGAACCTGATCCGGATAACGCCGGC"
+        "thiB55": "CCGTTCTCAACGGGGTGCCACGCGTACGCGTGCGCTGAGAAAATACCCGTCGAACCTGATCCGGATAACGCCGGC",
+        "preSRP_wt_extra": "GCGTTGGTTCTCAACGCTCTCAATGGGGGCTCTGTTGGTTCTCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCGGGTCGGCATGGCATCTCC"
     },
     "tests": [
         {
@@ -2734,7 +2735,8 @@
                 "allowed_adapter_errors": 1,
                 "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
                 "count_left_prefixes": true,
-                "collapse_left_prefixes": true
+                "collapse_left_prefixes": true,
+                "ignore_stops_with_mismatched_overlap": false
             },
             "targets": [ "HairpinC_SS2" ],
             "tests": [
@@ -2915,7 +2917,7 @@
                 },
                 {
                     "id": "indels_works_3",
-                    "comment": "tests trimming of r2 indel.  also shows interaction b/w indels and linker trimming.  when r2 is aligned, we don't know where the linker is so its linker part causes a longer indel than r1's.  ideally, r2's indel should just be 'T' as well.",
+                    "comment": "tests trimming of r2 indel.  also tests interaction b/w indels and linker trimming (similar to r2_linker_find tests).",
                     "r1": "GAGTGTCCTTGGTGCCCGAGTCAGTTAATCCGGATCAGGTTCGACGGGTATTGAAGAGCCTAGTCGCTGTTCAAG", 
                     "r1_quality": "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
                     "r2": "TGAACAGCGACTAGGCTCTTCAATACCCGTCGAACCTGATCCGGATTAACTGACTCGGGCACCAAGGACACTCAG",
@@ -2924,7 +2926,7 @@
                         "site": 42,
                         "end": 68,
                         "r1_indels": { "65": { "insert_type": true, "seq": "T", "src_index": 23, "ambiguous": true } },
-                        "r2_indels": { "65": { "insert_type": true, "seq": "TTAA", "src_index": 23, "ambiguous": true } }
+                        "r2_indels": { "65": { "insert_type": true, "seq": "T", "src_index": 23, "ambiguous": true } }
                     }
                 },
                 {
@@ -2957,7 +2959,8 @@
                 "allowed_target_errors": 8,
                 "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
                 "count_left_prefixes": true,
-                "collapse_left_prefixes": true
+                "collapse_left_prefixes": true,
+                "ignore_stops_with_mismatched_overlap": false
             },
             "targets": [ "hairpinA_circ" ],
             "tests": [
@@ -3041,6 +3044,37 @@
                             "73": { "insert_type": false, "seq": "T", "ambiguous": false, "src_index": 59 },
                             "75": { "insert_type": false, "seq": "C", "ambiguous": false, "src_index": 60 }
                         }
+                    }
+                }
+            ]
+        },
+        {
+            "set_name": "r2_linker_find",
+            "run_opts": {
+                "algorithms": [ "find_partial" ],
+                "cotrans": true,
+                "cotrans_minimum_length": 121,
+                "handle_indels": true,
+                "allow_negative_values": true,
+                "count_mutations": true,
+                "count_edge_mutations": "stop_and_mut",
+                "allowed_target_errors": 2,
+                "mutations_require_quality_score": true
+            },
+            "targets": [ "preSRP_wt_extra" ],
+            "tests": [
+                {
+                    "id": "r2_linker_find_1",
+                    "comment": "mut 1bp before linker, testing R2 linker finding (linker partially matches target in this area)",
+                    "r1": "GAGTGTCCTTGGTGCCCGAGTCAGGAGGCCCTGCCAGCTACATCCCGGCACACGCGTCATCAGATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCT",
+                    "r1_quality": "CCCCCGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGBFA",
+                    "r2": "GATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCTCCTGACTCG",
+                    "r2_quality": "CCCCCGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                    "expect": {
+                        "site": 96,
+                        "end": 133,
+                        "muts": [ 132 ],
+                        "counters": { "r1_indels": 0, "r2_indels": 0 }
                     }
                 }
             ]

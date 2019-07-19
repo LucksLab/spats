@@ -1,5 +1,5 @@
 
-from util import _debug, reverse_complement, align_strings, Indel
+from util import _debug, reverse_complement, align_strings, Indel, string_match_errors
 
 class Sequence(object):
 
@@ -25,6 +25,8 @@ class Sequence(object):
         self._seq_with_indels = None
         self._quality_with_indels = None
         self.auto_adjust_match = False
+        self.adapter_trimmed = None
+        self.fully_rtrimmed = False
 
     def set_seq(self, seq, needs_reverse_complement = False):
         self._reset(seq, needs_reverse_complement)
@@ -34,6 +36,7 @@ class Sequence(object):
         print("\nOrig Seq = {}".format(self.original_seq))
         print("   len={}, needs_RC={}".format(len(self.original_seq), self._needs_rc))
         print("   ltrim={}, rtrim={}".format(self.ltrim, self.rtrim))
+        print("   fully_rtrimmed={}".format(self.fully_rtrimmed))
         print("   sub={}".format(self.reverse_complement if self._needs_rc else self.subsequence))
         print("   sublen={}".format(self.seq_len))
         print("Source match_start={}".format(self.match_start))
@@ -201,7 +204,7 @@ class Sequence(object):
         self.indels = newindels
 
     def extend_alignment(self, target, ap, suffix = ""):
-        read_end = self.match_start + self.match_len
+        read_end = self.match_start + self.match_len + self.indels_delta
         if self.match_start > 0  and  self.match_index > 0:
             ## Extend towards left/front/5' end...
             front_read = self.reverse_complement[:self.match_start] if self._needs_rc else self.subsequence[:self.match_start]
@@ -349,3 +352,12 @@ class Sequence(object):
                 if roi[0] <= muti  and  muti <= roi[1]:
                     return True
         return False
+
+    def check_adapter_trim(self, target_adapter, run):
+        if self.adapter_trimmed:
+            if run.minimum_adapter_len  and  len(self.adapter_trimmed) < run.minimum_adapter_len:
+                return False
+            self.adapter_errors = string_match_errors(self.adapter_trimmed, target_adapter)
+            if len(self.adapter_errors) > run.allowed_adapter_errors:
+                return False
+        return True

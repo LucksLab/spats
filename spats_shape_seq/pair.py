@@ -151,7 +151,7 @@ class Pair(object):
             r2_part = self.r2.subsequence[r2_match_len-overlap_len:r2_match_len]
             #print('O: {} / {}'.format(r1_part, r2_part))
             if r1_part != r2_part:
-                if not ignore_indels or (not self.r1.indels and not self.r2.indels):
+                if ignore_indels or (not self.r1.indels and not self.r2.indels):
                     return False
                 newr1,_ = self.r1.apply_indels()
                 newr2,_ = self.r2.apply_indels()
