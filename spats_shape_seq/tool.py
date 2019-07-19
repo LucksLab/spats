@@ -361,7 +361,7 @@ class SpatsTool(object):
                     val = ast.literal_eval(value)
                 except:
                     val = value
-                print("overwriting with", key, val)
+                #print("overwriting with", key, val)
                 setattr(run, key, val)
                 self._add_note("config set {} = {}".format(key, val))
                 if dictionary:

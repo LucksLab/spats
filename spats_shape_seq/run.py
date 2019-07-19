@@ -305,6 +305,12 @@ class Run(object):
             raise Exception('Invalid mutations_require_quality_score value: {}'.format(self.mutations_require_quality_score))
         if self.count_edge_mutations and (self.count_edge_mutations != 'stop_only' and self.count_edge_mutations != 'stop_and_mut'):
             raise Exception('Invalid count_edge_mutations value: {}'.format(self.count_edge_mutations))
+        if self.handle_indels:
+            if self.allowed_target_errors > 2:
+                raise Exception('Invalid allowed_target_errors: {}, must be <= 2 when handle_indels is True'.format(self.allowed_target_errors))
+        else:
+            if self.allowed_target_errors > 4:
+                raise Exception('Invalid allowed_target_errors: {}, must be <= 4'.format(self.allowed_target_errors))
 
     def _get_processor_class(self):
         self.apply_config_restrictions()
