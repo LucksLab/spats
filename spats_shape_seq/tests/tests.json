@@ -515,6 +515,7 @@
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [ "find_partial" ],
                 "allowed_target_errors": 5,
+                "_unsafe_skip_error_restrictions": true,
                 "count_mutations": true
             },
             "set_name": "muts_multi",
@@ -606,7 +607,7 @@
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [ "find_partial" ],
-                "allowed_target_errors": 5,
+                "allowed_target_errors": 4,
                 "count_mutations": true,
                 "ignore_stops_with_mismatched_overlap": false
             },
@@ -666,7 +667,7 @@
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [ "find_partial" ],
-                "allowed_target_errors": 5,
+                "allowed_target_errors": 4,
                 "count_mutations": true,
                 "ignore_stops_with_mismatched_overlap": false,
                 "mutations_require_quality_score": 13
@@ -756,7 +757,7 @@
             "run_opts": {
                 "adapter_b": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG",
                 "algorithms": [ "find_partial" ],
-                "allowed_target_errors": 8,
+                "allowed_target_errors": 4,
                 "collapse_left_prefixes": true,
                 "count_edge_mutations": "stop_and_mut",
                 "count_left_prefixes": true,
@@ -2553,7 +2554,7 @@
             "run_opts": {
                 "algorithms": [ "find_partial" ],
                 "allow_negative_values": false,
-                "allowed_target_errors": 8,
+                "allowed_target_errors": 4,
                 "count_edge_mutations": "stop_and_mut",
                 "count_mutations": true,
                 "mutations_require_quality_score": 30
@@ -2591,6 +2592,7 @@
                 "handle_indels": true,
                 "count_mutations": true,
                 "allowed_target_errors": 5,
+                "_unsafe_skip_error_restrictions" : true,
                 "ignore_stops_with_mismatched_overlap": false
             },
             "targets": [ "HairpinC_SS2" ],
@@ -2732,6 +2734,7 @@
                 "handle_indels": true,
                 "count_mutations": true,
                 "allowed_target_errors": 3,
+                "_unsafe_skip_error_restrictions" : true,
                 "allowed_adapter_errors": 1,
                 "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
                 "count_left_prefixes": true,
@@ -2777,7 +2780,7 @@
                 "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
                 "algorithms": [ "find_partial" ],
                 "allow_negative_values": true,
-                "allowed_target_errors": 8,
+                "allowed_target_errors": 4,
                 "collapse_left_prefixes": true,
                 "count_edge_mutations": "stop_and_mut",
                 "count_left_prefixes": true,
@@ -2838,7 +2841,8 @@
                 "algorithms": [ "find_partial" ],
                 "handle_indels": true,
                 "count_mutations": true,
-                "allowed_target_errors": 8,
+                "allowed_target_errors": 4,
+                "_unsafe_skip_error_restrictions" : true,
                 "count_left_prefixes": true,
                 "collapse_left_prefixes": true,
                 "ignore_stops_with_mismatched_overlap": false
@@ -2956,7 +2960,8 @@
                 "allow_negative_values": true,
                 "count_mutations": true,
                 "count_edge_mutations": "stop_and_mut",
-                "allowed_target_errors": 8,
+                "allowed_target_errors": 4,
+                "_unsafe_skip_error_restrictions" : true,
                 "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
                 "count_left_prefixes": true,
                 "collapse_left_prefixes": true,
@@ -3025,7 +3030,8 @@
                 "allow_negative_values": true,
                 "count_mutations": true,
                 "count_edge_mutations": "stop_and_mut",
-                "allowed_target_errors": 8,
+                "allowed_target_errors": 4,
+                "_unsafe_skip_error_restrictions" : true,
                 "count_left_prefixes": true,
                 "collapse_left_prefixes": true
             },

@@ -184,6 +184,7 @@ class TestMultipleMuts(TestMutPairs):
     def setup_processor(self):
         self.spats.run.algorithm = "find_partial"
         self.spats.run.allowed_target_errors = 5
+        self.spats.run._unsafe_skip_error_restrictions = True
         self.spats.addTargets("test/mut/mut_single.fa")
 
     def cases(self):
@@ -262,7 +263,7 @@ class TestPrefixMut(TestMutPairs):
         self.spats.run.algorithm = "find_partial"
         self.spats.run.count_mutations = True
         self.spats.run.count_edge_mutations = "stop_and_mut"
-        self.spats.run.allowed_target_errors = 8
+        self.spats.run.allowed_target_errors = 4
         self.spats.run.mutations_require_quality_score = 30
         self.spats.run.count_left_prefixes = True
         self.spats.run.collapse_left_prefixes = True
