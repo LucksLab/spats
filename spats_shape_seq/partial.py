@@ -97,10 +97,11 @@ class PartialFindProcessor(PairProcessor):
         ## trimming greatly saves alignment time, so compromise by assuming that indels (mostly) match
         ## between reads so use R2's indels_delta to buffer trim amount.
         if run.cotrans:
-            possible_matchlen = pair.r2.linker_start if -1 != pair.r2.linker_start else pair.r2.match_len
+            r2id = pair.r2.indels_delta_before(pair.r1.match_index)
+            r1_adapter_len = pair.r1.match_start - (pair.r1.match_index - pair.r2.match_index + r2id)
         else:
             possible_matchlen = min(pair.target.n - max(0, pair.r2.match_index - pair.r2.match_start), pair.r1.seq_len + pair.r1.match_index - pair.r1.match_start)
-        r1_adapter_len = pair.r1.seq_len - possible_matchlen - pair.r2.indels_delta
+            r1_adapter_len = pair.r1.seq_len - possible_matchlen - pair.r2.indels_delta
         dumblen = len(run.dumbbell) if run.dumbbell else 0
         if run.minimum_adapter_len  and  r1_adapter_len - dumblen < run.minimum_adapter_len:
             return False

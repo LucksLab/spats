@@ -3059,7 +3059,7 @@
             "run_opts": {
                 "algorithms": [ "find_partial" ],
                 "cotrans": true,
-                "cotrans_minimum_length": 121,
+                "cotrans_minimum_length": 12,
                 "handle_indels": true,
                 "allow_negative_values": true,
                 "count_mutations": true,
@@ -3080,6 +3080,20 @@
                         "site": 96,
                         "end": 133,
                         "muts": [ 132 ],
+                        "counters": { "r1_indels": 0, "r2_indels": 0 }
+                    }
+                },
+                {
+                    "id": "r2_linker_find_2",
+                    "comment": "false partial linker match in R2 should not mess up R1 adapter trimming",
+                    "r1": "TTTAGTCCTTGGTGCCCGAGTCAGCGGACCTGACCTGGTAAACAGAGTAGCGTTGCGGGAGAACCAACAGAGCCCCCATTGAGAGCGTTAGATCGGAAGAGCACA",
+                    "r1_quality": "CCCCCGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGBFA",
+                    "r2": "AACGCTCTCAATGGGGGCTCTGTTGGTTCTCCCGCAACGCTACTC",
+                    "r2_quality": "CCCCCGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                    "expect": {
+                        "site": 12,
+                        "end": 77,
+                        "muts": [ ],
                         "counters": { "r1_indels": 0, "r2_indels": 0 }
                     }
                 }

@@ -300,6 +300,16 @@ class Sequence(object):
                 new_indels[indind] = indel
         self.indels = new_indels
 
+    def indels_delta_before(self, target_index):
+        result = 0
+        for indind,indel in self.indels.iteritems():
+            if indind <= target_index:
+                if indel.insert_type:
+                    result += len(indel.seq)
+                else:
+                    result -= len(indel.seq)
+        return result
+
     def apply_indels(self):
         if self._seq_with_indels:
             return self._seq_with_indels, self._quality_with_indels
