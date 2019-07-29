@@ -130,7 +130,7 @@ class Counters(object):
 
     def target_total(self, target):
         total = 0
-        for key, value in self._registered:
+        for key, value in self._registered.items():
             if key.startswith("{}:".format(target.rowid)):
                 total += value
         return total
