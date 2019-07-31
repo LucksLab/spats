@@ -282,11 +282,11 @@ class TargetProfiles(object):
                 #print("domain error: {} / {} / {} / {}".format(s_j_t, depth_t, s_j_u, depth_u))
                 mu[j] = 0.0
 
-            if mu[j] != 1.0:
+            if mu[j] < 1.0:
                 running_c_sum -= math.log(1.0 - mu[j]) # xref Yu_Estimating_Reactivities pdf, p24
             else:
                 c_zero = True
-            if curmu != 1.0:
+            if curmu < 1.0:
                 running_c_alt_sum -= math.log(1.0 - curmu)
             else:
                 c_alt_zero = True
