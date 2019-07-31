@@ -99,7 +99,7 @@ class Pair(object):
                 idx = mut - r2_start
                 q2 = ord(r2qual[idx])
                 nt2 = r2seq[idx]
-            if mut > r1_start:
+            if mut > r1_start  and  mut < len(r1rqual):
                 idx = mut - r1_start - 1
                 q1 = ord(r1rqual[idx])
                 nt1 = r1rcseq[idx]
