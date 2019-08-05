@@ -27,6 +27,7 @@ class Pair(object):
         self.linker = None
         self.edge_mut = None
         self.edge_indel = False
+        self.ambig_indel = False
         self.dumbbell = None
         self._fully_matched = False
         self._indels_match = None
@@ -99,10 +100,11 @@ class Pair(object):
                 idx = mut - r2_start
                 q2 = ord(r2qual[idx])
                 nt2 = r2seq[idx]
-            if mut > r1_start  and  mut < len(r1rqual):
+            if mut > r1_start:
                 idx = mut - r1_start - 1
-                q1 = ord(r1rqual[idx])
-                nt1 = r1rcseq[idx]
+                if idx < len(r1rqual):
+                    q1 = ord(r1rqual[idx])
+                    nt1 = r1rcseq[idx]
             if q1 and q2:
                 # check for agreement
                 if nt1 == nt2:
