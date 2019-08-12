@@ -668,6 +668,25 @@ class SpatsTool(object):
                 writer.writerow(row)
         self._add_note("Data dumped to {}".format(os.path.basename(output_path)))
 
+    def plot(self):
+        """Plot data, provide an argument for the plot type. For
+        single-length, provide 'counts', 'rho', 'beta', 'theta',
+        'muts', or 'muts_reactivity'. For cotrans, provide 'counts',
+        'c', 'treated', 'untreated', 'treated_muts', 'untreated_muts',
+        'rho', 'beta', 'theta', 'r_mut', 'mu_mut', 'beta_mut',
+        'treated_mut', 'untreated_mut'.
+        """
+        self._skip_log = True
+        if not self._command_args:
+            raise Exception("Plot requires a type.")
+        plot_type = self._command_args[0]
+        import plots
+        handler = getattr(plots, "plot_" + ("cotrans_" if self.cotrans else "sl_") + plot_type, None)
+        if not handler:
+            raise Exception("Invalid plot type: {}".format(plot_type))
+        plt = handler()
+        plt.show()
+
     def handle_filter(self):
         """Generates an output of the demultiplexed positive and negative
            fastq files for R1 and R2.
