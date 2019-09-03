@@ -173,8 +173,9 @@ class Run(object):
 
         #: Default ``None``, which means collapse all prefixes. Set to
         #: a list of comma-separated strings to only collapse prefixes
-        #: that appear in the list. Only applies with
-        #: ``collapse_left_prefixes`` is ``True``
+        #: that appear in the list. Specifying these will force the
+        #: ``collapse_left_prefixes`` and ``count_left_prefixes`` options
+        #: to be True.
         self.collapse_only_prefixes = None
 
         #: Default ``None``, set to a string path to generate SAM outputs
@@ -272,6 +273,10 @@ class Run(object):
             self.algorithm = 'find_partial'
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
+        if self.collapse_only_prefixes:
+            self.collapse_left_prefixes = True
+            self.count_left_prefixes = True
+            self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
         if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1 or not self.ignore_stops_with_mismatched_overlap:
             self.algorithm = 'find_partial'
         if self.regions_of_interest:
@@ -283,8 +288,6 @@ class Run(object):
                     self._p_rois = [ (min(map(int, roi)), max(map(int, roi))) for roi in self.regions_of_interest ]
             except:
                 raise Exception("Invalid regions_of_interest.  Specify as '(min_index, max_index), (min_index, max_index), ...'.")
-        if self.collapse_only_prefixes:
-            self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
         if self.count_mutations and self.mutations_require_quality_score is not None:
             self._parse_quality = True
         if self.generate_sam or self.generate_channel_reads:
