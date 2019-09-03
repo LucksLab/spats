@@ -113,7 +113,7 @@ class SpatsWorker(object):
             if not quiet:
                 sys.stdout.write('^')
                 sys.stdout.flush()
-            return len(pair_info)
+            return sum(p[0] for p in pair_info)   # need to take into account multiplicity for reads
 
         def write_results():
             all_results = []
