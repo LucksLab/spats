@@ -269,6 +269,8 @@ class Run(object):
             self.allowed_target_errors = max(self.allowed_target_errors, 1)
         if self.handle_indels:
             self.algorithm = 'find_partial'
+            if not self.count_mutations:
+                raise Exception("count_mutations should be True if using handle_indels.")
         if self.dumbbell and self.cotrans:
             self.algorithm = 'find_partial'
         if self.collapse_left_prefixes:
