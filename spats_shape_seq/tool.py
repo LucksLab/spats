@@ -598,6 +598,7 @@ class SpatsTool(object):
             headers += [ "beta", "theta", "rho" ]
         headers += [ "c", "c alt" ]
         data = []
+        sites_missing_reads = []
 
         if self.cotrans:
             tgt = spats.targets.targets[0]
@@ -606,6 +607,8 @@ class SpatsTool(object):
                 end = int(key.split('_')[-1])
                 prof = profiles.profilesForTargetAndEnd(tgt.name, end)
                 for i in xrange(end + 1):
+                    if 0 == prof.treated[i] and 0 == prof.untreated[i]:
+                        sites_missing_reads.append( (tgt, end, i) )
                     datapt = [ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i] ]
                     if indels:
                         datapt += [ prof.treated_inserts[i], prof.untreated_inserts[i], prof.treated_deletes[i], prof.untreated_deletes[i] ]
@@ -646,6 +649,8 @@ class SpatsTool(object):
                 prof = profiles.profilesForTarget(tgt)
                 data = []
                 for i in xrange(end + 1):
+                    if 0 == prof.treated[i] and 0 == prof.untreated[i]:
+                        sites_missing_reads.append( (tgt, end, i) )
                     datapt = [ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i] ]
                     if indels:
                         datapt += [ prof.treated_inserts[i], prof.untreated_inserts[i], prof.treated_deletes[i], prof.untreated_deletes[i] ]
@@ -658,6 +663,23 @@ class SpatsTool(object):
                 output_path = os.path.join(self.path, '{}.csv'.format(tgt.name))
                 self._write_csv(output_path, headers, data)
 
+        missing_targets = list(set([ s[0] for s in sites_missing_reads ]))
+        for tgt in missing_targets:
+            # only warn for sites "far from" the end (for now defined by 2 * minimum required match length)
+            min_len = spats.run.minimum_target_match_length
+            tgt_missing_sites = [ s for s in sites_missing_reads if s[0] == tgt and s[1] - s[2] > 2 * min_len ]
+            num_missing = len(tgt_missing_sites)
+            if 0 == num_missing:
+                # we might have pruned them due to length
+                continue
+            if self.cotrans:
+                tgt_missing_sites = [ "{}/{}".format(s[1], s[2]) for s in tgt_missing_sites ]
+            else:
+                tgt_missing_sites = [ str(s[2]) for s in tgt_missing_sites ]
+            if len(tgt_missing_sites) > 20:
+                tgt_missing_sites = tgt_missing_sites[:20]
+                tgt_missing_sites.append("...")
+            print(" ** Warning: target {} has 0 reads from both channels at {} sites: {} ".format(tgt.name, num_missing, ", ".join(tgt_missing_sites)))
 
     def _write_csv(self, output_path, headers, data):
         with open(output_path, 'wb') as out_file:
