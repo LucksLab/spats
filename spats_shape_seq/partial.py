@@ -206,7 +206,7 @@ class PartialFindProcessor(PairProcessor):
     ##    T+ = region to be matched/aligned with a reference target;
     ##         if no cotrans/linker, then always goes all the way to the right end
     ##         of the reference target, but does not necessarily start at the beginning.
-    ##    L+ = optionl linker in the case of cotrans experiments (R2 read may end before or during this)
+    ##    L+ = optional linker in the case of cotrans experiments (R2 read may end before or during this)
     ##    M+ = mask/handle designating treatment (reverse/R1 reads will always start here)
 
     def process_pair(self, pair):

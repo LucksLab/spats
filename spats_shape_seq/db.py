@@ -419,12 +419,13 @@ class PairDB(object):
         self.conn.executemany("INSERT INTO counter VALUES (?, ?, ?, ?)", row_data)
         self.conn.commit()
 
-    def load_counters(self, run_key, counters):
+    def load_counters(self, run_key, counters, reset = True):
         count_data = ( {}, {} )
         results =  self.conn.execute("SELECT dict_index, count_key, count FROM counter WHERE run_key=?", (run_key,))
         for r in results:
             count_data[int(r[0])][str(r[1])] = int(r[2])
-        counters.reset()
+        if reset:
+            counters.reset()
         counters.update_with_count_data(count_data)
         return counters
 

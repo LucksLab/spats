@@ -11,6 +11,8 @@ import subprocess
 import sys
 import time
 from shutil import copyfile
+import re
+import ntpath
 
 import spats_shape_seq
 from spats_shape_seq import Spats
@@ -82,7 +84,11 @@ class SpatsTool(object):
                 self._sentinel("decompress {}".format(rx))
                 return out
             return rx
-        return decomp(self.config['r1' + suffix]), decomp(self.config['r2' + suffix])
+        def singleOrList(rkey):
+            # hack to keep r1_plus and r2_plus properties backwards compatible...
+            res = [ decomp(r.strip()) for r in self.config[rkey].split(',') ]
+            return res if len(res) > 1 else res[0]
+        return singleOrList('r1' + suffix), singleOrList('r2' + suffix)
 
     @property
     def r1(self):
@@ -111,6 +117,17 @@ class SpatsTool(object):
         if not self._r2_plus:
             self._r1_plus, self._r2_plus = self._load_r1_r2('_plus')
         return self._r2_plus
+
+    @property
+    def plus_channels(self):
+        r1p, r2p = self.r1_plus, self.r2_plus
+        if not isinstance(r1p, list):
+            r1p = [ r1p ]
+        if not isinstance(r2p, list):
+            r2p = [ r2p ]
+        if len(r1p) != len(r2p):
+            raise Exception("r1/r2 plus channels do not correspond")
+        return zip(r1p, r2p)
 
     @property
     def r1_minus(self):
@@ -201,6 +218,8 @@ class SpatsTool(object):
         if not native_tool:
             self._add_note("using python reads")
             if self.using_separate_channel_files:
+                if len(r1_plus) > 1  or  len(r2_plus) > 1:
+                    raise Exception("multiple positive r1 channel files not supported for reads tool.")
                 data.parse(self.config['target'], [self.r1_plus, self.r1_minus], [self.r2_plus, self.r2_minus])
             else:
                 data.parse(self.config['target'], [self.r1], [self.r2])
@@ -340,11 +359,24 @@ class SpatsTool(object):
             self._add_note("using python processor")
             spats.addTargets(self.config['target'])
             if self.using_separate_channel_files:
-                spats.process_pair_data(self.r1_plus, self.r2_plus, force_mask = spats.run.masks[0])
+                self._add_note("using separate channel files.")
+                self._add_note("processing minus/untreated pairs")
                 spats.process_pair_data(self.r1_minus, self.r2_minus, force_mask = spats.run.masks[1])
+                pcs = self.plus_channels
+                if len(pcs) == 1:
+                    self._add_note("processing plus/treated pairs")
+                    spats.process_pair_data(pcs[0][0], pcs[0][1], force_mask = spats.run.masks[0])
+                    spats.store(run_name)
+                else:
+                    spats.store(run_name)
+                    for i, (r1_plus, r2_plus) in enumerate(pcs):
+                        self._add_note("processing plus/treated pairs, set #{}".format(i + 1))
+                        spats._processor.counters.reset()
+                        spats.process_pair_data(r1_plus, r2_plus, force_mask = spats.run.masks[0])
+                        spats.store(run_name + ".p{}".format(i + 1))
             else:
                 spats.process_pair_data(self.r1, self.r2)
-            spats.store(run_name)
+                spats.store(run_name)
         self._add_note("wrote output to {}".format(os.path.basename(run_name)))
         nb = self._notebook()
         if nb:
@@ -509,62 +541,10 @@ class SpatsTool(object):
         handler = getattr(self, "_dump_" + dump_type, None)
         if not handler:
             raise Exception("Invalid dump type: {}".format(dump_type))
-        handler()
-
-    def _dump_prefixes(self):
-        run_name = self._run_file()
-        if not os.path.exists(run_name):
-            raise Exception("Run must be run before attempting dump")
-        spats = Spats()
-        spats.load(run_name)
-        countinfo = spats.counters.counts_dict()
-        total = float(countinfo['total_pairs']) / 100.0
-        for mask in spats.run.masks:
-            prefixes = []
-            keyprefix = "prefix_{}_".format(mask)
-            for key in sorted([k for k in countinfo.keys() if k.startswith(keyprefix)], key = lambda k : countinfo[k], reverse = True):
-                prefixes.append((key[len(keyprefix):], float(countinfo[key]) / total, countinfo[key]))
-            output_path = os.path.join(self.path, 'prefixes_{}.csv'.format(mask))
-            self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
-        total = float(countinfo['registered_pairs']) / 100.0
-        for mask in spats.run.masks:
-            prefixes = []
-            keyprefix = "mapped_prefix_{}_".format(mask)
-            for key in sorted([k for k in countinfo.keys() if k.startswith(keyprefix)], key = lambda k : countinfo[k], reverse = True):
-                prefixes.append((key[len(keyprefix):], float(countinfo[key]) / total, countinfo[key]))
-            output_path = os.path.join(self.path, 'mapped_prefixes_{}.csv'.format(mask))
-            self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
-
-    def _dump_mut_counts(self):
-        run_name = self._run_file()
-        if not os.path.exists(run_name):
-            raise Exception("Run must be run before attempting dump")
-        spats = Spats()
-        spats.load(run_name)
-        countinfo = spats.counters.counts_dict()
-        mut_cnts = []
-        for muts in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mut_count_')]):
-            mut_cnts.append((muts, countinfo["mut_count_{}".format(muts)]))
-        output_path = os.path.join(self.path, 'mut_counts.csv')
-        self._write_csv(output_path, [ "Mutation Count", "Reads" ], mut_cnts)
-        mut_cnts = []
-        for muts in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mapped_mut_count_')]):
-            mut_cnts.append((muts, countinfo["mapped_mut_count_{}".format(muts)]))
-        output_path = os.path.join(self.path, 'mapped_mut_counts.csv')
-        self._write_csv(output_path, [ "Mutation Count", "Reads" ], mut_cnts)
-
-    def _dump_indel_lens(self):
-        run_name = self._run_file()
-        if not os.path.exists(run_name):
-            raise Exception("Run must be run before attempting dump")
-        spats = Spats()
-        spats.load(run_name)
-        countinfo = spats.counters.counts_dict()
-        ilen_cnt = []
-        for lc in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mapped_indel_len_')]):
-            ilen_cnt.append((lc, countinfo["mapped_indel_len_{}".format(lc)]))
-        output_path = os.path.join(self.path, 'mapped_indel_len_counts.csv')
-        self._write_csv(output_path, [ "Indel Length", "Reads" ], ilen_cnt)
+        if dump_type == 'reads':
+            self._dump_reads()
+        else:
+            self._dump_wrapper(handler)
 
     def _dump_reads(self):
         reads_name = self._reads_file()
@@ -579,13 +559,66 @@ class SpatsTool(object):
         output_path = os.path.join(self.path, 'reads.csv')
         self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], data)
 
-    def _dump_run(self):
+    def _dump_wrapper(self, handler):
         run_name = self._run_file()
         if not os.path.exists(run_name):
             raise Exception("Run must be run before attempting dump")
+        partial = False
+        base_file = ntpath.basename(run_name)
+        for filep in os.listdir(self.path):
+            rn = re.match("^{}\.p(\d+)$".format(base_file), filep)
+            if rn:
+                spats = Spats()
+                spats.load(run_name)
+                spats.merge(filep)
+                handler(spats, "p{}_".format(rn.group(1)))
+                partial = True
+        if not partial:
+            spats = Spats()
+            spats.load(run_name)
+            handler(spats)
 
-        spats = Spats()
-        spats.load(run_name)
+    def _dump_prefixes(self, spats, fprefix = ""):
+        countinfo = spats.counters.counts_dict()
+        total = float(countinfo['total_pairs']) / 100.0
+        for mask in spats.run.masks:
+            prefixes = []
+            keyprefix = "prefix_{}_".format(mask)
+            for key in sorted([k for k in countinfo.keys() if k.startswith(keyprefix)], key = lambda k : countinfo[k], reverse = True):
+                prefixes.append((key[len(keyprefix):], float(countinfo[key]) / total, countinfo[key]))
+            output_path = os.path.join(self.path, '{}prefixes_{}.csv'.format(fprefix, mask))
+            self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
+        total = float(countinfo['registered_pairs']) / 100.0
+        for mask in spats.run.masks:
+            prefixes = []
+            keyprefix = "mapped_prefix_{}_".format(mask)
+            for key in sorted([k for k in countinfo.keys() if k.startswith(keyprefix)], key = lambda k : countinfo[k], reverse = True):
+                prefixes.append((key[len(keyprefix):], float(countinfo[key]) / total, countinfo[key]))
+            output_path = os.path.join(self.path, '{}mapped_prefixes_{}.csv'.format(fprefix, mask))
+            self._write_csv(output_path, [ "Tag", "Percentage", "Count" ], prefixes)
+
+    def _dump_mut_counts(self, spats, prefix = ""):
+        countinfo = spats.counters.counts_dict()
+        mut_cnts = []
+        for muts in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mut_count_')]):
+            mut_cnts.append((muts, countinfo["mut_count_{}".format(muts)]))
+        output_path = os.path.join(self.path, '{}mut_counts.csv'.format(prefix))
+        self._write_csv(output_path, [ "Mutation Count", "Reads" ], mut_cnts)
+        mut_cnts = []
+        for muts in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mapped_mut_count_')]):
+            mut_cnts.append((muts, countinfo["mapped_mut_count_{}".format(muts)]))
+        output_path = os.path.join(self.path, '{}mapped_mut_counts.csv'.format(prefix))
+        self._write_csv(output_path, [ "Mutation Count", "Reads" ], mut_cnts)
+
+    def _dump_indel_lens(self, spats, prefix = ""):
+        countinfo = spats.counters.counts_dict()
+        ilen_cnt = []
+        for lc in sorted([int(k.split('_')[-1]) for k in countinfo.keys() if k.startswith('mapped_indel_len_')]):
+            ilen_cnt.append((lc, countinfo["mapped_indel_len_{}".format(lc)]))
+        output_path = os.path.join(self.path, '{}mapped_indel_len_counts.csv'.format(prefix))
+        self._write_csv(output_path, [ "Indel Length", "Reads" ], ilen_cnt)
+
+    def _dump_run(self, spats, prefix = ""):
         profiles = spats.compute_profiles()
         mutations = spats.run.count_mutations
         indels = spats.run.handle_indels
@@ -615,7 +648,7 @@ class SpatsTool(object):
                         datapt += [ prof.beta[i], prof.theta[i], prof.rho[i] ]
                     datapt += [ prof.c, prof.c_alt ]
                     data.append(datapt)
-            output_path = os.path.join(self.path, '{}.csv'.format(tgt.name))
+            output_path = os.path.join(self.path, '{}{}.csv'.format(prefix, tgt.name))
             self._write_csv(output_path, headers, data)
             empty_cell = ''
             keys = [ 'treated', 'untreated' ]
@@ -638,7 +671,7 @@ class SpatsTool(object):
                     if len(vals) < ncols:
                         vals += ([empty_cell] * (ncols - len(vals)))
                     mat.append(vals)
-                self._write_csv('{}_{}_mat.csv'.format(tgt.name, key), None, mat)
+                self._write_csv('{}{}_{}_mat.csv'.format(prefix, tgt.name, key), None, mat)
         else:
             for tgt in spats.targets.targets:
                 tseq = tgt.seq
@@ -655,9 +688,8 @@ class SpatsTool(object):
                         datapt += [ prof.beta[i], prof.theta[i], prof.rho[i] ]
                     datapt += [ prof.c, prof.c_alt ]
                     data.append(datapt)
-                output_path = os.path.join(self.path, '{}.csv'.format(tgt.name))
+                output_path = os.path.join(self.path, '{}{}.csv'.format(prefix, tgt.name))
                 self._write_csv(output_path, headers, data)
-
 
     def _write_csv(self, output_path, headers, data):
         with open(output_path, 'wb') as out_file:

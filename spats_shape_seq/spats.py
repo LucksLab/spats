@@ -250,6 +250,12 @@ class Spats(object):
         targets.minimum_match_length = self.run.minimum_target_match_length
         self._targets = targets
 
+    def merge_targets(self, pair_db):
+        assert(self._targets)
+        self._targets.minimum_match_length = min(self._targets.minimum_match_length, self.run.minimum_target_match_length)
+        for name, seq, rowid in pair_db.targets():
+            self._targets.merge_target(name, seq.upper().replace('U', 'T'), rowid)
+
 
     def process_pair(self, pair):
         """Used process a single :class:`.pair.Pair`. Typically only used for debugging or analysis of specific cases.
@@ -457,6 +463,16 @@ class Spats(object):
         pair_db.load_run(self.run)
         self.loadTargets(pair_db)
         pair_db.load_counters("spats", self.counters)
+
+    def merge(self, input_path):
+        """Merges SPATS state from a file with existing state.
+
+           :param input_path: the path of a previously saved SPATS session.
+        """
+        pair_db = PairDB(input_path)
+        pair_db.load_run(self.run)
+        self.merge_targets(pair_db)
+        pair_db.load_counters("spats", self.counters, False)
 
     def validate_results(self, data_r1_path, data_r2_path, algorithm = "find_partial", verbose = False):
         """Used to validate the results of the current run using against a

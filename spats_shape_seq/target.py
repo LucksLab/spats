@@ -22,6 +22,14 @@ class Targets(object):
     def addTarget(self, name, seq, rowid = -1):
         self.targets.append(_Target(name, seq, rowid))
 
+    def merge_target(self, name, seq, rowid = -1):
+        # Don't add "duplicate" targets.
+        for t in self.targets:
+            if t.name == name and t.seq == seq:
+                break
+        else:
+            self.targets.append(_Target(name, seq, rowid))
+
     @property
     def minimum_match_length(self):
         return self._minimum_length
