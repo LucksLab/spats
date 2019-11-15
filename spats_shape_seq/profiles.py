@@ -9,43 +9,77 @@ class Profiles(object):
         self._counters = counters
         self._cotrans = run.cotrans
         self._run = run
-        count_muts = run.count_mutations
-        count_indels = run.handle_indels
-        masks = run.masks
         profiles = {}
         for target in self._targets.targets:
             n = len(target.seq)
             if run.cotrans:
                 for end in xrange(run.cotrans_minimum_length, n + 1):
-                    profiles["{}_{}".format(target.name, end)] = TargetProfiles(self, target,
-                                                                                counters.mask_counts(target, masks[0], end),
-                                                                                counters.mask_counts(target, masks[1], end),
-                                                                                counters.mask_muts(target, masks[0], end) if count_muts else None,
-                                                                                counters.mask_muts(target, masks[1], end) if count_muts else None,
-                                                                                counters.mask_edge_muts(target, masks[0], end) if count_muts else None,
-                                                                                counters.mask_edge_muts(target, masks[1], end) if count_muts else None,
-                                                                                counters.mask_removed_muts(target, masks[0], end) if count_muts else None,
-                                                                                counters.mask_removed_muts(target, masks[1], end) if count_muts else None,
-                                                                                counters.mask_inserts(target, masks[0], end) if count_indels else None,
-                                                                                counters.mask_inserts(target, masks[1], end) if count_indels else None,
-                                                                                counters.mask_deletes(target, masks[0], end) if count_indels else None,
-                                                                                counters.mask_deletes(target, masks[1], end) if count_indels else None)
+                    profiles["{}_{}".format(target.name, end)] = self._createProfile(target, end)
             else:
-                profiles[target.name] = TargetProfiles(self, target,
-                                                       counters.mask_counts(target, masks[0], n),
-                                                       counters.mask_counts(target, masks[1], n),
-                                                       counters.mask_muts(target, masks[0], n) if count_muts else None,
-                                                       counters.mask_muts(target, masks[1], n) if count_muts else None,
-                                                       counters.mask_edge_muts(target, masks[0], n) if count_muts else None,
-                                                       counters.mask_edge_muts(target, masks[1], n) if count_muts else None,
-                                                       counters.mask_removed_muts(target, masks[0], n) if count_muts else None,
-                                                       counters.mask_removed_muts(target, masks[1], n) if count_muts else None,
-                                                       counters.mask_inserts(target, masks[0], n) if count_indels else None,
-                                                       counters.mask_inserts(target, masks[1], n) if count_indels else None,
-                                                       counters.mask_deletes(target, masks[0], n) if count_indels else None,
-                                                       counters.mask_deletes(target, masks[1], n) if count_indels else None)
-
+                p = self._createProfile(target, n)
+                if run.allow_multiple_rt_starts:
+                    # We need to "stitch together" stats from all ends...
+                    for end in xrange(n):
+                        self._addToProfile(p, target, end)
+                profiles[target.name] = p
         self._profiles = profiles
+
+    def _createProfile(self, target, end):
+        counters = self._counters
+        masks = self._run.masks
+        tp = TargetProfiles(self, target,
+                            counters.mask_counts(target, masks[0], end),
+                            counters.mask_counts(target, masks[1], end),
+                            counters.mask_depths(target, masks[0], end),
+                            counters.mask_depths(target, masks[1], end),
+                            counters.mask_quality_depths(target, masks[0], end),
+                            counters.mask_quality_depths(target, masks[1], end))
+        if self._run.count_mutations:
+            tp.treated_muts = counters.mask_muts(target, masks[0], end)
+            tp.untreated_muts = counters.mask_muts(target, masks[1], end)
+            tp.treated_edge_muts = counters.mask_edge_muts(target, masks[0], end)
+            tp.untreated_edge_muts = counters.mask_edge_muts(target, masks[1], end)
+            tp.treated_removed_muts = counters.mask_removed_muts(target, masks[0], end)
+            tp.untreated_removed_muts = counters.mask_removed_muts(target, masks[1], end)
+        if self._run.handle_indels:
+            tp.treated_inserts = counters.mask_inserts(target, masks[0], end)
+            tp.untreated_inserts = counters.mask_inserts(target, masks[1], end)
+            tp.treated_deletes = counters.mask_deletes(target, masks[0], end)
+            tp.untreated_deletes = counters.mask_deletes(target, masks[1], end)
+        return tp
+
+    @staticmethod
+    def _addToVect(vect, vtoadd, extend = False):
+        overlapped = min(len(vect), len(vtoadd))
+        for i in xrange(overlapped):
+            vect[i] += vtoadd[i]
+        if len(vtoadd) > len(vect):
+            vect += [0] * (len(vtoadd) - len(vect))
+            for i in xrange(overlapped, len(vtoadd)):
+                vect[i] += vtoadd[i]
+
+    def _addToProfile(self, p, target, end):
+        counters = self._counters
+        masks = self._run.masks
+        # TAI:  the following is ugly.  refactor....
+        Profiles._addToVect(p.treated_counts, counters.mask_counts(target, masks[0], end))
+        Profiles._addToVect(p.untreated_counts, counters.mask_counts(target, masks[1], end))
+        Profiles._addToVect(p.treated_depths, counters.mask_depths(target, masks[0], end))
+        Profiles._addToVect(p.untreated_depths, counters.mask_depths(target, masks[1], end))
+        Profiles._addToVect(p.treated_quality_depths, counters.mask_quality_depths(target, masks[0], end))
+        Profiles._addToVect(p.untreated_quality_depths, counters.mask_quality_depths(target, masks[1], end))
+        if self._run.count_mutations:
+            Profiles._addToVect(p.treated_muts, counters.mask_muts(target, masks[0], end))
+            Profiles._addToVect(p.untreated_muts, counters.mask_muts(target, masks[1], end))
+            Profiles._addToVect(p.treated_edge_muts, counters.mask_edge_muts(target, masks[0], end))
+            Profiles._addToVect(p.untreated_edge_muts, counters.mask_edge_muts(target, masks[1], end))
+            Profiles._addToVect(p.treated_removed_muts, counters.mask_removed_muts(target, masks[0], end))
+            Profiles._addToVect(p.untreated_edge_muts, counters.mask_removed_muts(target, masks[1], end))
+        if self._run.handle_indels:
+            Profiles._addToVect(p.treated_inserts, counters.mask_inserts(target, masks[0], end))
+            Profiles._addToVect(p.untreated_inserts, counters.mask_inserts(target, masks[1], end))
+            Profiles._addToVect(p.treated_deletes, counters.mask_deletes(target, masks[0], end))
+            Profiles._addToVect(p.untreated_deletes, counters.mask_deletes(target, masks[1], end))
 
     def profilesForTarget(self, target):
         return self._profiles[target.name]
@@ -90,21 +124,28 @@ class Profiles(object):
 
 class TargetProfiles(object):
 
-    def __init__(self, owner, target, treated_counts, untreated_counts, treated_muts, untreated_muts, treated_edge_muts, untreated_edge_muts, treated_removed_muts, untreated_removed_muts, treated_inserts, untreated_inserts, treated_deletes, untreated_deletes):
+    def __init__(self, owner, target,
+                 treated_counts, untreated_counts,
+                 treated_depths, untreated_depths,
+                 treated_quality_depths, untreated_quality_depths):
         self.owner = owner
         self._target = target
         self.treated_counts = treated_counts
         self.untreated_counts = untreated_counts
-        self.treated_muts = treated_muts
-        self.untreated_muts = untreated_muts
-        self.treated_edge_muts = treated_edge_muts
-        self.untreated_edge_muts = untreated_edge_muts
-        self.treated_removed_muts = treated_removed_muts
-        self.untreated_removed_muts = untreated_removed_muts
-        self.treated_inserts = treated_inserts
-        self.treated_deletes = treated_deletes
-        self.untreated_inserts = untreated_inserts
-        self.untreated_deletes = untreated_deletes
+        self.treated_depths = treated_depths
+        self.untreated_depths = untreated_depths
+        self.treated_quality_depths = treated_quality_depths
+        self.untreated_quality_depths = untreated_quality_depths
+        self.treated_muts = None
+        self.untreated_muts = None
+        self.treated_edge_muts = None
+        self.untreated_edge_muts = None
+        self.treated_removed_muts = None
+        self.untreated_removed_muts = None
+        self.treated_inserts = None
+        self.treated_deletes = None
+        self.untreated_inserts = None
+        self.untreated_deletes = None
 
     @property
     def treated(self):
@@ -113,6 +154,22 @@ class TargetProfiles(object):
     @property
     def untreated(self):
         return self.untreated_counts
+
+    @property
+    def treated_depth(self):
+        return self.treated_depths
+
+    @property
+    def untreated_depth(self):
+        return self.untreated_depths
+
+    @property
+    def treated_quality_depth(self):
+        return self.treated_quality_depths
+
+    @property
+    def untreated_quality_depth(self):
+        return self.untreated_quality_depths
 
     @property
     def treated_mut(self):
@@ -157,11 +214,11 @@ class TargetProfiles(object):
     def compute(self):
         treated_counts = self.treated_counts
         untreated_counts = self.untreated_counts
+        treated_depths = self.treated_depths
+        untreated_depths = self.untreated_depths
         n = len(treated_counts) - 1
         betas = [ 0 for x in xrange(n+1) ]
         thetas = [ 0 for x in xrange(n+1) ]
-        treated_sum = 0.0    # keep a running sum
-        untreated_sum = 0.0  # for both channels
         running_c_sum = 0.0  # can also do it for c
         running_c_alt_sum = 0.0
 
@@ -183,11 +240,9 @@ class TargetProfiles(object):
         for k in xrange(n):
             X_k = float(treated_counts[k])
             Y_k = float(untreated_counts[k])
-            treated_sum += X_k    #running sum equivalent to: treated_sum = float(sum(treated_counts[:(k + 1)]))
-            untreated_sum += Y_k  #running sum equivalent to: untreated_sum = float(sum(untreated_counts[:(k + 1)]))
             try:
-                Xbit = (X_k / treated_sum)
-                Ybit = (Y_k / untreated_sum)
+                Xbit = (X_k / float(treated_depths[k]))
+                Ybit = (Y_k / float(untreated_depths[k]))
                 betas[k] = (Xbit - Ybit) / (1 - Ybit)
                 thetas[k] = math.log(1.0 - Ybit) - math.log(1.0 - Xbit)
                 running_c_alt_sum -= math.log(1.0 - betas[k])
@@ -196,7 +251,6 @@ class TargetProfiles(object):
                     thetas[k] = max(0.0, thetas[k])
                 running_c_sum -= math.log(1.0 - betas[k])
             except:
-                #print("domain error: {} / {} / {} / {}".format(X_k, treated_sum, Y_k, untreated_sum))
                 betas[k] = 0
                 thetas[k] = 0
 
@@ -226,16 +280,16 @@ class TargetProfiles(object):
         untreated_inserts = self.untreated_inserts
         treated_deletes = self.treated_deletes
         untreated_deletes = self.untreated_deletes
+        treated_quality_depths = self.treated_quality_depths
+        untreated_quality_depths = self.untreated_quality_depths
 
         n = len(treated_counts) - 1
         mu = [ 0 for x in xrange(n+1) ]
         r_mut = [ 0 for x in xrange(n+1) ]
-        depth_t = 0.0    # keep a running sum
-        depth_u = 0.0  # for both channels
         running_c_sum = 0.0
-        c_zero = False
+        c_inf = False
         running_c_alt_sum = 0.0
-        c_alt_zero = False
+        c_alt_inf = False
 
         # NOTE: there is an index discrepancy here between indices
         # used in the code, and the indices used in the derivation:
@@ -244,12 +298,6 @@ class TargetProfiles(object):
         # this is intentional.
 
         for j in xrange(n):
-
-            # xref https://trello.com/c/10pysbq7/261-mutation-depth-with-quality-filtering-when-calculating-mus
-            # if we removed a mut due to low quality, then we want to remove the corresponding stop
-            # from the analysis (even though it should still be counted in the non-mut analysis).
-            s_j_t = float(treated_counts[j] - treated_removed_muts[j])     # s_j^+
-            s_j_u = float(untreated_counts[j] - untreated_removed_muts[j]) # s_j^-
 
             # mut_j^+ - Only one of { mut, insert, delete } is currently possible at a site per pair
             mut_j_t = 0
@@ -269,12 +317,14 @@ class TargetProfiles(object):
             if untreated_deletes:
                 mut_j_u += float(untreated_deletes[j])
 
-            depth_t += s_j_t  #running sum equivalent to: depth_t = float(sum(treated_counts[:(j + 1)]))
-            depth_u += s_j_u  #running sum equivalent to: depth_u = float(sum(untreated_counts[:(j + 1)]))
             curmu = 0.0
             try:
-                Tbit = (mut_j_t / depth_t)
-                Ubit = (mut_j_u / depth_u)
+                # xref https://trello.com/c/10pysbq7/261-mutation-depth-with-quality-filtering-when-calculating-mus
+                # if we removed a mut due to low quality, then we want to remove the corresponding stop
+                # from the analysis (even though it should still be counted in the non-mut analysis).
+                # so we use quality_depths here.
+                Tbit = (mut_j_t / float(treated_quality_depths[j]))
+                Ubit = (mut_j_u / float(untreated_quality_depths[j]))
                 curmu = mu[j] = (Tbit - Ubit) / (1 - Ubit)
                 if not self.owner._run.allow_negative_values:
                     mu[j] = max(0.0, mu[j])
@@ -285,22 +335,22 @@ class TargetProfiles(object):
             if mu[j] < 1.0:
                 running_c_sum -= math.log(1.0 - mu[j]) # xref Yu_Estimating_Reactivities pdf, p24
             else:
-                c_zero = True
+                c_inf = True
             if curmu < 1.0:
                 running_c_alt_sum -= math.log(1.0 - curmu)
             else:
-                c_alt_zero = True
+                c_alt_inf = True
 
             r_mut[j] = self.betas[j] + mu[j]
 
         self.mu = mu
         self.r_mut = r_mut
-        if c_zero:
-            self.c = 0
+        if c_inf:
+            self.c = float('inf')    # when c is infinite, pr of modification is 1
         else:
             self.c += running_c_sum
-        if c_alt_zero:
-            self.c_alt = 0
+        if c_alt_inf:
+            self.c_alt = float('inf')   # when c_alt is infinite, pr of modification is 1
         else:
             self.c_alt += running_c_alt_sum
 

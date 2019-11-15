@@ -161,8 +161,8 @@ class SpatsWorker(object):
             num_accumulated = 0
             try:
                 while 1 < num_workers:
-                    data = self._pairs_done.get_nowait()
-                    processor.counters.update_with_count_data(data)
+                    count_data, vect_data = self._pairs_done.get_nowait()
+                    processor.counters.update_with_count_data(count_data, vect_data)
                     num_accumulated += 1
                     if not quiet:
                         sys.stdout.write('x')

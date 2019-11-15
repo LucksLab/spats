@@ -4,6 +4,7 @@ import random
 import sqlite3
 import sys
 import time
+import string
 
 from parse import FastFastqParser
 
@@ -414,19 +415,30 @@ class PairDB(object):
     def store_counters(self, run_key, counters):
         self.setup_counters()
         self.conn.execute("DELETE FROM counter WHERE run_key=?", (run_key,))
-        count_data = counters.count_data()
-        row_data = [ (run_key, i, key, count_data[i][key]) for i in xrange(2) for key in count_data[i].keys() ]
+        count_data, vect_data = counters.count_data()
+        row_data = [ (run_key, i, key, count_data[i][key]) for i in xrange(len(count_data)) for key in count_data[i].keys() ]
+        self.conn.executemany("INSERT INTO counter VALUES (?, ?, ?, ?)", row_data)
+        self.conn.commit()
+        # Just store counter vectors as joined strings because
+        # we don't need access to any of the individual members
+        # and the vector sizes don't change.
+        row_data = [ (run_key, i, key, ','.join(map(str, vect_data[i][key]))) for i in xrange(len(vect_data)) for key in vect_data[i].keys() ]
         self.conn.executemany("INSERT INTO counter VALUES (?, ?, ?, ?)", row_data)
         self.conn.commit()
 
     def load_counters(self, run_key, counters, reset = True):
         count_data = ( {}, {} )
+        vect_data = ( {}, {} )
         results =  self.conn.execute("SELECT dict_index, count_key, count FROM counter WHERE run_key=?", (run_key,))
         for r in results:
-            count_data[int(r[0])][str(r[1])] = int(r[2])
+            count_key = str(r[1])
+            if count_key.count(':') > 2:
+                count_data[int(r[0])][count_key] = int(r[2])
+            else:
+                vect_data[int(r[0])][count_key] = map(int, string.split(str(r[2]), ','))
         if reset:
             counters.reset()
-        counters.update_with_count_data(count_data)
+        counters.update_with_count_data(count_data, vect_data)
         return counters
 
     def setup_run(self):

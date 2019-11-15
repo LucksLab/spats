@@ -97,6 +97,9 @@ class Run(object):
 
         #: Default ``0``, increase to allow the indicated number of
         #: errors (mutations / indels) when matching to the target.
+        #: WARNING: the ambiguity of the match increases exponentially
+        #: with this number of mutations/indels; it's recommended to not
+        #: set this higher than ``2``.
         self.allowed_target_errors = 0
 
         #: Default ``False``, set to ``True`` to write the results back to 
