@@ -432,7 +432,7 @@ class PairDB(object):
         results =  self.conn.execute("SELECT dict_index, count_key, count FROM counter WHERE run_key=?", (run_key,))
         for r in results:
             count_key = str(r[1])
-            if count_key.count(':') > 2:
+            if ':' not in count_key  or  count_key.count(':') > 2:
                 count_data[int(r[0])][count_key] = int(r[2])
             else:
                 vect_data[int(r[0])][count_key] = map(int, string.split(str(r[2]), ','))
