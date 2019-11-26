@@ -120,7 +120,7 @@ class Counters(object):
     def _add_to_depth(self, pair):
         dk = self._depth_key(pair)
         n = min(pair.target.n, pair.end) + 1
-        for spot in xrange(pair.site, pair.end + 1):
+        for spot in xrange(pair.site, n):
             self._depths.setdefault(dk, [0] * n)[spot] += pair.multiplicity
             if not pair.removed_mutations:
                 self._quality_depths.setdefault(dk, [0] * n)[spot] += pair.multiplicity
