@@ -25,7 +25,8 @@
         "tRNA": "GGCGGATTTAGCTCAGTTGGGAGAGCGCCAGACTGAAGATCTGGAGGTCCTGTGTTCGATCCACAGAATTCGCACCACACTCGGGCACCAAGGAC",
         "1AT0": "GGACCCGGCACCTCCTCGCGGTGCCAACTATGCCTCTACCTGCTTCGGCCGATAAAGCCGACGATAATACTCCCAAAGCCC",
         "thiB55": "CCGTTCTCAACGGGGTGCCACGCGTACGCGTGCGCTGAGAAAATACCCGTCGAACCTGATCCGGATAACGCCGGC",
-        "preSRP_wt_extra": "GCGTTGGTTCTCAACGCTCTCAATGGGGGCTCTGTTGGTTCTCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCGGGTCGGCATGGCATCTCC"
+        "preSRP_wt_extra": "GCGTTGGTTCTCAACGCTCTCAATGGGGGCTCTGTTGGTTCTCCCGCAACGCTACTCTGTTTACCAGGTCAGGTCCGGAAGGAAGCAGCCAAGGCAGATGACGCGTGTGCCGGGATGTAGCTGGCAGGGCCCCCACCCGGGTCGGCATGGCATCTCC",
+        "PfuRPRext_L8P4_379nt": "ggCAAATCAACCTAAAACTTACACATAGGCGAGGGGGCTGGGGGCTGTCGGGCTCGTGCCCGAGGAAGTTCTGCCCACCGCACCGGGGCCGCGGTGCCGTGAGGCACCGGCCGAGAGGCCGGGCAACGGCACAGAAACGACACGTCCCTCGGGGGATGTGGATGAAAGCGGTGAAGGCTCCCGGTGACGGGAGCCGAGTTAACCCGCAGACAATCCCGAGGGGAGCGGTGAAACGGCCGTCCCGCGGGGTGCAAGGCCGAGTTAGGGCCGATGAGTTCCCGGTGTGAGGCCCGTGGTAGGCCGCTTAGTCGAATGCTCCCGTAGTACAGAAGGCAGGCTATAGCCCCCTCGCCTAGGAGTATGGTAAACTTTTTGTTCG"
     },
     "tests": [
         {
@@ -3095,6 +3096,30 @@
                         "end": 77,
                         "muts": [ ],
                         "counters": { "r1_indels": 0, "r2_indels": 0 }
+                    }
+                }
+            ]
+        },
+        {
+            "set_name": "multiple_rt_starts",
+            "run_opts": {
+                "algorithms": [ "find_partial" ],
+                "allow_negative_values": true,
+                "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
+                "count_left_prefixes": true,
+                "collapse_left_prefixes": true,
+                "allow_multiple_rt_starts": true
+            },
+            "targets": [ "PfuRPRext_L8P4_379nt" ],
+            "tests": [
+                {
+                    "id": "multiple_rt_starts_1",
+                    "comment": "Matches 16-bp 'primer' in middle of target",
+                    "r1": "TTTGGGACGGCCGTTTCACCTGAAGAGCCTAGTCGCTGTTCAAGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+                    "r2": "TGAACAGCGACTAGGCTCTTCAGGTGAAACGGCCGTCCTGAGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
+                    "expect": {
+                        "site": 226,
+                        "end": 242
                     }
                 }
             ]

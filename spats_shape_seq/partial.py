@@ -82,7 +82,8 @@ class PartialFindProcessor(PairProcessor):
         masklen = pair.mask.length()
         if not run.cotrans:
             # trim everything beyond the end of the target (including mask if there)
-            full_trim = pair.r2.right_est - pair.target.n
+            maxr2 = pair.r1.right_est if (run.allow_multiple_rt_starts and pair.r1.right_est < pair.target.n) else pair.target.n
+            full_trim = pair.r2.right_est - maxr2
             if full_trim > 0:
                 if full_trim > masklen:
                     pair.r2.adapter_trimmed = pair.r2.subsequence[masklen - full_trim:]
@@ -204,9 +205,10 @@ class PartialFindProcessor(PairProcessor):
     ##    A+ = adapters (adapter_b on left and adapter_t on right)
     ##    D+ = optional dumbbell (forward/R2 reads will always start here if present)
     ##    T+ = region to be matched/aligned with a reference target;
-    ##         if no cotrans/linker, then always goes all the way to the right end
+    ##         if no linker/rt_primer, then always goes all the way to the right end
     ##         of the reference target, but does not necessarily start at the beginning.
-    ##    L+ = optional linker in the case of cotrans experiments (R2 read may end before or during this)
+    ##    L+ = optional rt_primer or linker in the case of cotrans or multiple_rt_starts experiments
+    ##         (R2 read may end before or during this)
     ##    M+ = mask/handle designating treatment (reverse/R1 reads will always start here)
 
     def process_pair(self, pair):
