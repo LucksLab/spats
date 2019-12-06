@@ -14,6 +14,7 @@ class Failures(object):
     left_of_zero = "R2 to left of site 0 failure"
     match_errors = "match errors failure"
     right_edge = "R1 right edge failure"
+    no_rt_primer = "missing required rt_primer"
     cotrans_min = "cotrans minimum"
     r1_r2_overlap = "R1/R2 disagree on overlap"
     extra_r1 = "extra bp in R1"

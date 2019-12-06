@@ -411,6 +411,17 @@ class PartialFindProcessor(PairProcessor):
             self.counters.mismatching_indel_pairs += pair.multiplicity
             # TAI:  might bail on these
 
+        if run.allow_multiple_rt_starts and run.rt_primers:
+            # Require the entire primer to be present (no stops/starts within)
+            for primer in run._p_rt_primers_list:
+                if len(primer) <= pair.r1.seq_len  and pair.r1.subsequence[0:len(primer)] == primer:
+                    self.counters.increment_key('rt_primer_{}'.format(primer))
+                    break
+            else:
+                pair.failure = Failures.no_rt_primer
+                self.counters.no_rt_primer += pair.multiplicity
+                return
+
         pair.site = pair.left
         if run._p_rois and not pair.interesting:
             for roi in run._p_rois:

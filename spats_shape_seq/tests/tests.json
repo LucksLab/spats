@@ -3123,6 +3123,41 @@
                     }
                 }
             ]
+        },
+        {
+            "set_name": "rt_primers",
+            "run_opts": {
+                "algorithms": [ "find_partial" ],
+                "allow_negative_values": true,
+                "dumbbell": "TGAACAGCGACTAGGCTCTTCA",
+                "count_left_prefixes": true,
+                "collapse_left_prefixes": true,
+                "allow_multiple_rt_starts": true,
+                "rt_primers": "GGACGGCCGTTTCACC,CGAACAAAAAGTTTACCATACTCCTAGGC"
+            },
+            "targets": [ "PfuRPRext_L8P4_379nt" ],
+            "tests": [
+                {
+                    "id": "rt_primers_1",
+                    "comment": "Matches 16-bp 'primer' in middle of target",
+                    "r1": "TTTGGGACGGCCGTTTCACCTGAAGAGCCTAGTCGCTGTTCAAGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+                    "r2": "TGAACAGCGACTAGGCTCTTCAGGTGAAACGGCCGTCCTGAGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
+                    "expect": {
+                        "site": 226,
+                        "end": 242,
+                        "counters": { "rt_primer_GGACGGCCGTTTCACC": 1 }
+                    }
+                },
+                {
+                    "id": "rt_primers_2",
+                    "comment": "Matches 16-bp 'primer' in middle of target",
+                    "r1": "TTTGGACGGCCGTTTCACCTGAAGAGCCTAGTCGCTGTTCAAGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+                    "r2": "TGAACAGCGACTAGGCTCTTCAGGTGAAACGGCCGTCTGAGAGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
+                    "expect": {
+                        "site": null
+                    }
+                }
+            ]
         }
     ]
 }

@@ -6,6 +6,7 @@ from partial import PartialFindProcessor
 from lookup import LookupProcessor, CotransLookupProcessor
 from native import CotransNativeProcessor
 from tag import TagProcessor
+from util import _warn
 
 
 class Run(object):
@@ -132,6 +133,16 @@ class Run(object):
         #: edge of the target. Set to ``True`` to allow other
         #: possibilities for the right edge.
         self.allow_multiple_rt_starts = False
+
+        #: Default ``None``, which means allow RT starts from either
+        #: anywhere (when ``allow_multiple_rt_starts`` is True) or from
+        #: the right edge of the target only (when it is False).
+        #: Set to a list of comma-separated strings to restrict where RT
+        #: starts can happen in the target. Specifying these will force 
+        #: the ``allow_multiple_rt_starts`` option to be True.
+        #: Note: each primer in the list must unambiguously match a
+        #: single unique region of the the target.
+        self.rt_primers = None
 
         #: Default ``False``, set to ``True`` to run as a cotrans
         #: experiment. Pass a single target instead of a generated targets
@@ -282,6 +293,12 @@ class Run(object):
             self.collapse_left_prefixes = True
             self.count_left_prefixes = True
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
+        if self.rt_primers:
+            self.allow_multiple_rt_starts = True
+            self._p_rt_primers_list = [ x.strip() for x in self.rt_primers.split(',') ]
+            for primer in self._p_rt_primers_list:
+                if len(primer) < self.minimum_target_match_length:
+                    _warn("rt_primer `{}` shorter than minimum_target_match_length={}.".format(primer, self.minimum_target_match_length))
         if self.count_left_prefixes or self.allow_multiple_rt_starts or self.allowed_target_errors > 1 or not self.ignore_stops_with_mismatched_overlap:
             self.algorithm = 'find_partial'
         if self.regions_of_interest:
