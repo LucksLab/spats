@@ -101,7 +101,9 @@ class PartialFindProcessor(PairProcessor):
             r2id = pair.r2.indels_delta_before(pair.r1.match_index)
             r1_adapter_len = pair.r1.match_start - (pair.r1.match_index - pair.r2.match_index + r2id)
         else:
-            possible_matchlen = min(pair.target.n - max(0, pair.r2.match_index - pair.r2.match_start), pair.r1.seq_len + pair.r1.match_index - pair.r1.match_start)
+            longest = pair.r1.right_est if (run.allow_multiple_rt_starts and pair.r1.right_est < pair.target.n) else pair.target.n
+            possible_matchlen = min(longest - max(0, pair.r2.match_index - pair.r2.match_start), pair.r1.seq_len + pair.r1.match_index - pair.r1.match_start)
+
             r1_adapter_len = pair.r1.seq_len - possible_matchlen - pair.r2.indels_delta
         dumblen = len(run.dumbbell) if run.dumbbell else 0
         if run.minimum_adapter_len  and  r1_adapter_len - dumblen < run.minimum_adapter_len:

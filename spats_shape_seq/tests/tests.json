@@ -3156,6 +3156,17 @@
                     "expect": {
                         "site": null
                     }
+                },
+                {
+                    "id": "rt_primers_3",
+                    "comment": "R1 read partially goes into dumbbell on mid-target primer",
+                     "r1": "GGGTGGACGGCCGTTTCACCGCTCCCCTCGGGATTGTCTGCGGGTTAACTCGGCTCCCGTTGAAGAGCCTAGTCG",
+                     "r2": "TGAACAGCGACTAGGCTCTTCAACGGGAGCCGAGTTAACCCGCAGACAATCCCGAGGGGAGCGGTGAAACGGCCG",
+                    "expect": {
+                        "site": 186,
+                        "end": 242,
+                        "counters": { "rt_primer_GGACGGCCGTTTCACC": 1 }
+                    }
                 }
             ]
         }
