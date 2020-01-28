@@ -152,6 +152,11 @@ class Run(object):
         #: Default ``CTGACTCGGGCACCAAGGAC``, change as necessary for cotrans experiments.
         self.cotrans_linker = 'CTGACTCGGGCACCAAGGAC'
 
+        #: Default ``None``, if set to a sequence, then this will be
+        #: required as a prefix to R1. Internally, this sets ``allow_multiple_rt_starts``
+        #: to ``True``, and ``rt_primers`` to this value.
+        self.single_target_linker = None
+
         #: Default ``20``, set to adjust the minimum number of bp to use from
         #: the cotrans target.
         self.cotrans_minimum_length = 20
@@ -293,7 +298,10 @@ class Run(object):
             self.collapse_left_prefixes = True
             self.count_left_prefixes = True
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
+        if self.single_target_linker:
+            self.rt_primers = [ self.single_target_linker ]
         if self.rt_primers:
+            self.algorithm = 'find_partial'
             self.allow_multiple_rt_starts = True
             self._p_rt_primers_list = [ x.strip() for x in self.rt_primers.split(',') ]
             for primer in self._p_rt_primers_list:
