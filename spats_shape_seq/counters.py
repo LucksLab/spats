@@ -149,10 +149,10 @@ class Counters(object):
         their_depths, their_quality_depths = vect_data
         for key, their_values in their_depths.iteritems():
             for i, their_value in enumerate(their_values):
-                self._depths.setdefault(key, [0] * len(their_values))[i] = their_value
+                self._depths.setdefault(key, [0] * len(their_values))[i] += their_value
         for key, their_values in their_quality_depths.iteritems():
             for i, their_value in enumerate(their_values):
-                self._quality_depths.setdefault(key, [0] * len(their_values))[i] = their_value
+                self._quality_depths.setdefault(key, [0] * len(their_values))[i] += their_value
 
     def mask_total(self, mask):
         return self._counts.get(mask.chars + "_total", 0)
