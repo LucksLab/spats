@@ -218,9 +218,10 @@ class SpatsTool(object):
         if not native_tool:
             self._add_note("using python reads")
             if self.using_separate_channel_files:
-                if len(r1_plus) > 1  or  len(r2_plus) > 1:
+                pcs = self.plus_channels
+                if len(pcs) > 1:
                     raise Exception("multiple positive r1 channel files not supported for reads tool.")
-                data.parse(self.config['target'], [self.r1_plus, self.r1_minus], [self.r2_plus, self.r2_minus])
+                data.parse(self.config['target'], [pcs[0][0], self.r1_minus], [pcs[0][1], self.r2_minus])
             else:
                 data.parse(self.config['target'], [self.r1], [self.r2])
 
