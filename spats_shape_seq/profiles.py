@@ -219,8 +219,8 @@ class TargetProfiles(object):
         n = len(treated_counts) - 1
         betas = [ 0 for x in xrange(n+1) ]
         thetas = [ 0 for x in xrange(n+1) ]
-        running_c_sum = 0.0  # can also do it for c
-        running_c_alt_sum = 0.0
+        running_c_sum = 0.0
+        running_c_thresh_sum = 0.0
 
         # NOTE: there is an index discrepancy here between indices
         # used in the code, and the indices used in the Aviran paper
@@ -245,24 +245,24 @@ class TargetProfiles(object):
                 Ybit = (Y_k / float(untreated_depths[k]))
                 betas[k] = (Xbit - Ybit) / (1 - Ybit)
                 thetas[k] = math.log(1.0 - Ybit) - math.log(1.0 - Xbit)
-                running_c_alt_sum -= math.log(1.0 - betas[k])
+                running_c_sum -= math.log(1.0 - betas[k])
                 if not self.owner._run.allow_negative_values:
                     betas[k] = max(0.0, betas[k])
                     thetas[k] = max(0.0, thetas[k])
-                running_c_sum -= math.log(1.0 - betas[k])
+                running_c_thresh_sum -= math.log(1.0 - betas[k])
             except:
                 betas[k] = 0
                 thetas[k] = 0
 
-        c = running_c_sum
-        c_factor = 1.0 / c if c else 1.0
+        c_thresh = running_c_thresh_sum
+        c_factor = 1.0 / c_thresh if c_thresh else 1.0
         for k in xrange(n+1):
             thetas[k] = max(c_factor * thetas[k], 0)
         self.betas = betas
         self.thetas = thetas
         self.rhos = [ n * th for th in thetas ]
-        self.c = c
-        self.c_alt = running_c_alt_sum
+        self.c = running_c_sum
+        self.c_thresh = c_thresh
 
         self.compute_mutated_profiles()
 
@@ -288,8 +288,8 @@ class TargetProfiles(object):
         r_mut = [ 0 for x in xrange(n+1) ]
         running_c_sum = 0.0
         c_inf = False
-        running_c_alt_sum = 0.0
-        c_alt_inf = False
+        running_c_thresh_sum = 0.0
+        c_thresh_inf = False
 
         # NOTE: there is an index discrepancy here between indices
         # used in the code, and the indices used in the derivation:
@@ -317,7 +317,6 @@ class TargetProfiles(object):
             if untreated_deletes:
                 mut_j_u += float(untreated_deletes[j])
 
-            curmu = 0.0
             try:
                 # xref https://trello.com/c/10pysbq7/261-mutation-depth-with-quality-filtering-when-calculating-mus
                 # if we removed a mut due to low quality, then we want to remove the corresponding stop
@@ -325,39 +324,42 @@ class TargetProfiles(object):
                 # so we use quality_depths here.
                 Tbit = (mut_j_t / float(treated_quality_depths[j]))
                 Ubit = (mut_j_u / float(untreated_quality_depths[j]))
-                curmu = mu[j] = (Tbit - Ubit) / (1 - Ubit)
+                mu[j] = (Tbit - Ubit) / (1 - Ubit)
+
+                try:
+                    running_c_sum -= math.log(1.0 - mu[j])  # xref Yu_Estimating_Reactivities pdf, p24
+                except ValueError:
+                    c_inf = True
+
                 if not self.owner._run.allow_negative_values:
                     mu[j] = max(0.0, mu[j])
-            except:
+
+                try:
+                    running_c_thresh_sum -= math.log(1.0 - mu[j])  # xref Yu_Estimating_Reactivities pdf, p24
+                except ValueError:
+                    c_thresh_inf = True
+
+            except ValueError:
                 #print("domain error: {} / {} / {} / {}".format(s_j_t, depth_t, s_j_u, depth_u))
                 mu[j] = 0.0
-
-            if mu[j] < 1.0:
-                running_c_sum -= math.log(1.0 - mu[j]) # xref Yu_Estimating_Reactivities pdf, p24
-            else:
-                c_inf = True
-            if curmu < 1.0:
-                running_c_alt_sum -= math.log(1.0 - curmu)
-            else:
-                c_alt_inf = True
 
             r_mut[j] = self.betas[j] + mu[j]
 
         self.mu = mu
         self.r_mut = r_mut
         if c_inf:
-            self.c = float('inf')    # when c is infinite, pr of modification is 1
+            self.c = float('inf')   # when c is infinite, pr of modification is 1
         else:
             self.c += running_c_sum
-        if c_alt_inf:
-            self.c_alt = float('inf')   # when c_alt is infinite, pr of modification is 1
+        if c_thresh_inf:
+            self.c_thresh = float('inf')    # when c_thresh is infinite, pr of modification is 1
         else:
-            self.c_alt += running_c_alt_sum
+            self.c_thresh += running_c_thresh_sum
 
 
     def write(self, outfile):
         n = len(self.treated_counts)
-        format_str = "{name}\t{rt}\t".format(name = self._target.name, rt = n - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = self.c)
+        format_str = "{name}\t{rt}\t".format(name = self._target.name, rt = n - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = self.c_thresh)
         for i in xrange(n):
             outfile.write(format_str.format(i = i,
                                             nuc = self._target.seq[i - 1] if i > 0 else '*',

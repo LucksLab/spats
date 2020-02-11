@@ -630,7 +630,7 @@ class SpatsTool(object):
             headers += [ "mut+", "mut-", "beta", "mu", "r" ]
         else:
             headers += [ "beta", "theta", "rho" ]
-        headers += [ "c", "c alt" ]
+        headers += [ "c thresh", "c" ]
         data = []
         sites_missing_reads = []
 
@@ -650,7 +650,7 @@ class SpatsTool(object):
                         datapt += [ prof.treated_muts[i], prof.untreated_muts[i], prof.beta[i], prof.mu[i], prof.r_mut[i] ]
                     else:
                         datapt += [ prof.beta[i], prof.theta[i], prof.rho[i] ]
-                    datapt += [ prof.c, prof.c_alt ]
+                    datapt += [ prof.c_thresh, prof.c ]
                     data.append(datapt)
             output_path = os.path.join(self.path, '{}{}.csv'.format(prefix, tgt.name))
             self._write_csv(output_path, headers, data)
@@ -692,7 +692,7 @@ class SpatsTool(object):
                         datapt += [ prof.treated_muts[i], prof.untreated_muts[i], prof.beta[i], prof.mu[i], prof.r_mut[i] ]
                     else:
                         datapt += [ prof.beta[i], prof.theta[i], prof.rho[i] ]
-                    datapt += [ prof.c, prof.c_alt ]
+                    datapt += [ prof.c_thresh, prof.c ]
                     data.append(datapt)
                 output_path = os.path.join(self.path, '{}{}.csv'.format(prefix, tgt.name))
                 self._write_csv(output_path, headers, data)
