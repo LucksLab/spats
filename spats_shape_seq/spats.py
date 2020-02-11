@@ -177,7 +177,7 @@ import time
 import re
 
 from db import PairDB
-from mask import Mask
+from mask import Mask, PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
 from pair import Pair
 from parse import fasta_parse, FastFastqParser
 from profiles import Profiles
@@ -217,7 +217,8 @@ class Spats(object):
 
     def _addMasks(self):
         if not self._masks:
-            self._masks = [ Mask(m) for m in self.run.masks ]
+            pl = iter([ PLUS_PLACEHOLDER, MINUS_PLACEHOLDER ])
+            self._masks = [Mask(m if m else next(pl)) for m in self.run.masks ]
 
     def reset_processor(self):
         self.__processor = None
@@ -371,12 +372,11 @@ class Spats(object):
         # force the processor to load and do whatever indexing/etc is required
         self._processor
 
-        worker = SpatsWorker(self.run, self._processor, pair_db, result_set_id)
+        worker = SpatsWorker(self.run, self._processor, pair_db, result_set_id, self.force_mask)
 
         if not self.run.quiet:
-            print("Processing pairs{}...".format(" with mask={}".format(self.force_mask.chars) if self.force_mask else ""))
+            print("Processing pairs{}...".format(" with mask='{}'".format(self.force_mask.chars) if self.force_mask else ""))
 
-        worker.force_mask = self.force_mask
         worker.run(pair_iter)
 
         if not self.run.quiet:
@@ -399,7 +399,7 @@ class Spats(object):
         print("Masks:")
         for m in self._masks:
             kept, total = counters.mask_kept(m), counters.mask_total(m)
-            print("  {}: kept {}/{} ({:.1f}%)".format(m.chars, kept, total, (100.0 * float(kept)) / float(total) if total else 0))
+            print("  {}: kept {}/{} ({:.1f}%)".format((m.empty_place_holder if m.empty_place_holder else m.chars), kept, total, (100.0 * float(kept)) / float(total) if total else 0))
         if 1 < len(self._targets.targets):
             print("Targets:")
             tmap = { t.name : counters.target_total(t) for t in self._targets.targets }

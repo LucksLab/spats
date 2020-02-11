@@ -6,23 +6,25 @@ import sys
 from pair import Pair
 from parse import FastqWriter, SamWriter
 from util import _debug, _warn
+from mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
 
 
 class SpatsWorker(object):
     '''Manages multiprocessing aspects of Spats.
     '''
 
-    def __init__(self, run, processor, pair_db, result_set_id = None):
+    def __init__(self, run, processor, pair_db, result_set_id = None, force_mask = None):
         self._run = run
         self._processor = processor
         self._pair_db = pair_db
         self._result_set_id = result_set_id
+        self._force_mask = force_mask
         self._workers = []
 
     def _make_result(self, ident, pair, tagged = False):
         res = [ ident,
                 pair.target.rowid if pair.target else None,
-                pair.mask.chars if pair.mask else None,
+                pair.mask_label,
                 pair.site if pair.has_site else -1,
                 pair.end if pair.has_site else -1,
                 len(pair.mutations) if pair.mutations else -1,
@@ -52,8 +54,8 @@ class SpatsWorker(object):
                     if use_quality:
                         pair.r1.quality = str(lines[4])
                         pair.r2.quality = str(lines[5])
-                    if self.force_mask:
-                        pair.set_mask(self.force_mask)
+                    if self._force_mask:
+                        pair.set_mask(self._force_mask)
                     processor.process_pair(pair)
                     #if pair.failure:
                     #    print('FAIL: {}'.format(pair.failure))
@@ -223,8 +225,8 @@ class SpatsWorker(object):
                         if use_quality:
                             pair.r1.quality = str(lines[4])
                             pair.r2.quality = str(lines[5])
-                        if self.force_mask:
-                            pair.set_mask(self.force_mask)
+                        if self._force_mask:
+                            pair.set_mask(self._force_mask)
 
                         try:
                             processor.process_pair(pair)
@@ -235,7 +237,7 @@ class SpatsWorker(object):
                         if sam:
                             sam_writer.write(pair)
                         if channel_reads and pair.has_site:
-                            if pair.mask.chars == self._run.masks[0]:
+                            if pair.mask_label == self._run.masks[0]  or  pair.mask_label == PLUS_PLACEHOLDER:
                                 plus_writer.write(pair)
                             else:
                                 minus_writer.write(pair)

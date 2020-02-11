@@ -59,14 +59,14 @@ class PairProcessor(object):
         return self.__adapter_t_rc
 
     def _match_mask_general(self, pair):
-        if pair.mask:
-            self.counters.increment_mask(pair.mask, pair.multiplicity)
+        if pair.mask_label:
+            self.counters.increment_mask(pair.mask_label, pair.multiplicity)
             return True
         seq = pair.r1.original_seq
         for mask in self._masks:
             if mask.matches(seq):
                 pair.set_mask(mask)
-                self.counters.increment_mask(mask, pair.multiplicity)
+                self.counters.increment_mask(pair.mask_label, pair.multiplicity)
                 return True
         self.counters.mask_failure += pair.multiplicity
         pair.failure = Failures.mask
@@ -74,13 +74,13 @@ class PairProcessor(object):
 
     # optimized version for RRRY/YYYR
     def _match_mask_optimized(self, pair):
-        if pair.mask:
-            self.counters.increment_mask(pair.mask, pair.multiplicity)
+        if pair.mask_label:
+            self.counters.increment_mask(pair.mask_label, pair.multiplicity)
             return True
         mask = match_mask_optimized(pair.r1.original_seq, self._masks)
         if mask:
             pair.set_mask(mask)
-            self.counters.increment_mask(mask, pair.multiplicity)
+            self.counters.increment_mask(pair.mask_label, pair.multiplicity)
             return True
         else:
             self.counters.mask_failure += pair.multiplicity

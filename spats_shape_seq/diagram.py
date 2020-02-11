@@ -20,7 +20,7 @@ class Diagram(object):
         self.bars = []
         self.max_len = 0
         self.error_bars = None
-        self.masklen = self.pair.mask.length() if self.pair.mask else 4
+        self.masklen = self.pair.mask.length() if self.pair.mask else 4   # TAI
         self.dumblen = len(self.run.dumbbell) if self.pair.dumbbell is not None else 0
         self.linkerlen = len(self.run.cotrans_linker) if self.run.cotrans else 0
 
@@ -99,7 +99,7 @@ class Diagram(object):
             hdr += sp(match_index + match_len - spacer - len(rlab) + suffix - self.masklen)
             if part.indels_delta > 0:
                 hdr += sp(part.indels_delta)
-            hdr += self.pair.mask.chars[::-1] if self.pair.mask else "?" * self.masklen
+            hdr += self.pair.mask_label[::-1] if self.pair.mask else "?" * self.masklen
         self._add_line(self._make_prefix("") + hdr)
 
         d = self._make_prefix("rev(R1)" if is_R1 else "R2")
@@ -325,7 +325,7 @@ class Diagram(object):
     def _make_summary(self):
         result = "\===>  "
         if self.pair.has_site:
-            result += "++SITE {}:{}".format(self.pair.mask.chars, self.pair.site)
+            result += "++SITE {}:{}".format(self.pair.mask_label, self.pair.site)
         else:
             result += "FAIL: {}".format(self.pair.failure)
         self.lines.append(result)

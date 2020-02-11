@@ -1,5 +1,6 @@
 
 import math
+from mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
 
 
 class Profiles(object):
@@ -9,6 +10,13 @@ class Profiles(object):
         self._counters = counters
         self._cotrans = run.cotrans
         self._run = run
+        self.masks = self._run.masks
+        for m in self.masks:
+            if m:
+                break
+        else:
+            self.masks = [ PLUS_PLACEHOLDER, MINUS_PLACEHOLDER ]
+
         profiles = {}
         for target in self._targets.targets:
             n = len(target.seq)
@@ -26,26 +34,25 @@ class Profiles(object):
 
     def _createProfile(self, target, end):
         counters = self._counters
-        masks = self._run.masks
         tp = TargetProfiles(self, target,
-                            counters.mask_counts(target, masks[0], end),
-                            counters.mask_counts(target, masks[1], end),
-                            counters.mask_depths(target, masks[0], end),
-                            counters.mask_depths(target, masks[1], end),
-                            counters.mask_quality_depths(target, masks[0], end),
-                            counters.mask_quality_depths(target, masks[1], end))
+                            counters.mask_counts(target, self.masks[0], end),
+                            counters.mask_counts(target, self.masks[1], end),
+                            counters.mask_depths(target, self.masks[0], end),
+                            counters.mask_depths(target, self.masks[1], end),
+                            counters.mask_quality_depths(target, self.masks[0], end),
+                            counters.mask_quality_depths(target, self.masks[1], end))
         if self._run.count_mutations:
-            tp.treated_muts = counters.mask_muts(target, masks[0], end)
-            tp.untreated_muts = counters.mask_muts(target, masks[1], end)
-            tp.treated_edge_muts = counters.mask_edge_muts(target, masks[0], end)
-            tp.untreated_edge_muts = counters.mask_edge_muts(target, masks[1], end)
-            tp.treated_removed_muts = counters.mask_removed_muts(target, masks[0], end)
-            tp.untreated_removed_muts = counters.mask_removed_muts(target, masks[1], end)
+            tp.treated_muts = counters.mask_muts(target, self.masks[0], end)
+            tp.untreated_muts = counters.mask_muts(target, self.masks[1], end)
+            tp.treated_edge_muts = counters.mask_edge_muts(target, self.masks[0], end)
+            tp.untreated_edge_muts = counters.mask_edge_muts(target, self.masks[1], end)
+            tp.treated_removed_muts = counters.mask_removed_muts(target, self.masks[0], end)
+            tp.untreated_removed_muts = counters.mask_removed_muts(target, self.masks[1], end)
         if self._run.handle_indels:
-            tp.treated_inserts = counters.mask_inserts(target, masks[0], end)
-            tp.untreated_inserts = counters.mask_inserts(target, masks[1], end)
-            tp.treated_deletes = counters.mask_deletes(target, masks[0], end)
-            tp.untreated_deletes = counters.mask_deletes(target, masks[1], end)
+            tp.treated_inserts = counters.mask_inserts(target, self.masks[0], end)
+            tp.untreated_inserts = counters.mask_inserts(target, self.masks[1], end)
+            tp.treated_deletes = counters.mask_deletes(target, self.masks[0], end)
+            tp.untreated_deletes = counters.mask_deletes(target, self.masks[1], end)
         return tp
 
     @staticmethod
@@ -60,26 +67,25 @@ class Profiles(object):
 
     def _addToProfile(self, p, target, end):
         counters = self._counters
-        masks = self._run.masks
         # TAI:  the following is ugly.  refactor....
-        Profiles._addToVect(p.treated_counts, counters.mask_counts(target, masks[0], end))
-        Profiles._addToVect(p.untreated_counts, counters.mask_counts(target, masks[1], end))
-        Profiles._addToVect(p.treated_depths, counters.mask_depths(target, masks[0], end))
-        Profiles._addToVect(p.untreated_depths, counters.mask_depths(target, masks[1], end))
-        Profiles._addToVect(p.treated_quality_depths, counters.mask_quality_depths(target, masks[0], end))
-        Profiles._addToVect(p.untreated_quality_depths, counters.mask_quality_depths(target, masks[1], end))
+        Profiles._addToVect(p.treated_counts, counters.mask_counts(target, self.masks[0], end))
+        Profiles._addToVect(p.untreated_counts, counters.mask_counts(target, self.masks[1], end))
+        Profiles._addToVect(p.treated_depths, counters.mask_depths(target, self.masks[0], end))
+        Profiles._addToVect(p.untreated_depths, counters.mask_depths(target, self.masks[1], end))
+        Profiles._addToVect(p.treated_quality_depths, counters.mask_quality_depths(target, self.masks[0], end))
+        Profiles._addToVect(p.untreated_quality_depths, counters.mask_quality_depths(target, self.masks[1], end))
         if self._run.count_mutations:
-            Profiles._addToVect(p.treated_muts, counters.mask_muts(target, masks[0], end))
-            Profiles._addToVect(p.untreated_muts, counters.mask_muts(target, masks[1], end))
-            Profiles._addToVect(p.treated_edge_muts, counters.mask_edge_muts(target, masks[0], end))
-            Profiles._addToVect(p.untreated_edge_muts, counters.mask_edge_muts(target, masks[1], end))
-            Profiles._addToVect(p.treated_removed_muts, counters.mask_removed_muts(target, masks[0], end))
-            Profiles._addToVect(p.untreated_edge_muts, counters.mask_removed_muts(target, masks[1], end))
+            Profiles._addToVect(p.treated_muts, counters.mask_muts(target, self.masks[0], end))
+            Profiles._addToVect(p.untreated_muts, counters.mask_muts(target, self.masks[1], end))
+            Profiles._addToVect(p.treated_edge_muts, counters.mask_edge_muts(target, self.masks[0], end))
+            Profiles._addToVect(p.untreated_edge_muts, counters.mask_edge_muts(target, self.masks[1], end))
+            Profiles._addToVect(p.treated_removed_muts, counters.mask_removed_muts(target, self.masks[0], end))
+            Profiles._addToVect(p.untreated_edge_muts, counters.mask_removed_muts(target, self.masks[1], end))
         if self._run.handle_indels:
-            Profiles._addToVect(p.treated_inserts, counters.mask_inserts(target, masks[0], end))
-            Profiles._addToVect(p.untreated_inserts, counters.mask_inserts(target, masks[1], end))
-            Profiles._addToVect(p.treated_deletes, counters.mask_deletes(target, masks[0], end))
-            Profiles._addToVect(p.untreated_deletes, counters.mask_deletes(target, masks[1], end))
+            Profiles._addToVect(p.treated_inserts, counters.mask_inserts(target, self.masks[0], end))
+            Profiles._addToVect(p.untreated_inserts, counters.mask_inserts(target, self.masks[1], end))
+            Profiles._addToVect(p.treated_deletes, counters.mask_deletes(target, self.masks[0], end))
+            Profiles._addToVect(p.untreated_deletes, counters.mask_deletes(target, self.masks[1], end))
 
     def profilesForTarget(self, target):
         return self._profiles[target.name]

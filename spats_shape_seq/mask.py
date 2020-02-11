@@ -21,11 +21,22 @@ char_to_mask = { 'A' : nuc_A,
                  'N' : (nuc_A | nuc_C | nuc_G | nuc_T),
 }
 
+
+PLUS_PLACEHOLDER  = 'plus'
+MINUS_PLACEHOLDER = 'minus'
+
+
 class Mask(object):
 
     def __init__(self, chars):
-        self.chars = chars.upper()
-        self.values = [ char_to_mask[ch] for ch in chars ]
+        if chars == PLUS_PLACEHOLDER or chars == MINUS_PLACEHOLDER:
+            self.empty_place_holder = chars
+            self.chars = ''
+            self.values = []
+        else:
+            self.empty_place_holder = None
+            self.chars = chars.upper()
+            self.values = [ char_to_mask[ch] for ch in chars ]
 
     def length(self):
         return len(self.chars)

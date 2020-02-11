@@ -3,6 +3,7 @@ from lookup import LookupProcessor
 from processor import PairProcessor, Failures
 from target import Targets
 from util import _warn, _debug, string_match_errors
+from mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
 
 TAG_MATCH = "match"
 TAG_ADAPTER = "adapter"
@@ -31,7 +32,7 @@ ALL_TAGS = [ TAG_MATCH,
              TAG_UNKNOWN,
              TAG_INTERESTING,
 ]
-MASK_TO_TAG = { "RRRY" : TAG_TREATED, "YYYR" : TAG_UNTREATED }
+MASK_TO_TAG = { "RRRY": TAG_TREATED, "YYYR": TAG_UNTREATED, PLUS_PLACEHOLDER: TAG_TREATED, MINUS_PLACEHOLDER: TAG_UNTREATED }
 
 
 class TagProcessor(PairProcessor):
@@ -113,7 +114,7 @@ class TagProcessor(PairProcessor):
     def _find_tags_old(self, pair):
         targets = self._targets
         unknown_tag = "???"
-        pair.r1.tags = [ (pair.mask.chars, 0, pair.mask.length(), 0) ]
+        pair.r1.tags = [ (pair.mask_label, 0, pair.mask.length(), 0) ]
         pair.r2.tags = []
         for seq, start, tags in [ (pair.r1.original_seq, pair.mask.length(), pair.r1.tags), (pair.r2.original_seq, 0, pair.r2.tags) ]:
             index = start
@@ -157,10 +158,10 @@ class TagProcessor(PairProcessor):
         #endif
 
     def _tag_handles(self, pair):
-        pair.r1.tags.append( (pair.mask.chars, 0, pair.mask.length(), 0) )
+        pair.r1.tags.append( (pair.mask_label, 0, pair.mask.length(), 0) )
         if pair.r2.rtrim > 0:
             start = pair.r2.original_len - pair.r2.rtrim
-            pair.r2.tags.append( (pair.mask.chars, start, min(pair.mask.length(), pair.r2.rtrim), 0) )
+            pair.r2.tags.append( (pair.mask_label, start, min(pair.mask.length(), pair.r2.rtrim), 0) )
 
     def _tag_match(self, pair):
         if self._run.cotrans:
@@ -208,7 +209,7 @@ class TagProcessor(PairProcessor):
         if not pair.is_determinate():
             tags.append(TAG_INDETERMINATE)
         if pair.mask:
-            masktag = MASK_TO_TAG.get(pair.mask.chars)
+            masktag = MASK_TO_TAG.get(pair.mask_label)
             if masktag:
                 tags.append(masktag)
         else:

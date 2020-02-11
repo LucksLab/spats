@@ -1,6 +1,8 @@
 
 from sequence import Sequence
 from util import reverse_complement
+from mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
+
 
 class Pair(object):
 
@@ -15,6 +17,7 @@ class Pair(object):
         self.r1 = Sequence()
         self.r2 = Sequence()
         self.mask = None
+        self.mask_label = ""
         self._target = None
         self.site = None
         self.interesting = False
@@ -53,6 +56,7 @@ class Pair(object):
     def set_mask(self, mask):
         self.mask = mask
         self.r1.ltrim = mask.length()
+        self.mask_label = mask.empty_place_holder if mask.empty_place_holder else mask.chars
 
     def check_mutations(self):
         mutations = set()

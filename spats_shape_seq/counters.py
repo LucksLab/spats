@@ -33,25 +33,25 @@ class Counters(object):
         return self._registered
 
     def _count_key(self, pair):
-        return "{}:{}:{}:{}".format(pair.target.rowid, pair.mask.chars, pair.site, pair.end)
+        return "{}:{}:{}:{}".format(pair.target.rowid, pair.mask_label, pair.site, pair.end)
 
     def _depth_key(self, pair):
-        return "{}:{}:{}".format(pair.target.rowid, pair.mask.chars, pair.end)
+        return "{}:{}:{}".format(pair.target.rowid, pair.mask_label, pair.end)
 
     def _mut_key(self, pair, mut):
-        return "{}:{}:M{}:{}".format(pair.target.rowid, pair.mask.chars, mut, pair.end)
+        return "{}:{}:M{}:{}".format(pair.target.rowid, pair.mask_label, mut, pair.end)
 
     def _low_quality_mut_key(self, pair):
-        return "{}:{}:Mq{}:{}".format(pair.target.rowid, pair.mask.chars, pair.site, pair.end)
+        return "{}:{}:Mq{}:{}".format(pair.target.rowid, pair.mask_label, pair.site, pair.end)
 
     def _mut_edge_key(self, pair, mut):
-        return "{}:{}:S{}M{}:{}".format(pair.target.rowid, pair.mask.chars, pair.site, mut, pair.end)
+        return "{}:{}:S{}M{}:{}".format(pair.target.rowid, pair.mask_label, pair.site, mut, pair.end)
 
     def _indel_key(self, pair, spot, indel):
         if indel.insert_type:
-            return "{}:{}:I{}:{}".format(pair.target.rowid, pair.mask.chars, spot + 1, pair.end)
+            return "{}:{}:I{}:{}".format(pair.target.rowid, pair.mask_label, spot + 1, pair.end)
         else:
-            return "{}:{}:D{}:{}".format(pair.target.rowid, pair.mask.chars, spot + 1, pair.end)
+            return "{}:{}:D{}:{}".format(pair.target.rowid, pair.mask_label, spot + 1, pair.end)
 
     def register_count(self, pair):
         if pair.mutations:
@@ -67,7 +67,7 @@ class Counters(object):
                         pair.edge_mut = 'stop_and_mut'
                         _dict_incr(self._registered, self._mut_key(pair, mut), pair.multiplicity)
                         self.mutations += pair.multiplicity
-                        _dict_incr(self._counts, pair.mask.chars + "_mut", pair.multiplicity)
+                        _dict_incr(self._counts, pair.mask_label + "_mut", pair.multiplicity)
                     elif count_muts == 'stop_only':
                         pair.edge_mut = 'stop_only'
                         pass
@@ -78,7 +78,7 @@ class Counters(object):
                 else:
                     _dict_incr(self._registered, self._mut_key(pair, mut), pair.multiplicity)
                     self.mutations += pair.multiplicity
-                    _dict_incr(self._counts, pair.mask.chars + "_mut", pair.multiplicity)
+                    _dict_incr(self._counts, pair.mask_label + "_mut", pair.multiplicity)
         if pair.removed_mutations:
             for mut in pair.removed_mutations:
                 _dict_incr(self._registered, self._low_quality_mut_key(pair), pair.multiplicity)
@@ -88,7 +88,7 @@ class Counters(object):
                 indel = pair.r1.indels.get(spot, pair.r2.indels.get(spot))   # assumes types and length match at spot
                 spot += 1    # treat indels as 1-based (like mutations) for reactivity computations
                 _dict_incr(self._registered, self._indel_key(pair, spot, indel), pair.multiplicity)
-                _dict_incr(self._counts, pair.mask.chars + "_indels", pair.multiplicity)
+                _dict_incr(self._counts, pair.mask_label + "_indels", pair.multiplicity)
                 _dict_incr(self._counts, 'mapped_indel_len_{}'.format(len(indel.seq)), pair.multiplicity)
                 self.indels += pair.multiplicity
                 if spot <= pair.site  or  (not indel.insert_type and (spot - len(indel.seq)) < pair.site):
@@ -106,13 +106,13 @@ class Counters(object):
         _dict_incr(self._registered, self._count_key(pair), pair.multiplicity)
         self._add_to_depth(pair)
         self.registered_pairs += pair.multiplicity
-        _dict_incr(self._counts, pair.mask.chars + "_kept", pair.multiplicity)
+        _dict_incr(self._counts, pair.mask_label + "_kept", pair.multiplicity)
         # TODO: find and count complex indel where subst and repl lens may not match (will always be ambiguous?)
         # TODO:    will need to find like SHAPmapper2
         # TODO:    keep track of both lens
 
-    def increment_mask(self, mask, multiplicity = 1):
-        _dict_incr(self._counts, mask.chars + "_total", multiplicity)
+    def increment_mask(self, mask_label, multiplicity = 1):
+        _dict_incr(self._counts, mask_label + "_total", multiplicity)
 
     def increment_key(self, counter_key, multiplicity = 1):
         _dict_incr(self._counts, counter_key, multiplicity)
@@ -126,10 +126,10 @@ class Counters(object):
                 self._quality_depths.setdefault(dk, [0] * n)[spot] += pair.multiplicity
 
     def register_prefix(self, prefix, pair):
-        self.increment_key('prefix_{}_{}'.format(pair.mask.chars, prefix), pair.multiplicity)
+        self.increment_key('prefix_{}_{}'.format(pair.mask_label, prefix), pair.multiplicity)
 
     def register_mapped_prefix(self, prefix, pair):
-        self.increment_key('mapped_prefix_{}_{}'.format(pair.mask.chars, prefix), pair.multiplicity)
+        self.increment_key('mapped_prefix_{}_{}'.format(pair.mask_label, prefix), pair.multiplicity)
 
     def register_mut_count(self, pair):
         self.increment_key('mut_count_{}'.format(len(pair.mutations) if pair.mutations else 0), pair.multiplicity)
@@ -155,10 +155,16 @@ class Counters(object):
                 self._quality_depths.setdefault(key, [0] * len(their_values))[i] += their_value
 
     def mask_total(self, mask):
-        return self._counts.get(mask.chars + "_total", 0)
+        if mask.empty_place_holder:
+            return self._counts.get(mask.empty_place_holder + "_total", 0)
+        else:
+            return self._counts.get(mask.chars + "_total", 0)
 
     def mask_kept(self, mask):
-        return self._counts.get(mask.chars + "_kept", 0)
+        if mask.empty_place_holder:
+            return self._counts.get(mask.empty_place_holder + "_kept", 0)
+        else:
+            return self._counts.get(mask.chars + "_kept", 0)
 
     def target_total(self, target):
         total = 0

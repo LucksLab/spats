@@ -20,6 +20,7 @@ from spats_shape_seq.parse import abif_parse, fastq_handle_filter, FastFastqPars
 from spats_shape_seq.reads import ReadsData, ReadsAnalyzer
 from counters import Counters
 from util import objdict_to_dict
+from mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
 
 
 class SpatsTool(object):
@@ -362,18 +363,20 @@ class SpatsTool(object):
             if self.using_separate_channel_files:
                 self._add_note("using separate channel files.")
                 self._add_note("processing minus/untreated pairs")
-                spats.process_pair_data(self.r1_minus, self.r2_minus, force_mask = spats.run.masks[1])
+                spats.process_pair_data(self.r1_minus, self.r2_minus, force_mask = (spats.run.masks[1] if spats.run.masks[1] else MINUS_PLACEHOLDER))
                 pcs = self.plus_channels
                 if len(pcs) == 1:
                     self._add_note("processing plus/treated pairs")
-                    spats.process_pair_data(pcs[0][0], pcs[0][1], force_mask = spats.run.masks[0])
+                    spats.process_pair_data(pcs[0][0], pcs[0][1], force_mask = (spats.run.masks[0] if spats.run.masks[0] else PLUS_PLACEHOLDER))
                     spats.store(run_name)
                 else:
+                    if len(spats.run.masks) >= 2 and (not spats.run.masks[0] or not spats.run.masks[1]):
+                        raise Exception("empty masks with split channels not supported for reads tool.")
                     spats.store(run_name)
                     for i, (r1_plus, r2_plus) in enumerate(pcs):
                         self._add_note("processing plus/treated pairs, set #{}".format(i + 1))
                         spats._processor.counters.reset()
-                        spats.process_pair_data(r1_plus, r2_plus, force_mask = spats.run.masks[0])
+                        spats.process_pair_data(r1_plus, r2_plus, force_mask = (spats.run.masks[0] if spats.run.masks[0] else PLUS_PLACEHOLDER))
                         spats.store(run_name + ".p{}".format(i + 1))
             else:
                 spats.process_pair_data(self.r1, self.r2)
