@@ -334,7 +334,7 @@ class TargetProfiles(object):
 
                 try:
                     running_c_sum -= math.log(1.0 - mu[j])  # xref Yu_Estimating_Reactivities pdf, p24
-                except ValueError:
+                except:
                     c_inf = True
 
                 if not self.owner._run.allow_negative_values:
@@ -342,10 +342,10 @@ class TargetProfiles(object):
 
                 try:
                     running_c_thresh_sum -= math.log(1.0 - mu[j])  # xref Yu_Estimating_Reactivities pdf, p24
-                except ValueError:
+                except:
                     c_thresh_inf = True
 
-            except ValueError:
+            except:
                 #print("domain error: {} / {} / {} / {}".format(s_j_t, depth_t, s_j_u, depth_u))
                 mu[j] = 0.0
 
