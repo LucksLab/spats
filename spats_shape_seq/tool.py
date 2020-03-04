@@ -719,14 +719,81 @@ class SpatsTool(object):
             print(" ** Warning: target {} has 0 reads from both channels at {} sites: {} ".format(tgt.name, num_missing, ", ".join(tgt_missing_sites)))
 
 
-    def _write_csv(self, output_path, headers, data):
+    def _write_csv(self, output_path, headers, data, delimiter=','):
         with open(output_path, 'wb') as out_file:
-            writer = csv.writer(out_file)
+            writer = csv.writer(out_file, delimiter = delimiter)
             if headers:
                 writer.writerow(headers)
             for row in data:
                 writer.writerow(row)
         self._add_note("Data dumped to {}".format(os.path.basename(output_path)))
+
+    def _dump_old_txt(self, spats, prefix = ""):
+        profiles = spats.compute_profiles()
+        mutations = spats.run.count_mutations
+        headers = [ "sequence", "rt_start", "five_prime_offset", "nucleotide", "treated_mods", "untreated_mods", "beta", "theta", "c" ]
+        data = []
+
+        if self.cotrans:
+            linker = spats.run.cotrans_linker[:-2]
+            tgt = spats.targets.targets[0]
+            tseq = tgt.seq
+            for key in profiles.cotrans_keys():
+                end = int(key.split('_')[-1])
+                rt_start = end + len(linker) + 1
+                prof = profiles.profilesForTargetAndEnd(tgt.name, end)
+                seq = "{}_{}nt".format(tgt.name, end)
+                data = []
+                for i in xrange(end + 1):
+                    datapt = [ seq, rt_start, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i] ]
+                    if not i:
+                        datapt += [ '-', '-', prof.c ]
+                    elif mutations:
+                        datapt += [ prof.beta[i], prof.mu[i], prof.r_mut[i] ]
+                    else:
+                        datapt += [prof.beta[i], prof.theta[i], prof.c ]
+                    data.append(datapt)
+                for i in range(len(linker)):
+                    data.append([ seq, rt_start, end + i + 1, linker[i], 0, 0, 0, 0, prof.c ])
+                output_path = os.path.join(self.path, '{}{}_{}_reactivities.txt'.format(prefix, seq, rt_start, tgt.name))
+                self._write_csv(output_path, headers, data, delimiter = '\t')
+            keys = [ 'treated', 'untreated' ]
+            if mutations:
+                keys += [ 'beta', 'mu', 'r' ]
+            else:
+                keys += [ 'beta', 'theta', 'rho' ]
+            cotrans_keys = profiles.cotrans_keys()
+            for key in keys:
+                ncols = 0
+                mat = []
+                for pkey in cotrans_keys:
+                    end = int(pkey.split('_')[-1])
+                    prof = profiles.profilesForTargetAndEnd(tgt.name, end)
+                    vals = getattr(prof, key)
+                    if not ncols:
+                        ncols = len(cotrans_keys) + len(vals)
+                    mat.append(vals)
+                name = { 'treated' : 'treated_mods_reads','untreated' : 'untreated_mods_reads' }.get(key, key)
+                self._write_csv('{}{}_table.txt'.format(prefix, name), None, mat, delimiter = '\t')
+        else:
+            for tgt in spats.targets.targets:
+                tseq = tgt.seq
+                end = len(tgt.seq)
+                prof = profiles.profilesForTarget(tgt)
+                data = []
+                rt_start = end - 1
+                for i in xrange(end):
+                    datapt = [ tgt.name, rt_start, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i] ]
+                    if not i:
+                        datapt += [ '-', '-', prof.c ]
+                    elif mutations:
+                        datapt += [ prof.beta[i], prof.mu[i], prof.r_mut[i] ]
+                    else:
+                        datapt += [prof.beta[i], prof.theta[i], prof.c ]
+                    data.append(datapt)
+                output_path = os.path.join(self.path, '{}{}.txt'.format(prefix, tgt.name))
+                self._write_csv(output_path, headers, data, delimiter = '\t')
+
 
     def plot(self):
         """Plot data, provide an argument for the plot type. For
