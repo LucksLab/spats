@@ -15,8 +15,8 @@ As an example, we'll create a folder for a new "testing" experiment:
 
 .. code-block:: bash
 
-    $ mkdir testing_jjb_2017_08_10
-    $ cd testing_jjb_2017_08_10
+    $ mkdir testing_2017_08_10
+    $ cd testing_2017_08_10
     $ spats_tool init
 
 The tool works using a ``spats.config`` file, which is a text file
@@ -70,6 +70,30 @@ This extracts the data and stores it a format from which it can be
 easily inspected and plotted.
 
 
+spats_tool reads
+----------------
+
+The ``reads`` command analyzes the experimental data and creates a
+` `reads.spats`` file, which can be used with the visualization tool to
+analyze the quality of the data.
+
+.. code-block:: bash
+
+  $ spats_tool reads
+  :** removing previous reads.spats
+  :using native reads
+  Lookup table: 1076 R1 entries, 121 R2 entries.
+  Lookup table: 1076 R1 entries, 121 R2 entries.
+  Processing pairs...
+  Created 8 workers
+  ^^^^^^^^^.v........vvvvvvvvxxxxxxxx
+  Aggregating data...
+  Successfully processed 3640 properly paired fragments:
+    ...
+  :tags processed to reads.spats
+  :reads complete @ 59.38s
+
+
 spats_tool run
 --------------
 
@@ -112,34 +136,6 @@ date/time stamps.
 .. file to your Mac laptop and open it with the visualization tool.
 
 
-..
-  spats_tool reads
-  ----------------
-
-  The ``reads`` command analyzes the experimental data and creates a
-  ` `reads.spats`` file, which can be used with the visualization tool to
-  analyze the quality of the data.
-
-  . . code-block:: bash
-
-    $ spats_tool reads
-    :** removing previous reads.spats
-    :using native reads
-    Lookup table: 1076 R1 entries, 121 R2 entries.
-    Lookup table: 1076 R1 entries, 121 R2 entries.
-    Processing pairs...
-    Created 8 workers
-    ^^^^^^^^^.v........vvvvvvvvxxxxxxxx
-    Aggregating data...
-    Successfully processed 3640 properly paired fragments:
-      ...
-    :tags processed to reads.spats
-    :reads complete @ 59.38s
-
-  To do reads visualization, copy the ``reads.spats`` file to your Mac
-  laptop and open it with the visualization tool.
-
-
 spats_tool dump
 -------------------
 
@@ -153,36 +149,36 @@ CSV. Requires a dump type -- options:
   theta, and rho values from the run analysis to CSV files named for
   the corresponding targets.
 
+..
+ spats_tool nb
+ -------------
 
-spats_tool nb
--------------
+ To see plots and perform further analyses on any data, run
+ ``spats_tool nb``. This brings up a Jupyter Notebook, which is
+ automatically updated after any analysis runs. For example, after
+ ``spats_tool pre``, a plot of the presequencing data will be added to
+ the notebook.
 
-To see plots and perform further analyses on any data, run
-``spats_tool nb``. This brings up a Jupyter Notebook, which is
-automatically updated after any analysis runs. For example, after
-``spats_tool pre``, a plot of the presequencing data will be added to
-the notebook.
+ The first cell in the notebook contains experiment metadata.
 
-The first cell in the notebook contains experiment metadata.
+ By default, the code require to create plots is hidden. To show the
+ code, click on the ``In [ ]:`` prompt above a given plot or
+ output. From there, you can edit the code to change plot styling or
+ parameters. Click the "Run" button at the top of the page to re-run a
+ cell after making changes.
 
-By default, the code require to create plots is hidden. To show the
-code, click on the ``In [ ]:`` prompt above a given plot or
-output. From there, you can edit the code to change plot styling or
-parameters. Click the "Run" button at the top of the page to re-run a
-cell after making changes.
+ Note that you can copy, edit, delete, and rearrange cells. To create a
+ new cell, hit the "+" button. By default, cells are code cells; they
+ can also be markdown, to change this use the dropdown menu to the
+ right of the "Run" button. For example, you may wish to create a new
+ markdown cell to write down notes about the experiment.
 
-Note that you can copy, edit, delete, and rearrange cells. To create a
-new cell, hit the "+" button. By default, cells are code cells; they
-can also be markdown, to change this use the dropdown menu to the
-right of the "Run" button. For example, you may wish to create a new
-markdown cell to write down notes about the experiment.
-
-You may wish to edit the look and feel of the plots. Plots are created
-using ``matplotlib``. (Support for plots in ``R`` is coming soon.) You
-may wish to consult the `tutorial
-<https://matplotlib.org/users/pyplot_tutorial.html>`_, the `cheat sheet
-<https://s3.amazonaws.com/assets.datacamp.com/blog_assets/Python_Matplotlib_Cheat_Sheet.pdf>`_,
-or the `documentation <https://matplotlib.org/contents.html>`_.
+ You may wish to edit the look and feel of the plots. Plots are created
+ using ``matplotlib``. (Support for plots in ``R`` is coming soon.) You
+ may wish to consult the `tutorial
+ <https://matplotlib.org/users/pyplot_tutorial.html>`_, the `cheat sheet
+ <https://s3.amazonaws.com/assets.datacamp.com/blog_assets/Python_Matplotlib_Cheat_Sheet.pdf>`_,
+ or the `documentation <https://matplotlib.org/contents.html>`_.
 
 ..
   spats_tool validate
@@ -219,5 +215,3 @@ or the `documentation <https://matplotlib.org/contents.html>`_.
    - ``spats_tool viz``: used to launch the visualization tool UI (Mac only)
 
    - ``spats_tool help``: used to show usage help
-
-

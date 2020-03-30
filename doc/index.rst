@@ -10,6 +10,8 @@ SPATS Documentation
    :maxdepth: 1
    :caption: See also:
 
+   install
+   quickstart
    tool
    advanced
    reference
@@ -21,18 +23,20 @@ Overview
 See the `SPATS Homepage <http://luckslab.github.io/spats/>`_ for
 general information.
 
-Install SPATS using ``pip``:
 
-.. code-block:: bash
+See the `installation <install.html>`_ instructions, `quickstart guide
+<quickstart.html>`_, or `documentation <tool.html>`_ for information
+about getting started with SPATS.
 
-    $ pip install spats_shape_seq
 
-We recommend using ``spats_tool`` to get started with spats. See the
-`documentation <tool.html>`_ or use:
+Reference
+=========
 
-.. code-block:: bash
+The SPATS software is based on:
 
-    $ spats_tool help
+J. B. Lucks, S. A. Mortimer, C. Trapnell, S. Luo, S. Aviran, G. P. Schroth, 
+L. Pachter, J. A. Doudna, A. P. Arkin. **Multiplexed RNA structure characterization with selective 2’-hydroxyl acylation
+analyzed by primer extension sequencing (SHAPE-Seq).** *PNAS*, 108, 11063, 2011.
 
 
 Indices and tables

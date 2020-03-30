@@ -1,6 +1,6 @@
 
-Reference
-=========
+Detailed Options
+================
 
 .. py:module:: spats_shape_seq
 
