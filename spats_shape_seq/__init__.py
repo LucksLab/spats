@@ -55,7 +55,7 @@ This can be later loaded using the :meth:`.spats.Spats.load` method.
 from spats import Spats
 
 
-_VERSION = "2.0.0"
+_VERSION = "2.0.1"
 _PRODUCTION = True
 _PUBLIC_RELEASE = True
 version = _VERSION + (" Public" if _PUBLIC_RELEASE else " Private") + (" Production" if _PRODUCTION else " Beta")

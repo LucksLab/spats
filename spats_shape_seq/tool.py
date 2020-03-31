@@ -732,6 +732,8 @@ class SpatsTool(object):
         profiles = spats.compute_profiles()
         mutations = spats.run.count_mutations
         headers = [ "sequence", "rt_start", "five_prime_offset", "nucleotide", "treated_mods", "untreated_mods", "beta", "theta", "c" ]
+        if mutations:
+            headers[7] = "mu"
         data = []
 
         if self.cotrans:
@@ -749,9 +751,9 @@ class SpatsTool(object):
                     if not i:
                         datapt += [ '-', '-', prof.c ]
                     elif mutations:
-                        datapt += [ prof.beta[i], prof.mu[i], prof.r_mut[i] ]
+                        datapt += [ prof.beta[i], prof.mu[i], prof.c ]
                     else:
-                        datapt += [prof.beta[i], prof.theta[i], prof.c ]
+                        datapt += [ prof.beta[i], prof.theta[i], prof.c ]
                     data.append(datapt)
                 for i in range(len(linker)):
                     data.append([ seq, rt_start, end + i + 1, linker[i], 0, 0, 0, 0, prof.c ])
