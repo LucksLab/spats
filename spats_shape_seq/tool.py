@@ -758,7 +758,7 @@ class SpatsTool(object):
                     if not i:
                         datapt += [ '-', '-', cval ]
                     elif mutations:
-                        datapt += [ prof.beta[i], prof.mu[i], cval ]
+                        datapt += [ prof.r_mut[i], (prof.r_mut[i] / cval) if cval else prof.r_mut[i], cval ]
                     else:
                         datapt += [ prof.beta[i], prof.theta[i], cval ]
                     data.append(datapt)
