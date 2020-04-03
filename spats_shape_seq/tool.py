@@ -733,7 +733,9 @@ class SpatsTool(object):
         mutations = spats.run.count_mutations
         headers = [ "sequence", "rt_start", "five_prime_offset", "nucleotide", "treated_mods", "untreated_mods", "beta", "theta", "c" ]
         if mutations:
-            headers[7] = "mu"
+            headers[6] = "r"
+        if not spats.run.allow_negative_values:
+            headers[8] = "c_thresh"
         data = []
 
         if self.cotrans:
@@ -744,19 +746,24 @@ class SpatsTool(object):
                 end = int(key.split('_')[-1])
                 rt_start = end + len(linker) + 1
                 prof = profiles.profilesForTargetAndEnd(tgt.name, end)
+                # xref https://trello.com/c/enfGViaw/398-cotrans-output-backwards-compatibility-for-other-lab-software
+                # always report `profiles.c_thresh` here, note that it's only different
+                #  from `prof.c` when `not spats.run.allow_negative_values` -- in which
+                #  case (see above) we update the column header name
+                cval = prof.c_thresh
                 seq = "{}_{}nt".format(tgt.name, end)
                 data = []
                 for i in xrange(end + 1):
                     datapt = [ seq, rt_start, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i] ]
                     if not i:
-                        datapt += [ '-', '-', prof.c ]
+                        datapt += [ '-', '-', cval ]
                     elif mutations:
-                        datapt += [ prof.beta[i], prof.mu[i], prof.c ]
+                        datapt += [ prof.beta[i], prof.mu[i], cval ]
                     else:
-                        datapt += [ prof.beta[i], prof.theta[i], prof.c ]
+                        datapt += [ prof.beta[i], prof.theta[i], cval ]
                     data.append(datapt)
                 for i in range(len(linker)):
-                    data.append([ seq, rt_start, end + i + 1, linker[i], 0, 0, 0, 0, prof.c ])
+                    data.append([ seq, rt_start, end + i + 1, linker[i], 0, 0, 0, 0, cval ])
                 output_path = os.path.join(self.path, '{}{}_{}_reactivities.txt'.format(prefix, seq, rt_start, tgt.name))
                 self._write_csv(output_path, headers, data, delimiter = '\t')
             keys = [ 'treated', 'untreated' ]
