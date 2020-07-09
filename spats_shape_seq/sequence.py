@@ -187,6 +187,9 @@ class Sequence(object):
                 while indind >= ilen + prevind:
                     if target[indst:indind] == indel.seq:
                         pass
+                    elif seq[indel.src_index - 1] == indel.seq[-1]:
+                        ## For case like CT** --> C**T --> **CT  (target=CTCT)
+                        indel.seq = target[indst:indind]
                     elif (indst - self.match_index) in self.match_errors:
                         indel.seq = target[indst:indind]
                         self.match_errors[self.match_errors.index(indst - self.match_index)] += len(indel.seq)
