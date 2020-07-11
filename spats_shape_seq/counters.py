@@ -48,11 +48,12 @@ class Counters(object):
         return "{}:{}:S{}M{}:{}".format(pair.target.rowid, pair.mask_label, pair.site, mut, pair.end)
 
     def _indel_key(self, pair, spot, indel):
-        # note: spot was already incremented below to make it 1-based
+        # treat indels as 1-based (like mutations) for reactivity computations
         if indel.insert_type:
+            # use same convention as ShapeMapper2 for inserts: count prior to the insert
             return "{}:{}:I{}:{}".format(pair.target.rowid, pair.mask_label, spot, pair.end)
         else:
-            return "{}:{}:D{}:{}".format(pair.target.rowid, pair.mask_label, spot, pair.end)
+            return "{}:{}:D{}:{}".format(pair.target.rowid, pair.mask_label, spot + 1, pair.end)
 
     def register_count(self, pair):
         if pair.mutations:
@@ -87,12 +88,11 @@ class Counters(object):
             # only count one indel at a spot per pair 
             for spot in set(pair.r1.indels.keys() + pair.r2.indels.keys()):
                 indel = pair.r1.indels.get(spot, pair.r2.indels.get(spot))   # assumes types and length match at spot
-                spot += 1    # treat indels as 1-based (like mutations) for reactivity computations
                 _dict_incr(self._registered, self._indel_key(pair, spot, indel), pair.multiplicity)
                 _dict_incr(self._counts, pair.mask_label + "_indels", pair.multiplicity)
                 _dict_incr(self._counts, 'mapped_indel_len_{}'.format(len(indel.seq)), pair.multiplicity)
                 self.indels += pair.multiplicity
-                if spot <= pair.site  or  (not indel.insert_type and (spot - len(indel.seq)) <= pair.site):
+                if spot <= pair.site  or  (not indel.insert_type and (spot - len(indel.seq)) < pair.site):
                     pair.edge_indel = True
                 if indel.ambiguous:
                     pair.ambig_indel = True
