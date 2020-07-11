@@ -48,10 +48,11 @@ class Counters(object):
         return "{}:{}:S{}M{}:{}".format(pair.target.rowid, pair.mask_label, pair.site, mut, pair.end)
 
     def _indel_key(self, pair, spot, indel):
+        # note: spot was already incremented below to make it 1-based
         if indel.insert_type:
-            return "{}:{}:I{}:{}".format(pair.target.rowid, pair.mask_label, spot + 1, pair.end)
+            return "{}:{}:I{}:{}".format(pair.target.rowid, pair.mask_label, spot, pair.end)
         else:
-            return "{}:{}:D{}:{}".format(pair.target.rowid, pair.mask_label, spot + 1, pair.end)
+            return "{}:{}:D{}:{}".format(pair.target.rowid, pair.mask_label, spot, pair.end)
 
     def register_count(self, pair):
         if pair.mutations:
@@ -91,7 +92,7 @@ class Counters(object):
                 _dict_incr(self._counts, pair.mask_label + "_indels", pair.multiplicity)
                 _dict_incr(self._counts, 'mapped_indel_len_{}'.format(len(indel.seq)), pair.multiplicity)
                 self.indels += pair.multiplicity
-                if spot <= pair.site  or  (not indel.insert_type and (spot - len(indel.seq)) < pair.site):
+                if spot <= pair.site  or  (not indel.insert_type and (spot - len(indel.seq)) <= pair.site):
                     pair.edge_indel = True
                 if indel.ambiguous:
                     pair.ambig_indel = True
