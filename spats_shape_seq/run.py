@@ -179,6 +179,10 @@ class Run(object):
         #: set to ``0.0``).
         self.allow_negative_values = False
 
+        #: Default ``False``, set to ``True`` to also compute
+        #: reactivity based upon z-scores.
+        self.compute_z_reactivity = False
+
         #: Default ``False``, set to ``True`` to count and report information
         #: on pairs that align left of the 5' end. the count for each
         #: different prefix encountered will be reported. Setting this

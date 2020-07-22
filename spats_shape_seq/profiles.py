@@ -217,6 +217,14 @@ class TargetProfiles(object):
     def r(self):
         return self.r_mut
 
+    @staticmethod
+    def _pooledStderr(c1, c2, n1, n2):
+        if n1 * n2 == 0:
+            return 0.0
+        phat = float(c1 + c2) / float(n1 + n2)
+        # TAI:  Is the last term correct / needed here?
+        return math.sqrt(phat * (1.0 - phat) * ((1.0 / float(n1)) + (1.0 / float(n2))))
+
     def compute(self):
         treated_counts = self.treated_counts
         untreated_counts = self.untreated_counts
@@ -225,6 +233,7 @@ class TargetProfiles(object):
         n = len(treated_counts) - 1
         betas = [ 0 for x in xrange(n+1) ]
         thetas = [ 0 for x in xrange(n+1) ]
+        z = [ 0 for x in xrange(n+1) ]
         running_c_sum = 0.0
         running_c_thresh_sum = 0.0
 
@@ -256,9 +265,15 @@ class TargetProfiles(object):
                     betas[k] = max(0.0, betas[k])
                     thetas[k] = max(0.0, thetas[k])
                 running_c_thresh_sum -= math.log(1.0 - betas[k])
+                if self.owner._run.compute_z_reactivity:
+                    se = TargetProfiles._pooledStderr(treated_counts[k], untreated_counts[k], treated_depths[k], untreated_depths[k])
+                    z[k] = (Xbit - Ybit) / se if se != 0 else (Xbit - Ybit)
+                    if not self.owner._run.allow_negative_values:
+                        z[k] = max(0.0, z[k])
             except:
                 betas[k] = 0
                 thetas[k] = 0
+                z[k] = 0
 
         c_thresh = running_c_thresh_sum
         c_factor = 1.0 / c_thresh if c_thresh else 1.0
@@ -267,6 +282,7 @@ class TargetProfiles(object):
         self.betas = betas
         self.thetas = thetas
         self.rhos = [ n * th for th in thetas ]
+        self.z = z
         self.c = running_c_sum
         self.c_thresh = c_thresh
 
@@ -276,6 +292,8 @@ class TargetProfiles(object):
         if not self.treated_muts and not self.treated_inserts and not self.treated_deletes:
             return
 
+        treated_depths = self.treated_depths
+        untreated_depths = self.untreated_depths
         treated_counts = self.treated_counts
         untreated_counts = self.untreated_counts
         treated_muts = self.treated_muts
@@ -292,6 +310,7 @@ class TargetProfiles(object):
         n = len(treated_counts) - 1
         mu = [ 0 for x in xrange(n+1) ]
         r_mut = [ 0 for x in xrange(n+1) ]
+        z = [ 0 for x in xrange(n+1) ]
         running_c_sum = 0.0
         c_inf = False
         running_c_thresh_sum = 0.0
@@ -332,6 +351,17 @@ class TargetProfiles(object):
                 Ubit = (mut_j_u / float(untreated_quality_depths[j]))
                 mu[j] = (Tbit - Ubit) / (1 - Ubit)
 
+                if (self.owner._run.compute_z_reactivity  and
+                    treated_quality_depths[j] + untreated_quality_depths[j] > 0  and
+                    treated_depths[j] + untreated_depths[j] > 0):
+                    se_z = TargetProfiles._pooledStderr(mut_j_t + mut_j_u, treated_counts[j] + untreated_counts[j], treated_quality_depths[j] + untreated_quality_depths[j], treated_depths[j] + untreated_depths[j])
+
+                    Tboth = (mut_j_t + treated_counts[j]) / (0.5 * (treated_quality_depths[j] + treated_depths[j]))
+                    Uboth = (mut_j_u + untreated_counts[j]) / (0.5 * (untreated_quality_depths[j] + untreated_depths[j]))
+                    z[j] = (Tboth - Uboth) / se_z if se_z > 0 else (Tboth - Uboth)
+                    if not self.owner._run.allow_negative_values:
+                        z[k] = max(0.0, z[k])
+
                 try:
                     running_c_sum -= math.log(1.0 - mu[j])  # xref Yu_Estimating_Reactivities pdf, p24
                 except:
@@ -348,11 +378,13 @@ class TargetProfiles(object):
             except:
                 #print("domain error: {} / {} / {} / {}".format(s_j_t, depth_t, s_j_u, depth_u))
                 mu[j] = 0.0
+                z[j] = 0.0
 
             r_mut[j] = self.betas[j] + mu[j]
 
         self.mu = mu
         self.r_mut = r_mut
+        self.z = z
         if c_inf:
             self.c = float('inf')   # when c is infinite, pr of modification is 1
         else:
