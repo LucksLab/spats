@@ -50,7 +50,9 @@ class SpatsWorker(object):
                     break
                 results = []
                 for lines in pairs:
-                    pair.set_from_data(lines[3], str(lines[1]), str(lines[2]), lines[0])
+                    if not pair.set_from_data(lines[3], str(lines[1]), str(lines[2]), lines[0]):
+                        print('\nskipping empty pair:  {}'.format(lines[3]))
+                        continue
                     if use_quality:
                         pair.r1.quality = str(lines[4])
                         pair.r2.quality = str(lines[5])
@@ -221,7 +223,9 @@ class SpatsWorker(object):
                         sys.stdout.flush()
                     results = []
                     for lines in pair_info:
-                        pair.set_from_data(lines[3], str(lines[1]), str(lines[2]), lines[0])
+                        if not pair.set_from_data(lines[3], str(lines[1]), str(lines[2]), lines[0]):
+                            print('\nskipping empty pair:  {}'.format(lines[3]))
+                            continue
                         if use_quality:
                             pair.r1.quality = str(lines[4])
                             pair.r2.quality = str(lines[5])

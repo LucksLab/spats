@@ -917,8 +917,10 @@ class SpatsTool(object):
                 for item in batch:
                     pair_fp = Pair()
                     pair_lookup = Pair()
-                    pair_fp.set_from_data(str(item[0]), item[1], item[2])
-                    pair_lookup.set_from_data(str(item[0]), item[1], item[2])
+                    if (not pair_fp.set_from_data(str(item[0]), item[1], item[2]) or
+                        not pair_lookup.set_from_data(str(item[0]), item[1], item[2])):
+                        print('\nskipping empty pair:  {}'.format(str(item[0])))
+                        continue
                     try:
                         spats_fp.process_pair(pair_fp)
                         spats_lookup.process_pair(pair_lookup)
