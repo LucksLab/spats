@@ -303,7 +303,7 @@ class Run(object):
             self.count_left_prefixes = True
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
         if self.single_target_linker:
-            self.rt_primers = [ self.single_target_linker ]
+            self.rt_primers = self.single_target_linker
         if self.rt_primers:
             self.algorithm = 'find_partial'
             self.allow_multiple_rt_starts = True
