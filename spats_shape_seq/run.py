@@ -179,6 +179,10 @@ class Run(object):
         #: set to ``0.0``).
         self.allow_negative_values = False
 
+        #: Default ``False``, set to ``True`` to also compute
+        #: reactivity based upon z-scores.
+        self.compute_z_reactivity = False
+
         #: Default ``False``, set to ``True`` to count and report information
         #: on pairs that align left of the 5' end. the count for each
         #: different prefix encountered will be reported. Setting this
@@ -299,7 +303,7 @@ class Run(object):
             self.count_left_prefixes = True
             self._p_collapse_only_prefix_list = [ x.strip() for x in self.collapse_only_prefixes.split(',') ]
         if self.single_target_linker:
-            self.rt_primers = [ self.single_target_linker ]
+            self.rt_primers = self.single_target_linker
         if self.rt_primers:
             self.algorithm = 'find_partial'
             self.allow_multiple_rt_starts = True

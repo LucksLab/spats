@@ -29,6 +29,7 @@ class Sequence(object):
         self.fully_rtrimmed = False
 
     def set_seq(self, seq, needs_reverse_complement = False):
+        assert(seq)
         self._reset(seq, needs_reverse_complement)
 
     def _debug_print(self):

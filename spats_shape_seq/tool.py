@@ -626,6 +626,7 @@ class SpatsTool(object):
         profiles = spats.compute_profiles()
         mutations = spats.run.count_mutations
         indels = spats.run.handle_indels
+        zees = spats.run.compute_z_reactivity
         headers = [ "L", "site", "nt", "f+", "f-" ]
         if indels:
             headers += [ "ins+", "ins-", "del+", "del-" ]
@@ -633,6 +634,8 @@ class SpatsTool(object):
             headers += [ "mut+", "mut-", "beta", "mu", "r" ]
         else:
             headers += [ "beta", "theta", "rho" ]
+        if zees:
+            headers += [ "z" ]
         headers += [ "c thresh", "c" ]
         data = []
         sites_missing_reads = []
@@ -653,6 +656,8 @@ class SpatsTool(object):
                         datapt += [ prof.treated_muts[i], prof.untreated_muts[i], prof.beta[i], prof.mu[i], prof.r_mut[i] ]
                     else:
                         datapt += [ prof.beta[i], prof.theta[i], prof.rho[i] ]
+                    if zees:
+                        datapt += [ prof.z[i] ]
                     datapt += [ prof.c_thresh, prof.c ]
                     data.append(datapt)
             output_path = os.path.join(self.path, '{}{}.csv'.format(prefix, tgt.name))
@@ -665,6 +670,8 @@ class SpatsTool(object):
                 keys += [ 'treated_mut', 'untreated_mut', 'beta', 'mu', 'r' ]
             else:
                 keys += [ 'beta', 'theta', 'rho' ]
+            if zees:
+                keys += [ 'z' ]
             cotrans_keys = profiles.cotrans_keys()
             for key in keys:
                 ncols = 0
@@ -695,6 +702,8 @@ class SpatsTool(object):
                         datapt += [ prof.treated_muts[i], prof.untreated_muts[i], prof.beta[i], prof.mu[i], prof.r_mut[i] ]
                     else:
                         datapt += [ prof.beta[i], prof.theta[i], prof.rho[i] ]
+                    if zees:
+                        datapt += [ prof.z[i] ]
                     datapt += [ prof.c_thresh, prof.c ]
                     data.append(datapt)
                 output_path = os.path.join(self.path, '{}{}.csv'.format(prefix, tgt.name))
@@ -908,8 +917,10 @@ class SpatsTool(object):
                 for item in batch:
                     pair_fp = Pair()
                     pair_lookup = Pair()
-                    pair_fp.set_from_data(str(item[0]), item[1], item[2])
-                    pair_lookup.set_from_data(str(item[0]), item[1], item[2])
+                    if (not pair_fp.set_from_data(str(item[0]), item[1], item[2]) or
+                        not pair_lookup.set_from_data(str(item[0]), item[1], item[2])):
+                        print('\nskipping empty pair:  {}'.format(str(item[0])))
+                        continue
                     try:
                         spats_fp.process_pair(pair_fp)
                         spats_lookup.process_pair(pair_lookup)

@@ -38,9 +38,12 @@ class Pair(object):
     def set_from_data(self, identifier, r1_seq, r2_seq, multiplicity = 1):
         self.reset()
         self.identifier = identifier
-        self.r1.set_seq(r1_seq, True)
-        self.r2.set_seq(r2_seq)
         self.multiplicity = multiplicity
+        if r1_seq:
+            self.r1.set_seq(r1_seq, True)
+        if r2_seq:
+            self.r2.set_seq(r2_seq)
+        return (r1_seq and r2_seq)
 
     def set_from_records(self, r1_record, r2_record):
         if not r1_record.identifier or r1_record.identifier != r2_record.identifier:
