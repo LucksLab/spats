@@ -227,7 +227,8 @@ class PartialFindProcessor(PairProcessor):
         ## (It's also a bit faster for SW.)
         dumblen = 0
         if run.dumbbell:
-            if not pair.r2.original_seq.startswith(run.dumbbell):
+            dberrs = string_match_errors(run.dumbbell, pair.r2.original_seq)
+            if len(dberrs) > run.allowed_dumbbell_errors:
                 pair.failure = Failures.dumbbell
                 self.counters.dumbbell_failures += pair.multiplicity
                 return

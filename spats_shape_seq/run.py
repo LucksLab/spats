@@ -136,7 +136,7 @@ class Run(object):
 
         #: Default ``None``, which means allow RT starts from either
         #: anywhere (when ``allow_multiple_rt_starts`` is True) or from
-        #: the right edge of the target only (when it is False).
+        #: the right (3') edge of the target only (when it is False).
         #: Set to a list of comma-separated strings to restrict where RT
         #: starts can happen in the target. Specifying these will force 
         #: the ``allow_multiple_rt_starts`` option to be True.
@@ -212,6 +212,10 @@ class Run(object):
         #: Default ``None``, set to a string sequence for analyses which use
         #: a dumbbell sequence (on the front of R2).
         self.dumbbell = None
+
+        #: Default ``0``, increase to allow the indicated number of errors
+        #: when performing dumbbell trimming.
+        self.allowed_dumbbell_errors = 0
 
         #: Default ``False``, set to ``True`` to only count reads with no 
         #: stops.
@@ -295,6 +299,8 @@ class Run(object):
             if not self.count_mutations:
                 raise Exception("count_mutations should be True if using handle_indels.")
         if self.dumbbell and self.cotrans:
+            self.algorithm = 'find_partial'
+        if self.allowed_dumbbell_errors > 0:
             self.algorithm = 'find_partial'
         if self.collapse_left_prefixes:
             self.count_left_prefixes = True
