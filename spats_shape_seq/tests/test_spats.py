@@ -155,3 +155,105 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(a.indels_as_dict(), { '2': { 'insert_type': True, 'seq': "XXX", "src_index": 2 } })
         self.assertEqual(a.indels_delta, 3)
         self.assertEqual(len(a.mismatched), 0)
+
+    def test_align_strings_more(self):
+        # adapted from cases used in LeonardLab NGS sequencing
+
+        #case = [ R1/R2,
+        #         target seq,
+        #         matchStart, matchLen, matchIndex,
+        #         expectedMatchStart, expectedMatchLen, expectedMatchIndex,
+        #         expectedMutSpots, expectedIndelSpots ]
+        cases = [ [ "TGAACAGCGACTAGGCTTCCCAAAGTACCAGTTTGCCAC",
+        #            |               |
+                    "TGAACAGCGACTAGGCTCTTCCGATCT",
+                    0, 17, 0,
+                    0, 17, 0,
+                    [], [] ],
+
+                  [ "GTTCGGAGAAGCATGACGGACAAGTACAAGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCC",
+        #                                        !|                                            |
+                                                "GGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCCTTCTGGGCAGTTGATGCC",
+                    29, 46, 1,
+                    29, 46, 1,
+                    [], [] ],
+
+                  [ "GTTCGGAGAAGCATGACGGACAAGTACAAGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCC",
+        #            |                      |!                                                 |
+                    "GTTCGGAGAAGCATGACGGACAAGAACAAGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCC",
+        #                                        !|                                            |
+                    0, 24, 0,
+                    0, 75, 0,
+                    [24], [] ],
+
+                  [ "GTTCGGAGAAGCATGACGGACAAGTACAAGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCC",
+        #            |                       !|                                                |
+                    "GTTCGGAGAAGCATGACGGACAAGAACAAGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCC",
+        #                                        !|                                            |
+                    25, 50, 25,
+                    0, 75, 0,
+                    [24], [] ],
+
+                  [ "TTTTTGATAAGCATGACGGACAAGTACAGGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCC",
+        #                 | !|                  |
+                         "GAGAAGCATGACGGACAAGTACA",
+                    8, 20, 3,
+                    5, 23, 0,
+                    [2], [] ],
+
+                  [ "GGACGGGAAGCATGACGGACAAGTACAGGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCCT",
+        #                |!|                   |
+                        "GAGAAGCATGACGGACAAGTACA",
+                    6, 21, 2,
+                    6, 21, 2,
+                    [], [] ],
+
+                  [ "GGACGGGAAGCATGACGGACAAGTACAGGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCCT",
+        #               | !|                   |
+                       "CGAGAAGCATGACGGACAAGTACA",
+                    6, 21, 3,
+                    3, 24, 0,
+                    [2], [] ],
+
+                  [ "ACTATGAGAGCATGACGGACAAGTACAGGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCCT",
+        #                   -|                 |
+                        "GAGAAGCATGACGGACAAGTACA",
+                    8, 19, 4,
+                    8, 19, 4,
+                    [], [] ],
+
+                  [ "ACTATGAGAGCATGACGGACAAGTACAGGCTGCACCTGTCAGTGGCCGACCTCCTCTTTGTCATCACGCTTCCCT",
+        #                   -|                 |
+                        "GAGAAGCATGACGGACAAGTACA",
+                    8, 19, 4,
+                    5, 23, 0,
+                    [], [3], 5], # set gap open cost to 5 so that this indel takes
+        ]
+
+        ap = AlignmentParams(penalize_ends = True, penalize_front_clip = False, penalize_back_clip = False)
+        assertCases = True
+
+        for idx in range(len(cases)):
+            case = cases[idx]
+            rN, target = case[:2]
+            s = Sequence(rN)
+            s.match_start, s.match_len, s.match_index = case[2:5]
+            rEnd, targetEnd = s.match_start + s.match_len, s.match_index + s.match_len
+            assert(rN[s.match_start:rEnd] == target[s.match_index:targetEnd])
+            # should always start with a maximal match
+            if s.match_start > 0:
+                assert(rN[s.match_start - 1] != target[s.match_index - 1])
+            if rEnd < len(rN) and targetEnd < len(target):
+                assert(rN[rEnd] != target[targetEnd])
+            if len(case) > 10:
+                ap.gap_open_cost = case[10]
+            else:
+                ap.gap_open_cost = 6
+            s.extend_alignment(target, ap)
+            print("Case {}:".format(idx), s.match_start, s.match_len, s.match_index, s.match_errors)
+            if assertCases:
+                assert s.match_start == case[5], "{} != {}".format(s.match_start, case[5])
+                assert s.match_len == case[6], "{} != {}".format(s.match_len, case[6])
+                assert s.match_index == case[7], "{} != {}".format(s.match_index, case[7])
+                assert s.match_errors == case[8], "{} != {}".format(s.match_errors, case[8])
+                assert sorted(list(s.indels.keys())) == case[9], "{} != {}".format(sorted(list(s.indels.keys())), case[9])
