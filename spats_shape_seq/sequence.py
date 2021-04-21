@@ -256,11 +256,11 @@ class Sequence(object):
                 if align_back.target_match_start > 0:
                     delseq = back_target[:align_back.target_match_start]
                     align_back.indels[align_back.target_match_start - 1] = Indel(False, delseq, 0)
-                    align_back.indels_delta -= len(delseq)
+                    self.indels_delta -= len(delseq)
                 elif align_back.src_match_start > 0:
                     insseq = back_read[:align_back.src_match_start]
                     align_back.indels.setdefault(0, Indel(True, "", 0)).seq += insseq
-                    align_back.indels_delta += len(insseq)
+                    self.indels_delta += len(insseq)
                 self.match_len += align_back.target_match_end + 1
                 self.indels_delta += align_back.indels_delta
                 self.update_shifted_indels(align_back.indels, target_end, read_end)
