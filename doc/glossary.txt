@@ -60,3 +60,17 @@ some terms defined:
     - c: estimate of the average modification rate (one per experiment)
   - allow_negative_values: config option that specifies whether beta/theta/mu can be negative or not
     - this also affects result for c-value
+
+
+Generally, experiments look like:
+   R1':    AAAAAAAAAAAAAA.DDDDDDDD.TTTTTTTTTTTTTTTTT.LLLLLLL.MMMM...................
+   R2:     ...............DDDDDDDD.TTTTTTTTTTTTTTTTT.LLLLLLL.MMMM.AAAAAAAAAAAAAAAAAA
+Where:
+   A+ = adapters (adapter_b on left and adapter_t on right)
+   D+ = optional dumbbell (forward/R2 reads will always start here if present)
+   T+ = region to be matched/aligned with a reference target;
+        if no linker/rt_primer, then always goes all the way to the right end
+        of the reference target, but does not necessarily start at the beginning.
+   L+ = optional rt_primer or linker in the case of cotrans or multiple_rt_starts experiments
+        (R2 read may end before or during this)
+   M+ = mask/handle designating treatment (reverse/R1 reads will always start here)
