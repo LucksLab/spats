@@ -1,8 +1,8 @@
 
-from processor import PairProcessor, Failures
-from mask import base_similarity_ind
-from pair import Pair
-from util import _warn, _debug, reverse_complement, string_match_errors, string_find_errors, string_find_with_overlap, AlignmentParams
+from .processor import PairProcessor, Failures
+from .mask import base_similarity_ind
+from .pair import Pair
+from .util import _warn, _debug, reverse_complement, string_match_errors, string_find_errors, string_find_with_overlap, AlignmentParams
 
 
 class PartialFindProcessor(PairProcessor):
@@ -392,7 +392,9 @@ class PartialFindProcessor(PairProcessor):
             self.counters.r1_not_on_right_edge += pair.multiplicity
             return
 
-        if run.ignore_stops_with_mismatched_overlap  and  not pair.check_overlap(True):
+        # TODO: this used to be check_overlap(True), but this causes
+        # failures with handle_indels, and seems to be ok with False...
+        if run.ignore_stops_with_mismatched_overlap  and  not pair.check_overlap(False):
             pair.failure = Failures.r1_r2_overlap
             self.counters.r1_r2_overlap += pair.multiplicity
             return

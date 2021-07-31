@@ -1,5 +1,5 @@
 
-from util import _debug, reverse_complement, align_strings, Indel, string_match_errors
+from .util import _debug, reverse_complement, align_strings, Indel, string_match_errors
 
 class Sequence(object):
 
@@ -168,7 +168,7 @@ class Sequence(object):
         newindels = {}
         prevind = -1
         seq = self.reverse_complement if self._needs_rc else self.subsequence
-        for indind,indel in sorted(self.indels.iteritems()):
+        for indind,indel in sorted(self.indels.items()):
             indel.ambiguous = False
             if indel.insert_type:
                 ## TAI: Busan & Weeks, 2018 is about deletes, but go ahead and do same for inserts.
@@ -243,7 +243,7 @@ class Sequence(object):
                 self.match_index -= m
                 self.match_start -= m
                 self.match_len += m
-                self.match_errors += [ e for e in xrange(m) if front_read[e + self.match_start] != front_target[e + self.match_index] ]
+                self.match_errors += [ e for e in range(m) if front_read[e + self.match_start] != front_target[e + self.match_index] ]
 
         target_end = self.match_index + self.match_len
         if read_end < self.seq_len and (target_end < target.n  or  len(suffix) > 0):
@@ -268,24 +268,24 @@ class Sequence(object):
             else:
                 m = min(len(back_read), len(target.seq[target_end:]))
                 self.match_len += m
-                self.match_errors += [ e + target_end - self.match_index for e in xrange(m) if back_read[e] != back_target[e] ]
+                self.match_errors += [ e + target_end - self.match_index for e in range(m) if back_read[e] != back_target[e] ]
 
         self.resolve_ambig_indels(target.seq + suffix)
 
 
     def update_shifted_indels(self, newindels, key_delta, val_delta):
-        for indind,indel in newindels.iteritems():
+        for indind,indel in newindels.items():
             indel.src_index += val_delta
             self.indels[indind + key_delta] = indel
 
     def shift_indels(self, val_delta):
-        for _,indel in self.indels.iteritems():
+        for _,indel in self.indels.items():
             indel.src_index += val_delta
 
     def trim_indels(self):
         trim_start = self.seq_len
         new_indels = {}
-        for indind,indel in self.indels.iteritems():
+        for indind,indel in self.indels.items():
             if indel.insert_type:
                 if indel.src_index > trim_start:
                     self._seq_with_indels = None
@@ -306,7 +306,7 @@ class Sequence(object):
 
     def indels_delta_before(self, target_index):
         result = 0
-        for indind,indel in self.indels.iteritems():
+        for indind,indel in self.indels.items():
             if indind <= target_index:
                 if indel.insert_type:
                     result += len(indel.seq)
@@ -332,7 +332,7 @@ class Sequence(object):
         sind = self.match_start
         lind = self.match_start + self.match_len + self.indels_delta
         delta = 0
-        for i in xrange(self.match_index, self.match_index + self.match_len):
+        for i in range(self.match_index, self.match_index + self.match_len):
             indel = self.indels.get(i, None)
             if indel:
                 if indel.insert_type:

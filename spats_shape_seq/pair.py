@@ -1,7 +1,7 @@
 
-from sequence import Sequence
-from util import reverse_complement
-from mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
+from .sequence import Sequence
+from .util import reverse_complement
+from .mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
 
 
 class Pair(object):

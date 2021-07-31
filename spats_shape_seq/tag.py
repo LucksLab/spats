@@ -1,9 +1,9 @@
 
-from lookup import LookupProcessor
-from processor import PairProcessor, Failures
-from target import Targets
-from util import _warn, _debug, string_match_errors
-from mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
+from .lookup import LookupProcessor
+from .processor import PairProcessor, Failures
+from .target import Targets
+from .util import _warn, _debug, string_match_errors
+from .mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
 
 TAG_MATCH = "match"
 TAG_ADAPTER = "adapter"
@@ -223,7 +223,7 @@ class TagProcessor(PairProcessor):
 
         pair.tags = [self._tagmap[t] for t in set(tags)]
 
-        for tag, handler in self._plugins.iteritems():
+        for tag, handler in self._plugins.items():
             if handler(pair, tags):
                 pair.tags.append(self._tagmap[tag])
 

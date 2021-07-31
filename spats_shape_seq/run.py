@@ -2,11 +2,11 @@
 import ast
 import sys
 
-from partial import PartialFindProcessor
-from lookup import LookupProcessor, CotransLookupProcessor
-from native import CotransNativeProcessor
-from tag import TagProcessor
-from util import _warn
+from .partial import PartialFindProcessor
+from .lookup import LookupProcessor, CotransLookupProcessor
+from .native import CotransNativeProcessor
+from .tag import TagProcessor
+from .util import _warn
 
 
 class Run(object):

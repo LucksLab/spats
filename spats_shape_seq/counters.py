@@ -27,7 +27,7 @@ class Counters(object):
             self._counts[key] = value
 
     def counts_dict(self):
-        return { key : value for key, value in self._counts.iteritems() if not key.startswith('_') }
+        return { key : value for key, value in self._counts.items() if not key.startswith('_') }
 
     def registered_dict(self):
         return self._registered
@@ -86,7 +86,7 @@ class Counters(object):
                 _dict_incr(self._registered, self._low_quality_mut_key(pair), pair.multiplicity)
         if pair.r1.indels or pair.r2.indels:
             # only count one indel at a spot per pair 
-            for spot in set(pair.r1.indels.keys() + pair.r2.indels.keys()):
+            for spot in set(list(pair.r1.indels.keys()) + list(pair.r2.indels.keys())):
                 indel = pair.r1.indels.get(spot, pair.r2.indels.get(spot))   # assumes types and length match at spot
                 _dict_incr(self._registered, self._indel_key(pair, spot, indel), pair.multiplicity)
                 _dict_incr(self._counts, pair.mask_label + "_indels", pair.multiplicity)
@@ -121,7 +121,7 @@ class Counters(object):
     def _add_to_depth(self, pair):
         dk = self._depth_key(pair)
         n = min(pair.target.n, pair.end) + 1
-        for spot in xrange(pair.site, n):
+        for spot in range(pair.site, n):
             self._depths.setdefault(dk, [0] * n)[spot] += pair.multiplicity
             if not pair.removed_mutations:
                 self._quality_depths.setdefault(dk, [0] * n)[spot] += pair.multiplicity
@@ -143,15 +143,15 @@ class Counters(object):
 
     def update_with_count_data(self, count_data, vect_data):
         their_counts, their_registered = count_data
-        for key, their_value in their_counts.iteritems():
+        for key, their_value in their_counts.items():
             _dict_incr(self._counts, key, their_value)
-        for key, their_value in their_registered.iteritems():
+        for key, their_value in their_registered.items():
             _dict_incr(self._registered, key, their_value)
         their_depths, their_quality_depths = vect_data
-        for key, their_values in their_depths.iteritems():
+        for key, their_values in their_depths.items():
             for i, their_value in enumerate(their_values):
                 self._depths.setdefault(key, [0] * len(their_values))[i] += their_value
-        for key, their_values in their_quality_depths.iteritems():
+        for key, their_values in their_quality_depths.items():
             for i, their_value in enumerate(their_values):
                 self._quality_depths.setdefault(key, [0] * len(their_values))[i] += their_value
 
@@ -176,7 +176,7 @@ class Counters(object):
 
     def mask_counts(self, target, mask, end):
         c = self._registered
-        return [ c.get("{}:{}:{}:{}".format(target.rowid, mask, site, end), 0) for site in xrange(end + 1) ]
+        return [ c.get("{}:{}:{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
 
     def mask_depths(self, target, mask, end):
         return self._depths.get("{}:{}:{}".format(target.rowid, mask, end), [0] * (end + 1))
@@ -186,23 +186,23 @@ class Counters(object):
 
     def mask_muts(self, target, mask, end):
         c = self._registered
-        return [ c.get("{}:{}:M{}:{}".format(target.rowid, mask, site, end), 0) for site in xrange(end + 1) ]
+        return [ c.get("{}:{}:M{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
 
     def mask_edge_muts(self, target, mask, end):
         c = self._registered
-        return [ c.get("{}:{}:S{}M{}:{}".format(target.rowid, mask, site, site + 1, end), 0) for site in xrange(end + 1) ]
+        return [ c.get("{}:{}:S{}M{}:{}".format(target.rowid, mask, site, site + 1, end), 0) for site in range(end + 1) ]
 
     def mask_removed_muts(self, target, mask, end):
         c = self._registered
-        return [ c.get("{}:{}:Mq{}:{}".format(target.rowid, mask, site, end), 0) for site in xrange(end + 1) ]
+        return [ c.get("{}:{}:Mq{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
 
     def mask_inserts(self, target, mask, end):
         c = self._registered
-        return [ c.get("{}:{}:I{}:{}".format(target.rowid, mask, site, end), 0) for site in xrange(end + 1) ]
+        return [ c.get("{}:{}:I{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
 
     def mask_deletes(self, target, mask, end):
         c = self._registered
-        return [ c.get("{}:{}:D{}:{}".format(target.rowid, mask, site, end), 0) for site in xrange(end + 1) ]
+        return [ c.get("{}:{}:D{}:{}".format(target.rowid, mask, site, end), 0) for site in range(end + 1) ]
 
     def site_count(self, target_id, mask, end, site):
         return self._registered.get("{}:{}:{}:{}".format(target_id, mask, site, end), 0)
@@ -217,7 +217,7 @@ class Counters(object):
             if r[2].isdigit():    # only add to depth if it's the count_key
                 n = r[3]
                 dk = "{}:{}:{}".format(r[0], r[1], r[3])
-                for spot in xrange(r[2], r[3] + 1):
+                for spot in range(r[2], r[3] + 1):
                     curdepths = self._depths.setdefault(dk, [0] * n)
                     if n > len(curdepths):
                         curdepths += [0] * (n - len(curdepths))

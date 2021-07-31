@@ -6,7 +6,7 @@ import sys
 import time
 import string
 
-from parse import FastFastqParser
+from .parse import FastFastqParser
 
 SHOW_SLOW_QUERIES = False
 
@@ -225,7 +225,7 @@ class PairDB(object):
 
     def add_targets_table(self, targets_path):
         self._prep_targets()
-        from parse import fasta_parse
+        from .parse import fasta_parse
         target_list = fasta_parse(targets_path)
         self.conn.executemany('INSERT INTO target (name, seq) VALUES (? , ?)', target_list)
         self.conn.commit()
@@ -279,7 +279,7 @@ class PairDB(object):
         for res in results:
             cursor = conn.cursor()
             mask = sum([ 1 << t for t in res[-1] ])
-            cursor.execute(stmt, [ mask if i == len(res) - 1 else res[i] for i in xrange(len(res)) ])
+            cursor.execute(stmt, [ mask if i == len(res) - 1 else res[i] for i in range(len(res)) ])
             rstmt = rstmt_template.format(result_set_id, cursor.lastrowid)
             cursor.executemany(rstmt, [ (t,) for t in res[-1] ])
         conn.commit()
@@ -416,13 +416,13 @@ class PairDB(object):
         self.setup_counters()
         self.conn.execute("DELETE FROM counter WHERE run_key=?", (run_key,))
         count_data, vect_data = counters.count_data()
-        row_data = [ (run_key, i, key, count_data[i][key]) for i in xrange(len(count_data)) for key in count_data[i].keys() ]
+        row_data = [ (run_key, i, key, count_data[i][key]) for i in range(len(count_data)) for key in count_data[i].keys() ]
         self.conn.executemany("INSERT INTO counter VALUES (?, ?, ?, ?)", row_data)
         self.conn.commit()
         # Just store counter vectors as joined strings because
         # we don't need access to any of the individual members
         # and the vector sizes don't change.
-        row_data = [ (run_key, i, key, ','.join(map(str, vect_data[i][key]))) for i in xrange(len(vect_data)) for key in vect_data[i].keys() ]
+        row_data = [ (run_key, i, key, ','.join(map(str, vect_data[i][key]))) for i in range(len(vect_data)) for key in vect_data[i].keys() ]
         self.conn.executemany("INSERT INTO counter VALUES (?, ?, ?, ?)", row_data)
         self.conn.commit()
 
@@ -447,7 +447,7 @@ class PairDB(object):
     def store_run(self, run):
         self.setup_run()
         self.conn.execute("DELETE FROM run_data")
-        for k, v in run.config_dict().iteritems():
+        for k, v in run.config_dict().items():
             self.conn.execute("INSERT INTO run_data VALUES (?, ?)", (k, str(v)))
         self.conn.commit()
 

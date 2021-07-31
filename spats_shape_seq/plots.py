@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from nb import colors, cotrans_matrix, cotrans_matrix_data, spats_run_data
+from .nb import colors, cotrans_matrix, cotrans_matrix_data, spats_run_data
 
 def plot_sl_counts(path = None):
     run_data = spats_run_data(path)

@@ -28,9 +28,9 @@ class SpatsCase(object):
     def jsonDict(self):
         info = self.caseDict()
         if self.run_opts:
-            info["run_opts"] = { k : v for k, v in self.run_opts.iteritems() }
+            info["run_opts"] = { k : v for k, v in self.run_opts.items() }
         if self.targets:
-            info["targets"] = { k : v for k, v in self.targets.iteritems() }
+            info["targets"] = { k : v for k, v in self.targets.items() }
         if self.set_name:
             info["set_name"] = self.set_name
         if self.comment:
@@ -43,7 +43,7 @@ class SpatsCase(object):
             info["r1_quality"] = self.r1_quality
             info["r2_quality"] = self.r2_quality
         if self.expect:
-            info["expect"] = { k : v for k, v in self.expect.iteritems() }
+            info["expect"] = { k : v for k, v in self.expect.items() }
         if self.comment:
             info["comment"] = self.comment
         return info
@@ -70,7 +70,7 @@ class SpatsCaseSet(object):
         for case in self.tests:
             if case.id == case_id:
                 clone = case.clone()
-                for k, v in self.run_opts.iteritems():
+                for k, v in self.run_opts.items():
                     if k not in clone.run_opts:
                         clone.run_opts[k] = v
                 for t in self.targets:
@@ -87,7 +87,7 @@ class SpatsCaseRegistry(object):
         self.testfile = path or os.path.join(os.path.dirname(__file__), "tests.json")
         self.tests = json.loads(open(self.testfile, 'r').read())
         self.testsets = [ SpatsCaseSet(self, d) for d in self.tests["tests"] ]
-        self.targets = { str(key) : str(val) for key, val in self.tests["targets"].iteritems() }
+        self.targets = { str(key) : str(val) for key, val in self.tests["targets"].items() }
 
     def extract_case(self, case_id):
         for testset in self.testsets:
@@ -220,7 +220,7 @@ class TestHarness:
 
         def spats_setUp(self, spatso):
             self.algorithms = [ "find_partial", "lookup" ]
-            for key, value in self.testset.run_opts.iteritems():
+            for key, value in self.testset.run_opts.items():
                 if key == 'algorithms':
                     self.algorithms = value
                 else:
@@ -292,7 +292,7 @@ class TestHarness:
                         self.assertTrue(not pair.r2.indels, msg + "unexpected R2 indels: {}".format(r2inds))
 
             if 'counters' in expects:
-                for counter, value in expects['counters'].iteritems():
+                for counter, value in expects['counters'].items():
                     self.assertEqual(getattr(self.spats.counters, str(counter)), value, msg + "counter '{}' value off: expected={} != got={}".format(counter, value, getattr(self.spats.counters, counter)))
 
             if 'pair.target' in expects:

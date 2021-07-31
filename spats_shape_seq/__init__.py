@@ -52,7 +52,7 @@ This can be later loaded using the :meth:`.spats.Spats.load` method.
 """
 
 
-from spats import Spats
+from .spats import Spats
 
 
 _VERSION = "2.0.5"

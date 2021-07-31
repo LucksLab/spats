@@ -44,8 +44,8 @@
 #   fast. see _try_lookup_hit() below for details.
 #
 
-from processor import PairProcessor, Failures
-from util import _warn, _debug, reverse_complement, string_match_errors
+from .processor import PairProcessor, Failures
+from .util import _warn, _debug, reverse_complement, string_match_errors
 
 class LookupProcessor(PairProcessor):
 

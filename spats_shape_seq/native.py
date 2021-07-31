@@ -1,7 +1,7 @@
 import ast
 import os
 import subprocess
-from processor import PairProcessor, Failures
+from .processor import PairProcessor, Failures
 
 # wrapper for unit-testing the native code. extremely slow for anything but the smallest datasets.
 class CotransNativeProcessor(PairProcessor):

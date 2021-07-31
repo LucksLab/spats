@@ -44,7 +44,7 @@ class Mask(object):
     def matches(self, seq):
         # raises if len(seq) < len(self.values)
         maskvals = self.values
-        for i in xrange(len(maskvals)):
+        for i in range(len(maskvals)):
             seqval = char_to_mask[seq[i]]
             if 0 == (seqval & maskvals[i]):
                 return False

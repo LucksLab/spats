@@ -61,7 +61,7 @@ class SpatsTool(object):
         self.metadata = config.get('metadata', {})
 
     def _module_path(self):
-        return os.path.dirname(spats_shape_seq.__file__)
+        return os.path.dirname(__file__)
 
     def _spats_path(self):
         return os.path.normpath(os.path.join(self._module_path(), ".."))
@@ -389,7 +389,7 @@ class SpatsTool(object):
     def _update_run_config(self, run, dictionary = None):
         custom_config = False
         sentinel = '_-=*< sEnTiNeL >*-=_'
-        for key, value in self.config.iteritems():
+        for key, value in self.config.items():
             if key in [ "r1", "r2", "r1_plus", "r2_plus", "r1_minus", "r2_minus", "preseq", "target", "cotrans" ]:
                 continue
             if sentinel != getattr(run, key, sentinel):
@@ -421,7 +421,7 @@ class SpatsTool(object):
 
     def _notebook(self):
         try:
-            import spats_shape_seq.nbutil as nbutil
+            from . import nbutil
         except:
             return None
         nb = nbutil.Notebook(os.path.join(self.path, 'spats.ipynb'))
@@ -646,7 +646,7 @@ class SpatsTool(object):
             for key in profiles.cotrans_keys():
                 end = int(key.split('_')[-1])
                 prof = profiles.profilesForTargetAndEnd(tgt.name, end)
-                for i in xrange(end + 1):
+                for i in range(end + 1):
                     if 0 == prof.treated[i] and 0 == prof.untreated[i]:
                         sites_missing_reads.append( (tgt, end, i) )
                     datapt = [ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i] ]
@@ -692,7 +692,7 @@ class SpatsTool(object):
                 end = len(tgt.seq)
                 prof = profiles.profilesForTarget(tgt)
                 data = []
-                for i in xrange(end + 1):
+                for i in range(end + 1):
                     if 0 == prof.treated[i] and 0 == prof.untreated[i]:
                         sites_missing_reads.append( (tgt, end, i) )
                     datapt = [ end, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i] ]
@@ -762,7 +762,7 @@ class SpatsTool(object):
                 cval = prof.c_thresh
                 seq = "{}_{}nt".format(tgt.name, end)
                 data = []
-                for i in xrange(end + 1):
+                for i in range(end + 1):
                     datapt = [ seq, rt_start, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i] ]
                     if not i:
                         datapt += [ '-', '-', cval ]
@@ -800,7 +800,7 @@ class SpatsTool(object):
                 prof = profiles.profilesForTarget(tgt)
                 data = []
                 rt_start = end - 1
-                for i in xrange(end):
+                for i in range(end):
                     datapt = [ tgt.name, rt_start, i, tseq[i - 1] if i else '*', prof.treated[i], prof.untreated[i] ]
                     if not i:
                         datapt += [ '-', '-', prof.c ]
@@ -894,8 +894,8 @@ class SpatsTool(object):
 
     def compare(self):
 
-        from spats_shape_seq import Spats
-        from spats_shape_seq.pair import Pair
+        from .spats import Spats
+        from .pair import Pair
 
         json_base = { 'target' : self.config['target'], 'config' : { 'algorithm' : 'find_partial', 'debug' : True }, 'expect' : {}}
 
@@ -952,8 +952,8 @@ class SpatsTool(object):
         print(spats_lookup._report_counts())
 
     def _test_case_registry(self):
-        import spats_shape_seq.tests.test_harness
-        return spats_shape_seq.tests.test_harness.registry()
+        from .tests import test_harness
+        return test_harness.registry()
 
     def extract_case(self):
         """Extracts a test case from the registry.
@@ -1009,7 +1009,7 @@ class SpatsTool(object):
         """Shows the diagram and result for analysis of a test case pair.
         """
 
-        import spats_shape_seq.tests.test_harness
+        from .tests import test_harness
         self._skip_log = True
 
         if not self._command_args:
@@ -1017,14 +1017,14 @@ class SpatsTool(object):
 
         test_case_file = self._command_args[0]
         test_case_dict = json.loads(open(test_case_file, 'r').read())
-        test_case = spats_shape_seq.tests.test_harness.SpatsCase(test_case_dict)
+        test_case = test_harness.SpatsCase(test_case_dict)
         self._show_case(test_case)
 
 
     def _show_case(self, test_case):
 
-        from spats_shape_seq import Spats
-        from spats_shape_seq.diagram import diagram
+        from .spats import Spats
+        from .diagram import diagram
 
         alg = test_case.run_opts.get('algorithm')
         algs = [ alg ] if alg else test_case.run_opts.get('algorithms', [ 'find_partial', 'lookup' ])
@@ -1041,7 +1041,7 @@ class SpatsTool(object):
                     raise Exception('Invalid run_opt: {}'.format(key))
                 setattr(spats.run, key, value)
 
-            for name, seq in test_case.targets.iteritems():
+            for name, seq in test_case.targets.items():
                 spats.addTarget(name, seq)
 
             pair = test_case.pair()
@@ -1091,7 +1091,7 @@ class SpatsTool(object):
                             elif pair.r2.indels:
                                 raise Exception("unexpected R2 indels:  pair.r2.indels={}".format(r2inds))
                         if 'counters' in expects:
-                            for counter, value in expects['counters'].iteritems():
+                            for counter, value in expects['counters'].items():
                                 if getattr(spats.counters, str(counter)) != value:
                                     raise Exception("counter '{}' value off: expected={} != got={}".format(counter, value, getattr(spats.counters, counter)))
                         if 'pair.target' in expects:

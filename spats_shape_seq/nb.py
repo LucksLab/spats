@@ -4,10 +4,10 @@
 #  from spats_shape_seq.nb import *
 
 import spats_shape_seq as _spats
-import db as _spats_db
-import matrix as _matrix
-import nbutil as _nbutil
-import util as _spats_util
+from . import db as _spats_db
+from . import matrix as _matrix
+from . import nbutil as _nbutil
+from . import util as _spats_util
 
 colors = _spats_util.Colors()
 

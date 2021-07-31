@@ -1,11 +1,11 @@
 
 import string
 
-from target import _Target
-from util import reverse_complement
+from .target import _Target
+from .util import reverse_complement
 
 
-indeterminate_translator = string.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ"," ! !!! !!!!!!!!!!!! !!!!!!")
+indeterminate_translator = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ"," ! !!! !!!!!!!!!!!! !!!!!!")
 
 def sp(n, bit = " "):
     return bit * n

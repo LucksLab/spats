@@ -1,6 +1,6 @@
 
-from mask import longest_match
-from util import reverse_complement, _debug, _warn
+from .mask import longest_match
+from .util import reverse_complement, _debug, _warn
 
 class _Target(object):
 
@@ -51,7 +51,7 @@ class Targets(object):
         for target in self.targets:
             seq = target.seq
             n = target.n
-            for i in xrange(n - word_len + 1):
+            for i in range(n - word_len + 1):
                 key = seq[i:(i + word_len)]
                 sites = index.get(key)
                 if not sites:
@@ -190,7 +190,7 @@ class Targets(object):
         check_every = max(min_len - word_len, 1) # norah has proved that this guarantees finding a match if it exists
         query_len = len(query)
         last = query_len - max(check_every, word_len)
-        check_sites = range(0, last, check_every)
+        check_sites = list(range(0, last, check_every))
         check_sites.append(last)
         candidate = [None, None, None, None]
         # NOTE: it's important to check all sites, and all hits -- to find the longest match.
@@ -241,9 +241,9 @@ class Targets(object):
         masklen = 4    # TODO
         r1_match_len = pair_len - masklen
 
-        for end in xrange(minimum_target_length, tlen + 1):
+        for end in range(minimum_target_length, tlen + 1):
             target_subseq = tseq[:end]
-            for i in xrange(0, r1_match_len - linker_len - minimum_target_length + 1):
+            for i in range(0, r1_match_len - linker_len - minimum_target_length + 1):
                 tstart = i - (r1_match_len - linker_len)
                 if tstart + end < 0:
                     continue
@@ -256,7 +256,7 @@ class Targets(object):
 
                 if run.count_mutations:
                     bit_len = len(target_bit)
-                    for toggle_idx in xrange(bit_len):
+                    for toggle_idx in range(bit_len):
                         for nt in [ 'A', 'C', 'G', 'T' ]:
                             if target_bit[toggle_idx] == nt:
                                 continue
@@ -297,7 +297,7 @@ class Targets(object):
             rc_tgt = reverse_complement(target.seq)
             rc_dumbbell = reverse_complement(dumbbell) if dumbbell else None
             tcandidates = 0
-            for i in xrange(1, length + 1):
+            for i in range(1, length + 1):
                 if rc_dumbbell:
                     if length - i <= len(rc_dumbbell):
                         r1_candidate = rc_tgt[:i] + rc_dumbbell[:length - i]
@@ -313,7 +313,7 @@ class Targets(object):
                     r1_table[r1_candidate] = [ res ]
                 tcandidates += 1
                 if mutations:
-                    for toggle_idx in xrange(i):
+                    for toggle_idx in range(i):
                         for nt in [ 'A', 'C', 'G', 'T' ]:
                             if r1_candidate[toggle_idx] == nt:
                                 continue
@@ -380,7 +380,7 @@ class Targets(object):
             r2_match_lengths[target.name] = mlen
             tlen = target.n
             tgt_seq = target.seq
-            for i in xrange(tlen - mlen + 1):
+            for i in range(tlen - mlen + 1):
                 if dumbbell:
                     r2_candidate = dumbbell + tgt_seq[i:i+mlen-len(dumbbell)]
                 else:
@@ -391,7 +391,7 @@ class Targets(object):
 
                 if mutations:
                     bit_len = len(r2_candidate)
-                    for toggle_idx in xrange(bit_len):
+                    for toggle_idx in range(bit_len):
                         for nt in [ 'A', 'C', 'G', 'T' ]:
                             if r2_candidate[toggle_idx] == nt:
                                 continue

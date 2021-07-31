@@ -4,8 +4,7 @@ import os
 import struct
 from sys import version_info
 
-import spats_shape_seq
-from mask import match_mask_optimized, Mask
+from .mask import match_mask_optimized, Mask
 
 
 # not currently used in spats, but potentially useful for tools
@@ -322,10 +321,11 @@ class SamWriter(object):
         self._write_header(targets)
 
     def _write_header(self, targets):
+        from . import _VERSION
         self.sam_out.write('@HD	VN:1.0	SO:unsorted\n')
         for t in targets:
             self.sam_out.write('@SQ	SN:{}	LN:{}\n'.format(t.name, t.n))
-        self.sam_out.write('@PG	ID:spats_shape_seq	VN:{}	CL:"spats_tool run"\n'.format(spats_shape_seq._VERSION))
+        self.sam_out.write('@PG	ID:spats_shape_seq	VN:{}	CL:"spats_tool run"\n'.format(_VERSION))
 
     def write(self, pair):
         qname = pair.identifier

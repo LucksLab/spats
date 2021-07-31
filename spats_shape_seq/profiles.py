@@ -1,6 +1,6 @@
 
 import math
-from mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
+from .mask import PLUS_PLACEHOLDER, MINUS_PLACEHOLDER
 
 
 class Profiles(object):
@@ -21,13 +21,13 @@ class Profiles(object):
         for target in self._targets.targets:
             n = len(target.seq)
             if run.cotrans:
-                for end in xrange(run.cotrans_minimum_length, n + 1):
+                for end in range(run.cotrans_minimum_length, n + 1):
                     profiles["{}_{}".format(target.name, end)] = self._createProfile(target, end)
             else:
                 p = self._createProfile(target, n)
                 if run.allow_multiple_rt_starts:
                     # We need to "stitch together" stats from all ends...
-                    for end in xrange(n):
+                    for end in range(n):
                         self._addToProfile(p, target, end)
                 profiles[target.name] = p
         self._profiles = profiles
@@ -58,11 +58,11 @@ class Profiles(object):
     @staticmethod
     def _addToVect(vect, vtoadd, extend = False):
         overlapped = min(len(vect), len(vtoadd))
-        for i in xrange(overlapped):
+        for i in range(overlapped):
             vect[i] += vtoadd[i]
         if len(vtoadd) > len(vect):
             vect += [0] * (len(vtoadd) - len(vect))
-            for i in xrange(overlapped, len(vtoadd)):
+            for i in range(overlapped, len(vtoadd)):
                 vect[i] += vtoadd[i]
 
     def _addToProfile(self, p, target, end):
@@ -111,9 +111,9 @@ class Profiles(object):
 
     def cotrans_data(self):
         if self._cotrans:
-            return [ (int(key.split('_')[-1]), prof.data()) for key, prof in self._profiles.iteritems() ]
+            return [ (int(key.split('_')[-1]), prof.data()) for key, prof in self._profiles.items() ]
         else:
-            return [ (len(prof.data()["t"]) - 1, prof.data()) for key, prof in self._profiles.iteritems() ]
+            return [ (len(prof.data()["t"]) - 1, prof.data()) for key, prof in self._profiles.items() ]
 
     def cotrans_keys(self):
         return sorted(self._profiles.keys(), key = lambda x : int(x.split('_')[-1]))
@@ -231,9 +231,9 @@ class TargetProfiles(object):
         treated_depths = self.treated_depths
         untreated_depths = self.untreated_depths
         n = len(treated_counts) - 1
-        betas = [ 0 for x in xrange(n+1) ]
-        thetas = [ 0 for x in xrange(n+1) ]
-        z = [ 0 for x in xrange(n+1) ]
+        betas = [ 0 for x in range(n+1) ]
+        thetas = [ 0 for x in range(n+1) ]
+        z = [ 0 for x in range(n+1) ]
         running_c_sum = 0.0
         running_c_thresh_sum = 0.0
 
@@ -252,7 +252,7 @@ class TargetProfiles(object):
         #  // strand.  This convention differs from the paper, where we refer to 
         #  // the 5'-most base as index n, and the 3'-most base as index 1.
 
-        for k in xrange(n):
+        for k in range(n):
             X_k = float(treated_counts[k])
             Y_k = float(untreated_counts[k])
             try:
@@ -277,7 +277,7 @@ class TargetProfiles(object):
 
         c_thresh = running_c_thresh_sum
         c_factor = 1.0 / c_thresh if c_thresh else 1.0
-        for k in xrange(n+1):
+        for k in range(n+1):
             thetas[k] = max(c_factor * thetas[k], 0)
         self.betas = betas
         self.thetas = thetas
@@ -308,9 +308,9 @@ class TargetProfiles(object):
         untreated_quality_depths = self.untreated_quality_depths
 
         n = len(treated_counts) - 1
-        mu = [ 0 for x in xrange(n+1) ]
-        r_mut = [ 0 for x in xrange(n+1) ]
-        z = [ 0 for x in xrange(n+1) ]
+        mu = [ 0 for x in range(n+1) ]
+        r_mut = [ 0 for x in range(n+1) ]
+        z = [ 0 for x in range(n+1) ]
         running_c_sum = 0.0
         c_inf = False
         running_c_thresh_sum = 0.0
@@ -322,7 +322,7 @@ class TargetProfiles(object):
         # \sum_{i=j}^{n+1}, in the code we use \sum_{i=0}^{j+1}, and
         # this is intentional.
 
-        for j in xrange(n):
+        for j in range(n):
 
             # mut_j^+ - Only one of { mut, insert, delete } is currently possible at a site per pair
             mut_j_t = 0
@@ -398,7 +398,7 @@ class TargetProfiles(object):
     def write(self, outfile):
         n = len(self.treated_counts)
         format_str = "{name}\t{rt}\t".format(name = self._target.name, rt = n - 1) + "{i}\t{nuc}\t{tm}\t{um}\t{b}\t{th}" + "\t{c:.5f}\n".format(c = self.c_thresh)
-        for i in xrange(n):
+        for i in range(n):
             outfile.write(format_str.format(i = i,
                                             nuc = self._target.seq[i - 1] if i > 0 else '*',
                                             tm = self.treated_counts[i],

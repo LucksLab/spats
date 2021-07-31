@@ -1,6 +1,4 @@
 
-import string
-
 _debug_run = None
 
 def _set_debug(run):
@@ -19,7 +17,7 @@ def min_element(l, base = 0):
     ''' @return pair containing the index and value respectively of the minimum element of list l '''
     return min(enumerate(l, base), key=lambda x:x[1])
 
-rev_comp_complementor = string.maketrans("ATCGatcg", "TAGCtagc")
+rev_comp_complementor = str.maketrans("ATCGatcg", "TAGCtagc")
 
 def reverse_complement(seq):
     return str(seq).translate(rev_comp_complementor)[::-1]
@@ -43,7 +41,7 @@ def string_find_with_overlap(needle, haystack):
 # hamming distance with tracking and shortcut-out
 def string_match_errors(substr, target_str, max_errors = None):
     errors = []
-    for i in xrange(min(len(substr), len(target_str))):
+    for i in range(min(len(substr), len(target_str))):
         if substr[i] != target_str[i]:
             errors.append(i)
             if max_errors and len(errors) >= max_errors:
@@ -57,7 +55,7 @@ def _slow_string_find_errors(substr, target_str, max_errors = 2, max_indices = 2
         raise Exception("more errors allowed than len of substr being sought!")
     result = []
     ls = len(substr)
-    for t in xrange(len(target_str) - ls + 1):
+    for t in range(len(target_str) - ls + 1):
         num_errors = 0
         s = 0
         while s < ls:
@@ -128,11 +126,11 @@ def string_edit_distance(s1, s2, substitution_cost = 2, insert_delete_cost = 1):
     if 1 == max_possible:
         assert(False)
         return 0, max_possible
-    prev_row = [j for j in xrange(n)]
+    prev_row = [j for j in range(n)]
     cur_row = [0] * n
-    for i in xrange(1, m):
+    for i in range(1, m):
         cur_row[0] = i
-        for j in xrange(1, n):
+        for j in range(1, n):
             cur_row[j] = prev_row[j-1] if s1[i-1] == s2[j-1] else min(insert_delete_cost + min(prev_row[j], cur_row[j-1]), substitution_cost + prev_row[j-1])
         cur_row, prev_row = prev_row, cur_row
     return prev_row[n-1], max_possible
@@ -159,16 +157,16 @@ def string_edit_distance2(s1, s2, substitution_cost = 2, insert_delete_cost = 1)
         assert(False)
         return 0, max_possible, 0
 
-    prev_row = [j for j in xrange(n)]
+    prev_row = [j for j in range(n)]
     cur_row = [0] * n
-    B = [[0 for j in xrange(n)] for i in xrange(m)]
-    for j in xrange(n):
+    B = [[0 for j in range(n)] for i in range(m)]
+    for j in range(n):
         B[0][j] = 2
 
-    for i in xrange(1, m):
+    for i in range(1, m):
         cur_row[0] = i
         B[i][0] = 1
-        for j in xrange(1, n):
+        for j in range(1, n):
             if s1[i-1] == s2[j-1]:
                 cur_row[j] = prev_row[j-1]
             else:
@@ -301,7 +299,7 @@ class Alignment:
         self.src_match_start, self.src_match_end = slen - self.src_match_end - 1, slen - self.src_match_start - 1
         self.mismatched = [ (tlen - m - 1) for m in self.mismatched ]
         newindels = {}
-        for i, indel in self.indels.iteritems():
+        for i, indel in self.indels.items():
             indel.seq = indel.seq[::-1]
             if indel.insert_type:
                 indel.src_index = slen - indel.src_index - len(indel.seq)
@@ -332,8 +330,8 @@ def align_strings(source, target, params = AlignmentParams()):
     m = len(source) + 1
     n = len(target) + 1
 
-    H = [[0.0]*n for r in xrange(m)]
-    P = [[(0, 0)]*n for r in xrange(m)]
+    H = [[0.0]*n for r in range(m)]
+    P = [[(0, 0)]*n for r in range(m)]
 
     simfn = params.simfn
     gap_open_cost = params.gap_open_cost
@@ -345,11 +343,11 @@ def align_strings(source, target, params = AlignmentParams()):
     maxs = [0, 0]
     colmax = [0.0]*n
     colmaxi = [0]*n
-    for i in xrange(1, m):
+    for i in range(1, m):
         imo = i -1
         Hi = H[i]
         rowmax, rowmaxj = 0.0, 0
-        for j in xrange(1, n):
+        for j in range(1, n):
             jmo = j - 1
             h = H[imo][jmo] + simfn(source[imo], target[jmo])
             h2 = colmax[j] - gap_open_cost - gap_extend_cost * (imo - colmaxi[j])
