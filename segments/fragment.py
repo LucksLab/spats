@@ -267,6 +267,7 @@ class FragmentMaker(LoggingClass):
                     if not _speedup:
                         self.debug(" added error: {} / {}".format(errors, gap.json()), qs, ss, queryChars[qs:qs + 4], segChars[ss:ss+4])
                     if len(errors) > (self.maxAllowedErrors + self.maxResolvedErrors):
+                        frag.errors = errors
                         frag.failure = Failures.overlapErrors
                         return frag
 

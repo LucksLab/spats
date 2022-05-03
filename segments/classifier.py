@@ -25,3 +25,6 @@ class Classifier(LoggingClass):
 
     def saveReads(self, key):
         pass
+
+    def getBarcode(self, fr):
+        return None

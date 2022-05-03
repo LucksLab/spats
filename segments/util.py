@@ -1,6 +1,7 @@
 
 import json
 import os
+import shutil
 
 from .logging import LoggingClass
 from . import model as M, fs
@@ -964,3 +965,9 @@ def csvAtPath(path, expectSameRowCounts = True, csvStr = None):
 
 def writeCsvToPath(rows, path, skipQuotes = False):
     writeDataToFileAtPath(csvForRows(rows, skipQuotes = skipQuotes), path)
+
+def movePath(srcPath, dstPath, ignoreExisting = False):
+    assert(os.path.exists(srcPath))
+    if not ignoreExisting:
+        assert(not os.path.exists(dstPath)) # pass ignoreExisting = True
+    shutil.move(srcPath, dstPath)
