@@ -328,7 +328,7 @@ class FragmentSetProcessor(LoggingClass):
                     self.classifier.counters.reset()
                 res = handler(r1s, r2s)
             except:
-                self.warn("Error @{}".format(r1s.sequenceId))
+                self.warn("Error {}/@{}".format(self.key, r1s.sequenceId))
                 raise
             if not res:
                 assert(self.skipCacheHits or self.barcodePruneSelectFirst or g_indeterminatesOnly)

@@ -196,16 +196,17 @@ class FragmentMaker(LoggingClass):
                 return frag
 
         contained = False
-        if (overlap == len(left)) or (overlap == len(right)):
+        if (frag.overlap >= len(left)) or (frag.overlap >= len(right)):
             # case where R1/R2 is contained in the other
             contained = True
             if not self.allowContained:
                 frag.failure = Failures.contained
                 return frag
-            frag.overlap = overlap
-            if overlap == len(left):
+            if overlap >= len(left):
+                frag.overlap = len(left)
                 frag.seq.characters = right
             else:
+                frag.overlap = len(right)
                 frag.seq.characters = left
 
         assert(len(frag.seq.characters) == len(left) + len(right) - frag.overlap)
