@@ -23,6 +23,7 @@ class FragmentMaker(LoggingClass):
         self.maxResolvedErrors = 10
         self.handleIndels = False
         self.allowIndeterminate = False # LL EXP 6: True
+        self.allowContained = False # Barcode "First Batch - Bad-20220629"
         self.allowNonOverlapping = True
         self._qualityWarned = False
         self._fastHits = self._slowHits = self._noHits = 0
@@ -194,6 +195,19 @@ class FragmentMaker(LoggingClass):
                 frag.failure = Failures.noOverlap
                 return frag
 
+        contained = False
+        if (overlap == len(left)) or (overlap == len(right)):
+            # case where R1/R2 is contained in the other
+            contained = True
+            if not self.allowContained:
+                frag.failure = Failures.contained
+                return frag
+            frag.overlap = overlap
+            if overlap == len(left):
+                frag.seq.characters = right
+            else:
+                frag.seq.characters = left
+
         assert(len(frag.seq.characters) == len(left) + len(right) - frag.overlap)
         if not _speedup:
             self.debug("after left/right:\n" + FragmentDiagram(frag).make())
@@ -262,6 +276,9 @@ class FragmentMaker(LoggingClass):
                 frag.failure = Failures.indelsInFragment
                 return frag
             for i in range(gapSize):
+                if (qs + i >= len(queryChars)) or (ss + i >= len(segChars)):
+                    assert(contained) # should only ever happen here
+                    break
                 if queryChars[qs + i] != segChars[ss + i]:
                     errors.append(min(qs, ss) + i)
                     if not _speedup:

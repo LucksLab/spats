@@ -7,6 +7,7 @@ class Failures(object):
         "fragment" : "failed to create fragment",
         "indelsInFragment" : "fragment overlap has indels",
         "noOverlap" : "no overlap",
+        "contained" : "one of R1/R2 is contained in the other",
         "overlapErrors" : "overlap alignment failed",
         "indeterminate" : "indeterminate sequence",
 

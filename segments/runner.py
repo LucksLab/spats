@@ -47,3 +47,10 @@ class Runner(object):
             proc.run()
             proc.saveResults()
             proc.classifier.saveReads(key)
+
+    def show(self, key, sequenceId):
+        proc = FragmentSetProcessor(self.experiment, FragmentSet(key))
+        proc.debugMode()
+        res = proc.resultWithId(int(sequenceId))
+        print("\n" + proc.diagram(res))
+        print(proc.classifier.counters._counts)
