@@ -202,7 +202,7 @@ class FragmentMaker(LoggingClass):
             if not self.allowContained:
                 frag.failure = Failures.contained
                 return frag
-            if overlap >= len(left):
+            if frag.overlap >= len(left):
                 frag.overlap = len(left)
                 frag.seq.characters = right
             else:
