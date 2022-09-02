@@ -20,6 +20,10 @@ class FragmentSet(LoggingClass):
             self._singleFragment = None
             self.r1Path = r1 or os.path.join(path or ".", "{}_r1.fastq".format(key))
             self.r2Path = r2 or os.path.join(path or ".", "{}_r2.fastq".format(key))
+            if not os.path.exists(self.r1Path):
+                self.r1Path = self.r1Path.replace('_r1.', '_R1.')
+            if not os.path.exists(self.r2Path):
+                self.r2Path = self.r2Path.replace('_r2.', '_R2.')
             if (not os.path.exists(self.r1Path)) or (not os.path.exists(self.r2Path)):
                 raise Exception("Could not locate R1/R2 at {}/{}".format(self.r1Path, self.r2Path))
             self.batchSize = 131072
